@@ -1,2 +1,2 @@
 # wncms-core
-Wncms core package
+Wncms core package v5
