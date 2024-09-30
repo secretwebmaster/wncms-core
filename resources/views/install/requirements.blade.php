@@ -1,11 +1,11 @@
 @extends('wncms::layouts.install')
 
 @section('template_title')
-    {{ trans('installer_messages.requirements.templateTitle') }}
+    {{ trans('installer.requirements.templateTitle') }}
 @endsection
 
 @section('title')
-    {{ trans('installer_messages.requirements.title') }}
+    {{ trans('installer.requirements.title') }}
 @endsection
 
 @section('container')
@@ -26,7 +26,7 @@
                     </span>
                 @elseif($type == 'php_functions')
                     <strong>
-                        <small>(@lang('wncms::installer_messages.please_enable_these_php_functions'))</small>
+                        <small>(@lang('wncms::installer.please_enable_these_php_functions'))</small>
                     </strong>
                 @endif
             </li>
@@ -43,7 +43,7 @@
     @if ( ! isset($requirements['errors']) && $phpSupportInfo['supported'] )
         <div class="buttons">
             <a class="button" href="{{ route('installer.permissions') }}">
-                {{ trans('installer_messages.requirements.next') }}
+                {{ trans('installer.requirements.next') }}
                 <i class="fa fa-angle-right fa-fw" aria-hidden="true"></i>
             </a>
         </div>

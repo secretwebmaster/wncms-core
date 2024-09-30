@@ -5,7 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>@if (trim($__env->yieldContent('template_title')))@yield('template_title') | @endif {{ trans('installer_messages.title') }}</title>
+        <title>@if (trim($__env->yieldContent('template_title')))@yield('template_title') | @endif {{ trans('installer.title') }}</title>
         <link rel="icon" type="image/png" href="{{ asset('wncms/images/logos/favicon.png') }}" sizes="16x16"/>
         <link rel="icon" type="image/png" href="{{ asset('wncms/images/logos/favicon.png') }}" sizes="32x32"/>
         <link rel="icon" type="image/png" href="{{ asset('wncms/images/logos/favicon.png') }}" sizes="96x96"/>
@@ -125,7 +125,7 @@
                             </button>
                             <h4>
                                 <i class="fa fa-fw fa-exclamation-triangle" aria-hidden="true"></i>
-                                {{ trans('installer_messages.forms.errorTitle') }}
+                                {{ trans('installer.forms.errorTitle') }}
                             </h4>
                             <ul>
                                 @foreach($errors->all() as $error)

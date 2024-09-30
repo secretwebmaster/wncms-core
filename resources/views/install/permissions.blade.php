@@ -1,12 +1,12 @@
 @extends('wncms::layouts.install')
 
 @section('template_title')
-    {{ trans('installer_messages.permissions.templateTitle') }}
+    {{ trans('installer.permissions.templateTitle') }}
 @endsection
 
 @section('title')
     {{-- <i class="fa fa-key fa-fw" aria-hidden="true"></i> --}}
-    {{ trans('installer_messages.permissions.title') }}
+    {{ trans('installer.permissions.title') }}
 @endsection
 
 @section('container')
@@ -26,7 +26,7 @@
     @if ( ! isset($permissions['errors']))
         <div class="buttons">
             <a href="{{ route('installer.wizard') }}" class="button">
-                {{ trans('installer_messages.permissions.next') }}
+                {{ trans('installer.permissions.next') }}
                 <i class="fa fa-angle-right fa-fw" aria-hidden="true"></i>
             </a>
         </div>

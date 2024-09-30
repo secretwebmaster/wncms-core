@@ -1,12 +1,12 @@
 @extends('wncms::layouts.install')
 
 @section('template_title')
-    {{ trans('installer_messages.final.templateTitle') }}
+    {{ trans('installer.final.templateTitle') }}
 @endsection
 
 @section('title')
     {{-- <i class="fa fa-flag-checkered fa-fw" aria-hidden="true"></i> --}}
-    {{ trans('installer_messages.final.title') }}
+    {{ trans('installer.final.title') }}
 @endsection
 
 @section('container')
