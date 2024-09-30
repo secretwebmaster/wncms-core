@@ -10,21 +10,21 @@ use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 /**
- * @method \Wncms\Services\Wncms\Managers\AdvertisementManager advertisement()
- * @method \Wncms\Services\Wncms\Managers\AnalyticsManager analytics()
- * @method \Wncms\Services\Wncms\Managers\BannerManager banner()
- * @method \Wncms\Services\Wncms\Managers\CacheManager cache()
- * @method \Wncms\Services\Wncms\Managers\ContactFormManager contactForm()
- * @method \Wncms\Services\Wncms\Managers\CustomManager custom()
- * @method \Wncms\Services\Wncms\Managers\MenuManager menu()
- * @method \Wncms\Services\Wncms\Managers\ModelManager model()
- * @method \Wncms\Services\Wncms\Managers\PageManager page()
- * @method \Wncms\Services\Wncms\Managers\PostManager post()
- * @method \Wncms\Services\Wncms\Managers\SettingManager systemSetting()
- * @method \Wncms\Services\Wncms\Managers\TagManager tag()
- * @method \Wncms\Services\Wncms\Managers\UserManager user()
- * @method \Wncms\Services\Wncms\Managers\VideoManager video()
- * @method \Wncms\Services\Wncms\Managers\WebsiteManager website()
+ * @method \Wncms\Services\\Managers\AdvertisementManager advertisement()
+ * @method \Wncms\Services\\Managers\AnalyticsManager analytics()
+ * @method \Wncms\Services\\Managers\BannerManager banner()
+ * @method \Wncms\Services\\Managers\CacheManager cache()
+ * @method \Wncms\Services\\Managers\ContactFormManager contactForm()
+ * @method \Wncms\Services\\Managers\CustomManager custom()
+ * @method \Wncms\Services\\Managers\MenuManager menu()
+ * @method \Wncms\Services\\Managers\ModelManager model()
+ * @method \Wncms\Services\\Managers\PageManager page()
+ * @method \Wncms\Services\\Managers\PostManager post()
+ * @method \Wncms\Services\\Managers\SettingManager systemSetting()
+ * @method \Wncms\Services\\Managers\TagManager tag()
+ * @method \Wncms\Services\\Managers\UserManager user()
+ * @method \Wncms\Services\\Managers\VideoManager video()
+ * @method \Wncms\Services\\Managers\WebsiteManager website()
  */
 class Wncms
 {
@@ -462,7 +462,7 @@ class Wncms
             return $this->helpers[$helper];
         }
         
-        $class = 'Wncms\Services\Wncms\Managers\\' . ucfirst(str($helper)->camel()) . "Manager";
+        $class = 'Wncms\Services\\Managers\\' . ucfirst(str($helper)->camel()) . "Manager";
         
         if (class_exists($class)) {
             return new $class($this, ...$args);
