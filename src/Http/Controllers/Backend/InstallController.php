@@ -84,7 +84,7 @@ class InstallController extends Controller
         // check env variables
         $rules = config('installer.environment.form.rules');
         $messages = [
-            'environment_custom.required_if' => trans('installer_messages.environment.wizard.form.name_required'),
+            'environment_custom.required_if' => __('wncms::installer.environment.wizard.form.name_required'),
             'database_name.required' => __('wncms::word.database_name') . ' ' . __('wncms::word.required'),
             'database_username.required' => __('wncms::word.database_user') . ' ' . __('wncms::word.required'),
             'database_password.required' => __('wncms::word.database_password') . ' ' . __('wncms::word.required'),
@@ -103,7 +103,7 @@ class InstallController extends Controller
         if (!$connectedToDatabase) {
             return response()->json([
                 'status' => 'fail',
-                'message' => trans('installer_messages.environment.wizard.form.db_connection_failed'),
+                'message' => __('wncms::installer.environment.wizard.form.db_connection_failed'),
             ]);
         }
 
@@ -237,9 +237,9 @@ class InstallController extends Controller
 
         try {
             file_put_contents(base_path('.env'), $envFileData);
-            $results = trans('installer_messages.environment.success');
+            $results = __('wncms::installer.environment.success');
         } catch (Exception $e) {
-            $results = trans('installer_messages.environment.errors');
+            $results = __('wncms::installer.environment.errors');
         }
 
         return $results;
@@ -392,10 +392,10 @@ class InstallController extends Controller
         $dateStamp = date('Y-m-d h:i:s');
 
         if (! file_exists($installedLogFile)) {
-            $message = trans('installer_messages.installed.success_log_message').$dateStamp."\n";
+            $message = __('wncms::installer.installed.success_log_message').$dateStamp."\n";
             file_put_contents($installedLogFile, $message);
         } else {
-            $message = trans('installer_messages.updater.log.success_message').$dateStamp;
+            $message = __('wncms::installer.updater.log.success_message').$dateStamp;
             file_put_contents($installedLogFile, $message.PHP_EOL, FILE_APPEND | LOCK_EX);
         }
         return $message;
