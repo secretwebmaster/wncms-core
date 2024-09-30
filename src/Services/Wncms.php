@@ -1,6 +1,6 @@
 <?php
 
-namespace Wncms\Services\Wncms;
+namespace Wncms\Services;
 
 use Wncms\Models\Website;
 use Http;

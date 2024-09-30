@@ -1,6 +1,6 @@
 <?php
 
-namespace Wncms\Services\Wncms\Installer;
+namespace Wncms\Services\Installer;
 
 class PermissionChecker
 {

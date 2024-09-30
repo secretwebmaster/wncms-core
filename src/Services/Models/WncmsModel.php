@@ -1,6 +1,6 @@
 <?php
 
-namespace Wncms\Services\Wncms\Models;
+namespace Wncms\Services\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
