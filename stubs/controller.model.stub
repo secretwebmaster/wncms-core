@@ -1,0 +1,96 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedModel }};
+use {{ rootNamespace }}Http\Controllers\Controller;
+use {{ namespacedRequests }}
+
+class {{ class }} extends Controller
+{
+    public function index(Request $request)
+    {
+        $q = {{ model }}::query();
+        
+        ${{ modelVariable }}s = $q->paginate($request->page_size ?? 100);
+
+        return view('backend.custom.{{ modelVariable }}s.index', [
+            'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
+            '{{ modelVariable }}s' => ${{ modelVariable }}s,
+        ]);
+    }
+
+    public function create({{ model }} ${{ modelVariable }} = null)
+    {
+        ${{ modelVariable }} ??= new {{ model }};
+
+        return view('backend.custom.{{ modelVariable }}s.create', [
+            'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
+            '{{ modelVariable }}' => ${{ modelVariable }},
+        ]);
+    }
+
+    public function store({{ storeRequest }} $request)
+    {
+        dd($request->all());
+
+        ${{ modelVariable }} = {{ model }}::create([
+            'xxxx' => $request->xxxx,
+        ]);
+
+        wncms()->cache()->flush(['{{ modelVariable }}s']);
+
+        return redirect()->route('{{ modelVariable }}s.edit', [
+            '{{ modelVariable }}' => ${{ modelVariable }},
+        ])->withMessage(__('word.successfully_created'));
+    }
+
+    public function edit({{ model }} ${{ modelVariable }})
+    {
+        return view('backend.custom.{{ modelVariable }}s.edit', [
+            'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
+            '{{ modelVariable }}' => ${{ modelVariable }},
+        ]);
+    }
+
+    public function update({{ updateRequest }} $request, {{ model }} ${{ modelVariable }})
+    {
+        dd($request->all());
+
+        ${{ modelVariable }}->update([
+            'xxxx' => $request->xxxx,
+        ]);
+
+        wncms()->cache()->flush(['{{ modelVariable }}s']);
+        
+        return redirect()->route('{{ modelVariable }}s.edit', [
+            '{{ modelVariable }}' => ${{ modelVariable }},
+        ])->withMessage(__('word.successfully_updated'));
+    }
+
+    public function destroy({{ model }} ${{ modelVariable }})
+    {
+        ${{ modelVariable }}->delete();
+        return redirect()->route('{{ modelVariable }}s.index')->withMessage(__('word.successfully_deleted'));
+    }
+
+    public function bulk_delete(Request $request)
+    {
+        if(!is_array($request->model_ids)){
+            $modelIds = explode(",", $request->model_ids);
+        }else{
+            $modelIds = $request->model_ids;
+        }
+
+        $count = {{ model }}::whereIn('id', $modelIds)->delete();
+
+        if($request->ajax()){
+            return response()->json([
+                'status' => 'success',
+                'message' => __('word.successfully_deleted_count', ['count' => $count]),
+            ]);
+        }
+
+        return redirect()->route('{{ modelVariable }}s.index')->withMessage(__('word.successfully_deleted_count', ['count' => $count]));
+    }
+}

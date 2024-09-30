@@ -1,0 +1,1 @@
+common maintainance page if the no have one
