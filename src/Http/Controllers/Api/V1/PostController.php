@@ -8,7 +8,7 @@ use Wncms\Models\User;
 use Wncms\Models\Website;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use LaravelLocalization;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class PostController extends Controller
 {

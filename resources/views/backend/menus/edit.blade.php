@@ -227,7 +227,7 @@
                   
                     {{-- Lang --}}
                     <div class="row">
-                        @foreach(LaravelLocalization::getSupportedLocales() as $locale_key => $locale)
+                        @foreach(wncms()->locale()->getSupportedLocales() as $locale_key => $locale)
                             <div class="col-6">
                                 <div class="mb-3">
                                     <label for="menu_item_name" class="form-label">@lang('word.menu_item_name') <span class="text-muted">({{ $locale['native'] }})</span></label>
@@ -463,16 +463,16 @@
                 // console.log('============')
                 console.log(item);
                 // console.log('============')
-                var item_name = item.name.{{ Laravellocalization::getCurrentLocale() }} != undefined ? item.name.{{ Laravellocalization::getCurrentLocale() }}
-                                : (item.name.{{ Laravellocalization::getDefaultLocale() }} != undefined 
-                                    ? item.name.{{ Laravellocalization::getDefaultLocale() }} 
+                var item_name = item.name.{{ wncms()->locale()->getCurrentLocale() }} != undefined ? item.name.{{ wncms()->locale()->getCurrentLocale() }}
+                                : (item.name.{{ wncms()->locale()->getDefaultLocale() }} != undefined 
+                                    ? item.name.{{ wncms()->locale()->getDefaultLocale() }} 
                                     : item.name);
 
 
                 var item_description = '';
                 if(item.description != undefined){
-                    if(item.description.{{ Laravellocalization::getCurrentLocale() }} != undefined){
-                        item_description = item.description.{{ Laravellocalization::getCurrentLocale() }};
+                    if(item.description.{{ wncms()->locale()->getCurrentLocale() }} != undefined){
+                        item_description = item.description.{{ wncms()->locale()->getCurrentLocale() }};
                         // console.log('found');
                     }else{
                         // console.log('description is not undefined but locale is empty')
@@ -480,12 +480,12 @@
                 }else{
                     // console.log('undefind value found');
                 }
-                // if( item.description.{{ Laravellocalization::getCurrentLocale() }} != undefined )
-                // var item_description = item.description.{{ Laravellocalization::getCurrentLocale() }} != undefined ? item.description.{{ Laravellocalization::getCurrentLocale() }}
-                //             : (item.description.{{ Laravellocalization::getDefaultLocale() }} != undefined 
-                //                 ? item.description.{{ Laravellocalization::getDefaultLocale() }} 
+                // if( item.description.{{ wncms()->locale()->getCurrentLocale() }} != undefined )
+                // var item_description = item.description.{{ wncms()->locale()->getCurrentLocale() }} != undefined ? item.description.{{ wncms()->locale()->getCurrentLocale() }}
+                //             : (item.description.{{ wncms()->locale()->getDefaultLocale() }} != undefined 
+                //                 ? item.description.{{ wncms()->locale()->getDefaultLocale() }} 
                 //                 : item.description);
-                // var item_description = item.description.{{ Laravellocalization::getCurrentLocale() }} || item.description;
+                // var item_description = item.description.{{ wncms()->locale()->getCurrentLocale() }} || item.description;
 
 
 

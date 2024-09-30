@@ -5,7 +5,7 @@ namespace Wncms\Database\Factories;
 use Wncms\Models\Post;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Faker\Factory as FakerFactory;
-use LaravelLocalization;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Wncms\Models\Post>

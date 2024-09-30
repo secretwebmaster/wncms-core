@@ -4,7 +4,7 @@ namespace Wncms\Services\Managers;
 
 use Wncms\Models\Tag;
 use Illuminate\Support\Facades\File;
-use LaravelLocalization;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Str;
 
 class TagManager

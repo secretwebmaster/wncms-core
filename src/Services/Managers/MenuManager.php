@@ -5,7 +5,7 @@ namespace Wncms\Services\Managers;
 use Wncms\Models\Menu;
 use Wncms\Models\MenuItem;
 use Wncms\Models\Website;
-use LaravelLocalization;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class MenuManager
 {

@@ -36,7 +36,7 @@
     <ul class="language-switcher-item-list">
         @foreach($wncms->getLocaleList() as $key => $locale)
         <li>
-            <a class="language-switcher-item" href="{{\LaravelLocalization::getLocalizedURL($key, null, [], true) }}">{{ $locale['native'] }}</a>
+            <a class="language-switcher-item" href="{{\wncms()->locale()->getLocalizedURL($key, null, [], true) }}">{{ $locale['native'] }}</a>
         </li>
         @endforeach
     </ul>

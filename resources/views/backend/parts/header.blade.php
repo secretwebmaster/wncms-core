@@ -250,16 +250,16 @@
                 <div class="app-navbar-item ms-1 ms-lg-3">
                     {{-- button --}}
                     <a href="#" class="btn btn-icon btn-custom btn-icon-muted btn-active-light btn-active-color-primary w-25px h-25px w-md-40px h-md-40px" data-kt-menu-trigger="{default:'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-                        <img class="w-20px rounded" src="/wncms/media/flags/{{ LaravelLocalization::getCurrentLocale() }}.svg" alt="{{ LaravelLocalization::getCurrentLocaleName() }} Flag">
+                        <img class="w-20px rounded" src="/wncms/media/flags/{{ wncms()->locale()->getCurrentLocale() }}.svg" alt="{{ wncms()->locale()->getCurrentLocaleName() }} Flag">
                     </a>
 
                     {{-- language list --}}
                     <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-muted menu-active-bg menu-state-color fw-semibold py-4 fs-base w-100px" data-kt-menu="true" data-kt-element="theme-mode-menu">
                         <div class="menu-item px-3 my-0">
-                            @foreach(LaravelLocalization::getSupportedLocales() as $locale_key => $locale)
+                            @foreach(wncms()->locale()->getSupportedLocales() as $locale_key => $locale)
                             <div class="d-flex align-item-center">
                                 <img class="w-20px" src="/wncms/media/flags/{{ $locale_key }}.svg" alt="{{ $locale['native'] }} Flag">
-                                <a class="menu-link px-3 py-2" href="{{ LaravelLocalization::getLocalizedURL($locale_key, null, [], true) }}" title="{{ $locale['native'] }}">{{ $locale['native'] }}</a>
+                                <a class="menu-link px-3 py-2" href="{{ wncms()->locale()->getLocalizedURL($locale_key, null, [], true) }}" title="{{ $locale['native'] }}">{{ $locale['native'] }}</a>
                             </div>
                             @endforeach
                         </div>

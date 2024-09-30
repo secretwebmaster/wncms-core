@@ -46,7 +46,7 @@
                 <select class="language-switcher-dropdown" onchange="window.location.href=this.value;">
                     @foreach($wncms->getLocaleList() as $key => $locale)
                     
-                        <option value="{{ \LaravelLocalization::getLocalizedURL($key, null, [], true) }}" @if(app()->getLocale() == $key) selected @endif>{{ $locale['native'] }}</option>
+                        <option value="{{ \wncms()->locale()->getLocalizedURL($key, null, [], true) }}" @if(app()->getLocale() == $key) selected @endif>{{ $locale['native'] }}</option>
                     @endforeach
                 </select>
             </div>
