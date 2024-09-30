@@ -11,7 +11,7 @@ class SitemapController extends Controller
 {
     public function posts()
     {
-        $website = wnWebsite()->getCurrent();
+        $website = wncms()->website()->getCurrent();
         if(!$website) return route('frontend.pages.home');
 
         $sitemap = Sitemap::create();
@@ -27,7 +27,7 @@ class SitemapController extends Controller
 
     public function pages()
     {
-        $website = wnWebsite()->getCurrent();
+        $website = wncms()->website()->getCurrent();
         if(!$website) return route('frontend.pages.home');
 
         $sitemap = Sitemap::create();
@@ -45,7 +45,7 @@ class SitemapController extends Controller
 
     public function tags($model, $type)
     {
-        $website = wnWebsite()->getCurrent();
+        $website = wncms()->website()->getCurrent();
         if(!$website) return route('frontend.pages.home');
 
         $sitemap = Sitemap::create();

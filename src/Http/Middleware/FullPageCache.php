@@ -19,7 +19,7 @@ class FullPageCache
         // TODO: set in system setting
         $domainsWithCache = wncms()->website()->getDomainsWithCache();
 
-        if(in_array(wnWebsite()->get()?->domain, $domainsWithCache)){
+        if(in_array(wncms()->website()->get()?->domain, $domainsWithCache)){
             $cacheKey = $request->fullUrl();
             $cacheTag = ['full_pages'];
             $cachedResponse = wncms()->cache()->tags($cacheTag)->get($cacheKey);

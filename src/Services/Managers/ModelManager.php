@@ -1,8 +1,8 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
-class ModelHelper
+class ModelManager
 {
     protected $cacheKeyPrefix = "wncms_model";
 

@@ -28,8 +28,8 @@ class PostController extends Controller
         $this->theme = $this->website->theme ?? 'default';
         // $this->post_categories = Tag::withType('post_category')->pluck('name')->toArray();
         // $this->post_tags = Tag::withType('post_tag')->pluck('name')->toArray();
-        $this->post_categories = wnTag()->getArray(tagType:"post_category",columnName:"name");
-        $this->post_tags = wnTag()->getArray(tagType:"post_tag",columnName:"name");
+        $this->post_categories = wncms()->tag()->getArray(tagType:"post_category",columnName:"name");
+        $this->post_tags = wncms()->tag()->getArray(tagType:"post_tag",columnName:"name");
     }
 
     public function index(Request $request)

@@ -1,8 +1,8 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
-class StarterHelper
+class StarterManager
 {
 
     //Cache key prefix that prepend all cache key in this page

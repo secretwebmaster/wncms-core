@@ -1,28 +1,28 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
 use Wncms\Models\Website;
 
 /**
  * ----------------------------------------------------------------------------------------------------
- * Global helper class for website models
+ * Global Manager class for website models
  * ----------------------------------------------------------------------------------------------------
  */
-class WebsiteHelper
+class WebsiteManager
 {
     /**
-     * @var string $cacheKeyPrefix Common cache key for all method in the WebsiteHelper class
+     * @var string $cacheKeyPrefix Common cache key for all method in the WebsiteManager class
      */
     protected $cacheKeyPrefix = "wncms_website";
 
     /**
-     * @var array $cacheTags Common cache tags for all method in the WebsiteHelper class
+     * @var array $cacheTags Common cache tags for all method in the WebsiteManager class
      */
     protected $cacheTags = ['websites'];
 
     /**
-     * @var ?int $this->cacheTime Common cache time for all method in the WebsiteHelper class. Value retreived from Wncms\Models\Setting
+     * @var ?int $this->cacheTime Common cache time for all method in the WebsiteManager class. Value retreived from Wncms\Models\Setting
      */
     protected $cacheTime;
 

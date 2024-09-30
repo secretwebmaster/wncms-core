@@ -1,10 +1,10 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
 use Wncms\Models\ContactForm;
 
-class ContactFormHelper
+class ContactFormManager
 {
     //Cache key prefix that prepend all cache key in this page
     protected $cacheKeyPrefix = "wncms_contact_form";

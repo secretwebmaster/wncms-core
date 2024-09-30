@@ -1,10 +1,10 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
 use Wncms\Models\Banner;
 
-class BannerHelper
+class BannerManager
 {
     //Cache key prefix that prepend all cache key in this page
     protected $cacheKeyPrefix = "wncms_banner";
@@ -90,9 +90,9 @@ class BannerHelper
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($count, $pageSize, $order, $sequence, $status, $wheres, $websiteId, $includeExpired, $positions) {
             if($websiteId){
-                $website = wnWebsite()->get($websiteId, false);
+                $website = wncms()->website()->get($websiteId, false);
             }else{
-                $website = wnWebsite()->getCurrent();
+                $website = wncms()->website()->getCurrent();
             }
             if (!$website) return collect([]);
 

@@ -323,7 +323,7 @@ class WebsiteController extends Controller
             })
             ->toArray();
 
-        $websites = wnWebsite()->getList(wheres:[
+        $websites = wncms()->website()->getList(wheres:[
             ['theme', $website->theme],
             ['id', "<>", $website->id],
         ]);
@@ -404,7 +404,7 @@ class WebsiteController extends Controller
 
     public function cloneThemeOptions(Request $request, Website $website)
     {
-        $fromWebsite = wnWebsite()->get($request->from_website_id);
+        $fromWebsite = wncms()->website()->get($request->from_website_id);
         $fromSettings = $fromWebsite->get_options();
         $shouldClearTagCache = false;
 

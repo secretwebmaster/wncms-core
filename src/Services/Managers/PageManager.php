@@ -1,6 +1,6 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
 
 use Wncms\Models\Page;
@@ -8,20 +8,20 @@ use Wncms\Models\Tag;
 use Wncms\Models\Website;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class PageHelper
+class PageManager
 {
     /**
-     * @var string $cacheKeyPrefix Common cache key for all method in the PageHelper class
+     * @var string $cacheKeyPrefix Common cache key for all method in the PageManager class
      */
     protected $cacheKeyPrefix = "wncms_page";
 
     /**
-     * @var array $cacheTags Common cache tags for all method in the PageHelper class
+     * @var array $cacheTags Common cache tags for all method in the PageManager class
      */
     protected $cacheTags = ['pages'];
 
     /**
-     * @var ?int $cacheTime Common cache time for all method in the PageHelper class. Value retreived from Wncms\Models\Setting
+     * @var ?int $cacheTime Common cache time for all method in the PageManager class. Value retreived from Wncms\Models\Setting
      */
     protected $cacheTime;
 

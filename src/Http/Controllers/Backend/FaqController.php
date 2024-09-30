@@ -212,7 +212,7 @@ class FaqController extends Controller
             return route('frontend.pages.home');
         }
 
-        $tag = wnTag()->getByName(
+        $tag = wncms()->tag()->getByName(
             tagName:$tagName,
             tagType:$tagType,
             withs: ['siblings', 'children'],

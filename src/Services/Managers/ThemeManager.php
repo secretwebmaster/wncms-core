@@ -1,8 +1,8 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
-class ThemeHelper
+class ThemeManager
 {
     public function getActivatedTheme($sort = true)
     {

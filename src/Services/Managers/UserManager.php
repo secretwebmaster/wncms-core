@@ -1,11 +1,11 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
 use Wncms\Models\User;
 use Illuminate\Support\Facades\App;
 
-class UserHelper
+class UserManager
 {
 
     //Cache key prefix that prepend all cache key in this page

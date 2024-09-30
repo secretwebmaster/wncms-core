@@ -1,13 +1,13 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
 
 use Wncms\Models\Post;
 use Wncms\Models\Tag;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class PostHelper
+class PostManager
 {
     //Cache key prefix that prepend all cache key in this page
     protected $cacheKeyPrefix = "wncms_post";
@@ -21,12 +21,12 @@ class PostHelper
      * 
      * @param string|null $postId
      *      預設值: -
-     *      描述: 調用Wncms\Helper目錄下的模組
+     *      描述: 調用Wncms\Manager目錄下的模組
      *      命名規則: snake_case的model名稱，例如 post，collect_source，系統自動轉換為Post CollectSource
      * 
      * @param array|string|null $args 參數
      *      預設值: null
-     *      描述: 傳入Helper方法的參數
+     *      描述: 傳入Manager方法的參數
      *      例子: wncms()->posts()->getPost(12, true) 中的 $id, $isPublished
      * 
      * @return mixed

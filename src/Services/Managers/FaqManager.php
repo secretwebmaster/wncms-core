@@ -1,10 +1,10 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
 use Wncms\Models\Faq;
 
-class FaqHelper
+class FaqManager
 {
     //Cache key prefix that prepend all cache key in this page
     protected $cacheKeyPrefix = "wncms_faq";
@@ -116,7 +116,7 @@ class FaqHelper
                 $q->whereNotIn('faqs.id', (array)$excludedFaqIds);
             }
 
-            //% Add tag from PostHelper
+            //% Add tag from PostManager
             // if (!empty($tags)) {
             //     if(!$excludedChildrenTags){
             //         $_tags = wncms()->tag()->getList(tagType:$tagType,tagIds:$tags,count:999,withs:[]);

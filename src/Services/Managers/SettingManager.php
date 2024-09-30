@@ -1,10 +1,10 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
 use Wncms\Models\Setting;
 
-class SettingHelper
+class SettingManager
 {
     //Cache key prefix that prepend all cache key in this page
     protected $cacheKeyPrefix = "setting";

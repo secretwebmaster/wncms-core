@@ -1,13 +1,13 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
 use Wncms\Models\Menu;
 use Wncms\Models\MenuItem;
 use Wncms\Models\Website;
 use LaravelLocalization;
 
-class MenuHelper
+class MenuManager
 {
     //Cache key prefix that prepend all cache key in this page
     protected $cacheKeyPrefix = "wncms_menu";
@@ -36,9 +36,9 @@ class MenuHelper
         // wncms()->cache()->clear($cacheKey, $cacheTags);
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($name, $websiteId) {
-            // info('no cache from MenuHelper get()');
+            // info('no cache from MenuManager get()');
             
-            $website = wnWebsite()->get($websiteId);
+            $website = wncms()->website()->get($websiteId);
 
             $menu = $website->menus()
             ->where(function($q) use($name){
@@ -77,7 +77,7 @@ class MenuHelper
         // wncms()->cache()->clear($cacheKey, $cacheTags);
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($names, $websiteId) {
-            // info('no cache from MenuHelper getList()');
+            // info('no cache from MenuManager getList()');
 
             $website = wncms()->website()->get($websiteId);
 
@@ -124,7 +124,7 @@ class MenuHelper
         // dd($cacheKey);
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($menuName, $order, $sequence, $websiteId) {
-            // info('no cache from MenuHelper getMenuParentItems()');
+            // info('no cache from MenuManager getMenuParentItems()');
 
             $website = wncms()->website()->get($websiteId);
 
@@ -184,7 +184,7 @@ class MenuHelper
                 $tagType = $tagData[1];
 
                 //get Tag model
-                $tag = wnTag()->get($menuItem->model_id);
+                $tag = wncms()->tag()->get($menuItem->model_id);
  
                 if(!$tag){
                     return "javascript:;";

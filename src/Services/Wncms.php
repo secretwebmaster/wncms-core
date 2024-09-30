@@ -7,24 +7,24 @@ use Http;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use LaravelLocalization;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 /**
- * @method \Wncms\Services\Wncms\Helpers\AdvertisementHelper advertisement()
- * @method \Wncms\Services\Wncms\Helpers\AnalyticsHelper analytics()
- * @method \Wncms\Services\Wncms\Helpers\BannerHelper banner()
- * @method \Wncms\Services\Wncms\Helpers\CacheHelper cache()
- * @method \Wncms\Services\Wncms\Helpers\ContactFormHelper contactForm()
- * @method \Wncms\Services\Wncms\Helpers\CustomHelper custom()
- * @method \Wncms\Services\Wncms\Helpers\MenuHelper menu()
- * @method \Wncms\Services\Wncms\Helpers\ModelHelper model()
- * @method \Wncms\Services\Wncms\Helpers\PageHelper page()
- * @method \Wncms\Services\Wncms\Helpers\PostHelper post()
- * @method \Wncms\Services\Wncms\Helpers\SettingHelper systemSetting()
- * @method \Wncms\Services\Wncms\Helpers\TagHelper tag()
- * @method \Wncms\Services\Wncms\Helpers\UserHelper user()
- * @method \Wncms\Services\Wncms\Helpers\VideoHelper video()
- * @method \Wncms\Services\Wncms\Helpers\WebsiteHelper website()
+ * @method \Wncms\Services\Wncms\Managers\AdvertisementManager advertisement()
+ * @method \Wncms\Services\Wncms\Managers\AnalyticsManager analytics()
+ * @method \Wncms\Services\Wncms\Managers\BannerManager banner()
+ * @method \Wncms\Services\Wncms\Managers\CacheManager cache()
+ * @method \Wncms\Services\Wncms\Managers\ContactFormManager contactForm()
+ * @method \Wncms\Services\Wncms\Managers\CustomManager custom()
+ * @method \Wncms\Services\Wncms\Managers\MenuManager menu()
+ * @method \Wncms\Services\Wncms\Managers\ModelManager model()
+ * @method \Wncms\Services\Wncms\Managers\PageManager page()
+ * @method \Wncms\Services\Wncms\Managers\PostManager post()
+ * @method \Wncms\Services\Wncms\Managers\SettingManager systemSetting()
+ * @method \Wncms\Services\Wncms\Managers\TagManager tag()
+ * @method \Wncms\Services\Wncms\Managers\UserManager user()
+ * @method \Wncms\Services\Wncms\Managers\VideoManager video()
+ * @method \Wncms\Services\Wncms\Managers\WebsiteManager website()
  */
 class Wncms
 {
@@ -438,19 +438,19 @@ class Wncms
 
     /**
      * ----------------------------------------------------------------------------------------------------
-     * 調用其他Helper Class的方法
+     * 調用其他Manager Class的方法
      * ----------------------------------------------------------------------------------------------------
      * @since 3.0.0
      * @version 3.0.0
      * 
      * @param string|null $helper
      *      預設值: -
-     *      描述: 調用Wncms\Helper目錄下的模組
+     *      描述: 調用Wncms\Manager目錄下的模組
      *      命名規則: snake_case的model名稱，例如 post，collect_source，系統自動轉換為Post CollectSource
      * 
      * @param array|string|null $args 參數
      *      預設值: null
-     *      描述: 傳入Helper方法的參數
+     *      描述: 傳入Manager方法的參數
      *      例子: wncms()->posts()->getPost(12, true) 中的 $id, $isPublished
      * 
      * @return mixed The result of the helper method call.
@@ -462,7 +462,7 @@ class Wncms
             return $this->helpers[$helper];
         }
         
-        $class = 'Wncms\Services\Wncms\Helpers\\' . ucfirst(str($helper)->camel()) . "Helper";
+        $class = 'Wncms\Services\Wncms\Managers\\' . ucfirst(str($helper)->camel()) . "Manager";
         
         if (class_exists($class)) {
             return new $class($this, ...$args);

@@ -1,11 +1,11 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 
-class CacheHelper
+class CacheManager
 {
     /**
      * ----------------------------------------------------------------------------------------------------

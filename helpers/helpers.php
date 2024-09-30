@@ -1,21 +1,5 @@
 <?php
 
-use Wncms\Services\Wncms\Helpers\AnalyticsHelper;
-use Wncms\Services\Wncms\Helpers\BannerHelper;
-use Wncms\Services\Wncms\Helpers\CacheHelper;
-use Wncms\Services\Wncms\Helpers\ContactFormHelper;
-use Wncms\Services\Wncms\Helpers\CustomHelper;
-use Wncms\Services\Wncms\Helpers\MenuHelper;
-use Wncms\Services\Wncms\Helpers\PageHelper;
-use Wncms\Services\Wncms\Helpers\PostHelper;
-use Wncms\Services\Wncms\Helpers\StarterHelper;
-use Wncms\Services\Wncms\Helpers\SettingHelper;
-use Wncms\Services\Wncms\Helpers\TagHelper;
-use Wncms\Services\Wncms\Helpers\UserHelper;
-use Wncms\Services\Wncms\Helpers\WebsiteHelper;
-
-
-
 if (!function_exists('wncms')) {
     /**
      * ----------------------------------------------------------------------------------------------------
@@ -31,11 +15,6 @@ if (!function_exists('wncms')) {
     }
 }
 
-/**
- * ----------------------------------------------------------------------------------------------------
- * ! Alias helpers
- * ----------------------------------------------------------------------------------------------------
- */
 if (!function_exists('gss')) {
     function gss($key, $fallback = null, $fromCache = true)
     {
@@ -104,8 +83,6 @@ if (!function_exists('isAdmin')) {
 }
 
 
-
-
 /**
  * -------------------------------
  * % Methods belowing are deprecating soon
@@ -131,103 +108,5 @@ if (! function_exists('isActive')) {
         if (strpos(URL::current(), $route)) {
             return $className;
         }
-    }
-}
-
-if (!function_exists('wnAnalytics')) {
-    function wnAnalytics()
-    {
-        return new AnalyticsHelper;
-    }
-}
-
-if (!function_exists('wnBanner')) {
-    function wnBanner()
-    {
-        return new BannerHelper;
-    }
-}
-
-if (!function_exists('wnCache')) {
-    function wnCache()
-    {
-        return new CacheHelper;
-    }
-}
-
-if (!function_exists('wnContactForm')) {
-    function wnContactForm()
-    {
-        return new ContactFormHelper;
-    }
-}
-
-if (!function_exists('wnCustom')) {
-    function wnCustom()
-    {
-        return new CustomHelper;
-    }
-}
-
-if (!function_exists('wnMenu')) {
-    function wnMenu()
-    {
-        return new MenuHelper;
-    }
-}
-
-if (!function_exists('wnModel')) {
-    function wnModel()
-    {
-        return new ModelHelper;
-    }
-}
-
-if (!function_exists('wnPage')) {
-    function wnPage()
-    {
-        return new PageHelper;
-    }
-}
-
-if (!function_exists('wnPost')) {
-    function wnPost()
-    {
-        return new PostHelper;
-    }
-}
-
-if (!function_exists('wnStarter')) {
-    function wnStarter()
-    {
-        return new StarterHelper;
-    }
-}
-
-if (!function_exists('wnSetting')) {
-    function wnSetting()
-    {
-        return new SettingHelper;
-    }
-}
-
-if (!function_exists('wnTag')) {
-    function wnTag()
-    {
-        return new TagHelper;
-    }
-}
-
-if (!function_exists('wnUser')) {
-    function wnUser()
-    {
-        return new UserHelper;
-    }
-}
-
-if (!function_exists('wnWebsite')) {
-    function wnWebsite()
-    {
-        return new WebsiteHelper;
     }
 }

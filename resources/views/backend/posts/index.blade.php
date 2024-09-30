@@ -140,7 +140,7 @@
                                 <input id="tagify_post_category" class="form-control form-control-sm p-0" name="post_categories" />
 
                                 @php
-                                    $categories = wnTag()->getList(tagType: 'post_category')->map(function ($tag) {
+                                    $categories = wncms()->tag()->getList(tagType: 'post_category')->map(function ($tag) {
                                         return ['value' => $tag->id, 'name' => $tag->name];
                                     })->toArray();
                                 @endphp
@@ -179,7 +179,7 @@
                                 <input id="tagify_post_tag" class="form-control form-control-sm p-0" name="post_tags" />
 
                                 @php
-                                    $tags = wnTag()->getList(tagType: 'post_tag')->map(function ($tag) {
+                                    $tags = wncms()->tag()->getList(tagType: 'post_tag')->map(function ($tag) {
                                         return ['value' => $tag->id, 'name' => $tag->name];
                                     })->toArray();
                                 @endphp

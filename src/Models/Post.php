@@ -181,14 +181,14 @@ class Post extends WncmsModel implements HasMedia
     //TODO:: Eagar loading
     public function getPrevious()
     {
-        $website = wnWebsite()->getCurrent();
+        $website = wncms()->website()->getCurrent();
         if(!$website) return;
         return $this->where('id', '<', $this->id)->whereRelation('websites', 'websites.id', $website->id )->orderBy('id','desc')->first();
     }
  
     public function getNext()
     {
-        $website = wnWebsite()->getCurrent();
+        $website = wncms()->website()->getCurrent();
         if(!$website) return;
         return $this->where('id', '>', $this->id)->whereRelation('websites', 'websites.id', $website->id )->orderBy('id','asc')->first();
     }
@@ -429,7 +429,7 @@ class Post extends WncmsModel implements HasMedia
         }
 
         if (!empty($autoGenerate)) {
-            $tagIdsFromKeywordBinding = wnTag()->getTagsToBind(
+            $tagIdsFromKeywordBinding = wncms()->tag()->getTagsToBind(
                 tagType: $tagType,
                 contents: $content,
                 column: 'name'

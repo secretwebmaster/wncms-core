@@ -1,13 +1,13 @@
 <?php
 
-namespace Wncms\Services\Wncms\Helpers;
+namespace Wncms\Services\Managers;
 
 use Wncms\Models\Tag;
 use Illuminate\Support\Facades\File;
 use LaravelLocalization;
 use Str;
 
-class TagHelper
+class TagManager
 {
     //Cache key prefix that prepend all cache key in this page
     protected $cacheKeyPrefix = "wncms_tag";
@@ -23,7 +23,7 @@ class TagHelper
         // wncms()->cache()->clear($cacheKey, $cacheTags);
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tagId) {
-            // info('no cache from TagHelper get()');
+            // info('no cache from TagManager get()');
             return Tag::find($tagId);
         });
     }
@@ -39,7 +39,7 @@ class TagHelper
         // wncms()->cache()->clear($cacheKey, $cacheTags);
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tagName, $tagType, $locale, $withs, $websiteId) {
-            // info('no cache from TagHelper getByName()');
+            // info('no cache from TagManager getByName()');
 
             $locale ??= LaravelLocalization::getCurrentLocale();
             $website = wncms()->website()->get($websiteId);
@@ -98,7 +98,7 @@ class TagHelper
     {
         $method = "getList";
         $shouldAuth = false;
-        $websiteId = wnWebsite()->getCurrent()?->id;
+        $websiteId = wncms()->website()->getCurrent()?->id;
         $page = request()->page;
         $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()), $websiteId);
         $cacheTags = ['tags'];
@@ -110,7 +110,7 @@ class TagHelper
         // wncms()->cache()->clear($cacheKey, $cacheTags);
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tagType, $count, $pageSize, $tagIds, $withs, $hasModels, $modelType, $onlyCurrentWebsite, $websiteId, $locale, $isRandom, $parentOnly, $order, $sequence) {
-            // info('no cache from TagHelper getList()');
+            // info('no cache from TagManager getList()');
     
             $q = Tag::query();
 
@@ -188,7 +188,7 @@ class TagHelper
         //wncms()->cache()->clear($cacheKey, $cacheTags);
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tagType, $count, $columnName, $keyName, $tagIds) {
-            // info('no cache from TagHelper getArray()');
+            // info('no cache from TagManager getArray()');
             $q = Tag::query();
             $q->where('type', $tagType);
 
@@ -237,7 +237,7 @@ class TagHelper
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tagIds) {
 
-            // info('no cache from TagHelper getTypes()');
+            // info('no cache from TagManager getTypes()');
             $q = Tag::query();
 
             if (!empty($tagIds)) {
