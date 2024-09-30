@@ -126,7 +126,7 @@
                                 <ul>
                                     <li><span class="text-info fw-bold">{{ $plan->name }}</span></li>
                                     <li>@lang('wncms::word.monthly_word_limit'): <span class="fw-bold text-info text_monthly_word_limit">{{ $plan->monthly_word_limit }}</span></li>
-                                    <li>@lang('wncms::word.monthly_document_limit'): <span class="fw-bold text-info text_monthly_document_limit">{{ $plan->monthly_document_limit == -1 ? __('word.unlimited') : $plan->monthly_document_limit }}</span></li>
+                                    <li>@lang('wncms::word.monthly_document_limit'): <span class="fw-bold text-info text_monthly_document_limit">{{ $plan->monthly_document_limit == -1 ? __('wncms::word.unlimited') : $plan->monthly_document_limit }}</span></li>
                                     <li>@lang('wncms::word.monthly_image_limit'): <span class="fw-bold text-info text_monthly_image_limit">{{ $plan->monthly_image_limit }}</span></li>
                                     @foreach($plan->has_features as $feature)
                                     <li>{{ $feature }}</li>

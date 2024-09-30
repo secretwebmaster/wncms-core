@@ -22,7 +22,7 @@ class PageController extends Controller
             theme: $website->theme,
             pageNmae: 'home',
             params: [
-                'page_title' => $website->site_name ?? __('word.homepage'),
+                'page_title' => $website->site_name ?? __('wncms::word.homepage'),
                 'pageId' => 'home',
             ],
         );
@@ -53,7 +53,7 @@ class PageController extends Controller
             theme: $website->theme,
             pageNmae: 'blog', 
             params: [
-                'pageTitle' => gto('blog_title', __('word.latest_posts')),
+                'pageTitle' => gto('blog_title', __('wncms::word.latest_posts')),
                 'page' => null,
                 'posts' => $posts
             ],

@@ -1,5 +1,5 @@
 <button type="button" class="btn btn-sm btn-danger fw-bold {{ $btn_class ?? 'px-2 py-1' }}" data-bs-toggle="modal" data-bs-target="#{{ "modal_" . ($target??'')  . $model->id }}">
-    {!! $btn_text ?? __('word.delete') !!}
+    {!! $btn_text ?? __('wncms::word.delete') !!}
 </button>
 
 <div class="modal fade" tabindex="-1" id="{{ "modal_" . ($target??'')  . $model->id }}">
@@ -9,7 +9,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title">{{ $title ?? __('word.confirm_delete') .  $model->id  . "?" }}</h3>
+                    <h3 class="modal-title">{{ $title ?? __('wncms::word.confirm_delete') .  $model->id  . "?" }}</h3>
                     <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
                         <span class="svg-icon svg-icon-1"></span>
                     </div>

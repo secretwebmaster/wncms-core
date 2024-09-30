@@ -77,7 +77,7 @@ class PostController extends Controller
         $posts = $tag->getPostList(count:$count,page:$page,pageSize:$pageSize);
 
         return wncms_view('frontend.theme.' . $this->theme . '.posts.archive', [
-            'pageTitle' => __('word.latest_tag_models', ['tagName' => $tagName, 'modelName' => __('word.' . $modelName)]),
+            'pageTitle' => __('wncms::word.latest_tag_models', ['tagName' => $tagName, 'modelName' => __('wncms::word.' . $modelName)]),
             'tagName' => $tagName,
             'tagType' => $tagType,
             'posts' => $posts,
@@ -88,7 +88,7 @@ class PostController extends Controller
     public function search(Request $request)
     {
         if(empty($request->keyword)){
-            return back()->withErrors(['message' => __('word.keyword_is_empty')]);
+            return back()->withErrors(['message' => __('wncms::word.keyword_is_empty')]);
         }
         // TODO: search limit
 
@@ -111,7 +111,7 @@ class PostController extends Controller
         );
 
         return wncms_view('frontend.theme.' . $this->theme . '.posts.search', [
-            'pageTitle' => __('word.search_result_of', ['keyword' => $keyword]),
+            'pageTitle' => __('wncms::word.search_result_of', ['keyword' => $keyword]),
             'posts' => $posts,
             'keyword' => $keyword,
         ]);
@@ -137,7 +137,7 @@ class PostController extends Controller
         $posts = Post::orderByViews('desc', $ranges[$period])->limit($pageSize)->get();
 
         return wncms_view('frontend.theme.' . $this->theme . '.posts.rank', [
-            'pageTitle' => __('word.post_rank_of_period', ['period' => __('word.' . $period)]),
+            'pageTitle' => __('wncms::word.post_rank_of_period', ['period' => __('wncms::word.' . $period)]),
             'pageName' => 'post_rank',
             'modelName' => 'post',
             'period' => $period,
@@ -163,29 +163,29 @@ class PostController extends Controller
 
         $period = in_array($period, ['today', 'yesterday', 'week','month', 'total']) ? $period : 'total';
 
-        $period_text = in_array($period, ['today', 'yesterday', 'week', 'month']) ? __('word.period_' . $period) . __('word.word_separator'): '';
+        $period_text = in_array($period, ['today', 'yesterday', 'week', 'month']) ? __('wncms::word.period_' . $period) . __('wncms::word.word_separator'): '';
 
         $count = gto('post_limit', 0);
         $page = request()->page ?? 0;
         $pageSize = gto('post_page_size', 12);
 
         if($name == 'hot'){
-            $page_title = $period_text . __('word.hot_posts');
+            $page_title = $period_text . __('wncms::word.hot_posts');
             $posts = wncms()->post()->getList(order:'view_month',count:$count,page:$page,pageSize:$pageSize);
         }
 
         if($name == 'like'){
-            $page_title = $period_text . __('word.most_liked_posts');
+            $page_title = $period_text . __('wncms::word.most_liked_posts');
             $posts = wncms()->post()->getList(order:'like',count:$count,page:$page,pageSize:$pageSize);
         }
         
         if($name == 'fav'){
-            $page_title = $period_text . __('word.most_fav_posts');
+            $page_title = $period_text . __('wncms::word.most_fav_posts');
             $posts = wncms()->post()->getList(order:'view_month',count:$count,page:$page,pageSize:$pageSize);
         }
         
         if($name == 'new'){
-            $page_title = $period_text . __('word.latest_posts');
+            $page_title = $period_text . __('wncms::word.latest_posts');
             $posts = wncms()->post()->getList(order:'created_at',count:$count,page:$page,pageSize:$pageSize);
         }
 

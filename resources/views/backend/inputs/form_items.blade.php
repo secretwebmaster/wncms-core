@@ -15,7 +15,7 @@
         $input_data['include_row'] ??= true;
         $input_data['show_label'] ??= true;
         $input_data['has_translation'] ??= true;
-        $input_data['label'] ??= $input_data['name'] ?? __('word.label_is_not_set');
+        $input_data['label'] ??= $input_data['name'] ?? __('wncms::word.label_is_not_set');
         $input_data['label_col_span'] ??= '3';
         $input_data['input_col_span'] ??= '9';
         $input_data['label_font_size'] ??= '6';
@@ -31,7 +31,7 @@
         $input_data['empty_value'] ??= '';
         $input_data['is_model'] ??= false;
         $input_data['model'] ??= null;
-        $input_data['model_name'] ??=  __('word.model_name_is_not_set');
+        $input_data['model_name'] ??=  __('wncms::word.model_name_is_not_set');
         $input_data['options'] ??= [];
         $input_data['value_column'] ??= 'id';
         $input_data['display_column'] ??= $input_data['value_column'];
@@ -50,7 +50,7 @@
         {{-- Lable --}}
         @if($d->include_row)
             <label class="col-lg-{{ $d->label_col_span }} col-form-label fw-bold fs-{{ $d->label_font_size }} @if($d->required) required @endif">
-                {{ $d->has_translation ? __('word.' . $d->label) : $d->label }}
+                {{ $d->has_translation ? __('wncms::word.' . $d->label) : $d->label }}
             </label>
         @endif
 
@@ -78,7 +78,7 @@
                         @if($d->input_class){{ $d->input_class }} @endif" 
                     @if($d->required) required @endif>
                     
-                    <option value="{{ $input_data['empty_value'] ?? '' }}">@lang('wncms::word.please_select_model', ['model_name' => __('word.' . $d->model_name )])</option>
+                    <option value="{{ $input_data['empty_value'] ?? '' }}">@lang('wncms::word.please_select_model', ['model_name' => __('wncms::word.' . $d->model_name )])</option>
                     @foreach($d->options as $option)
                         <option 
                             value="{{ $d->is_model ? $option->{$d->value_column} : $option }}" 

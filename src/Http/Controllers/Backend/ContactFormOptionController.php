@@ -12,7 +12,7 @@ class ContactFormOptionController extends Controller
     {
         $contact_form_options = ContactFormOption::query()->get();
         return view('wncms::backend.contact_form_options.index', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.contact_form_option')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.contact_form_option')]),
             'contact_form_options' => $contact_form_options,
         ]);
     }
@@ -21,7 +21,7 @@ class ContactFormOptionController extends Controller
     {
         $contact_form_option ??= new ContactFormOption;
         return view('wncms::backend.contact_form_options.create', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.contact_form_option')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.contact_form_option')]),
             'contact_form_option' => $contact_form_option,
             'types' => ContactFormOption::TYPES,
         ]);
@@ -44,14 +44,14 @@ class ContactFormOptionController extends Controller
 
         return redirect()->route('contact_form_options.edit', [
             'contact_form_option' => $contact_form_option,
-        ])->withMessage(__('word.successfully_created'));
+        ])->withMessage(__('wncms::word.successfully_created'));
     }
 
     public function edit(ContactFormOption $contact_form_option)
     {
         // dd($contact_form_option);
         return view('wncms::backend.contact_form_options.edit', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.contact_form_option')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.contact_form_option')]),
             'contact_form_option' => $contact_form_option,
             'types' => ContactFormOption::TYPES,
         ]);
@@ -74,18 +74,18 @@ class ContactFormOptionController extends Controller
         
         return redirect()->route('contact_form_options.edit', [
             'contact_form_option' => $contact_form_option,
-        ])->withMessage(__('word.successfully_updated'));
+        ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function destroy(ContactFormOption $contact_form_option)
     {
         $contact_form_option->delete();
-        return redirect()->route('contact_form_options.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('contact_form_options.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function bulk_delete(Request $request)
     {
         ContactFormOption::whereIn('id', explode(",", $request->model_ids))->delete();
-        return redirect()->route('contact_form_options.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('contact_form_options.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 }

@@ -20,7 +20,7 @@ class ModelController extends Controller
         if(empty($modelIds)){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.model_ids_are_not_found'),
+                'message' => __('wncms::word.model_ids_are_not_found'),
             ]); 
         }
         
@@ -36,7 +36,7 @@ class ModelController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_updated'),
+                'message' => __('wncms::word.successfully_updated'),
                 'reload' => true,
             ]);
 
@@ -63,7 +63,7 @@ class ModelController extends Controller
         if(empty($request->model_ids) && empty($request->model_id)){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.model_ids_are_not_found'),
+                'message' => __('wncms::word.model_ids_are_not_found'),
             ]); 
         }
         
@@ -81,7 +81,7 @@ class ModelController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_deleted_count', ['count' => $count]),
+                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
             ]);
 
         }catch(\Exception $e){
@@ -126,7 +126,7 @@ class ModelController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_deleted'),
+            'message' => __('wncms::word.successfully_deleted'),
         ]);
     }
 

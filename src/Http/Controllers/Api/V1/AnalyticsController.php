@@ -22,7 +22,7 @@ class AnalyticsController extends Controller
         RecordViews::dispatch($request->modelId, $request->modelType, $request->collection ?? 'view', $cooldown);
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_record'),
+            'message' => __('wncms::word.successfully_record'),
         ]);
     }
 
@@ -31,7 +31,7 @@ class AnalyticsController extends Controller
         info($request->all());
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_fetch'),
+            'message' => __('wncms::word.successfully_fetch'),
             'count' => $count ?? 0,
         ]);
     }

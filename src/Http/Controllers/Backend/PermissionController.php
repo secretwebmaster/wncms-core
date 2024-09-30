@@ -41,7 +41,7 @@ class PermissionController extends Controller
         $permissions = $q->paginate($request->page_size ?? 50);
 
         return view('wncms::backend.permissions.index', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.permission')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.permission')]),
             'permissions' => $permissions,
             'roles' => $roles,
         ]);
@@ -52,7 +52,7 @@ class PermissionController extends Controller
         $roles = Role::all();
         $permissions = Permission::all();
         return view('wncms::backend.permissions.create', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.permission')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.permission')]),
             'roles' => $roles,
             'common_suffixes' => $this->common_suffixes,
             'permissions' => $permissions,
@@ -67,7 +67,7 @@ class PermissionController extends Controller
                 'name' => 'required',
             ],
             [
-                'name.required' => __('word.field_is_required', ['field_name' => __('word.name')])
+                'name.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.name')])
             ]
         );
 
@@ -78,7 +78,7 @@ class PermissionController extends Controller
             foreach($request->common_suffixess as $common_suffix){
                 $existing_permission = Permission::where('name', $request->name)->first();
                 if($existing_permission){
-                    return back()->withInput()->withErrors(['message' => __('word.permission_already_exists')]);
+                    return back()->withInput()->withErrors(['message' => __('wncms::word.permission_already_exists')]);
                 }
             }
 
@@ -95,7 +95,7 @@ class PermissionController extends Controller
             $existing_permission = Permission::where('name', $request->name)->first();
 
             if($existing_permission){
-                return back()->withInput()->withErrors(['message' => __('word.permission_already_exists')]);
+                return back()->withInput()->withErrors(['message' => __('wncms::word.permission_already_exists')]);
             }
 
             $permission = Permission::firstOrCreate(['name' => $request->name]);
@@ -108,14 +108,14 @@ class PermissionController extends Controller
         return redirect()->route('permissions.index');
         // return redirect()->route('permissions.edit', [
         //     'permission' => $permission,
-        // ])->withMessage(__('word.successfully_created'));
+        // ])->withMessage(__('wncms::word.successfully_created'));
     }
 
     public function edit(Permission $permission)
     {
         $roles = Role::all();
         return view('wncms::backend.permissions.edit', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.permission')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.permission')]),
             'permission' => $permission,
             'roles' => $roles,
         ]);
@@ -135,19 +135,19 @@ class PermissionController extends Controller
         
         return redirect()->route('permissions.edit', [
             'permission' => $permission,
-        ])->withMessage(__('word.successfully_updated'));
+        ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function destroy(Permission $permission)
     {
         $permission->delete();
-        return redirect()->route('permissions.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('permissions.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function bulk_assign_roles(Request $request)
     {
         // dd($request->all());
-        if(empty($request->permission_ids) || empty($request->role_ids)) return back()->withErrors(['message' => __('word.empty_inputs')]);
+        if(empty($request->permission_ids) || empty($request->role_ids)) return back()->withErrors(['message' => __('wncms::word.empty_inputs')]);
 
         $role_ids = [];
         foreach($request->role_ids as $role_id => $value){
@@ -158,14 +158,14 @@ class PermissionController extends Controller
             $role->permissions()->syncWithoutDetaching(explode(",", $request->permission_ids));
         }
 
-        return back()->withMessage(__('word.successfully_updated'));
+        return back()->withMessage(__('wncms::word.successfully_updated'));
 
     }
 
     public function bulk_remove_roles(Request $request)
     {
         // dd($request->all());
-        if(empty($request->permission_ids) || empty($request->role_ids)) return back()->withErrors(['message' => __('word.empty_inputs')]);
+        if(empty($request->permission_ids) || empty($request->role_ids)) return back()->withErrors(['message' => __('wncms::word.empty_inputs')]);
 
         $role_ids = [];
         foreach($request->role_ids as $role_id => $value){
@@ -176,7 +176,7 @@ class PermissionController extends Controller
             $role->permissions()->detach(explode(",", $request->permission_ids));
         }
 
-        return back()->withMessage(__('word.successfully_updated'));
+        return back()->withMessage(__('wncms::word.successfully_updated'));
 
     }
 }

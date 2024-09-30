@@ -34,8 +34,8 @@ class ContactFormSubmissionController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_submitted'),
-            'btn_text' => __('word.submitted'),
+            'message' => __('wncms::word.successfully_submitted'),
+            'btn_text' => __('wncms::word.submitted'),
             'restoreBtn' => false,
         ]);
     }

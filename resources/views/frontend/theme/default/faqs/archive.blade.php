@@ -31,7 +31,7 @@
 
 @section('content')
     <a href="{{ route('frontend.pages', ['slug' => 'faq']) }}">< @lang('wncms::word.faq')</a>
-    <h2>{{ $pageTitle ?? __('word.faq_archive') }}</h2>
+    <h2>{{ $pageTitle ?? __('wncms::word.faq_archive') }}</h2>
     <table>
         <thead>
             <th>@lang('wncms::word.id')</th>

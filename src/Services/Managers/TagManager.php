@@ -329,7 +329,7 @@ class TagManager
         if(strpos($subType, $modelName . "_") !== false){
             $subType = str_replace($modelName . "_", "",$subType);
         }
-        return __('word.'.$modelName) . __('word.word_separator') . __('word.' . $subType);
+        return __('wncms::word.'.$modelName) . __('wncms::word.word_separator') . __('wncms::word.' . $subType);
     }
 
     public function getTagifyDropdownItems($type, $nameColumn = 'name', $valueColumn = null)

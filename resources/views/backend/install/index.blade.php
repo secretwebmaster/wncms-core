@@ -214,7 +214,7 @@
     window.addEventListener('DOMContentLoaded', (event) => {
 
         jQuery.extend(jQuery.validator.messages, {
-            required: "{{ __('word.this_field_is_required') }}",
+            required: "{{ __('wncms::word.this_field_is_required') }}",
             remote: "Por favor, rellena este campo.",
             email: "Por favor, escribe una dirección de correo válida",
             url: "Por favor, escribe una URL válida.",

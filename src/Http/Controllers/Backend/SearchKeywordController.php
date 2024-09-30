@@ -12,7 +12,7 @@ class SearchKeywordController extends Controller
     {
         $search_keywords = SearchKeyword::query()->get();
         return view('wncms::backend.search_keywords.index', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.search_keyword')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.search_keyword')]),
             'search_keywords' => $search_keywords,
         ]);
     }
@@ -20,7 +20,7 @@ class SearchKeywordController extends Controller
     public function create()
     {
         return view('wncms::backend.search_keywords.create', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.search_keyword')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.search_keyword')]),
         ]);
     }
 
@@ -35,13 +35,13 @@ class SearchKeywordController extends Controller
 
         return redirect()->route('search_keywords.edit', [
             'search_keyword' => $search_keyword,
-        ])->withMessage(__('word.successfully_created'));
+        ])->withMessage(__('wncms::word.successfully_created'));
     }
 
     public function edit(SearchKeyword $search_keyword)
     {
         return view('wncms::backend.search_keywords.edit', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.search_keyword')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.search_keyword')]),
             'search_keyword' => $search_keyword,
         ]);
     }
@@ -57,12 +57,12 @@ class SearchKeywordController extends Controller
         
         return redirect()->route('search_keywords.edit', [
             'search_keyword' => $search_keyword,
-        ])->withMessage(__('word.successfully_updated'));
+        ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function destroy(SearchKeyword $search_keyword)
     {
         $search_keyword->delete();
-        return redirect()->route('search_keywords.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('search_keywords.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 }

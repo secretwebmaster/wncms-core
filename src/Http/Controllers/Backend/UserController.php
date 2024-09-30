@@ -27,7 +27,7 @@ class UserController extends Controller
 
         return view('wncms::backend.users.index', [
             'users' => $users,
-            'page_title' => __('word.user_management')
+            'page_title' => __('wncms::word.user_management')
         ]);
     }
 
@@ -36,7 +36,7 @@ class UserController extends Controller
         $roles = Role::all();
         return view('wncms::backend.users.create', [
             'roles' => $roles,
-            'page_title' => __('word.user_management')
+            'page_title' => __('wncms::word.user_management')
         ]);
     }
 
@@ -51,13 +51,13 @@ class UserController extends Controller
                 'password_confirmation' => 'required',
             ],
             [
-                'username.required' => __('word.username_is_required'),
-                'email.required' => __('word.email_is_required'),
-                'email.email' => __('word.please_enter_a_valid_email'),
-                'password.required' => __('word.password_is_required'),
-                'password.same' => __('word.password_confirmation_is_not_the_same'),
-                'password.between' => __('word.password_length_should_between', ['min' => 6, 'max' => 20]),
-                'password_confirmation' => __('word.password_confirmation_is_required'),
+                'username.required' => __('wncms::word.username_is_required'),
+                'email.required' => __('wncms::word.email_is_required'),
+                'email.email' => __('wncms::word.please_enter_a_valid_email'),
+                'password.required' => __('wncms::word.password_is_required'),
+                'password.same' => __('wncms::word.password_confirmation_is_not_the_same'),
+                'password.between' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
+                'password_confirmation' => __('wncms::word.password_confirmation_is_required'),
             ]
         );
         $user = User::create([
@@ -68,7 +68,7 @@ class UserController extends Controller
 
         $user->assignRole($request->role);
 
-        return redirect()->route('users.index')->withMessage(__('word.successfully_created'));
+        return redirect()->route('users.index')->withMessage(__('wncms::word.successfully_created'));
     }
 
     public function show(User $user)
@@ -82,7 +82,7 @@ class UserController extends Controller
         return view('wncms::backend.users.edit', [
             'user' => $user,
             'roles' => $roles,
-            'page_title' => __('word.user_management')
+            'page_title' => __('wncms::word.user_management')
         ]);
     }
 
@@ -95,12 +95,12 @@ class UserController extends Controller
                 'password' => 'nullable|between:6,20|confirmed'
             ],
             [
-                'username.required' => __('word.username_is_required'),
-                'email.required' => __('word.email_is_required'),
-                'email.email' => __('word.please_enter_a_valid_email'),
-                'password.required' => __('word.password_is_required'),
-                'password.same' => __('word.password_confirmation_is_not_the_same'),
-                'password_confirmation' => __('word.password_confirmation_is_required'),
+                'username.required' => __('wncms::word.username_is_required'),
+                'email.required' => __('wncms::word.email_is_required'),
+                'email.email' => __('wncms::word.please_enter_a_valid_email'),
+                'password.required' => __('wncms::word.password_is_required'),
+                'password.same' => __('wncms::word.password_confirmation_is_not_the_same'),
+                'password_confirmation' => __('wncms::word.password_confirmation_is_required'),
             ]
         );
 
@@ -116,14 +116,14 @@ class UserController extends Controller
         }
 
         if(User::role('admin')->count() == 1 && $user->hasRole('admin') && $request->role != 'admin'){
-           return redirect()->back()->withErrors(['message' => __('word.cannot_change_role_of_last_admin')]);
+           return redirect()->back()->withErrors(['message' => __('wncms::word.cannot_change_role_of_last_admin')]);
         }
         // dd($request->all());
         $user->syncRoles($request->role);
 
         return redirect()->route('users.edit' , $user)->with([
             'status' => 'success',
-            'message' => __('word.successfully_updated')
+            'message' => __('wncms::word.successfully_updated')
         ]);
     }
 
@@ -131,13 +131,13 @@ class UserController extends Controller
     {
 
         if(User::role(['superadmin','admin'])->count() == 1 && $user->hasRole(['superadmin','admin'])){
-            return back()->withError('message',__('word.cannot_delete_last_admin'));
+            return back()->withError('message',__('wncms::word.cannot_delete_last_admin'));
         }
 
         $user->delete();
         return redirect()->route('users.index')->with([
             'status'=>'success',
-            'message' => __('word.successfully_deleted')
+            'message' => __('wncms::word.successfully_deleted')
         ]);
 
     }
@@ -146,7 +146,7 @@ class UserController extends Controller
     {
         $user = auth()->user();
         return view('wncms::backend.users.account.profile', [
-            'page_title' => __('word.my_account'),
+            'page_title' => __('wncms::word.my_account'),
         ], [
             'user' => $user,
         ]);
@@ -163,13 +163,13 @@ class UserController extends Controller
         if($request->avatar){
             auth()->user()->addMediaFromRequest('avatar')->toMediaCollection('avatar');
         }
-        return redirect()->route('users.account.profile.show')->withMessage(__('word.successfully_updated'));
+        return redirect()->route('users.account.profile.show')->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function show_user_security(Request $request)
     {
         return view('wncms::backend.users.account.security', [
-            'page_title' => __('word.my_account'),
+            'page_title' => __('wncms::word.my_account'),
         ]);
     }
 
@@ -177,38 +177,38 @@ class UserController extends Controller
     {
         // dd($request->all());
         if (!Hash::check($request->current_password, auth()->user()->password)) {
-            return back()->withErrors(['message' => __('word.incorrect_password')]);
+            return back()->withErrors(['message' => __('wncms::word.incorrect_password')]);
         }
         
         if($request->new_password != $request->new_password_confirmation){
-            return back()->withErrors(['message' => __('word.password_confirmation_is_not_the_same')]);
+            return back()->withErrors(['message' => __('wncms::word.password_confirmation_is_not_the_same')]);
         }
 
         auth()->user()->update([
             'password' => Hash::make($request->new_password)
         ]);
 
-        return back()->withMessage(__('word.successfully_updated'));
+        return back()->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function show_user_api(Request $request)
     {
         return view('wncms::backend.users.account.api', [
-            'page_title' => __('word.my_account'),
+            'page_title' => __('wncms::word.my_account'),
         ]);
     }
 
     public function update_user_api(Request $request)
     {
         return view('wncms::backend.users.account.api', [
-            'page_title' => __('word.my_account'),
+            'page_title' => __('wncms::word.my_account'),
         ]);
     }
 
     public function show_user_record(Request $request)
     {
         return view('wncms::backend.users.record', [
-            'page_title' => __('word.my_account'),
+            'page_title' => __('wncms::word.my_account'),
         ]);
     }
 
@@ -228,7 +228,7 @@ class UserController extends Controller
                 'email' => $request->email
             ]);
         }else{
-            return back()->withErrors(['message' => __('word.invalid_password')]);
+            return back()->withErrors(['message' => __('wncms::word.invalid_password')]);
         }
 
         return redirect()->route('users.account.security.show');

@@ -37,7 +37,7 @@ class PageController extends Controller
         $websites = Website::all();
 
         return view('wncms::backend.pages.index', [
-            'page_title' => __('word.page_management'),
+            'page_title' => __('wncms::word.page_management'),
             'pages' => $pages,
             'websites' => $websites,
             'orders' => Page::ORDERS,
@@ -57,7 +57,7 @@ class PageController extends Controller
         }
 
         return view('wncms::backend.pages.create', [
-            'page_title' => __('word.page_management'),
+            'page_title' => __('wncms::word.page_management'),
             'websites' => $websites,
             'users' => $users,
             'orders' => Page::ORDERS,
@@ -79,8 +79,8 @@ class PageController extends Controller
             $website = auth()->user()->websites()->find($request->website_id);
         }
 
-        if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('word.user_not_found')]);
-        if (!$website) return redirect()->back()->withInput()->withErrors(['message' => __('word.website_not_found')]);
+        if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
+        if (!$website) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
 
         $request->validate(
             [
@@ -89,9 +89,9 @@ class PageController extends Controller
                 'visibility' => 'required',
             ],
             [
-                'title.required' => __('word.field_is_required', ['field_name' => __('word.title')]),
-                'status.required' => __('word.field_is_required', ['field_name' => __('word.status')]),
-                'visibility.required' => __('word.field_is_required', ['field_name' => __('word.visibility')]),
+                'title.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.title')]),
+                'status.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.status')]),
+                'visibility.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.visibility')]),
             ]
         );
 
@@ -184,7 +184,7 @@ class PageController extends Controller
         $available_templates = collect(config("theme." . $page->website?->theme . ".templates"));
 
         return view('wncms::backend.pages.edit', [
-            'page_title' => __('word.page_management'),
+            'page_title' => __('wncms::word.page_management'),
             'page' => $page,
             'websites' => $websites,
             'users' => $users,
@@ -200,13 +200,13 @@ class PageController extends Controller
         // dd($request->all());
         if ($page->is_locked && $request->is_locked) {
             return redirect()->back()->withInput()->withErrors([
-                'message' => __('word.page_is_lock_please_unlock_and_save_first_to_edit')
+                'message' => __('wncms::word.page_is_lock_please_unlock_and_save_first_to_edit')
             ]);
         }
 
         if ($page->is_locked && !$request->is_locked) {
             $page->update(['is_locked' => false]);
-            return back()->withMessage(__('word.page_is_unlocked'));
+            return back()->withMessage(__('wncms::word.page_is_unlocked'));
         }
 
         if (isAdmin()) {
@@ -217,8 +217,8 @@ class PageController extends Controller
             $website = auth()->user()->websites()->find($request->website_id);
         }
 
-        if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('word.user_not_found')]);
-        if (!$website) return redirect()->back()->withInput()->withErrors(['message' => __('word.website_not_found')]);
+        if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
+        if (!$website) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
 
         $request->validate(
             [
@@ -227,9 +227,9 @@ class PageController extends Controller
                 'visibility' => 'required',
             ],
             [
-                // 'title.required' => __('word.field_is_required', ['field_name' => __('word.title')]),
-                'status.required' => __('word.field_is_required', ['field_name' => __('word.status')]),
-                'visibility.required' => __('word.field_is_required', ['field_name' => __('word.visibility')]),
+                // 'title.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.title')]),
+                'status.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.status')]),
+                'visibility.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.visibility')]),
             ]
         );
         
@@ -264,13 +264,13 @@ class PageController extends Controller
         //clear cache
         wncms()->cache()->flush(['pages']);
 
-        return redirect()->route('pages.edit', $page->id)->withMessage(__('word.successfully_updated'));
+        return redirect()->route('pages.edit', $page->id)->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function destroy(Page $page)
     {
         $page->delete();
-        return redirect()->route('pages.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('pages.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function bulk_delete(Request $request)
@@ -287,11 +287,11 @@ class PageController extends Controller
         if($request->ajax()){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_deleted_count', ['count' => $count]),
+                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
             ]);
         }
 
-        return redirect()->route('pages.index')->withMessage(__('word.successfully_deleted_count', ['count' => $count]));
+        return redirect()->route('pages.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
     }
 
     public function get_available_templates(Request $request)
@@ -299,7 +299,7 @@ class PageController extends Controller
         $website = Website::find($request->website_id);
         if (!$website) return response()->json([
             'status' => 'fail',
-            'message' => __('word.website_not_exist')
+            'message' => __('wncms::word.website_not_exist')
         ]);
 
         $available_templates = config("theme." . $website->theme . ".templates");
@@ -308,7 +308,7 @@ class PageController extends Controller
         return response()->json([
             'status' => 'success',
             'available_templates' => $available_templates,
-            'message' => __('word.loaded_templtes', ['count' => $count]),
+            'message' => __('wncms::word.loaded_templtes', ['count' => $count]),
         ]);
     }
 
@@ -326,7 +326,7 @@ class PageController extends Controller
     {
         // dd($request->all());
         if(empty($request->website_id)){
-            return back()->withErrors(['message' => __('word.website_is_required')]);
+            return back()->withErrors(['message' => __('wncms::word.website_is_required')]);
         }
         //get website
         if(isAdmin()){
@@ -337,13 +337,13 @@ class PageController extends Controller
         }
 
         if(empty($website)){
-            return back()->withErrors(['message' => __('word.website_is_not_found')]);
+            return back()->withErrors(['message' => __('wncms::word.website_is_not_found')]);
         }
 
         $count = wncms()->page()->createDefaultThemeTemplatePages($website);
 
         //return back
-        return back()->withMessage(__('word.successfully_created_count', ['count' => $count]));
+        return back()->withMessage(__('wncms::word.successfully_created_count', ['count' => $count]));
     }
 
     /**
@@ -392,7 +392,7 @@ class PageController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_created'),
+            'message' => __('wncms::word.successfully_created'),
             'html' => $html,
             'sortableIds' => $sortableIds,
         ]);

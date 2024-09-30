@@ -11,7 +11,7 @@
     <form class="form" method="POST" action="{{ route('pages.store') }}" enctype="multipart/form-data">
         @csrf
         @include('wncms::backend.pages.form-items', [
-            'submitLabelText' => __('word.publish')
+            'submitLabelText' => __('wncms::word.publish')
         ])
     </form>
 

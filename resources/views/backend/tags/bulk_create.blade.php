@@ -24,7 +24,7 @@
 
                         <div class="mb-3">
                             <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit w-100">
-                                @include('wncms::backend.parts.submit', ['label' => __('word.bulk_create_tag')])
+                                @include('wncms::backend.parts.submit', ['label' => __('wncms::word.bulk_create_tag')])
                             </button>
                         </div>
 

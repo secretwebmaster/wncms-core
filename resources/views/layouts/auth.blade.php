@@ -3,7 +3,7 @@
 
     <head>
         <meta charset="utf-8">
-        <title>{{ $website?->site_name ?? gss('system_name') ?? __('word.wncms') }}</title>
+        <title>{{ $website?->site_name ?? gss('system_name') ?? __('wncms::word.wncms') }}</title>
         <meta name="description" content="{{ $website?->site_seo_description ?? gss('system_description') }}">
         <meta name="keywords" content="{{ $website?->site_keyword  ?? gss('system_keyword') }}">
         <link rel="canonical" href="{{ wncms_add_https($website?->domain) }}">

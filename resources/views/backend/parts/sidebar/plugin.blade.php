@@ -16,7 +16,7 @@ event('backend.menu.render', $PluginMenuItems = new \Illuminate\Support\Collecti
             <span class="menu-icon">
                 <i class="fa-lg @if(request()->routeIs($menuItem['route_is'])) fa-beat @endif fa-solid fa-lock"></i>
             </span>
-            <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('word.role')])</span>
+            <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('wncms::word.role')])</span>
             <span class="menu-arrow"></span>
         </span>
 

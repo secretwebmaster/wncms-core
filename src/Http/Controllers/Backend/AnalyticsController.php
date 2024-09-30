@@ -70,7 +70,7 @@ class AnalyticsController extends Controller
         }
 
         return view('wncms::backend.analytics.index', [
-            'page_title' => __('word.website_analytics'),
+            'page_title' => __('wncms::word.website_analytics'),
             'websites' => $websites,
             'websiteAnalyticsDataSets' => $websiteAnalyticsDataSets,
         ]);
@@ -107,7 +107,7 @@ class AnalyticsController extends Controller
             'link_categories' => $link_categories,
             'traffics' => $traffics,
             'groups' => $this->groups,
-            'page_title' => __('word.analytics_management')
+            'page_title' => __('wncms::word.analytics_management')
         ]);
     }
 
@@ -148,7 +148,7 @@ class AnalyticsController extends Controller
             'link_categories' => $link_categories,
             'clicks' => $clicks,
             'groups' => $this->groups,
-            'page_title' => __('word.analytics_management')
+            'page_title' => __('wncms::word.analytics_management')
         ]);
     }
 }

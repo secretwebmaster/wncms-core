@@ -17,7 +17,7 @@
         {{-- 提交 --}}
         <div class="d-grid mb-10">
             <button type="submit" id="kt_sign_in_submit" class="btn btn-dark mt-5">
-                @include('wncms::partials.general._button-indicator', ['label' => __('word.send_reset_password_request')])
+                @include('wncms::partials.general._button-indicator', ['label' => __('wncms::word.send_reset_password_request')])
             </button>
         </div>
         

@@ -59,7 +59,7 @@ class MenuController extends Controller
     {
         // dd($request->all());
         $website = Website::find($request->website_id);
-        if(!$website) return back()->withErrors(['message' => __('word.website_not_exist')]);
+        if(!$website) return back()->withErrors(['message' => __('wncms::word.website_not_exist')]);
         $menu = $website->menus()->create([
             'name' => $request->name,
         ]);
@@ -100,7 +100,7 @@ class MenuController extends Controller
 
         $menus = Menu::all();
         return view('wncms::backend.menus.edit', [
-            'page_title' =>__('word.menu_management'),
+            'page_title' =>__('wncms::word.menu_management'),
             'websites' => $websites,
             'current_website' => $current_website,
             'menus' => $menus,
@@ -138,7 +138,7 @@ class MenuController extends Controller
 
         return redirect()->route('menus.edit', [
             'menu' => $menu,
-        ])->withMessage(__('word.successfully_updated'));
+        ])->withMessage(__('wncms::word.successfully_updated'));
 
     }
 
@@ -153,7 +153,7 @@ class MenuController extends Controller
                 'model_id' => $menu_item['modelId'] ?? $existing_item->modelId,
                 'icon' => $menu_item['icon'] ?? $existing_item->icon,
                 'type' => $menu_item['type'] ?? $existing_item->type,
-                'name' => $menu_item['name'] ?? __('word.untitled'),
+                'name' => $menu_item['name'] ?? __('wncms::word.untitled'),
                 'description' => $menu_item['description'] ?? null,
                 'url' => $menu_item['url'] ?? $existing_item->url,
                 'is_new_window' => $menu_item['newWindow'] === 1 ? true : false,
@@ -168,7 +168,7 @@ class MenuController extends Controller
                 'model_id' => $menu_item['modelId'] ?? null,
                 'icon' => $menu_item['icon'] ?? null,
                 'type' => $menu_item['type'] ?? null,
-                'name' => $menu_item['name'] ?? __('word.untitled'),
+                'name' => $menu_item['name'] ?? __('wncms::word.untitled'),
                 'description' => $menu_item['description'] ?? null,
                 'url' => $menu_item['url'] ?? null,
                 'is_new_window' => $menu_item['newWindow'] === 1 ? true : false,
@@ -191,7 +191,7 @@ class MenuController extends Controller
     public function destroy(Menu $menu)
     {
         $menu->delete();
-        return redirect()->route('menus.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('menus.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function get_menu_item(Request $request)
@@ -209,7 +209,7 @@ class MenuController extends Controller
 
         if(!$menu_item) return response()->json([
             'status' => 'fail',
-            'message' => __('word.menu_item_is_not_found'),
+            'message' => __('wncms::word.menu_item_is_not_found'),
             'hide_modal' => false
         ]);
 
@@ -238,7 +238,7 @@ class MenuController extends Controller
             wncms()->cache()->tags('menus')->flush();
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_updated'),
+                'message' => __('wncms::word.successfully_updated'),
                 'menu_item' => $menu_item,
                 'menu' => $menu_item->menu->menu_items()->whereNull('parent_id')->with('children','children.children')->get(),
                 'hide_modal' => true,
@@ -247,7 +247,7 @@ class MenuController extends Controller
         }else{
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.something_went_wrong'),
+                'message' => __('wncms::word.something_went_wrong'),
                 'hide_modal' => false,
             ]);
         }

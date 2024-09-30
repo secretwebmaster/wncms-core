@@ -153,7 +153,7 @@
                 <button type="reset" class="btn btn-white btn-active-light-primary me-2">@lang('wncms::word.cancel')</button>
 
                 <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit">
-                    @include('wncms::backend.parts.submit', ['label' => __('word.edit')])
+                    @include('wncms::backend.parts.submit', ['label' => __('wncms::word.edit')])
                 </button>
             </div>
         </form>

@@ -9,7 +9,7 @@
         <div class="card shadow-sm">
             <div class="card-header border-0 cursor-pointer px-3 px-md-9">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">@lang('wncms::word.model_create', ['model_name' => __('word.permission')])</h3>
+                    <h3 class="fw-bolder m-0">@lang('wncms::word.model_create', ['model_name' => __('wncms::word.permission')])</h3>
                 </div>
             </div>
 
@@ -74,7 +74,7 @@
 
                     <div class="card-footer d-flex justify-content-end py-6 px-9">
                         <button type="submit" class="btn btn-dark w-100" id="kt_account_profile_details_submit">
-                            @include('wncms::backend.parts.submit', ['label' => __('word.create')])
+                            @include('wncms::backend.parts.submit', ['label' => __('wncms::word.create')])
                         </button>
                     </div>
                 </form>

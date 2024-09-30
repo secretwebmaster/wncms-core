@@ -39,7 +39,7 @@ class WebsiteController extends Controller
 
         return view('wncms::backend.websites.index' , [
             'websites' => $websites,
-            'page_title' => __('word.website_management')
+            'page_title' => __('wncms::word.website_management')
         ]);
     }
 
@@ -50,7 +50,7 @@ class WebsiteController extends Controller
 
         return view('wncms::backend.websites.create',[
             'themes' => $themes,
-            'page_title' => __('word.website_management'),
+            'page_title' => __('wncms::word.website_management'),
             'first_website' => $first_website,
         ]);
     }
@@ -63,8 +63,8 @@ class WebsiteController extends Controller
                 'domain' => 'required',
             ],
             [
-                'site_name.required' => __('word.site_name_is_required'),
-                'domain.required' => __('word.domain_is_required'),
+                'site_name.required' => __('wncms::word.site_name_is_required'),
+                'domain.required' => __('wncms::word.domain_is_required'),
             ]
         );
 
@@ -74,7 +74,7 @@ class WebsiteController extends Controller
 
         $existing_website = Website::where('domain', $request->domain)->first();
         if($existing_website){
-            return back()->withInput()->withErrors(['message' => __('word.website_is_already_exist')]);
+            return back()->withInput()->withErrors(['message' => __('wncms::word.website_is_already_exist')]);
         }
 
         $website = Website::create([
@@ -118,7 +118,7 @@ class WebsiteController extends Controller
 
         return redirect()->route('websites.index')->with([
             'status' => 'success',
-            'message' => __('word.successfully_created')
+            'message' => __('wncms::word.successfully_created')
         ]);
     }
 
@@ -130,7 +130,7 @@ class WebsiteController extends Controller
         $themes = wncms()->theme()->getActivatedTheme();
 
         return view('wncms::backend.websites.edit' , [
-            'page_title' => __('word.website_management'),
+            'page_title' => __('wncms::word.website_management'),
             'website' => $website,
             'themes' => $themes,
         ]);
@@ -152,19 +152,19 @@ class WebsiteController extends Controller
             'enabled_data_cache' => 'nullable|boolean',
             'remark' => 'nullable|string|max:255',
         ], [
-            'required' => __('word.field_required', ['field' => ':attribute']),
-            'max' => __('word.field_max', ['field' => ':attribute', 'max' => ':max']),
+            'required' => __('wncms::word.field_required', ['field' => ':attribute']),
+            'max' => __('wncms::word.field_max', ['field' => ':attribute', 'max' => ':max']),
         ], [
-            'site_name' => __('word.site_name'),
-            'theme' => __('word.theme'),
-            'meta_verification' => __('word.meta_verification'),
-            'site_slogan' => __('word.site_slogan'),
-            'site_seo_description' => __('word.site_seo_description'),
-            'site_seo_keywords' => __('word.site_seo_keywords'),
-            'head_code' => __('word.head_code'),
-            'body_code' => __('word.body_code'),
-            'analytics' => __('word.analytics'),
-            'remark' => __('word.remark'),
+            'site_name' => __('wncms::word.site_name'),
+            'theme' => __('wncms::word.theme'),
+            'meta_verification' => __('wncms::word.meta_verification'),
+            'site_slogan' => __('wncms::word.site_slogan'),
+            'site_seo_description' => __('wncms::word.site_seo_description'),
+            'site_seo_keywords' => __('wncms::word.site_seo_keywords'),
+            'head_code' => __('wncms::word.head_code'),
+            'body_code' => __('wncms::word.body_code'),
+            'analytics' => __('wncms::word.analytics'),
+            'remark' => __('wncms::word.remark'),
         ]);
 
         //debug to list all posssible combinations of validation rules error message
@@ -184,21 +184,21 @@ class WebsiteController extends Controller
         ];
         
         $messages = [
-            'required' => __('word.field_required', ['field' => ':attribute']),
-            'max' => __('word.field_max', ['field' => ':attribute', 'max' => ':max']),
+            'required' => __('wncms::word.field_required', ['field' => ':attribute']),
+            'max' => __('wncms::word.field_max', ['field' => ':attribute', 'max' => ':max']),
         ];
         
         $customMessages = [
-            'site_name' => __('word.site_name'),
-            'theme' => __('word.theme'),
-            'meta_verification' => __('word.meta_verification'),
-            'site_slogan' => __('word.site_slogan'),
-            'site_seo_description' => __('word.site_seo_description'),
-            'site_seo_keywords' => __('word.site_seo_keywords'),
-            'head_code' => __('word.head_code'),
-            'body_code' => __('word.body_code'),
-            'analytics' => __('word.analytics'),
-            'remark' => __('word.remark'),
+            'site_name' => __('wncms::word.site_name'),
+            'theme' => __('wncms::word.theme'),
+            'meta_verification' => __('wncms::word.meta_verification'),
+            'site_slogan' => __('wncms::word.site_slogan'),
+            'site_seo_description' => __('wncms::word.site_seo_description'),
+            'site_seo_keywords' => __('wncms::word.site_seo_keywords'),
+            'head_code' => __('wncms::word.head_code'),
+            'body_code' => __('wncms::word.body_code'),
+            'analytics' => __('wncms::word.analytics'),
+            'remark' => __('wncms::word.remark'),
         ];
         
         $allMessages = [];
@@ -206,13 +206,13 @@ class WebsiteController extends Controller
         foreach ($rules as $field => $rule) {
             // Add required messages
             if (strpos($rule, 'required') !== false) {
-                $allMessages["{$field}.required"] = str_replace(':attribute', __('word.' . $field), $messages['required']);
+                $allMessages["{$field}.required"] = str_replace(':attribute', __('wncms::word.' . $field), $messages['required']);
             }
         
             // Add max messages
             if (preg_match('/max:(\d+)/', $rule, $matches)) {
                 $max = $matches[1];
-                $allMessages["{$field}.max"] = str_replace([':attribute', ':max'], [__('word.' . $field), $max], $messages['max']);
+                $allMessages["{$field}.max"] = str_replace([':attribute', ':max'], [__('wncms::word.' . $field), $max], $messages['max']);
             }
         }
         
@@ -289,13 +289,13 @@ class WebsiteController extends Controller
         
         return redirect()->route('websites.edit' , $website)->with([
             'status' => 'success',
-            'message' => __('word.successfully_updated')
+            'message' => __('wncms::word.successfully_updated')
         ]);
     }
 
     public function destroy(Website $website)
     {
-        return redirect()->back()->withErrors(['message'=>__('word.function_not_release_yet')]);
+        return redirect()->back()->withErrors(['message'=>__('wncms::word.function_not_release_yet')]);
     }
 
     public function editThemeOptions(Website $website)
@@ -329,7 +329,7 @@ class WebsiteController extends Controller
         ]);
 
         return view('wncms::backend.websites.theme_options' , [
-            'page_title' => __('word.website_management'),
+            'page_title' => __('wncms::word.website_management'),
             '_website' => $website,
             'websites' => $websites,
             'option_tabs' => $option_tabs,
@@ -467,7 +467,7 @@ class WebsiteController extends Controller
     {
         // dd($request->all());
         if($request->confirmation != 'default'){
-            return back()->withErrors(['message' => __('word.enter_default_to_confirm')]);
+            return back()->withErrors(['message' => __('wncms::word.enter_default_to_confirm')]);
         }
 
         //get website
@@ -502,9 +502,9 @@ class WebsiteController extends Controller
             wncms()->cache()->flush(['websites', 'pages']);
             
             //return message
-            return back()->withMessage(__('word.successfully_updated_count', ['count' => $count]));
+            return back()->withMessage(__('wncms::word.successfully_updated_count', ['count' => $count]));
         }else{
-            return back()->withErrors(['message' => __('word.websites_is_not_found')]);
+            return back()->withErrors(['message' => __('wncms::word.websites_is_not_found')]);
         }
 
     }

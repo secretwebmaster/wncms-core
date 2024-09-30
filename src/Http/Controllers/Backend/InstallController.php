@@ -84,9 +84,9 @@ class InstallController extends Controller
         $rules = config('installer.environment.form.rules');
         $messages = [
             'environment_custom.required_if' => trans('installer_messages.environment.wizard.form.name_required'),
-            'database_name.required' => __('word.database_name') . ' ' . __('word.required'),
-            'database_username.required' => __('word.database_user') . ' ' . __('word.required'),
-            'database_password.required' => __('word.database_password') . ' ' . __('word.required'),
+            'database_name.required' => __('wncms::word.database_name') . ' ' . __('wncms::word.required'),
+            'database_username.required' => __('wncms::word.database_user') . ' ' . __('wncms::word.required'),
+            'database_password.required' => __('wncms::word.database_password') . ' ' . __('wncms::word.required'),
         ];
         $validator = Validator::make($input, $rules, $messages);
 
@@ -144,7 +144,7 @@ class InstallController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.started_installation'),
+            'message' => __('wncms::word.started_installation'),
             'reload' => true,
         ]);
     }
@@ -259,7 +259,7 @@ class InstallController extends Controller
     {
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_fetch'),
+            'message' => __('wncms::word.successfully_fetch'),
             'completed' => wncms_is_installed(),
         ]);
     }

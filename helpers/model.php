@@ -36,10 +36,10 @@ if (!function_exists('wncms_tag_word')) {
         $tag_type = array_pop($parts); // Get and remove the last part as the tag type
         $model_name = implode('_', $parts); // Join the remaining parts as the model name
 
-        $translated_model_name = __('word.' . $model_name);
-        $translated_tag_type = __('word.' . $tag_type);
+        $translated_model_name = __('wncms::word.' . $model_name);
+        $translated_tag_type = __('wncms::word.' . $tag_type);
         
-        return $translated_model_name . __('word.word_separator') . $translated_tag_type;
+        return $translated_model_name . __('wncms::word.word_separator') . $translated_tag_type;
     }
 }
 

@@ -2,7 +2,7 @@
 
 @section('content')
     <a class="nav-link" href="{{ route('frontend.pages.blog') }}">@lang('wncms::word.blog')</a>
-    <h2>{{ $pageTitle ?? __('word.post_archive') }}</h2>
+    <h2>{{ $pageTitle ?? __('wncms::word.post_archive') }}</h2>
     <table>
         <thead>
             <th>@lang('wncms::word.id')</th>

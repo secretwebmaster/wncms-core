@@ -24,7 +24,7 @@
             <div class="card-title m-0">
                 <div class="card-toolbar flex-row-fluid justify-content-end text-nowrap">
                     <button type="submit" wncms-btn-loading class="btn btn-sm btn-primary wncms-submit">
-                        @include('wncms::backend.parts.submit', ['label' => __('word.save_all')])
+                        @include('wncms::backend.parts.submit', ['label' => __('wncms::word.save_all')])
                     </button>
                 </div>
             </div>
@@ -233,7 +233,7 @@
 
             <div class="card-footer d-flex justify-content-end py-6 px-9">
                 <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit">
-                    @include('wncms::backend.parts.submit', ['label' => __('word.edit')])
+                    @include('wncms::backend.parts.submit', ['label' => __('wncms::word.edit')])
                 </button>
             </div>
 

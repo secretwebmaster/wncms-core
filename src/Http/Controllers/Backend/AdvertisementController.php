@@ -136,7 +136,7 @@ class AdvertisementController extends Controller
 
         return redirect()->route('advertisements.edit', [
             'advertisement' => $advertisement,
-        ])->withMessage(__('word.successfully_created'));
+        ])->withMessage(__('wncms::word.successfully_created'));
     }
 
     public function edit(Advertisement $advertisement)
@@ -198,13 +198,13 @@ class AdvertisementController extends Controller
         
         return redirect()->route('advertisements.edit', [
             'advertisement' => $advertisement,
-        ])->withMessage(__('word.successfully_updated'));
+        ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function destroy(Advertisement $advertisement)
     {
         $advertisement->delete();
-        return redirect()->route('advertisements.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('advertisements.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function bulk_delete(Request $request)
@@ -216,6 +216,6 @@ class AdvertisementController extends Controller
         }
         
         Advertisement::whereIn('id', $modelIds)->delete();
-        return redirect()->route('advertisements.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('advertisements.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 }

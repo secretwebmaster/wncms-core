@@ -37,7 +37,7 @@ class MenuController extends Controller
         if(!$user->hasRole('admin')){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.unauthorized_action'),
+                'message' => __('wncms::word.unauthorized_action'),
             ]);
         }
         
@@ -50,7 +50,7 @@ class MenuController extends Controller
         if(!$website){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.website_is_not_found'),
+                'message' => __('wncms::word.website_is_not_found'),
             ]);
         }
 
@@ -88,7 +88,7 @@ class MenuController extends Controller
         
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_created_menu'),
+            'message' => __('wncms::word.successfully_created_menu'),
         ]);
 
     }

@@ -14,7 +14,7 @@ class PageController extends Controller
     {
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_fetched_page_index'),
+            'message' => __('wncms::word.successfully_fetched_page_index'),
         ]);
     }
 
@@ -22,7 +22,7 @@ class PageController extends Controller
     {
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_fetched_page_store'),
+            'message' => __('wncms::word.successfully_fetched_page_store'),
         ]);
     }
 
@@ -30,7 +30,7 @@ class PageController extends Controller
     {
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_fetched_page_show'),
+            'message' => __('wncms::word.successfully_fetched_page_show'),
         ]);
     }
 }

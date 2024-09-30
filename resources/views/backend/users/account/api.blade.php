@@ -98,7 +98,7 @@
                     //words
                     {
                         yAxisID: 'words',
-                        label: "{{ __('word.words') }}",
+                        label: "{{ __('wncms::word.words') }}",
                         data: data_set_word,
                         borderColor: "red",
                         backgroundColor:"pink",
@@ -112,7 +112,7 @@
                     //iamges
                     {
                         yAxisID: 'iamges',
-                        label: "{{ __('word.images') }}",
+                        label: "{{ __('wncms::word.images') }}",
                         data: data_set_image,
                         borderColor: "blue",
                         backgroundColor:"#d7f1ff",
@@ -136,7 +136,7 @@
                     },
                     title: {
                         display: true,
-                            text: "{{ __('word.usage') }}"
+                            text: "{{ __('wncms::word.usage') }}"
                         }
                     },
                     scales: {

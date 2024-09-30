@@ -1,6 +1,6 @@
 @php
-    $label = $label ?? __('word.submit');
-    $message = $message ?? __('word.please_wait');
+    $label = $label ?? __('wncms::word.submit');
+    $message = $message ?? __('wncms::word.please_wait');
 @endphp
 
 <span class="indicator-label fw-bold">{{ $label }}</span>

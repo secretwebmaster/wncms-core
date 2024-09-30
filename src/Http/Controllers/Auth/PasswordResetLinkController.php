@@ -50,9 +50,9 @@ class PasswordResetLinkController extends Controller
         if($request->is_ajax){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_created'),
+                'message' => __('wncms::word.successfully_created'),
                 'restoreBtn' => false,
-                'button_text' => __('word.sent'),
+                'button_text' => __('wncms::word.sent'),
             ]);
         }
 

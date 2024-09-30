@@ -31,7 +31,7 @@ class DashboardController extends Controller
             $colors  = (new UpdateController)->colors;
             
             return view('wncms::backend.dashboards.admin_dashboard', [
-                'page_title' => __('word.user_role_dashboard', ['role' => __('word.admin')]),
+                'page_title' => __('wncms::word.user_role_dashboard', ['role' => __('wncms::word.admin')]),
                 'result' => $result ?? [],
                 'colors' => $colors,
                 'page_count' => $page_count,
@@ -43,20 +43,20 @@ class DashboardController extends Controller
 
         if(auth()->user()->hasRole(['manager'])){
             return view('wncms::backend.dashboards.manager_dashboard', [
-                'page_title' => __('word.user_role_dashboard', ['role' => __('word.manager')]),
+                'page_title' => __('wncms::word.user_role_dashboard', ['role' => __('wncms::word.manager')]),
                 'result' => $result,
             ]);
         }
 
         if(auth()->user()->hasRole(['suspended'])){
             return view('wncms::backend.dashboards.suspended_dashboard', [
-                'page_title' => __('word.user_role_dashboard', ['role' => __('word.suspended')]),
+                'page_title' => __('wncms::word.user_role_dashboard', ['role' => __('wncms::word.suspended')]),
                 'result' => $result,
             ]);
         }
 
         return view('wncms::backend.dashboards.member_dashboard', [
-            'page_title' => __('word.user_role_dashboard', ['role' => __('word.member')]),
+            'page_title' => __('wncms::word.user_role_dashboard', ['role' => __('wncms::word.member')]),
         ]);
     }
 
@@ -70,7 +70,7 @@ class DashboardController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.switched_website_id_to', ['website_id' => $request->websiteId]),
+            'message' => __('wncms::word.switched_website_id_to', ['website_id' => $request->websiteId]),
             'reload' => true,
         ]);
     }

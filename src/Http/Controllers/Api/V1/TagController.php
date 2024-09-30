@@ -32,7 +32,7 @@ class TagController extends Controller
         $tagIds = Tag::whereIn('id', $request->tagIds ?? [])->pluck('id')->toArray();
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_fetched_data'),
+            'message' => __('wncms::word.successfully_fetched_data'),
             'ids' => $tagIds,
         ]);
     }

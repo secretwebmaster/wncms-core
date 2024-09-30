@@ -27,7 +27,7 @@ class CacheController extends Controller
         if($request->ajax()){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.cache_flushed'),
+                'message' => __('wncms::word.cache_flushed'),
                 'reload' => true,
             ]);
         }
@@ -47,7 +47,7 @@ class CacheController extends Controller
         if($request->ajax()){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.cache_flushed'),
+                'message' => __('wncms::word.cache_flushed'),
                 'reload' => true,
             ]);
         }

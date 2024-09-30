@@ -91,8 +91,8 @@ class PostControllerTest extends TestCase
 
         // Assert validation errors
         $response->assertSessionHasErrors([
-            'title' => __('word.field_is_required', ['field_name' => __('word.title')]),
-            'status' => __('word.field_is_required', ['field_name' => __('word.status')]),
+            'title' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.title')]),
+            'status' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.status')]),
         ]);
     }
 
@@ -251,7 +251,7 @@ class PostControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'status' => 'success',
-                'message' => __('word.successfully_updated_all'),
+                'message' => __('wncms::word.successfully_updated_all'),
             ]);
 
         // Assert that the posts have the appropriate tags
@@ -294,7 +294,7 @@ class PostControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'status' => 'success',
-                'message' => __('word.successfully_updated'),
+                'message' => __('wncms::word.successfully_updated'),
                 'reload' => true,
             ]);
 
@@ -325,7 +325,7 @@ class PostControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'status' => 'success',
-                'message' => __('word.successfully_updated'),
+                'message' => __('wncms::word.successfully_updated'),
                 'reload' => true,
             ]);
 
@@ -358,7 +358,7 @@ class PostControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'status' => 'fail',
-                'message' => __('word.website_is_not_found'),
+                'message' => __('wncms::word.website_is_not_found'),
             ]);
     }
 

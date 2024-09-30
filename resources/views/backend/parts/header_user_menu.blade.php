@@ -11,7 +11,7 @@
 				<div class="fw-bold d-flex align-items-center fs-5">
                     {{-- <span>Max Smith</span>  --}}
                     <span class="badge bg-success">{{ auth()->user()->roles()->first()->name }}</span> 
-                    {{-- <span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">{{ auth()->user()->roles->first()->name ?? __('word.user') }}</span> --}}
+                    {{-- <span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">{{ auth()->user()->roles->first()->name ?? __('wncms::word.user') }}</span> --}}
                 </div>
 				<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">{{ auth()->user()->email }}</a>
 			</div>

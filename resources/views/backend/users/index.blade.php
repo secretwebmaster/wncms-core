@@ -84,7 +84,7 @@
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$user , 'route' => route('users.destroy' , $user)])
 
                                 {{-- @if($user->trashed())
-                                @include('wncms::backend.parts.modal_delete' , ['model'=>$user , 'route' => route('users.destroy.force' , $user), 'btn_text' => __('word.force_delete'), 'target' => 'form_delete'])
+                                @include('wncms::backend.parts.modal_delete' , ['model'=>$user , 'route' => route('users.destroy.force' , $user), 'btn_text' => __('wncms::word.force_delete'), 'target' => 'form_delete'])
                                 @endif --}}
                             </td>
                             <td>{{ $user->id }}</td>

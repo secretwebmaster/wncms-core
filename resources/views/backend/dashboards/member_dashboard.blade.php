@@ -40,7 +40,7 @@
                     <div class="card hover-elevate-up shadow-sm card-flush bgi-no-repeat bgi-size-contain bgi-position-x-end mb-5 mb-xl-10 h-xl-100" style="background-color: #F1416C;background-image:url('{{ asset('wncms/media/patterns/vector-1.png') }}')">
                         <div class="card-header pt-5">
                             <div class="card-title d-flex flex-column">
-                                <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">{{ auth()->user()->active_subscription->plan?->name ?? __('word.free_plan') }}</span>
+                                <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">{{ auth()->user()->active_subscription->plan?->name ?? __('wncms::word.free_plan') }}</span>
                                 <span class="text-white opacity-75 pt-1 fw-semibold fs-6">@lang('wncms::word.expiry_date') {{ auth()->user()->active_subscription?->expired_at }}</span>
                             </div>
                         </div>

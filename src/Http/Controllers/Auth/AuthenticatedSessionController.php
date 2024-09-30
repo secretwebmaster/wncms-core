@@ -54,7 +54,7 @@ class AuthenticatedSessionController extends Controller
             //return a redirect response the can be use in ajax or direct
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_created'),
+                'message' => __('wncms::word.successfully_created'),
                 'redirect' => RouteServiceProvider::DASHBOARD,
             ]);
         }catch(\Exception $e){
@@ -161,7 +161,7 @@ class AuthenticatedSessionController extends Controller
 
         }catch(\Exception $e){
             logger()->error($e);
-            return redirect()->route('register')->withErrors(['message' => __('word.something_went_wrong_please_retry')]);
+            return redirect()->route('register')->withErrors(['message' => __('wncms::word.something_went_wrong_please_retry')]);
         }
        
 

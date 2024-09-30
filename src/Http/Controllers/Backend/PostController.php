@@ -88,7 +88,7 @@ class PostController extends Controller
         $post_category_parants = Tag::where('type','post_category')->whereNull('parent_id')->with('children')->get();
 
         return view('wncms::backend.posts.index', [
-            'page_title' => __('word.post_management'),
+            'page_title' => __('wncms::word.post_management'),
             'posts' => $posts,
             'post_category_parants' => $post_category_parants,
             'orders' => Post::ORDERS,
@@ -110,7 +110,7 @@ class PostController extends Controller
         }
 
         return view('wncms::backend.posts.create', [
-            'page_title' => __('word.post_management'),
+            'page_title' => __('wncms::word.post_management'),
             'statuses' => Post::STATUSES,
             'visibilities' => Post::VISIBILITIES,
             'post_categories' => $this->post_categories,
@@ -132,7 +132,7 @@ class PostController extends Controller
             $website_ids = auth()->user()->websites()->whereIn("websites.id", $request->website_id ?? [])->pluck('websites.id')->toArray();;
         }
 
-        if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('word.user_not_found')]);
+        if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
 
         $request->validate(
             [
@@ -143,10 +143,10 @@ class PostController extends Controller
 
             ],
             [
-                'title.required' => __('word.field_is_required', ['field_name' => __('word.title')]),
-                'status.required' => __('word.field_is_required', ['field_name' => __('word.status')]),
-                'visibility.required' => __('word.field_is_required', ['field_name' => __('word.visibility')]),
-                'price.numeric' => __('word.field_should_be_numeric', ['field_name' => __('word.price')]),
+                'title.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.title')]),
+                'status.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.status')]),
+                'visibility.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.visibility')]),
+                'price.numeric' => __('wncms::word.field_should_be_numeric', ['field_name' => __('wncms::word.price')]),
             ]
         );
 
@@ -222,7 +222,7 @@ class PostController extends Controller
             $websites = auth()->user()->websites;
         }
         return view('wncms::backend.posts.edit', [
-            'page_title' => __('word.post_management'),
+            'page_title' => __('wncms::word.post_management'),
             'statuses' => Post::STATUSES,
             'visibilities' => Post::VISIBILITIES,
             'post_categories' => $this->post_categories,
@@ -245,13 +245,13 @@ class PostController extends Controller
 
             //只能修改自己的文章
             if ($post->user?->id != auth()->id()) {
-                return back()->withInput()->withErrors(['message' => __('word.invalid_request')]);
+                return back()->withInput()->withErrors(['message' => __('wncms::word.invalid_request')]);
             }
         }
 
         //TODO 改為用 FormRequest
-        // if(empty($website_ids)) return back()->withInput()->withErrors(['message' => __('word.website_ids_is_required')]);
-        if (!$user) return back()->withInput()->withErrors(['message' => __('word.user_not_found')]);
+        // if(empty($website_ids)) return back()->withInput()->withErrors(['message' => __('wncms::word.website_ids_is_required')]);
+        if (!$user) return back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
 
         $request->validate(
             [
@@ -262,17 +262,17 @@ class PostController extends Controller
 
             ],
             [
-                'title.required' => __('word.field_is_required', ['field_name' => __('word.title')]),
-                'status.required' => __('word.field_is_required', ['field_name' => __('word.status')]),
-                'visibility.required' => __('word.field_is_required', ['field_name' => __('word.visibility')]),
-                'price.numeric' => __('word.field_should_be_numeric', ['field_name' => __('word.price')]),
+                'title.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.title')]),
+                'status.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.status')]),
+                'visibility.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.visibility')]),
+                'price.numeric' => __('wncms::word.field_should_be_numeric', ['field_name' => __('wncms::word.price')]),
             ]
         );
 
         $duplicate_slug = Post::where('slug', $request->slug)->where('id', '<>', $post->id)->first();
 
         if ($duplicate_slug) {
-            return back()->withInput()->withErros(['message' => __('word.duplicated_slug')]);
+            return back()->withInput()->withErros(['message' => __('wncms::word.duplicated_slug')]);
         }
 
         $post->update([
@@ -347,7 +347,7 @@ class PostController extends Controller
             $post->update(['status' => 'trashed']);
             $post->delete();
         }
-        return redirect()->route('posts.index')->withMessage(__('word.successfully_deleted'));;
+        return redirect()->route('posts.index')->withMessage(__('wncms::word.successfully_deleted'));;
     }
 
     public function restore($id)
@@ -356,9 +356,9 @@ class PostController extends Controller
         if($post){
             $post->update(['status' => gss('restore_trashed_content_to_published') ? 'published' : 'drafted']);
             $post->restore();
-            return redirect()->route('posts.index')->withMessage(__('word.successfully_restored'));
+            return redirect()->route('posts.index')->withMessage(__('wncms::word.successfully_restored'));
         }else{
-            return back()->withErrors(['message' =>__('word.successfully_restored')]);
+            return back()->withErrors(['message' =>__('wncms::word.successfully_restored')]);
             
         }
     }
@@ -442,7 +442,7 @@ class PostController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_created_count', ['count' => $count]),
+            'message' => __('wncms::word.successfully_created_count', ['count' => $count]),
             'reload' => true,
         ]);
     }
@@ -457,7 +457,7 @@ class PostController extends Controller
             if(empty($request->model_ids)){
                 return response()->json([
                     'status' => 'fail',
-                    'message' => __('word.model_ids_are_not_found'),
+                    'message' => __('wncms::word.model_ids_are_not_found'),
                     'restoreBtn' => true,
                 ]);
             }
@@ -467,7 +467,7 @@ class PostController extends Controller
             if ($posts->isEmpty()) {
                 return response()->json([
                     'status' => 'fail',
-                    'message' => __('word.post_is_not_fount'),
+                    'message' => __('wncms::word.post_is_not_fount'),
                     'restoreBtn' => true,
                 ]);
             }
@@ -476,7 +476,7 @@ class PostController extends Controller
             if (empty($formDataArray['action']) || !in_array($formDataArray['action'], ['sync', 'attach', 'detach'])) {
                 return response()->json([
                     'status' => 'fail',
-                    'message' => __('word.action_is_not_found'),
+                    'message' => __('wncms::word.action_is_not_found'),
                     'restoreBtn' => true,
                 ]);
             }
@@ -520,8 +520,8 @@ class PostController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'title' => __('word.success'),
-                'message' => __('word.successfully_updated_all'),
+                'title' => __('wncms::word.success'),
+                'message' => __('wncms::word.successfully_updated_all'),
                 'reload' => true,
             ]);
             
@@ -529,8 +529,8 @@ class PostController extends Controller
             logger()->error($e);
             return response()->json([
                 'status' => 'fail',
-                'title' => __('word.failed'),
-                'message' => __('word.error') . ": " . $e->getMessage(),
+                'title' => __('wncms::word.failed'),
+                'message' => __('wncms::word.error') . ": " . $e->getMessage(),
                 'restoreBtn' => true,
             ]);
         }
@@ -637,11 +637,11 @@ class PostController extends Controller
         if($request->ajax()){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_created'),
+                'message' => __('wncms::word.successfully_created'),
             ]);
         }
 
-        return back()->withMessage(__('word.successfully_created_count', ['count' => $count]));
+        return back()->withMessage(__('wncms::word.successfully_created_count', ['count' => $count]));
     }
 
     public function bulk_set_websites(Request $request)
@@ -653,7 +653,7 @@ class PostController extends Controller
         if(!$website){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.website_is_not_found'),
+                'message' => __('wncms::word.website_is_not_found'),
             ]);
         }
 
@@ -669,7 +669,7 @@ class PostController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_updated'),
+            'message' => __('wncms::word.successfully_updated'),
             'reload' => true,
         ]);
     }

@@ -17,7 +17,7 @@ class RegisteredUserController extends Controller
     public function __construct()
     {
         if(gss('disable_registration')){
-            echo __('word.disable_registration');
+            echo __('wncms::word.disable_registration');
             die;
         }
     }
@@ -57,11 +57,11 @@ class RegisteredUserController extends Controller
                 'password'   => ['required', 'confirmed', Rules\Password::defaults()],
             ],
             [
-                'email.unique' => __('word.email_has_been_used'),
-                'email.required' => __('word.field_is_required', ['field_name' => __('word.email')]),
-                'password.required' => __('word.field_is_required', ['field_name' => __('word.password')]),
-                'password.confirmed' => __('word.password_confirmation_is_not_the_same'),
-                'password.min' => __('word.password_should_has_at_least_8_characters'),
+                'email.unique' => __('wncms::word.email_has_been_used'),
+                'email.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.email')]),
+                'password.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.password')]),
+                'password.confirmed' => __('wncms::word.password_confirmation_is_not_the_same'),
+                'password.min' => __('wncms::word.password_should_has_at_least_8_characters'),
             ]
         );
 
@@ -85,7 +85,7 @@ class RegisteredUserController extends Controller
         if($request->is_ajax){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_created'),
+                'message' => __('wncms::word.successfully_created'),
                 'redirect' => RouteServiceProvider::DASHBOARD,
             ]);
         }

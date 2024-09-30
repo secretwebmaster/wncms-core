@@ -60,7 +60,7 @@
                 <span class="menu-icon">
                     <i class="fa-lg {{ $menuItem['icon'] }} @if(request()->routeIs(array_map(fn($route) => $menuItem['table_name'] . '.' . $route, array_merge($menuItem['model']::ROUTES, ['edit'])))) fa-beat @endif"></i>
                 </span>
-                <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('word.' . $menuItem['snake_name'])])</span>
+                <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('wncms::word.' . $menuItem['snake_name'])])</span>
                 <span class="menu-arrow"></span>
             </span>
 
@@ -114,7 +114,7 @@
                             {{ defined(get_class($model) . "::ICONS") && !empty($model::ICONS['fontaweseom']) ? $model::ICONS['fontaweseom'] : 'fa-solid fa-cube' }} 
                             @if(request()->routeIs(array_map(fn($route) => $table_name . '.' . $route, array_merge($model::ROUTES, ['edit']))))) fa-beat @endif"></i>
                     </span>
-                    <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('word.' . $snake_name)])</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('wncms::word.' . $snake_name)])</span>
                     <span class="menu-arrow"></span>
                 </span>
 

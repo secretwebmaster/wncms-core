@@ -17,7 +17,7 @@ class SettingController extends Controller
         $availableSettings = array_merge(config('wncms-system-settings'), (config('wncms.custom-settings') ?? []));
         return view('wncms::backend.admin.settings',[
             'settings' => $settings,
-            'page_title' => __('word.setting'),
+            'page_title' => __('wncms::word.setting'),
             'availableSettings' => $availableSettings,
         ]);
     }
@@ -45,14 +45,14 @@ class SettingController extends Controller
         if(empty($request->recipient)){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.recipient_is_not_set'),
+                'message' => __('wncms::word.recipient_is_not_set'),
             ]);
         }
 
         if(filter_var($request->recipient, FILTER_VALIDATE_EMAIL) === false){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.please_enter_a_valid_email'),
+                'message' => __('wncms::word.please_enter_a_valid_email'),
             ]);
         }
 
@@ -61,7 +61,7 @@ class SettingController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.smtp_test_mail_is_send_please_check_your_mailbox')  . " " . $request->recipient,
+            'message' => __('wncms::word.smtp_test_mail_is_send_please_check_your_mailbox')  . " " . $request->recipient,
         ]);
     }
 }

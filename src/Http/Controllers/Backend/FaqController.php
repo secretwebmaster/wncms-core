@@ -95,7 +95,7 @@ class FaqController extends Controller
     public function store(Request $request)
     {
         // dd($request->all());
-        if(empty($request->website_id)) return back()->withInput()->withErrors(['message' => __('word.website_is_not_selected')]);
+        if(empty($request->website_id)) return back()->withInput()->withErrors(['message' => __('wncms::word.website_is_not_selected')]);
 
         $faq = Faq::create([
             'website_id' => $request->website_id,
@@ -115,7 +115,7 @@ class FaqController extends Controller
 
         return redirect()->route('faqs.edit', [
             'faq' => $faq,
-        ])->withMessage(__('word.successfully_created'));
+        ])->withMessage(__('wncms::word.successfully_created'));
     }
 
     public function edit(Faq $faq)
@@ -158,19 +158,19 @@ class FaqController extends Controller
         
         return redirect()->route('faqs.edit', [
             'faq' => $faq,
-        ])->withMessage(__('word.successfully_updated'));
+        ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function destroy(Faq $faq)
     {
         $faq->delete();
-        return redirect()->route('faqs.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('faqs.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function bulk_delete(Request $request)
     {
         Faq::whereIn('id', explode(",", $request->model_ids))->delete();
-        return redirect()->route('faqs.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('faqs.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     /**
@@ -232,7 +232,7 @@ class FaqController extends Controller
         $faqs = wncms()->faq()->getList(count:$count, page: $page, pageSize:$pageSize, tagType: 'faq_tag', tags: $tagName);
 
         return wncms_view('frontend.theme.' . $this->theme . '.faqs.archive', [
-            'pageTitle' => __('word.latest_tag_models', ['tagName' => $tagName, 'modelName' => __('word.' . $modelName)]),
+            'pageTitle' => __('wncms::word.latest_tag_models', ['tagName' => $tagName, 'modelName' => __('wncms::word.' . $modelName)]),
             'tagName' => $tagName,
             'tagType' => $tagType,
             'faqs' => $faqs,
@@ -265,7 +265,7 @@ class FaqController extends Controller
         );
 
         return wncms_view('frontend.theme.' . $this->theme . '.faqs.search', [
-            'pageTitle' => __('word.search_result_of', ['keyword' => $keyword]),
+            'pageTitle' => __('wncms::word.search_result_of', ['keyword' => $keyword]),
             'faqs' => $faqs,
             'keyword' => $keyword,
         ]);

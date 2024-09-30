@@ -70,7 +70,7 @@
 
                         <div>
                             <button type="submit" wncms-btn-loading class="btn btn-dark w-100 wncms-submit">
-                                @include('wncms::backend.parts.submit', ['label' => __('word.create')])
+                                @include('wncms::backend.parts.submit', ['label' => __('wncms::word.create')])
                             </button>
                             {{-- <a href="https://t.me/secretwebmaster" target="_blank" class="btn btn-info w-100 fw-bold me-2 mt-1">@lang('wncms::word.purchuse_more_license')</a> --}}
                         </div>

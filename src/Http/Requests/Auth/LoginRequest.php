@@ -42,10 +42,10 @@ class LoginRequest extends FormRequest
     public function messages()
     {
         return [
-            'email.reuired' => __('word.field_is_required', ['field_name' => __('word.email')]),
-            'email.string' => __('word.field_should_be_string', ['field_name' => __('word.email')]),
-            'password.required' => __('word.field_is_required', ['field_name' => __('word.password')]),
-            'password.string' => __('word.field_should_be_string', ['field_name' => __('word.password')]),
+            'email.reuired' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.email')]),
+            'email.string' => __('wncms::word.field_should_be_string', ['field_name' => __('wncms::word.email')]),
+            'password.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.password')]),
+            'password.string' => __('wncms::word.field_should_be_string', ['field_name' => __('wncms::word.password')]),
         ];
     }
 
@@ -66,8 +66,8 @@ class LoginRequest extends FormRequest
         if(!$requestingUser){
             RateLimiter::hit($this->throttleKey());
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
-                'password' => __('auth.failed'),
+                'email' => __('wncms::auth.failed'),
+                'password' => __('wncms::auth.failed'),
             ]);
         }
 
@@ -82,8 +82,8 @@ class LoginRequest extends FormRequest
             //未創建網站時，只有管理員可以登入
             if(!$currentWebsiteId){
                 throw ValidationException::withMessages([
-                    'email' => __('auth.failed'),
-                    'password' => __('auth.failed'),
+                    'email' => __('wncms::auth.failed'),
+                    'password' => __('wncms::auth.failed'),
                 ]);
             }
 
@@ -98,13 +98,13 @@ class LoginRequest extends FormRequest
                     //如果允許同步帳號
                     if(gss('allow_merge_account')){
                         throw ValidationException::withMessages([
-                            'email' => __('word.found_account_on_other_websites_of_this_group_apply_merging'),
+                            'email' => __('wncms::word.found_account_on_other_websites_of_this_group_apply_merging'),
                         ]);
                     }
 
                     //不可同步，提示Email已於其他網迴註冊
                     throw ValidationException::withMessages([
-                        'email' => __('word.email_has_already_been_used_on_other_websites'),
+                        'email' => __('wncms::word.email_has_already_been_used_on_other_websites'),
                     ]);
 
                 }
@@ -118,7 +118,7 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'email' => __('wncms::auth.failed'),
             ]);
         }
 

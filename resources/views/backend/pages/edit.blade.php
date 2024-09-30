@@ -17,7 +17,7 @@
     @method('PATCH')
 
     @include('wncms::backend.pages.form-items', [
-        'submitLabelText' => __('word.update'),
+        'submitLabelText' => __('wncms::word.update'),
         'available_templates' => $available_templates,
     ])
 </form>

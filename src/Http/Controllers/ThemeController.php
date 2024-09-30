@@ -51,7 +51,7 @@ class ThemeController extends Controller
         return view('wncms::backend.themes.index', [
             'themes' => $themes,
             'activatedThemeIds' => $activatedThemeIds,
-            'page_title' => __('word.theme_list'),
+            'page_title' => __('wncms::word.theme_list'),
         ]);
     }
 
@@ -81,7 +81,7 @@ class ThemeController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.theme_activated_successfully'),
+            'message' => __('wncms::word.theme_activated_successfully'),
             'reload' => true
         ]);
     }
@@ -91,7 +91,7 @@ class ThemeController extends Controller
         if(in_array($themeId,['default', 'starter'])){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.cannot_delete_default_themes'),
+                'message' => __('wncms::word.cannot_delete_default_themes'),
             ]);
         }
 
@@ -108,7 +108,7 @@ class ThemeController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.theme_deactivated_successfully'),
+            'message' => __('wncms::word.theme_deactivated_successfully'),
             'reload' => true
         ]);
     }
@@ -123,8 +123,8 @@ class ThemeController extends Controller
                 'theme_file' => 'required|file|mimes:zip'
             ],
             [
-                'theme_file.required' => __('word.please_select_a_theme_file'),
-                'theme_file.mimes' => __('word.please_select_a_valid_theme_file')
+                'theme_file.required' => __('wncms::word.please_select_a_theme_file'),
+                'theme_file.mimes' => __('wncms::word.please_select_a_valid_theme_file')
             ]
         );
 
@@ -183,9 +183,9 @@ class ThemeController extends Controller
             $currentVersion = $config['info']['version'] ?? 0;
         
             if (version_compare($newVersion, $currentVersion, '<')) {
-                return redirect()->back()->with('error_message', __('word.the_same_theme_with_higher_version_already_exists'));
+                return redirect()->back()->with('error_message', __('wncms::word.the_same_theme_with_higher_version_already_exists'));
             } elseif (version_compare($newVersion, $currentVersion, '==')) {
-                return redirect()->back()->with('error_message', __('word.the_same_theme_with_the_same_version_already_exists'));
+                return redirect()->back()->with('error_message', __('wncms::word.the_same_theme_with_the_same_version_already_exists'));
             }
         }
 
@@ -199,7 +199,7 @@ class ThemeController extends Controller
         File::deleteDirectory($extractPath);
 
         return redirect()->route('themes.index')->with([
-            'message', __('word.theme_uploaded_successfully'),
+            'message', __('wncms::word.theme_uploaded_successfully'),
             'themeId' => $themeId
         ]);
     }

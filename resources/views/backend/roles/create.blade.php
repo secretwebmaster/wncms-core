@@ -9,7 +9,7 @@
         <div class="card">
             <div class="card-header border-0 cursor-pointer px-3 px-md-9 bg-dark">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0 text-gray-100">@lang('wncms::word.model_create', ['model_name' => __('word.role')])</h3>
+                    <h3 class="fw-bolder m-0 text-gray-100">@lang('wncms::word.model_create', ['model_name' => __('wncms::word.role')])</h3>
                 </div>
             </div>
         
@@ -23,7 +23,7 @@
         
                     <div class="card-footer d-flex justify-content-end py-6 px-9">
                         <button type="submit" wncms-btn-loading class="btn btn-primary w-100 wncms-submit">
-                            @include('wncms::backend.parts.submit', ['label' => __('word.create')])
+                            @include('wncms::backend.parts.submit', ['label' => __('wncms::word.create')])
                         </button>
                     </div>
                 </form>

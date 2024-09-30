@@ -21,7 +21,7 @@
 
             <div class="card-footer d-flex justify-content-end py-6 px-9">
                 <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit">
-                    @include('wncms::backend.parts.submit', ['label' => __('word.edit')])
+                    @include('wncms::backend.parts.submit', ['label' => __('wncms::word.edit')])
                 </button>
             </div>
 

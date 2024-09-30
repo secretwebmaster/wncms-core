@@ -58,7 +58,7 @@
 
     <div class="mt-5 text-end">
         <button type="submit" wncms-btn-loading class="btn btn-primary fw-bold wncms-submit w-100 w-md-auto">
-            @include('wncms::backend.parts.submit', ['label' => __('word.save_all')])
+            @include('wncms::backend.parts.submit', ['label' => __('wncms::word.save_all')])
         </button>
     </div>
 </form>

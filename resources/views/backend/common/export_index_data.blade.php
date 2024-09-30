@@ -19,7 +19,7 @@
                 }else{
                     Swal.fire({
                         icon: "error",
-                        title: "{{ __('word.model_ids_are_not_found') }}",
+                        title: "{{ __('wncms::word.model_ids_are_not_found') }}",
                     })
                 }
             })

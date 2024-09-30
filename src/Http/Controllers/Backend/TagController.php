@@ -64,7 +64,7 @@ class TagController extends Controller
         })->get();
 
         return view('wncms::backend.tags.index', [
-            'page_title' => __('word.category_management'),
+            'page_title' => __('wncms::word.category_management'),
             'parents' => $parents,
             'allParents' => $allParents,
             'orders' => Tag::ORDERS,
@@ -86,7 +86,7 @@ class TagController extends Controller
         $tag ??= new Tag;
 
         return view('wncms::backend.tags.create', [
-            'page_title' => __('word.category_management'),
+            'page_title' => __('wncms::word.category_management'),
             'tagTypes' => $tagTypes,
             'parents' => $parents,
             'tag' => $tag,
@@ -100,19 +100,19 @@ class TagController extends Controller
         $icon_name = str_replace('"></i>', '', $icon_name);
 
         if (empty($request->type)) {
-            return back()->withErrors(['message' => __('word.tag_type_is_required')]);
+            return back()->withErrors(['message' => __('wncms::word.tag_type_is_required')]);
         }
 
         if(!empty($request->slug)){
             $existing_tag = Tag::where('type', $request->type)->where('slug', $request->slug)->first();
             if ($existing_tag) {
-                return back()->withErrors(['message' => __('word.tag_with_same_slug_already_exists', ['id' => $existing_tag->id])]);
+                return back()->withErrors(['message' => __('wncms::word.tag_with_same_slug_already_exists', ['id' => $existing_tag->id])]);
             }
         }
 
 
         $existingTag = Tag::findFromString($request->name, $request->type);
-        if($existingTag) return back()->withInput()->withErrors(['message' => __('word.tag_with_same_name_already_exists')]);
+        if($existingTag) return back()->withInput()->withErrors(['message' => __('wncms::word.tag_with_same_name_already_exists')]);
 
         $tag = Tag::Create([
             'parent_id' => $request->parent_id,
@@ -135,7 +135,7 @@ class TagController extends Controller
         wncms()->cache()->flush(['pages', 'tags']);
 
 
-        return redirect()->route('tags.index', ['type' => $request->type])->withInput()->withMessage(__('word.successfully_created'));
+        return redirect()->route('tags.index', ['type' => $request->type])->withInput()->withMessage(__('wncms::word.successfully_created'));
     }
 
     public function edit(Tag $tag)
@@ -143,7 +143,7 @@ class TagController extends Controller
         dd($tag);
         $tagTypes = wncms()->tag()->getModelsWithHasTagsTraits();
         return view('wncms::backend.tags.edit', [
-            'page_title' => __('word.edit_tag'),
+            'page_title' => __('wncms::word.edit_tag'),
             'tagTypes' => $tagTypes,
             // 'tag' => $tag->with_recursive_children(),
             'tag' => $tag,
@@ -155,12 +155,12 @@ class TagController extends Controller
         // dd($request->all());
 
         if (empty($request->type)) {
-            return back()->withErrors(['message' => __('word.tag_type_is_required')]);
+            return back()->withErrors(['message' => __('wncms::word.tag_type_is_required')]);
         }
 
         $existing_tag = Tag::where('type', $request->type)->where('slug', $request->slug)->where('id', '<>', $tag?->id)->first();
         if ($existing_tag) {
-            return back()->withErrors(['message' => __('word.tag_with_same_slug_already_exists', ['id' => $existing_tag->id])]);
+            return back()->withErrors(['message' => __('wncms::word.tag_with_same_slug_already_exists', ['id' => $existing_tag->id])]);
         }
 
         $icon_name = $request->icon;
@@ -173,7 +173,7 @@ class TagController extends Controller
         if (!empty($request->parent_id)) {
             $children_ids = $tag->descendants()->pluck('id')->toArray();
             if (in_array($request->parent_id, $children_ids)) {
-                return back()->withErrors(['message' => __('word.cannot_set_child_as_parent')]);
+                return back()->withErrors(['message' => __('wncms::word.cannot_set_child_as_parent')]);
             };
         }
 
@@ -227,7 +227,7 @@ class TagController extends Controller
 
         wncms()->cache()->flush(['pages', 'tags']);
 
-        return redirect()->route('tags.edit', $tag)->withInput()->withMessage(__('word.successfully_updated'));
+        return redirect()->route('tags.edit', $tag)->withInput()->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function destroy(Tag $tag)
@@ -235,7 +235,7 @@ class TagController extends Controller
         $tag->delete();
         return redirect()->back()->withInput()->with([
             'status' => 'success',
-            'message' => __('word.successfully_deleted')
+            'message' => __('wncms::word.successfully_deleted')
         ]);
     }
 
@@ -249,7 +249,7 @@ class TagController extends Controller
         $placeholder .= "\r\n測試分類2|slug02|post_category|描述2|測試分類1|0|0";
 
         return view('wncms::backend.tags.bulk_create', [
-            'page_title' => __('word.category_management'),
+            'page_title' => __('wncms::word.category_management'),
             'placeholder' => $placeholder,
         ]);
     }
@@ -337,7 +337,7 @@ class TagController extends Controller
         wncms()->cache()->flush(['pages', 'tags']);
 
         //返回之前的index
-        return back()->withMessage(__('word.successfully_created_count', ['count' => $count]));
+        return back()->withMessage(__('wncms::word.successfully_created_count', ['count' => $count]));
     }
 
     public function bulk_delete(Request $request)
@@ -352,11 +352,11 @@ class TagController extends Controller
         if($request->is_ajax || $request->isAjax){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_deleted_count', ['count' => $count]),
+                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
             ]);
         }
 
-        return redirect()->route('{{ modelVariable }}s.index')->withMessage(__('word.successfully_deleted_count', ['count' => $count]));
+        return redirect()->route('{{ modelVariable }}s.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
 
     }
 
@@ -371,9 +371,9 @@ class TagController extends Controller
 
         //返回之前的index
         if (session('current_url')) {
-            return redirect(session('current_url'))->withInput()->withMessage(__('word.successfully_created'));
+            return redirect(session('current_url'))->withInput()->withMessage(__('wncms::word.successfully_created'));
         }
-        return redirect()->route('tags.index')->withInput()->withMessage(__('word.successfully_created'));
+        return redirect()->route('tags.index')->withInput()->withMessage(__('wncms::word.successfully_created'));
     }
 
     //! Keywords
@@ -454,7 +454,7 @@ class TagController extends Controller
         // );
         return redirect()->route('tags.keywords.index', [
             'type' => $tag->type,
-        ])->withMessage(__('word.tag_keywords_are_updated'));
+        ])->withMessage(__('wncms::word.tag_keywords_are_updated'));
     }
 
     //! Types
@@ -467,7 +467,7 @@ class TagController extends Controller
 
     public function store_type(Request $request)
     {
-        $tag = Tag::findOrCreate(__('word.default'), $request->slug);
+        $tag = Tag::findOrCreate(__('wncms::word.default'), $request->slug);
         return redirect()->route('tags.edit', [
             'tag' => $tag,
         ]);
@@ -496,7 +496,7 @@ class TagController extends Controller
         if(!$parent){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.parent_tag_is_not_found'),
+                'message' => __('wncms::word.parent_tag_is_not_found'),
                 'reload' => true,
             ]);
         }
@@ -504,7 +504,7 @@ class TagController extends Controller
         if(empty($request->model_ids)){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.tags_are_not_found'),
+                'message' => __('wncms::word.tags_are_not_found'),
                 'reload' => true,
             ]);
         }
@@ -516,13 +516,13 @@ class TagController extends Controller
         if($tags){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_created'),
+                'message' => __('wncms::word.successfully_created'),
                 'reload' => true,
             ]);
         }else{
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.tags_are_not_updated'),
+                'message' => __('wncms::word.tags_are_not_updated'),
                 'reload' => true,
             ]);
         }
@@ -535,7 +535,7 @@ class TagController extends Controller
         if(empty($request->model_id)){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.model_id_is_not_found'),
+                'message' => __('wncms::word.model_id_is_not_found'),
             ]);
         }
 
@@ -544,13 +544,13 @@ class TagController extends Controller
         if(!$tag){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.model_is_not_found'),
+                'message' => __('wncms::word.model_is_not_found'),
             ]);
         }
         
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_created'),
+            'message' => __('wncms::word.successfully_created'),
             'translations' => $tag->getTranslations(),
         ]);
         

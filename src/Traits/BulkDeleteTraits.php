@@ -28,7 +28,7 @@ trait BulkDeleteTraits
 
         if (empty($modelIds)) {
             return response()->json([
-                'message' => __('word.ids_is_empty')
+                'message' => __('wncms::word.ids_is_empty')
             ], 400);
         }
 
@@ -36,7 +36,7 @@ trait BulkDeleteTraits
         $modelClass = 'Wncms\Models\\' . $modelClass;
         if (!class_exists($modelClass)) {
             return response()->json([
-                'message' => __('word.model_class_is_not_found')
+                'message' => __('wncms::word.model_class_is_not_found')
             ], 404);
         }
 
@@ -58,7 +58,7 @@ trait BulkDeleteTraits
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_bulk_deleted_count_models', ['count' => $count]),
+            'message' => __('wncms::word.successfully_bulk_deleted_count_models', ['count' => $count]),
         ]);
     }
 }

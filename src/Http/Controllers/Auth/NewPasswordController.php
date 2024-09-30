@@ -46,9 +46,9 @@ class NewPasswordController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ],
         [
-            'password.min' => __('word.password_length_should_between', ['min' => 8, 'max' => 20]),
-            'password.max' => __('word.password_length_should_between', ['min' => 8, 'max' => 20]),
-            'password.confirmed' => __('word.password_confirmation_is_not_the_same'),
+            'password.min' => __('wncms::word.password_length_should_between', ['min' => 8, 'max' => 20]),
+            'password.max' => __('wncms::word.password_length_should_between', ['min' => 8, 'max' => 20]),
+            'password.confirmed' => __('wncms::word.password_confirmation_is_not_the_same'),
         ]
     );
 
@@ -74,7 +74,7 @@ class NewPasswordController extends Controller
         if($request->is_ajax){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_updated'),
+                'message' => __('wncms::word.successfully_updated'),
                 'redirect' => route('login'),
             ]);
         }

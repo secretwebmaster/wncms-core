@@ -34,7 +34,7 @@ class ContactFormSubmissionController extends Controller
         $allKeys = $allKeys->unique()->sort();
 
         return view('wncms::backend.contact_form_submissions.index', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.contact_form_submission')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.contact_form_submission')]),
             'contact_form_submissions' => $contact_form_submissions,
             'allKeys' => $allKeys,
             'orders' => ContactFormSubmission::ORDERS,
@@ -51,7 +51,7 @@ class ContactFormSubmissionController extends Controller
     public function destroy(ContactFormSubmission $contact_form_submission)
     {
         $contact_form_submission->delete();
-        return redirect()->route('contact_form_submissions.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('contact_form_submissions.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function bulk_delete(Request $request)
@@ -67,11 +67,11 @@ class ContactFormSubmissionController extends Controller
         if($request->ajax()){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_deleted_count', ['count' => $count]),
+                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
             ]);
         }
 
-        return redirect()->route('contact_form_submissions.index')->withMessage(__('word.successfully_deleted_count', ['count' => $count]));
+        return redirect()->route('contact_form_submissions.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
     }
     
     public function export(Request $request, $type)

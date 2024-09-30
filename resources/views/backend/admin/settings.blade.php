@@ -256,7 +256,7 @@
             {{-- submit --}}
             <div class="card-footer d-flex justify-content-end mt-5">
                 <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit w-100">
-                    @include('wncms::backend.parts.submit', ['label' => __('word.save_all')])
+                    @include('wncms::backend.parts.submit', ['label' => __('wncms::word.save_all')])
                 </button>
             </div>
         </div>

@@ -42,7 +42,7 @@ class {{ class }} extends Controller
 
         return redirect()->route('{{ modelVariable }}s.edit', [
             '{{ modelVariable }}' => ${{ modelVariable }},
-        ])->withMessage(__('word.successfully_created'));
+        ])->withMessage(__('wncms::word.successfully_created'));
     }
 
     public function edit({{ model }} ${{ modelVariable }})
@@ -65,13 +65,13 @@ class {{ class }} extends Controller
         
         return redirect()->route('{{ modelVariable }}s.edit', [
             '{{ modelVariable }}' => ${{ modelVariable }},
-        ])->withMessage(__('word.successfully_updated'));
+        ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function destroy({{ model }} ${{ modelVariable }})
     {
         ${{ modelVariable }}->delete();
-        return redirect()->route('{{ modelVariable }}s.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('{{ modelVariable }}s.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function bulk_delete(Request $request)
@@ -87,10 +87,10 @@ class {{ class }} extends Controller
         if($request->ajax()){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_deleted_count', ['count' => $count]),
+                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
             ]);
         }
 
-        return redirect()->route('{{ modelVariable }}s.index')->withMessage(__('word.successfully_deleted_count', ['count' => $count]));
+        return redirect()->route('{{ modelVariable }}s.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
     }
 }

@@ -20,7 +20,7 @@ class UpdateController extends Controller
         $result = $this->getUpdateData();
         // dd($result);
         return view('wncms::backend.admin.update', [
-            'page_title' => __('word.system_update'),
+            'page_title' => __('wncms::word.system_update'),
             'colors' => $this->colors,
             'result' => $result,
         ]);
@@ -40,18 +40,18 @@ class UpdateController extends Controller
         if($result < 0){
             $result = [
                 'status' => 'success',
-                'message' => __('word.new_version_available_with_versions', ['current' => $currentVersion, 'latest' => $latestVersion]),
+                'message' => __('wncms::word.new_version_available_with_versions', ['current' => $currentVersion, 'latest' => $latestVersion]),
                 'current_version' => $currentVersion,
                 'latest_version' => $latestVersion,
                 'has_update' => true,
                 'url' => route('updates'),
-                'button_text' => __('word.update_now'),
+                'button_text' => __('wncms::word.update_now'),
             ];
 
         }else{
             $result = [
                 'status' => 'success',
-                'message' => __('word.already_the_latest_vcersion'),
+                'message' => __('wncms::word.already_the_latest_vcersion'),
                 'current_version' => $currentVersion,
                 'latest_version' => $latestVersion,
                 'has_update' => false,

@@ -133,7 +133,7 @@
 
     <div>
         <button type="submit" class="btn btn-primary w-100 fw-bold" id="kt_account_profile_details_submit">
-            @include('wncms::backend.parts.submit', ['label' => __('word.edit')])
+            @include('wncms::backend.parts.submit', ['label' => __('wncms::word.edit')])
         </button>
     </div>
 </form>

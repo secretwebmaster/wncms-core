@@ -15,7 +15,7 @@ class UpdateController extends Controller
         if(gss('disalbe_core_update')){
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.core_update_disabled'),
+                'message' => __('wncms::word.core_update_disabled'),
             ]);
         }
 
@@ -35,7 +35,7 @@ class UpdateController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_dispatched_job'),
+            'message' => __('wncms::word.successfully_dispatched_job'),
         ]);
     }
 
@@ -44,7 +44,7 @@ class UpdateController extends Controller
         if($request->itemType == 'core'){
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_fetched_updating_progress'),
+                'message' => __('wncms::word.successfully_fetched_updating_progress'),
                 'progress' => gss('updating_core', 0, false),
             ]);
         }

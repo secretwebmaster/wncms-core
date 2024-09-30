@@ -65,7 +65,7 @@ class BannerController extends Controller
             'banners' => $banners,
             'websites' => $websites,
             'orders' => Banner::ORDERS,
-            'page_title' => __('word.banner_management'),
+            'page_title' => __('wncms::word.banner_management'),
         ]);
     }
 
@@ -78,7 +78,7 @@ class BannerController extends Controller
     {
         $websites = wncms()->website()->getList();
         return view('wncms::backend.banners.create', [
-            'page_title' => __('word.banner_management'),
+            'page_title' => __('wncms::word.banner_management'),
             'positions' => Banner::POSITIONS,
             'statuses' => Banner::STATUSES,
             'websites' => $websites,
@@ -96,10 +96,10 @@ class BannerController extends Controller
     {
         // dd($request->all());
         if(empty($request->website_ids)){
-            return back()->withInput()->withErrors(['message' => __('word.website_is_not_selected')]);
+            return back()->withInput()->withErrors(['message' => __('wncms::word.website_is_not_selected')]);
         }
         if(empty($request->banner_thumbnail)){
-            return back()->withInput()->withErrors(['message' => __('word.please_upload_an_image')]);
+            return back()->withInput()->withErrors(['message' => __('wncms::word.please_upload_an_image')]);
         }
         $websites = wncms()->website()->getList($request->website_ids);
         
@@ -124,7 +124,7 @@ class BannerController extends Controller
         if (!$website || $banners->isEmpty()) {
             return response()->json([
                 'status' => 'fail',
-                'message' => __('word.failed_to_update'),
+                'message' => __('wncms::word.failed_to_update'),
             ]);
         }
 
@@ -148,7 +148,7 @@ class BannerController extends Controller
             cache()->flush();
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.nothing_created'),
+                'message' => __('wncms::word.nothing_created'),
             ]);
         }
 
@@ -156,7 +156,7 @@ class BannerController extends Controller
             cache()->flush();
             return response()->json([
                 'status' => 'success',
-                'message' => __('word.successfully_created_some'),
+                'message' => __('wncms::word.successfully_created_some'),
             ]);
         }
 
@@ -164,7 +164,7 @@ class BannerController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_created_all'),
+            'message' => __('wncms::word.successfully_created_all'),
         ]);
     }
 
@@ -189,7 +189,7 @@ class BannerController extends Controller
     {
         $websites = wncms()->website()->getList();
         return view('wncms::backend.banners.edit', [
-            'page_title' => __('word.banner_management'),
+            'page_title' => __('wncms::word.banner_management'),
             'banner' => $banner,
             'positions' => Banner::POSITIONS,
             'statuses' => Banner::STATUSES,
@@ -218,7 +218,7 @@ class BannerController extends Controller
         }
 
         wncms()->cache()->tags(['banners', 'pages'])->flush();
-        return redirect()->route('banners.edit', $banner)->with(['message' => __('word.successfully_updated')]);
+        return redirect()->route('banners.edit', $banner)->with(['message' => __('wncms::word.successfully_updated')]);
     }
 
     /**
@@ -234,7 +234,7 @@ class BannerController extends Controller
         wncms()->cache()->tags('pages')->flush();
         return back()->with([
             'status' => 'success',
-            'message' => __('word.successfully_deleted'),
+            'message' => __('wncms::word.successfully_deleted'),
         ]);
     }
 
@@ -247,11 +247,11 @@ class BannerController extends Controller
         wncms()->cache()->tags(['banners', 'pages'])->flush();
 
         if ($count == count($request->model_ids)) {
-            return response()->json(['status' => 'success', 'message' => __('word.successfully_deleted_all')]);
+            return response()->json(['status' => 'success', 'message' => __('wncms::word.successfully_deleted_all')]);
         } elseif ($count > 0) {
-            return response()->json(['status' => 'success', 'message' => __('word.successfully_deleted_some')]);
+            return response()->json(['status' => 'success', 'message' => __('wncms::word.successfully_deleted_some')]);
         } else {
-            return response()->json(['status' => 'fail', 'message' => __('word.failed_to_delete')]);
+            return response()->json(['status' => 'fail', 'message' => __('wncms::word.failed_to_delete')]);
         }
     }
 }

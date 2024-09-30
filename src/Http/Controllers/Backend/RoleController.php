@@ -14,7 +14,7 @@ class RoleController extends Controller
     {
         $roles = Role::query()->get();
         return view('wncms::backend.roles.index', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.role')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.role')]),
             'roles' => $roles,
         ]);
     }
@@ -22,7 +22,7 @@ class RoleController extends Controller
     public function create()
     {
         return view('wncms::backend.roles.create', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.role')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.role')]),
         ]);
     }
 
@@ -31,7 +31,7 @@ class RoleController extends Controller
         // dd($request->all());
         $existing = Role::where('name', $request->role_name)->first();
         if($existing){
-            return back()->withErrors(['message' => __('word.role_already_exist', ['role_name' => $request->role_name])]);
+            return back()->withErrors(['message' => __('wncms::word.role_already_exist', ['role_name' => $request->role_name])]);
         }
         $role = Role::create([
             'name' => $request->role_name,
@@ -41,14 +41,14 @@ class RoleController extends Controller
 
         return redirect()->route('roles.edit', [
             'role' => $role,
-        ])->withMessage(__('word.successfully_created'));
+        ])->withMessage(__('wncms::word.successfully_created'));
     }
 
     public function edit(Role $role)
     {
         $permissions = Permission::all();
         return view('wncms::backend.roles.edit', [
-            'page_title' => __('word.model_management', ['model_name' => __('word.role')]),
+            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.role')]),
             'role' => $role,
             'permissions' => $permissions,
         ]);
@@ -69,12 +69,12 @@ class RoleController extends Controller
         
         return redirect()->route('roles.edit', [
             'role' => $role,
-        ])->withMessage(__('word.successfully_updated'));
+        ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function destroy(Role $role)
     {
         $role->delete();
-        return redirect()->route('roles.index')->withMessage(__('word.successfully_deleted'));
+        return redirect()->route('roles.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 }

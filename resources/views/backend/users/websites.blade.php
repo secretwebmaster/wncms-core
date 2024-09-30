@@ -176,10 +176,10 @@
                                                 // suggestions items should be based on "dropdownItem" template
                                                 return tagify.parseTemplate('dropdownItem', [{
                                                     class: "addAll",
-                                                    name: "{{ __('word.select_all') }}",
+                                                    name: "{{ __('wncms::word.select_all') }}",
                                                     email: tagify.settings.whitelist.reduce(function (remainingSuggestions, item) {
                                                         return tagify.isTagDuplicate(item.value) ? remainingSuggestions : remainingSuggestions + 1
-                                                    }, 0) + " {{ __('word.num_of_managers') }}"
+                                                    }, 0) + " {{ __('wncms::word.num_of_managers') }}"
                                                 }]
                                             )
                                         }
@@ -306,10 +306,10 @@
                                                 // suggestions items should be based on "dropdownItem" template
                                                 return tagify.parseTemplate('dropdownItem', [{
                                                     class: "addAll",
-                                                    name: "{{ __('word.select_all') }}",
+                                                    name: "{{ __('wncms::word.select_all') }}",
                                                     email: tagify.settings.whitelist.reduce(function (remainingSuggestions, item) {
                                                         return tagify.isTagDuplicate(item.value) ? remainingSuggestions : remainingSuggestions + 1
-                                                    }, 0) + " {{ __('word.num_of_managers') }}"
+                                                    }, 0) + " {{ __('wncms::word.num_of_managers') }}"
                                                 }]
                                             )
                                         }

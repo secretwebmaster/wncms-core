@@ -44,7 +44,7 @@ class ContactForm extends Model
         ];
         
         if(in_array($fieldName, $systemKeys)){
-            return __('word.' . $fieldName);
+            return __('wncms::word.' . $fieldName);
         }
 
         return $this->options->where('name', $fieldName)->first()?->display_name ?? $fieldName;

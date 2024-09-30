@@ -38,7 +38,7 @@
             <span class="menu-icon">
                 <i class="fa-lg @if(request()->routeIs('roles.*') || request()->routeIs('permissions.*')) fa-beat @endif fa-solid fa-lock"></i>
             </span>
-            <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('word.role')])</span>
+            <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('wncms::word.role')])</span>
             <span class="menu-arrow"></span>
         </span>
 
@@ -46,26 +46,26 @@
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('roles.index')) active @endif" href="{{ route('roles.index') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">@lang('wncms::word.model_list', ['model_name' => __('word.role')])</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.model_list', ['model_name' => __('wncms::word.role')])</span>
                 </a>
             </div>
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('roles.create')) active @endif" href="{{ route('roles.create') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">@lang('wncms::word.model_create', ['model_name' => __('word.role')])</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.model_create', ['model_name' => __('wncms::word.role')])</span>
                 </a>
             </div>
 
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('permissions.index')) active @endif" href="{{ route('permissions.index') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">@lang('wncms::word.model_list', ['model_name' => __('word.permission')])</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.model_list', ['model_name' => __('wncms::word.permission')])</span>
                 </a>
             </div>
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('permissions.create')) active @endif" href="{{ route('permissions.create') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">@lang('wncms::word.model_create', ['model_name' => __('word.permission')])</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.model_create', ['model_name' => __('wncms::word.permission')])</span>
                 </a>
             </div>
         </div>

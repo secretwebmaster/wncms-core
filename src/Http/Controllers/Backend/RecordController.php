@@ -31,7 +31,7 @@ class RecordController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => __('word.successfully_deleted'),
+            'message' => __('wncms::word.successfully_deleted'),
         ]);
     }
 
