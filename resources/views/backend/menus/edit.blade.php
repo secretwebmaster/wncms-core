@@ -438,7 +438,7 @@
                         }else{
                             Swal.fire({
                                 icon:success,
-                                title: '{{ __("word.failed") }}',
+                                title: '{{ __("wncms::word.failed") }}',
                             })
                         }
                     }
@@ -519,8 +519,8 @@
                         //new window
                         html += '<div class="form-check form-check-sm form-check-custom form-check-solid mb-0 float-end dd-nodrag d-inline check_new_window">';
                             html += '<span class="me-2 text-gray-400 d-none d-sm-inline">' + item.type + '</span>'
-                            html += '<input class="form-check-input" type="checkbox" title="{{ __("word.new_window") }}"'+ ((item.is_new_window || item.newWindow) && item.newWindow != 'undefined' ? 'checked' : '') +'>';
-                            html += '<label class="form-check-label small d-none d-inline">{{ __("word.new_window") }}</label>';
+                            html += '<input class="form-check-input" type="checkbox" title="{{ __("wncms::word.new_window") }}"'+ ((item.is_new_window || item.newWindow) && item.newWindow != 'undefined' ? 'checked' : '') +'>';
+                            html += '<label class="form-check-label small d-none d-inline">{{ __("wncms::word.new_window") }}</label>';
                         html += '</div>';
                     html += '</div>';
                     

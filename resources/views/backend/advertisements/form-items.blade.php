@@ -47,8 +47,8 @@
                     minYear: 1901,
                     maxYear: parseInt(moment().format("YYYY"),12),
                     locale: {
-                        cancelLabel: '{{ __("word.clear") }}',
-                        applyLabel: '{{ __("word.apply") }}',
+                        cancelLabel: '{{ __("wncms::word.clear") }}',
+                        applyLabel: '{{ __("wncms::word.apply") }}',
                         format: 'YYYY-MM-DD'
                     }
                 }).on("apply.daterangepicker", function (e, picker) {

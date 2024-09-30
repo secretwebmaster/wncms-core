@@ -16,7 +16,7 @@
 if (!function_exists('wncms_model_word')) {
     function wncms_model_word($model_name, $action = null): string
     {
-        return __("word.model_{$action}", ["model_name" => __("word.{$model_name}")]);
+        return __("wncms::word.model_{$action}", ["model_name" => __("wncms::word.{$model_name}")]);
     }
 }
 
