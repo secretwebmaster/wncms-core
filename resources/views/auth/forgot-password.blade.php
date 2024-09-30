@@ -5,8 +5,8 @@
         @csrf
 
         <div class="text-center mb-11">
-            <h1 class="text-dark fw-bolder mb-3">@lang('word.login')</h1>
-            {{-- <div class="text-gray-500 fw-semibold fs-6">@lang('word.start_rewriting_post')</div> --}}
+            <h1 class="text-dark fw-bolder mb-3">@lang('wncms::word.login')</h1>
+            {{-- <div class="text-gray-500 fw-semibold fs-6">@lang('wncms::word.start_rewriting_post')</div> --}}
         </div>
 
         {{-- Email --}}
@@ -23,7 +23,7 @@
         
         {{-- 返回 --}}
         <div class="text-gray-500 text-center fw-semibold fs-6">
-           <a href="{{ route('login') }}" class="link-primary">@lang('word.go_to_login')</a>
+           <a href="{{ route('login') }}" class="link-primary">@lang('wncms::word.go_to_login')</a>
         </div>
 
     </form>

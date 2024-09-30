@@ -20,8 +20,8 @@
                             <a href="{{ route('websites.index') }}" class="card bg-dark hoverable card-xl-stretch">
                                 <div class="card-body">
                                     <i class="fa-solid fa-user fa-bounce fa-2xl"></i>
-                                    <div class="text-gray-100 fw-bold fs-2 mb-2 mt-5">@lang('word.num_of_websites', ['count' => $website_count])</div>
-                                    {{-- <div class="fw-semibold text-gray-100">@lang('word.websites')</div> --}}
+                                    <div class="text-gray-100 fw-bold fs-2 mb-2 mt-5">@lang('wncms::word.num_of_websites', ['count' => $website_count])</div>
+                                    {{-- <div class="fw-semibold text-gray-100">@lang('wncms::word.websites')</div> --}}
                                 </div>
                             </a>
                         </div>
@@ -31,8 +31,8 @@
                             <a href="{{ route('users.index') }}" class="card bg-dark hoverable card-xl-stretch">
                                 <div class="card-body">
                                     <i class="fa-solid fa-globe fa-bounce fa-2xl"></i>
-                                    <div class="text-gray-100 fw-bold fs-2 mb-2 mt-5">@lang('word.num_of_users', ['count' => $user_count])</div>
-                                    {{-- <div class="fw-semibold text-gray-100">@lang('word.users')</div> --}}
+                                    <div class="text-gray-100 fw-bold fs-2 mb-2 mt-5">@lang('wncms::word.num_of_users', ['count' => $user_count])</div>
+                                    {{-- <div class="fw-semibold text-gray-100">@lang('wncms::word.users')</div> --}}
                                 </div>
                             </a>
                         </div>
@@ -42,8 +42,8 @@
                             <a href="{{ route('posts.index') }}" class="card bg-dark hoverable card-xl-stretch">
                                 <div class="card-body">
                                     <i class="fa-solid fa-pencil fa-bounce fa-2xl"></i>
-                                    <div class="text-gray-100 fw-bold fs-2 mb-2 mt-5">@lang('word.num_of_posts', ['count' => $post_count])</div>
-                                    {{-- <div class="fw-semibold text-gray-100">@lang('word.posts')</div> --}}
+                                    <div class="text-gray-100 fw-bold fs-2 mb-2 mt-5">@lang('wncms::word.num_of_posts', ['count' => $post_count])</div>
+                                    {{-- <div class="fw-semibold text-gray-100">@lang('wncms::word.posts')</div> --}}
                                 </div>
                             </a>
                         </div>
@@ -53,8 +53,8 @@
                             <a href="{{ route('pages.index') }}" class="card bg-dark hoverable card-xl-stretch">
                                 <div class="card-body">
                                     <i class="fa-solid fa-file-lines fa-bounce fa-2xl"></i>
-                                    <div class="text-gray-100 fw-bold fs-2 mb-2 mt-5">@lang('word.num_of_pages', ['count' => $page_count])</div>
-                                    {{-- <div class="fw-semibold text-gray-100">@lang('word.pages')</div> --}}
+                                    <div class="text-gray-100 fw-bold fs-2 mb-2 mt-5">@lang('wncms::word.num_of_pages', ['count' => $page_count])</div>
+                                    {{-- <div class="fw-semibold text-gray-100">@lang('wncms::word.pages')</div> --}}
                                 </div>
                             </a>
                         </div>

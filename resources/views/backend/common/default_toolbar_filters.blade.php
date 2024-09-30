@@ -7,7 +7,7 @@
                 <path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="currentColor" />
             </svg>
         </span>
-        <input type="text" name="keyword" value="{{ request()->keyword }}" data-kt-ecommerce-order-filter="search" class="form-control form-control-sm ps-14" placeholder="@lang('word.search')" />
+        <input type="text" name="keyword" value="{{ request()->keyword }}" data-kt-ecommerce-order-filter="search" class="form-control form-control-sm ps-14" placeholder="@lang('wncms::word.search')" />
     </div>
 @endif
 
@@ -15,9 +15,9 @@
 @if(empty($hideToolbarStatusFiller) && !empty($statuses))
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="status" class="form-select form-select-sm">
-            <option value="">@lang('word.select_status')</option>
+            <option value="">@lang('wncms::word.select_status')</option>
             @foreach($statuses as $status)
-                <option value="{{ $status }}" @if($status == request()->status) selected @endif>@lang('word.' . $status)</option>
+                <option value="{{ $status }}" @if($status == request()->status) selected @endif>@lang('wncms::word.' . $status)</option>
             @endforeach
         </select>
     </div>
@@ -28,7 +28,7 @@
 @if(empty($hideToolbarWebsiteFiller) && !empty($websites))
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="website" class="form-select form-select-sm">
-            <option value="">@lang('word.select_website')</option>
+            <option value="">@lang('wncms::word.select_website')</option>
             @foreach($websites as $_website)
                 <option value="{{ $_website->id }}" @selected(wncms()->isSelectedWebsite($_website))>{{ $_website->domain }}</option>
             @endforeach
@@ -40,9 +40,9 @@
 @if(empty($hideToolbarOrderFiller) && !empty($orders))
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="order" class="form-select form-select-sm">
-            <option value="">@lang('word.select_order')</option>
+            <option value="">@lang('wncms::word.select_order')</option>
             @foreach($orders as $order)
-                <option value="{{ $order }}" @if($order == request()->order) selected @endif>@lang('word.' . $order)</option>
+                <option value="{{ $order }}" @if($order == request()->order) selected @endif>@lang('wncms::word.' . $order)</option>
             @endforeach
         </select>
     </div>
@@ -52,9 +52,9 @@
 @if(empty($hideToolbarOrderFiller) && empty($hideToolbarSortFiller) && !empty($orders))
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="sort" class="form-select form-select-sm">
-            <option value="">@lang('word.select_sort')</option>
+            <option value="">@lang('wncms::word.select_sort')</option>
             @foreach(['asc','desc'] as $sort)
-                <option value="{{ $sort }}" @if($sort == request()->sort) selected @endif>@lang('word.sort_by_'. $sort)</option>
+                <option value="{{ $sort }}" @if($sort == request()->sort) selected @endif>@lang('wncms::word.sort_by_'. $sort)</option>
             @endforeach
         </select>
     </div>
@@ -64,7 +64,7 @@
 @if(empty($hideToolbarPageSizeFiller))
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="page_size" class="form-select form-select-sm">
-            <option value="">@lang('word.select_count')</option>
+            <option value="">@lang('wncms::word.select_count')</option>
             @foreach($page_siezes ?? [10,20,30,50,80,100,150,200,500] as $page_size)
                 <option value="{{ $page_size }}" @if($page_size == request()->page_size) selected @endif>{{ $page_size }}</option>
             @endforeach

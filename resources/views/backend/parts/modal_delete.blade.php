@@ -16,12 +16,12 @@
                 </div>
     
                 <div class="modal-body">
-                    <p class="text-danger fw-bold fs-4">@lang('word.this_process_is_irreversible')</p>
+                    <p class="text-danger fw-bold fs-4">@lang('wncms::word.this_process_is_irreversible')</p>
                 </div>
     
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('word.close')</button>
-                    <button type="submit" wncms-btn-loading form-id="{{ "form_" . ($target??'')  . $model->id  }}"  class="btn btn-danger">@lang('word.confirm_delete')</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                    <button type="submit" wncms-btn-loading form-id="{{ "form_" . ($target??'')  . $model->id  }}"  class="btn btn-danger">@lang('wncms::word.confirm_delete')</button>
                 </div>
             </div>
         </div>

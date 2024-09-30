@@ -13,7 +13,7 @@
                     @include('wncms::backend.common.default_toolbar_filters')
 
                     <div class="col-6 col-md-auto mb-3 ms-0">
-                        <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                        <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                     </div>
                 </div>
 
@@ -23,7 +23,7 @@
                         <div class="col-6 col-md-auto mb-3 ms-0">
                             <div class="form-check form-check-sm form-check-custom me-2">
                                 <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                                <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                                <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                             </div>
                         </div>
                     @endforeach
@@ -41,14 +41,14 @@
             ])
 
             {{-- upload_theme --}}
-            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_upload_theme">@lang('word.upload_theme')</button>
+            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_upload_theme">@lang('wncms::word.upload_theme')</button>
             <div class="modal fade" tabindex="-1" id="modal_upload_theme">
                 <div class="modal-dialog">
                     <form action="{{ route('themes.upload') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h3 class="modal-title">@lang('word.upload_theme')</h3>
+                                <h3 class="modal-title">@lang('wncms::word.upload_theme')</h3>
                             </div>
                 
                             <div class="modal-body">
@@ -58,8 +58,8 @@
                             </div>
                 
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('word.close')</button>
-                                <button type="submit" class="btn btn-primary fw-bold">@lang('word.submit')</button>
+                                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                <button type="submit" class="btn btn-primary fw-bold">@lang('wncms::word.submit')</button>
                             </div>
                         </div>
                     </form>
@@ -79,20 +79,20 @@
                                     <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th>
-                            <th>@lang('word.action')</th>
-                            <th>@lang('word.id')</th>
-                            <th>@lang('word.valid_structure')</th>
-                            {{-- <th>@lang('word.status')</th> --}}
-                            <th>@lang('word.name')</th>
+                            <th>@lang('wncms::word.action')</th>
+                            <th>@lang('wncms::word.id')</th>
+                            <th>@lang('wncms::word.valid_structure')</th>
+                            {{-- <th>@lang('wncms::word.status')</th> --}}
+                            <th>@lang('wncms::word.name')</th>
                             @if(request()->show_detail)
-                            <th>@lang('word.description')</th>
+                            <th>@lang('wncms::word.description')</th>
                             @endif
-                            <th>@lang('word.demo_url')</th>
+                            <th>@lang('wncms::word.demo_url')</th>
                             @if(request()->show_detail)
-                            <th>@lang('word.author')</th>
-                            <th>@lang('word.current_version')</th>
-                            <th>@lang('word.created_at')</th>
-                            <th>@lang('word.updated_at')</th>
+                            <th>@lang('wncms::word.author')</th>
+                            <th>@lang('wncms::word.current_version')</th>
+                            <th>@lang('wncms::word.created_at')</th>
+                            <th>@lang('wncms::word.updated_at')</th>
                             @endif
 
                             @if(request()->show_detail)
@@ -113,20 +113,20 @@
                                     <button class="btn btn-sm btn-success fw-bold px-2 py-1"
                                         wncms-btn-ajax
                                         wncms-btn-swal
-                                        data-success-text="@lang('word.deactivated')"
-                                        data-fail-text="@lang('word.retry')"
+                                        data-success-text="@lang('wncms::word.deactivated')"
+                                        data-fail-text="@lang('wncms::word.retry')"
                                         data-route="{{ route('themes.activate' , ['themeId' => $theme['id']]) }}"
-                                        data-method="POST" >@lang('word.activate')</button>
-                                    <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('themes.preview' , ['themeId' => $theme['id']]) }}">@lang('word.preview')</a>
+                                        data-method="POST" >@lang('wncms::word.activate')</button>
+                                    <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('themes.preview' , ['themeId' => $theme['id']]) }}">@lang('wncms::word.preview')</a>
                                 @else
                                     <button class="btn btn-sm btn-danger fw-bold px-2 py-1"
                                         wncms-btn-ajax
                                         wncms-btn-swal
-                                        data-confirm-text="@lang('word.are_you_sure_to_deactivate_theme', ['theme_name' => $theme['name']])"
-                                        data-success-text="@lang('word.activated')"
-                                        data-fail-text="@lang('word.retry')"
+                                        data-confirm-text="@lang('wncms::word.are_you_sure_to_deactivate_theme', ['theme_name' => $theme['name']])"
+                                        data-success-text="@lang('wncms::word.activated')"
+                                        data-fail-text="@lang('wncms::word.retry')"
                                         data-route="{{ route('themes.deactivate' , ['themeId' => $theme['id']]) }}"
-                                        data-method="POST" >@lang('word.deactivate')</button>
+                                        data-method="POST" >@lang('wncms::word.deactivate')</button>
 
                                 @endif
                             </td>

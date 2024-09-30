@@ -17,7 +17,7 @@
                 {{-- @if(!empty($example_toolbar_items))
                     <div class="col-6 col-md-auto mb-3 ms-0">
                         <select name="website" class="form-select form-select-sm">
-                            <option value="">@lang('word.select_website')</option>
+                            <option value="">@lang('wncms::word.select_website')</option>
                             @foreach($example_toolbar_items as $example_toolbar_item)
                                 <option value="{{ $example_toolbar_item->id }}" @if($example_toolbar_item->id == request()->example_toolbar_item_id) selected @endif>{{ $example_toolbar_item->name }}</option>
                             @endforeach
@@ -26,7 +26,7 @@
                 @endif --}}
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -36,7 +36,7 @@
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                            <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
                 @endforeach
@@ -52,21 +52,21 @@
                 'model_prefix' => 'pages',
             ])
 
-            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_one_click_create_theme_pages">@lang('word.one_click_create_theme_pages')</button>
+            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_one_click_create_theme_pages">@lang('wncms::word.one_click_create_theme_pages')</button>
             <div class="modal fade" tabindex="-1" id="modal_one_click_create_theme_pages">
                 <div class="modal-dialog">
                     <form action="{{ route('pages.create_theme_pages') }}" method="POST">
                         @csrf
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h3 class="modal-title">@lang('word.one_click_create_theme_pages')</h3>
+                                <h3 class="modal-title">@lang('wncms::word.one_click_create_theme_pages')</h3>
                             </div>
                 
                             <div class="modal-body">
                                 <div class="form-item">
-                                    <label for="website_id" class="form-label">@lang('word.website')</label>
+                                    <label for="website_id" class="form-label">@lang('wncms::word.website')</label>
                                     <select name="website_id" class="form-select">
-                                        <option value="">@lang('word.please_select')</option>
+                                        <option value="">@lang('wncms::word.please_select')</option>
                                         @foreach($websites as $w)
                                         <option value="{{ $w->id }}">{{ $w->domain }}</option>
                                         @endforeach    
@@ -75,8 +75,8 @@
                             </div>
                 
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('word.close')</button>
-                                <button type="submit" class="btn btn-primary fw-bold">@lang('word.submit')</button>
+                                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                <button type="submit" class="btn btn-primary fw-bold">@lang('wncms::word.submit')</button>
                             </div>
                         </div>
                     </form>
@@ -98,20 +98,20 @@
                                     <input class="form-check-input" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th>
-                            <th>@lang('word.action')</th>
-                            <th>@lang('word.id')</th>
-                            <th>@lang('word.slug')</th>
-                            <th>@lang('word.user')</th>
-                            <th>@lang('word.website')</th>
-                            <th>@lang('word.status')</th>
-                            <th>@lang('word.thumbnail')</th>
-                            <th>@lang('word.title')</th>
-                            <th>@lang('word.visibility')</th>
-                            <th>@lang('word.template')</th>
-                            <th>@lang('word.attribute')</th>
-                            <th>@lang('word.remark')</th>
-                            <th>@lang('word.is_locked')</th>
-                            <th>@lang('word.created_at')</th>
+                            <th>@lang('wncms::word.action')</th>
+                            <th>@lang('wncms::word.id')</th>
+                            <th>@lang('wncms::word.slug')</th>
+                            <th>@lang('wncms::word.user')</th>
+                            <th>@lang('wncms::word.website')</th>
+                            <th>@lang('wncms::word.status')</th>
+                            <th>@lang('wncms::word.thumbnail')</th>
+                            <th>@lang('wncms::word.title')</th>
+                            <th>@lang('wncms::word.visibility')</th>
+                            <th>@lang('wncms::word.template')</th>
+                            <th>@lang('wncms::word.attribute')</th>
+                            <th>@lang('wncms::word.remark')</th>
+                            <th>@lang('wncms::word.is_locked')</th>
+                            <th>@lang('wncms::word.created_at')</th>
 
                         </tr>
                     </thead>
@@ -124,8 +124,8 @@
                                 </div>
                             </td>
                             <td>
-                                <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('pages.edit' , $page) }}">@lang('word.edit')</a>
-                                <a class="btn btn-sm px-2 py-1 btn-info fw-bold" href="{{ route('pages.clone' , $page) }}">@lang('word.clone')</a>
+                                <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('pages.edit' , $page) }}">@lang('wncms::word.edit')</a>
+                                <a class="btn btn-sm px-2 py-1 btn-info fw-bold" href="{{ route('pages.clone' , $page) }}">@lang('wncms::word.clone')</a>
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$page , 'route' => route('pages.destroy' , $page)])
                             </td>
                             <td>{{ $page->id }}</td>
@@ -137,7 +137,7 @@
                             <td class="mw-400px text-truncate"><a href="{{ $wncms->getRoute('frontend.pages.single', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td>
                             <td>{{ $page->visibility }}</td>
                             <td>{{ $page->template }}</td>
-                            <th title="@foreach(json_decode($page->attribute, true) ?? [] as $key => $value){{ $key }}: {{ $value }}&#10;@endforeach">@if($page->attribute && $page->attribute != "[]")@lang('word.hover_to_view')@endif</td>
+                            <th title="@foreach(json_decode($page->attribute, true) ?? [] as $key => $value){{ $key }}: {{ $value }}&#10;@endforeach">@if($page->attribute && $page->attribute != "[]")@lang('wncms::word.hover_to_view')@endif</td>
                             <td>{{ $page->remark }}</td>
                             <td>{{ $page->is_locked }}</td>
                             <td>{{ $page->created_at }}</td>

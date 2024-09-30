@@ -13,8 +13,8 @@
             <div class="card-header border-0 cursor-pointer px-3 px-md-9 bg-dark" role="button" data-bs-toggle="collapse" data-bs-target="#kt_account_profile_details" aria-expanded="true" aria-controls="kt_account_profile_details">
                 {{-- Card title --}}
                 <h3 class="card-title align-items-start flex-column">
-                    <span class="card-label fw-bold text-gray-100">@lang('word.user_recharge')</span>
-                    <span class="text-gray-400 pt-1 fw-bold fs-6">@lang('word.you_can_buy_extra_credit')</span>
+                    <span class="card-label fw-bold text-gray-100">@lang('wncms::word.user_recharge')</span>
+                    <span class="text-gray-400 pt-1 fw-bold fs-6">@lang('wncms::word.you_can_buy_extra_credit')</span>
                 </h3>
             </div>
 
@@ -71,7 +71,7 @@
                                     </span>
 
                                     <span class="d-flex flex-column">
-                                        <span class="fw-bold fs-6">@lang('word.recharge') {{ $default_item['credit'] }} TOKEN</span>
+                                        <span class="fw-bold fs-6">@lang('wncms::word.recharge') {{ $default_item['credit'] }} TOKEN</span>
                                         <span class="fs-7 text-muted">{{ $default_item['text'] }}</span>
                                     </span>
                                 </span>
@@ -88,7 +88,7 @@
 
                     {{-- Separator --}}
                     <div class="separator separator-content my-10">
-                        <span class="w-125px text-gray-900 fw-semibold fs-4">@lang('word.or')</span>
+                        <span class="w-125px text-gray-900 fw-semibold fs-4">@lang('wncms::word.or')</span>
                     </div>
 
 
@@ -113,7 +113,7 @@
                     </div>
 
                     <div class="mt-10">
-                        <button class="w-100 btn btn-dark fw-bold">@lang('word.confirm_order')</button>
+                        <button class="w-100 btn btn-dark fw-bold">@lang('wncms::word.confirm_order')</button>
                     </div>
                 </div>
 
@@ -126,8 +126,8 @@
         <div class="card card-flush h-xl-100">
             <div class="card-header pt-5">
                 <h3 class="card-title align-items-start flex-column">
-                    <span class="card-label fw-bold text-gray-800 mb-3">@lang('word.services_can_be_purchased_by_credit')</span>
-                    <span class="text-gray-600 pt-1 fw-bold fs-6">@lang('word.fit_your_need')</span>
+                    <span class="card-label fw-bold text-gray-800 mb-3">@lang('wncms::word.services_can_be_purchased_by_credit')</span>
+                    <span class="text-gray-600 pt-1 fw-bold fs-6">@lang('wncms::word.fit_your_need')</span>
                 </h3>
 
             </div>
@@ -136,10 +136,10 @@
                     <table class="table table-row-dashed align-middle gs-0 gy-4">
                         <thead>
                             <tr class="fs-7 fw-bold border-0 text-gray-400">
-                                <th class="min-w-200px" colspan="2">@lang('word.item_name')</th>
-                                <th class="min-w-50px" colspan="2">@lang('word.value')</th>
-                                <th class="min-w-100px pe-0" colspan="2">@lang('word.normal_price')</th>
-                                <th class="min-w-100px" colspan="2">@lang('word.event_price')</th>
+                                <th class="min-w-200px" colspan="2">@lang('wncms::word.item_name')</th>
+                                <th class="min-w-50px" colspan="2">@lang('wncms::word.value')</th>
+                                <th class="min-w-100px pe-0" colspan="2">@lang('wncms::word.normal_price')</th>
+                                <th class="min-w-100px" colspan="2">@lang('wncms::word.event_price')</th>
                             </tr>
                         </thead>
 

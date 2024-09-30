@@ -16,7 +16,7 @@
                         {{-- message for 500 error --}}
                         <h1 class="fw-bolder fs-1 text-gray-900 mb-4">Error 500</h1>
                         <div>
-                            <p class="text-gray-700 fs-4">@lang('word.error_500_message')</p>
+                            <p class="text-gray-700 fs-4">@lang('wncms::word.error_500_message')</p>
                         </div>
                         @if(!empty($exception))
                         <div class="alert alert-danger">
@@ -24,7 +24,7 @@
                         </div>
                         @endif
                         <div class="mb-0">
-                            <a href="{{ route('frontend.pages.home') }}" class="btn btn-sm btn-dark">@lang('word.return_home')</a>
+                            <a href="{{ route('frontend.pages.home') }}" class="btn btn-sm btn-dark">@lang('wncms::word.return_home')</a>
                         </div>
                     </div>
                 </div>

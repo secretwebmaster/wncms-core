@@ -1,11 +1,11 @@
-<button type="button" class="btn btn-sm px-2 py-1 btn-dark fw-bold" data-bs-toggle="modal" data-bs-target="#modal_update_keyword_{{ $binding_model->id }}">@lang('word.edit_keyword')</button>
+<button type="button" class="btn btn-sm px-2 py-1 btn-dark fw-bold" data-bs-toggle="modal" data-bs-target="#modal_update_keyword_{{ $binding_model->id }}">@lang('wncms::word.edit_keyword')</button>
 <div class="modal fade" tabindex="-1" id="modal_update_keyword_{{ $binding_model->id }}">
     <div class="modal-dialog">
         <div class="modal-content">
             <form id="form_bind_keyword_{{ $binding_model->id }}" action="{{ route('tags.keywords.update', ['tag' => $binding_model]) }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h3 class="modal-title">#{{ $binding_model->id }} {{ $binding_model->name }}@lang('word.keyword')</h3>
+                    <h3 class="modal-title">#{{ $binding_model->id }} {{ $binding_model->name }}@lang('wncms::word.keyword')</h3>
                 </div>
 
                 <div class="modal-body">
@@ -18,8 +18,8 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('word.close')</button>
-                    <button type="submit" form-id="form_bind_keyword_{{ $binding_model->id }}" class="btn btn-primary btn-loading">@lang('word.submit')</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                    <button type="submit" form-id="form_bind_keyword_{{ $binding_model->id }}" class="btn btn-primary btn-loading">@lang('wncms::word.submit')</button>
                 </div>
 
             </form>

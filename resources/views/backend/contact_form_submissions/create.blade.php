@@ -19,13 +19,13 @@
 
                 {{-- status --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('word.status')</label>
+                    <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('wncms::word.status')</label>
 
                     <div class="col-lg-9 fv-row">
                         <select name="status" class="form-select form-select-sm" required>
-                            <option value="">@lang('word.please_select')</option>
+                            <option value="">@lang('wncms::word.please_select')</option>
                             @foreach(['active','paused','suspended','pending'] as $status)
-                                <option  value="{{ $status }}" {{ $status === old('status', $contact_form_submission->status ?? 'active') ? 'selected' :'' }}>@lang('word.' . $status)</option>
+                                <option  value="{{ $status }}" {{ $status === old('status', $contact_form_submission->status ?? 'active') ? 'selected' :'' }}>@lang('wncms::word.' . $status)</option>
                             @endforeach
                         </select>
                     </div>
@@ -33,7 +33,7 @@
 
                 {{-- text_example --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.text_example')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.text_example')</label>
                     <div class="col-lg-9 fv-row">
                         <input type="text" name="text_example" class="form-control form-control-sm" value="{{ old('text_example', $contact_form_submission->text_example ?? null) }}"/>
                     </div>
@@ -41,7 +41,7 @@
 
                 {{-- number_example --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.number_example')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.number_example')</label>
                     <div class="col-lg-9 fv-row">
                         <input type="number" name="number_example" class="form-control form-control-sm" value="{{ old('number_example', $contact_form_submission->number_example ?? null) }}"/>
                     </div>
@@ -50,12 +50,12 @@
                 
                 {{-- select_example --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('word.select_example')</label>
+                    <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('wncms::word.select_example')</label>
                     <div class="col-lg-9 fv-row">
                         <select name="select_example" class="form-select form-select-sm">
-                            <option value=""@lang('word.please_select')> @lang('word.select_example')</option>
+                            <option value=""@lang('wncms::word.please_select')> @lang('wncms::word.select_example')</option>
                             @foreach($select_examples ?? [] as $select_example)
-                                <option  value="{{ $select_example }}" {{ $select_example === old('select_example', $contact_form_submission->select_example ?? null) ? 'selected' :'' }}>@lang('word.' . $select_example)</option>
+                                <option  value="{{ $select_example }}" {{ $select_example === old('select_example', $contact_form_submission->select_example ?? null) ? 'selected' :'' }}>@lang('wncms::word.' . $select_example)</option>
                             @endforeach
                         </select>
                     </div>
@@ -64,7 +64,7 @@
 
                 {{-- image_example --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.image_example')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.image_example')</label>
          
                     <div class="col-lg-9">
                         <div class="image-input image-input-outline {{ isset($contact_form_submission) && $contact_form_submission->image_example ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center;">
@@ -87,14 +87,14 @@
                             </span>
                         </div>
 
-                        <div class="form-text">@lang('word.allow_file_types', ['types' => 'png, jpg, jpeg, gif'])</div>
+                        <div class="form-text">@lang('wncms::word.allow_file_types', ['types' => 'png, jpg, jpeg, gif'])</div>
                     </div>
                 </div>
                 
                 
                 {{-- textarea_example --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.textarea_example')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.textarea_example')</label>
                     <div class="col-lg-9 fv-row">
                         <textarea name="textarea_example" class="form-control" rows="10">{{ $contact_form_submission->textarea_example ?? '' }}</textarea>
                     </div>
@@ -102,7 +102,7 @@
 
                 {{-- tinymac_example --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.tinymac_example')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.tinymac_example')</label>
                     <div class="col-lg-9 fv-row">
                         <textarea id="kt_docs_tinymce_basic" name="tinymac_example" class="tox-target">{{ old('tinymac_example', $contact_form_submission->tinymac_example ?? null) }}</textarea>
                     </div>
@@ -110,7 +110,7 @@
 
                 {{-- color_example --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.color_example')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.color_example')</label>
                     <div class="col-lg-3 fv-row">
                         <div class="input-group mb-5">
                             <input type="text" name="color_example" class="form-control form-control-sm"/>
@@ -121,7 +121,7 @@
 
                 {{-- switch_example --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.switch_example')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.switch_example')</label>
 
                     <div class="col-lg-9 d-flex align-items-center">
                         <div class="form-check form-check-solid form-check-custom form-switch fv-row">
@@ -135,23 +135,23 @@
 
                 {{-- checkbox_example --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.checkbox_example')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.checkbox_example')</label>
                     <div class="col-lg-9 fv-row">
                         <div class="d-flex align-items-center mt-3">
                             <label class="form-check form-check-inline form-check-solid me-5">
                                 <input type="hidden" name="checkbox_examples[name1]" value="0">
                                 <input class="form-check-input" name="checkbox_examples[name1]" type="checkbox" value="1" {{ old('name1', $contact_form_submission->name1 ?? null) ? 'checked' : '' }}/>
-                                <span class="fw-bold ps-2 fs-6">@lang('word.checkbox_1')</span>
+                                <span class="fw-bold ps-2 fs-6">@lang('wncms::word.checkbox_1')</span>
                             </label>
                             <label class="form-check form-check-inline form-check-solid me-5">
                                 <input type="hidden" name="checkbox_examples[name2]" value="0">
                                 <input class="form-check-input" name="checkbox_examples[name2]" type="checkbox" value="2" {{ old('name2', $contact_form_submission->name2 ?? null) ? 'checked' : '' }}/>
-                                <span class="fw-bold ps-2 fs-6">@lang('word.checkbox_2')</span>
+                                <span class="fw-bold ps-2 fs-6">@lang('wncms::word.checkbox_2')</span>
                             </label>
                             <label class="form-check form-check-inline form-check-solid me-5">
                                 <input type="hidden" name="checkbox_examples[name3]" value="0">
                                 <input class="form-check-input" name="checkbox_examples[name3]" type="checkbox" value="3" {{ old('name3', $contact_form_submission->name3 ?? null) ? 'checked' : '' }}/>
-                                <span class="fw-bold ps-2 fs-6">@lang('word.checkbox_3')</span>
+                                <span class="fw-bold ps-2 fs-6">@lang('wncms::word.checkbox_3')</span>
                             </label>
                         </div>
                     </div>
@@ -161,7 +161,7 @@
 
                 {{-- two_collumns_example --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('word.two_collumns_example')</label>
+                    <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('wncms::word.two_collumns_example')</label>
 
                     <div class="col-lg-9">
                         <div class="row">
@@ -178,9 +178,9 @@
 
                 {{-- expired_at --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.expired_at')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.expired_at')</label>
                     <div class="col-lg-9 fv-row">
-                        <input name="expired_at" value="{{ !empty($contact_form_submission->expired_at) ? $contact_form_submission->expired_at->format('Y-m-d') : '' }}" class="form-control form-control-sm" placeholder="@lang('word.choose_date_or_leave_blank')" id="kt_daterangepicker_3" />
+                        <input name="expired_at" value="{{ !empty($contact_form_submission->expired_at) ? $contact_form_submission->expired_at->format('Y-m-d') : '' }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_leave_blank')" id="kt_daterangepicker_3" />
                     </div>
                 </div>
                 <script>

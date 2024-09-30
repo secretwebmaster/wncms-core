@@ -19,7 +19,7 @@
                 </div>
 
                 <div class="card-footer d-flex justify-content-end py-6 px-9">
-                    <button type="reset" class="btn btn-white btn-active-light-primary me-2">@lang('word.cancel')</button>
+                    <button type="reset" class="btn btn-white btn-active-light-primary me-2">@lang('wncms::word.cancel')</button>
 
                     <button type="submit" class="btn btn-primary wncms-submit">
                         @include('wncms::backend.parts.submit', ['label' => __('word.create')])

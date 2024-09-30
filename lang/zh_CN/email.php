@@ -1,10 +1,10 @@
 <?php
 
-return [ 
-    'reset_password_notification' => '重设密码通知',
-    'you_are_receiving_this_email_because_we_received_a_password_reset_request_for_your_account' => '您收到此电子邮件是因为我们收到了您帐户的重设密码请求',
-    'reset_password' => '重设密码',
-    'this_password_reset_link_will_expire_in_count_minutes' => '此密码重设连结将在 :count 分钟后失效',
-    'if_you_did_not_request_a_password_reset_no_further_action_is_required' => '如果您没有申请重设密码，则无需进一步操作',
-    'if_you_have_trouble_in_action' => '如果您在点击 :actionText 按钮时遇到困难，请将下面的URL复制并粘贴到浏览器中。',
+return [
+    'reset_password_notification' => 'パスワードリセット通知',
+    'you_are_receiving_this_email_because_we_received_a_password_reset_request_for_your_account' => 'あなたのアカウントのパスワードリセットリクエストを受け取ったため、このメールをお送りしています。',
+    'reset_password' => 'パスワードをリセット',
+    'this_password_reset_link_will_expire_in_count_minutes' => 'このパスワードリセットリンクは :count 分で無効になります。',
+    'if_you_did_not_request_a_password_reset_no_further_action_is_required' => 'もしパスワードリセットをリクエストしていない場合は、これ以上の操作は必要ありません。',
+    'if_you_have_trouble_in_action' => ':actionText ボタンをクリックする際に問題がある場合は、以下のURLをコピーしてブラウザに貼り付けてください。',
 ];

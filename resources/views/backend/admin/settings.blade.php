@@ -27,7 +27,7 @@
                 
                 @if(!gss('disable_core_update'))
                     <div class="card-footer p-3">
-                        <a href="{{ route('updates') }}" class="btn btn-sm btn-secondary w-100">@lang('word.check_updates')</a>
+                        <a href="{{ route('updates') }}" class="btn btn-sm btn-secondary w-100">@lang('wncms::word.check_updates')</a>
                     </div>
                 @endif
             </div>
@@ -52,7 +52,7 @@
 
                                             <div class="row mb-1">
                                                 <label class="col-lg-4 col-form-label fw-bold fs-6">
-                                                    @lang('word.' . ($tab_content['text'] ?? $tab_content['name']))
+                                                    @lang('wncms::word.' . ($tab_content['text'] ?? $tab_content['name']))
                                                     @if(!empty($tab_content['badge']))
                                                     <span class="badge badge-sm badge-exclusive badge-danger fw-bold fs-8 px-2 py-1 ms-2">{{ $tab_content['badge'] }}</span>
                                                     @endif
@@ -63,7 +63,7 @@
                                                 </label>
                                                 <div class="col-lg-8 fv-row">
                                                     <input type="{{ $tab_content['type'] }}" class="form-control form-control-sm" name="settings[{{ $tab_content['name'] }}]" value="{{ $settings[($tab_content['name'])] ?? '' }}" @if(!empty($tab_content['disabled'])) disabled @endif />
-                                                    @if(trans()->has('word.'. $tab_content['name'] .'_description'))<div class="text-muted p-1">@lang('word.'. $tab_content['name'] .'_description')</div>@endif
+                                                    @if(trans()->has('word.'. $tab_content['name'] .'_description'))<div class="text-muted p-1">@lang('wncms::word.'. $tab_content['name'] .'_description')</div>@endif
                                                 </div>
                                             </div>
 
@@ -72,7 +72,7 @@
                                             {{-- {{ dd( $settings[($tab_content['name']))] ?? '' }} --}}
                                             <div class="row mb-1">
                                                 <label class="col-lg-4 col-form-label fw-bold fs-6">
-                                                    @lang('word.' . ($tab_content['text'] ?? $tab_content['name']))
+                                                    @lang('wncms::word.' . ($tab_content['text'] ?? $tab_content['name']))
                                                     @if(!empty($tab_content['badge']))
                                                     <span class="badge badge-sm badge-exclusive badge-danger fw-bold fs-8 px-2 py-1 ms-2">{{ $tab_content['badge'] }}</span>
                                                     @endif
@@ -87,7 +87,7 @@
                                                         <input class="form-check-input w-35px h-20px border border-1 border-secondary" type="checkbox" name="settings[{{ $tab_content['name'] }}]" value="1" {{ $settings[($tab_content['name'])] ?? '' ? 'checked' : '' }} />
                                                         <label class="form-check-label" for="check_beta_functions"></label>
                                                     </div>
-                                                    @if(trans()->has('word.'. $tab_content['name'] .'_description'))<div class="text-muted p-1">@lang('word.'. $tab_content['name'] .'_description')</div>@endif
+                                                    @if(trans()->has('word.'. $tab_content['name'] .'_description'))<div class="text-muted p-1">@lang('wncms::word.'. $tab_content['name'] .'_description')</div>@endif
                                                 </div>
                                             </div>
 
@@ -95,7 +95,7 @@
 
                                             <div class="row mb-1">
                                                 <label class="col-lg-4 col-form-label fw-bold fs-6">
-                                                    @lang('word.' . ($tab_content['text'] ?? $tab_content['name']))
+                                                    @lang('wncms::word.' . ($tab_content['text'] ?? $tab_content['name']))
                                                     @if(!empty($tab_content['badge']))
                                                     <span class="badge badge-sm badge-exclusive badge-danger fw-bold fs-8 px-2 py-1 ms-2">{{ $tab_content['badge'] }}</span>
                                                     @endif
@@ -106,15 +106,15 @@
                                                 </label>
                                                 <div class="col-lg-8 d-flex align-items-center">
                                                     <select class="form-select form-select-sm" name="settings[{{ $tab_content['name'] }}]">
-                                                        <option value="">@lang('word.please_select')</option>
+                                                        <option value="">@lang('wncms::word.please_select')</option>
                                                         @foreach($tab_content['options'] ?? [] as $option_key => $option_value)
                                                             <option value="{{ $option_value }}" @if(( $settings[($tab_content['name'])] ?? '') == $option_value) selected @endif>
-                                                                @if(isset($tab_content['translate_option']) && $tab_content['translate_option'] === false) {{ $option_value }} @else @lang('word.' . $option_value) @endif
+                                                                @if(isset($tab_content['translate_option']) && $tab_content['translate_option'] === false) {{ $option_value }} @else @lang('wncms::word.' . $option_value) @endif
                                                             </option>
                                                         @endforeach
                                                     </select>
 
-                                                    @if(trans()->has('word.'. $tab_content['name'] .'_description'))<div class="text-muted p-1">@lang('word.'. $tab_content['name'] .'_description')</div>@endif
+                                                    @if(trans()->has('word.'. $tab_content['name'] .'_description'))<div class="text-muted p-1">@lang('wncms::word.'. $tab_content['name'] .'_description')</div>@endif
                                                 </div>
                                             </div>
 
@@ -122,7 +122,7 @@
 
                                             <div class="row mb-1">
                                                 <label class="col-lg-4 col-form-label fw-bold fs-6">
-                                                    @lang('word.' . ($tab_content['text'] ?? $tab_content['name']))
+                                                    @lang('wncms::word.' . ($tab_content['text'] ?? $tab_content['name']))
                                                     @if(!empty($tab_content['badge']))
                                                     <span class="badge badge-sm badge-exclusive badge-danger fw-bold fs-8 px-2 py-1 ms-2">{{ $tab_content['badge'] }}</span>
                                                     @endif
@@ -133,7 +133,7 @@
                                                 </label>
                                                 <div class="col-lg-8 fv-row">
                                                     <textarea name="settings[{{ $tab_content['name'] }}]" class="form-control form-control-sm" rows="4">{{ $settings[($tab_content['name'])] ?? '' }}</textarea>
-                                                    @if(trans()->has('word.'. $tab_content['name'] .'_description'))<div class="text-muted p-1">@lang('word.'. $tab_content['name'] .'_description')</div>@endif
+                                                    @if(trans()->has('word.'. $tab_content['name'] .'_description'))<div class="text-muted p-1">@lang('wncms::word.'. $tab_content['name'] .'_description')</div>@endif
                                                 </div>
                                             </div>
 
@@ -141,7 +141,7 @@
 
                                             <div class="row mb-1">
                                                 <label class="col-lg-4 col-form-label fw-bold fs-6">
-                                                    @lang('word.' . ($tab_content['text'] ?? $tab_content['name']))
+                                                    @lang('wncms::word.' . ($tab_content['text'] ?? $tab_content['name']))
                                                     @if(!empty($tab_content['badge']))
                                                     <span class="badge badge-sm badge-exclusive badge-danger fw-bold fs-8 px-2 py-1 ms-2">{{ $tab_content['badge'] }}</span>
                                                     @endif
@@ -160,7 +160,7 @@
                                             @if($tab_content['name'] == 'display_model')
                                                 <div class="row mb-1">
                                                     <label class="col-lg-4 col-form-label fw-bold fs-6">
-                                                        @lang('word.display_model')
+                                                        @lang('wncms::word.display_model')
                                                         <br>
                                                         @if(!empty($settings['show_developer_hints']))
                                                         <span class="fs-xs text-gray-300">{{ $tab_content['name'] }}</span>
@@ -169,7 +169,7 @@
                                                     <div class="col-lg-8 fv-row">
                                                         <div class="row align-items-center mt-3">
                                                             <div class="col-123 mb-3">
-                                                                <button type="button" class="btn_check_all btn btn-sm btn-dark px-2 py-1 fw-bold" data-target-class="model_checkbox">@lang('word.check_all')</button>
+                                                                <button type="button" class="btn_check_all btn btn-sm btn-dark px-2 py-1 fw-bold" data-target-class="model_checkbox">@lang('wncms::word.check_all')</button>
                                                             </div>
                                                             @foreach(wncms_get_model_names() as $modelData)
                                                                 @if(!empty($modelData['routes']))
@@ -194,29 +194,29 @@
 
                                     @if($nav_tab['tab_name'] == 'smtp')
                                         {{-- test_smtp --}}
-                                        <button type="button" class="btn btn-sm btn-info fw-bold" data-bs-toggle="modal" data-bs-target="#modal_test_smtp">@lang('word.test_smtp')</button>
+                                        <button type="button" class="btn btn-sm btn-info fw-bold" data-bs-toggle="modal" data-bs-target="#modal_test_smtp">@lang('wncms::word.test_smtp')</button>
                                         <div class="modal fade" tabindex="-1" id="modal_test_smtp">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h3 class="modal-title">@lang('word.test_smtp')</h3>
+                                                        <h3 class="modal-title">@lang('wncms::word.test_smtp')</h3>
                                                     </div>
                                         
                                                     <div class="modal-body">
-                                                        <div class="alert alert-info">@lang('word.please_save_settings_before_your_smtp_test')</div>
+                                                        <div class="alert alert-info">@lang('wncms::word.please_save_settings_before_your_smtp_test')</div>
                                                         <div class="form-item mb-3">
-                                                            <label for="recipient" class="form-label">@lang('word.recipient')</label>
+                                                            <label for="recipient" class="form-label">@lang('wncms::word.recipient')</label>
                                                             <input type="text" id="recipient" class="form-control">
                                                         </div>
                                                         <div class="smtp-test-result">
-                                                            <label for="recipient" class="form-label">@lang('word.result')</label>
+                                                            <label for="recipient" class="form-label">@lang('wncms::word.result')</label>
                                                             <textarea rows="4" class="form-control" disabled></textarea>
                                                         </div>
                                                     </div>
                                         
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('word.close')</button>
-                                                        <button type="button" class="btn btn-info fw-bold btn-test">@lang('word.test')</button>
+                                                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                                        <button type="button" class="btn btn-info fw-bold btn-test">@lang('wncms::word.test')</button>
                                                     </div>
                                                 </div>
                                             </div>

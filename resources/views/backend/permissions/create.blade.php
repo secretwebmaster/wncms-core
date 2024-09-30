@@ -9,7 +9,7 @@
         <div class="card shadow-sm">
             <div class="card-header border-0 cursor-pointer px-3 px-md-9">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">@lang('word.model_create', ['model_name' => __('word.permission')])</h3>
+                    <h3 class="fw-bolder m-0">@lang('wncms::word.model_create', ['model_name' => __('word.permission')])</h3>
                 </div>
             </div>
 
@@ -19,7 +19,7 @@
                     <div class="card-body border-top p-3 p-md-9">
                         {{-- name --}}
                         <div class="row mb-6">
-                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.name')</label>
+                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.name')</label>
                             <div class="col-lg-9 fv-row">
                                 <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name') }}"/>
                             </div>
@@ -27,11 +27,11 @@
                         
                         {{-- common_suffixes --}}
                         <div class="row mb-3">
-                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.common_suffixes')</label>
+                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.common_suffixes')</label>
                             <div class="col-lg-9 fv-row">
                                 <div class="row align-items-center mt-3">
                                     <div class="col-123 mb-3">
-                                        <button type="button" class="btn_check_all btn btn-sm btn-dark px-2 py-1 fw-bold" data-target-class="common_suffix_checkbox">@lang('word.check_all')</button>
+                                        <button type="button" class="btn_check_all btn btn-sm btn-dark px-2 py-1 fw-bold" data-target-class="common_suffix_checkbox">@lang('wncms::word.check_all')</button>
                                     </div>
                                     @foreach($common_suffixes as $index => $common_suffix)
                                         <div class="col-6 col-md-3 mb-1 common_suffix_checkbox">
@@ -50,11 +50,11 @@
 
                         {{-- roles --}}
                         <div class="row mb-3">
-                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.roles')</label>
+                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.roles')</label>
                             <div class="col-lg-9 fv-row">
                                 <div class="row align-items-center mt-3">
                                     <div class="col-123 mb-3">
-                                        <button type="button" class="btn_check_all btn btn-sm btn-dark px-2 py-1 fw-bold" data-target-class="role_checkbox">@lang('word.check_all')</button>
+                                        <button type="button" class="btn_check_all btn btn-sm btn-dark px-2 py-1 fw-bold" data-target-class="role_checkbox">@lang('wncms::word.check_all')</button>
                                     </div>
                                     @foreach($roles as $index => $role)
                                         <div class="col-6 col-md-3 mb-1 role_checkbox">

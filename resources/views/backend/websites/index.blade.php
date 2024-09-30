@@ -12,7 +12,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
         </form>
@@ -35,13 +35,13 @@
                 <table class="table table-bordered table-hover align-middle text-nowrap mb-0 border border-2 border-dark">
                     <thead class="table-dark">
                         <tr class="fw-bold gs-0">
-                            <th>@lang('word.action')</th>
+                            <th>@lang('wncms::word.action')</th>
                             <th>#</th>
-                            <th>@lang('word.site_name')</th>
-                            <th>@lang('word.domain')</th>
-                            <th>@lang('word.theme')</th>
-                            <th>@lang('word.remark')</th>
-                            <th>@lang('word.created_at')</th>
+                            <th>@lang('wncms::word.site_name')</th>
+                            <th>@lang('wncms::word.domain')</th>
+                            <th>@lang('wncms::word.theme')</th>
+                            <th>@lang('wncms::word.remark')</th>
+                            <th>@lang('wncms::word.created_at')</th>
 
                         </tr>
                     </thead>
@@ -49,8 +49,8 @@
                         @foreach($websites as $website)
                         <tr>
                             <td>
-                                <a class="btn btn-sm btn-dark px-2 py-1 fw-bold" href="{{ route('websites.edit' , $website) }}">@lang('word.website_options')</a>
-                                <a class="btn btn-sm btn-dark px-2 py-1 fw-bold" href="{{ route('websites.theme.options' , $website) }}">@lang('word.theme_options')</a>
+                                <a class="btn btn-sm btn-dark px-2 py-1 fw-bold" href="{{ route('websites.edit' , $website) }}">@lang('wncms::word.website_options')</a>
+                                <a class="btn btn-sm btn-dark px-2 py-1 fw-bold" href="{{ route('websites.theme.options' , $website) }}">@lang('wncms::word.theme_options')</a>
                             </td>
                             <td>{{ $website->id }}</td>
                             <td><span class="px-2 py-1 rounded fw-bold">{{ $website->site_name }}</span></td>

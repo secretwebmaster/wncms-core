@@ -5,7 +5,7 @@
 @include('wncms::backend.parts.message')
 @if(gss('disable_core_update'))
     <div class="alert alert-danger" role="alert">
-        @lang('word.core_update_disabled')
+        @lang('wncms::word.core_update_disabled')
     </div>
 @endif
 
@@ -18,12 +18,12 @@
                     <table class="table table-hover align-middle text-nowrap mb-0">
                         <thead class="table-dark">
                             <tr class="text-start fw-bold gs-0">
-                                <th>@lang('word.id')</th>
-                                <th>@lang('word.created_at')</th>
-                                <th>@lang('word.name')</th>
-                                <th>@lang('word.version')</th>
-                                <th>@lang('word.your_version')</th>
-                                <th>@lang('word.action')</th>
+                                <th>@lang('wncms::word.id')</th>
+                                <th>@lang('wncms::word.created_at')</th>
+                                <th>@lang('wncms::word.name')</th>
+                                <th>@lang('wncms::word.version')</th>
+                                <th>@lang('wncms::word.your_version')</th>
+                                <th>@lang('wncms::word.action')</th>
                             </tr>
                         </thead>
                         <tbody id="table_with_checks" class="fw-semibold text-gray-600">
@@ -40,11 +40,11 @@
                                             <button class="btn btn-sm btn-primary fw-bold btn-update" 
                                                 data-item-type="{{ $itemData['type'] ?? '' }}" 
                                                 data-item-id="{{ $itemData['id'] ?? '' }}"
-                                                data-original-text="@lang('word.update')"
-                                                data-loading-text="@lang('word.updating').."
-                                                data-success-text="@lang('word.updated')"
-                                                data-fail-text="@lang('word.retry')"
-                                            >@lang('word.update')</button>
+                                                data-original-text="@lang('wncms::word.update')"
+                                                data-loading-text="@lang('wncms::word.updating').."
+                                                data-success-text="@lang('wncms::word.updated')"
+                                                data-fail-text="@lang('wncms::word.retry')"
+                                            >@lang('wncms::word.update')</button>
                                         </td>
                                     <tr>
                                 @endif
@@ -58,7 +58,7 @@
 </div>
 
 
-<h3 class="mt-10 mb-3">@lang('word.update_content')</h3>
+<h3 class="mt-10 mb-3">@lang('wncms::word.update_content')</h3>
 
 {{-- Update content --}}
 @include('wncms::backend.admin.update_content')

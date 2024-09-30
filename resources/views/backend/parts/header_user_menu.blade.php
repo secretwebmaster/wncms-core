@@ -25,7 +25,7 @@
 		@foreach($custom_user_fields as $custom_user_field)
 			<div class="menu-item px-5">
 				<a href="javascript:;" class="menu-link px-5">
-					<span class="menu-text">@lang('word.' . $custom_user_field)</span>
+					<span class="menu-text">@lang('wncms::word.' . $custom_user_field)</span>
 					<span class="menu-badge">
 						<span class="badge badge-light-danger badge-circle fw-bold fs-7">{{ auth()->user()->{$custom_user_field} }}</span>
 					</span>
@@ -69,7 +69,7 @@
 
     {{-- 帳號設定 --}}
 	<div class="menu-item px-5 my-1">
-		<a href="{{ route('users.account.profile.show') }}" class="menu-link px-5">@lang('word.my_account')</a>
+		<a href="{{ route('users.account.profile.show') }}" class="menu-link px-5">@lang('wncms::word.my_account')</a>
 	</div>
 
 
@@ -117,6 +117,6 @@
 
     {{-- 登出 --}}
 	<div class="menu-item px-5">
-        <a href="javascript:;" data-action="{{ route('logout') }}" data-method="post" data-csrf="{{ csrf_token() }}" data-reload="true" class="button-ajax menu-link px-5">@lang('word.logout')</a>
+        <a href="javascript:;" data-action="{{ route('logout') }}" data-method="post" data-csrf="{{ csrf_token() }}" data-reload="true" class="button-ajax menu-link px-5">@lang('wncms::word.logout')</a>
 	</div>
 </div>

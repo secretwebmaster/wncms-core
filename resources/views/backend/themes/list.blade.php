@@ -60,21 +60,21 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="fw-bold">
                         <span class="text-capitalize">{{ $theme->name }}</span><br>
-                        <span class="small text-muted">@lang('word.version'): {{ $theme->version }}</span><br>
-                        <span class="small text-muted">@lang('word.last_update'): {{ $theme->updated_at }}</span><br>
+                        <span class="small text-muted">@lang('wncms::word.version'): {{ $theme->version }}</span><br>
+                        <span class="small text-muted">@lang('wncms::word.last_update'): {{ $theme->updated_at }}</span><br>
                     </div>
                 </div>
 
                 <div class="mt-3">
                     {{-- create_website --}}
-                    <button type="button" class="btn btn-sm btn-dark w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#modal_create_workspace_{{ $theme->id }}">@lang('word.choose_theme_to_build_website_automatically')</button>
+                    <button type="button" class="btn btn-sm btn-dark w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#modal_create_workspace_{{ $theme->id }}">@lang('wncms::word.choose_theme_to_build_website_automatically')</button>
                     <div class="modal fade" tabindex="-1" id="modal_create_workspace_{{ $theme->id }}">
                         <form id="modal_create_workspace_{{ $theme->id }}" action="{{ route('workspaces.purchase') }}" method="POST">
                             @csrf
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h3 class="modal-title">@lang('word.fill_in_website_info')</h3>
+                                        <h3 class="modal-title">@lang('wncms::word.fill_in_website_info')</h3>
                                     </div>
                         
                                     <div class="modal-body">
@@ -86,18 +86,18 @@
                                             <i class="fa-solid fa-arrows-up-down fa-bounce fa-lg"></i>
                                         </div>
                                         <div class="form-item mb-3">
-                                            <label class="form-label fw-bold">@lang('word.price')</label>
+                                            <label class="form-label fw-bold">@lang('wncms::word.price')</label>
                                             <input type="text" class="form-control border border-1 border-dark" value="500 TOKEN" disabled>
                                         </div>
                                         <div class="form-item mb-1">
-                                            <label class="form-label fw-bold">@lang('word.site_name')</label>
-                                            <input type="text" name="site_name" class="form-control" placeholder="@lang('word.enter_site_name_this_could_be_edited_later')">
+                                            <label class="form-label fw-bold">@lang('wncms::word.site_name')</label>
+                                            <input type="text" name="site_name" class="form-control" placeholder="@lang('wncms::word.enter_site_name_this_could_be_edited_later')">
                                         </div>
                                     </div>
                         
                                     <div class="modal-footer">
-                                        <button type="submit" form-id="modal_create_workspace_{{ $theme->id }}" class="btn btn-sm btn-dark fw-bold w-100">@lang('word.submit')</button>
-                                        <button type="button" class="btn btn-sm btn-secondary fw-bold w-100" data-bs-dismiss="modal">@lang('word.close')</button>
+                                        <button type="submit" form-id="modal_create_workspace_{{ $theme->id }}" class="btn btn-sm btn-dark fw-bold w-100">@lang('wncms::word.submit')</button>
+                                        <button type="button" class="btn btn-sm btn-secondary fw-bold w-100" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
                                     </div>
                                 </div>
                             </div>
@@ -105,7 +105,7 @@
                     </div>
 
                     @can('theme_edit')
-                    <a class="btn btn-sm btn-info w-100 fw-bold mt-1" href="{{ route('themes.edit', $theme) }}">@lang('word.edit')</a>
+                    <a class="btn btn-sm btn-info w-100 fw-bold mt-1" href="{{ route('themes.edit', $theme) }}">@lang('wncms::word.edit')</a>
                     @endcan
                     @can('theme_delete')
                     @include('wncms::backend.parts.modal_delete', ['model' => $theme, 'route' => route('themes.destroy', $theme), 'btn_class' => 'mt-1 w-100'])

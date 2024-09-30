@@ -7,7 +7,7 @@
 <div class="card">
     <div class="card-header border-0 cursor-pointer px-3 px-md-9">
         <div class="card-title m-0">
-            <h3 class="fw-bolder m-0">@lang('word.model_create', ['model_name' => __('word.role')])</h3>
+            <h3 class="fw-bolder m-0">@lang('wncms::word.model_create', ['model_name' => __('word.role')])</h3>
         </div>
     </div>
 
@@ -19,7 +19,7 @@
 
                 {{-- role_name --}}
                 <div class="row mb-6">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.role_name')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.role_name')</label>
                     <div class="col-lg-9 fv-row">
                         <input type="text" name="role_name" class="form-control form-control-sm" value="{{ old('role_name', $role->name) }}"/>
                     </div>
@@ -28,7 +28,7 @@
                 
                 {{-- permissions --}}
                 <div class="row mb-3">
-                <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.permissions')</label>
+                <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.permissions')</label>
                 <div class="col-lg-9 fv-row">
                     <div class="row align-items-center mt-3">
                         <div class="col-12 mb-3">

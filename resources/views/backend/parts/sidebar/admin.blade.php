@@ -3,7 +3,7 @@
     {{-- Header --}}
     <div class="menu-item">
         <div class="menu-content pt-5 pb-2">
-            <span class="menu-section text-white fw-bold text-uppercase fs-8 ls-1">@lang('word.admin_functions')</span>
+            <span class="menu-section text-white fw-bold text-uppercase fs-8 ls-1">@lang('wncms::word.admin_functions')</span>
         </div>
     </div>
 
@@ -14,7 +14,7 @@
                 <span class="menu-icon">
                     <i class="fa-lg @if(request()->routeIs('settings.index')) fa-beat @endif fa-solid fa-gear"></i>
                 </span>
-                <span class="menu-title fw-bold">@lang('word.setting')</span>
+                <span class="menu-title fw-bold">@lang('wncms::word.setting')</span>
             </a>
         </div>
     @endcan
@@ -26,7 +26,7 @@
                 <span class="menu-icon">
                     <i class="fa-lg @if(request()->routeIs('themes.index')) fa-beat @endif fa-solid fa-gear"></i>
                 </span>
-                <span class="menu-title fw-bold">@lang('word.theme_list')</span>
+                <span class="menu-title fw-bold">@lang('wncms::word.theme_list')</span>
             </a>
         </div>
     @endcan
@@ -38,7 +38,7 @@
             <span class="menu-icon">
                 <i class="fa-lg @if(request()->routeIs('roles.*') || request()->routeIs('permissions.*')) fa-beat @endif fa-solid fa-lock"></i>
             </span>
-            <span class="menu-title fw-bold">@lang('word.model_management', ['model_name' => __('word.role')])</span>
+            <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('word.role')])</span>
             <span class="menu-arrow"></span>
         </span>
 
@@ -46,26 +46,26 @@
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('roles.index')) active @endif" href="{{ route('roles.index') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">@lang('word.model_list', ['model_name' => __('word.role')])</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.model_list', ['model_name' => __('word.role')])</span>
                 </a>
             </div>
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('roles.create')) active @endif" href="{{ route('roles.create') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">@lang('word.model_create', ['model_name' => __('word.role')])</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.model_create', ['model_name' => __('word.role')])</span>
                 </a>
             </div>
 
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('permissions.index')) active @endif" href="{{ route('permissions.index') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">@lang('word.model_list', ['model_name' => __('word.permission')])</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.model_list', ['model_name' => __('word.permission')])</span>
                 </a>
             </div>
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('permissions.create')) active @endif" href="{{ route('permissions.create') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">@lang('word.model_create', ['model_name' => __('word.permission')])</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.model_create', ['model_name' => __('word.permission')])</span>
                 </a>
             </div>
         </div>
@@ -79,7 +79,7 @@
             <span class="menu-icon">
                 <i class="fa-lg @if(request()->routeIs('tags.*')) fa-beat @endif fa-solid fa-tags"></i>
             </span>
-            <span class="menu-title fw-bold">@lang('word.category_management')</span>
+            <span class="menu-title fw-bold">@lang('wncms::word.category_management')</span>
             <span class="menu-arrow"></span>
         </span>
 
@@ -87,7 +87,7 @@
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('tags.index')) active @endif" href="{{ route('tags.index') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">@lang('word.all_tag_types')</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.all_tag_types')</span>
                 </a>
             </div>
 
@@ -103,14 +103,14 @@
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('tags.create')) active @endif" href="{{ route('tags.create') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">@lang('word.create_tag')</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.create_tag')</span>
                 </a>
             </div>
 
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('tags.keywords.index')) active @endif" href="{{ route('tags.keywords.index') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">@lang('word.bind_keyword')</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.bind_keyword')</span>
                 </a>
             </div>
         </div>
@@ -124,7 +124,7 @@
             <span class="menu-icon">
                 <i class="fa-lg @if(request()->routeIs('analytics.index')) fa-beat @endif fa-solid fa-gear"></i>
             </span>
-            <span class="menu-title fw-bold">@lang('word.analytics')</span>
+            <span class="menu-title fw-bold">@lang('wncms::word.analytics')</span>
         </a>
     </div>
     @endcan --}}
@@ -154,7 +154,7 @@
                     </svg>
                 </span>
             </span>
-            <span class="menu-title fw-bold">@lang('word.links')</span>
+            <span class="menu-title fw-bold">@lang('wncms::word.links')</span>
             <span class="menu-arrow">
                 </span>
         </span>

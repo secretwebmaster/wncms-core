@@ -9,7 +9,7 @@
         <div class="card">
             <div class="card-header border-0 cursor-pointer px-3 px-md-9 bg-dark">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0 text-gray-100">@lang('word.model_create', ['model_name' => __('word.role')])</h3>
+                    <h3 class="fw-bolder m-0 text-gray-100">@lang('wncms::word.model_create', ['model_name' => __('word.role')])</h3>
                 </div>
             </div>
         
@@ -17,7 +17,7 @@
                 <form class="form" method="POST" action="{{ route('roles.store') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="card-body border-top p-3 p-md-9">
-                        <label class="form-label fw-bold fs-6">@lang('word.role_name')</label>
+                        <label class="form-label fw-bold fs-6">@lang('wncms::word.role_name')</label>
                         <input type="text" name="role_name" class="form-control form-control-sm" value="{{ old('name', $role->role_name ?? null) }}"/>
                     </div>
         

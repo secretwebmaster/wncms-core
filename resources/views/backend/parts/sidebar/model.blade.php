@@ -3,7 +3,7 @@
 {{-- Models CRUD --}}
 <div class="menu-item">
     <div class="menu-content pt-5 pb-2">
-        <span class="menu-section text-white fw-bold text-uppercase fs-8 ls-1">@lang('word.models')</span>
+        <span class="menu-section text-white fw-bold text-uppercase fs-8 ls-1">@lang('wncms::word.models')</span>
     </div>
 </div>
 
@@ -60,7 +60,7 @@
                 <span class="menu-icon">
                     <i class="fa-lg {{ $menuItem['icon'] }} @if(request()->routeIs(array_map(fn($route) => $menuItem['table_name'] . '.' . $route, array_merge($menuItem['model']::ROUTES, ['edit'])))) fa-beat @endif"></i>
                 </span>
-                <span class="menu-title fw-bold">@lang('word.model_management', ['model_name' => __('word.' . $menuItem['snake_name'])])</span>
+                <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('word.' . $menuItem['snake_name'])])</span>
                 <span class="menu-arrow"></span>
             </span>
 
@@ -114,7 +114,7 @@
                             {{ defined(get_class($model) . "::ICONS") && !empty($model::ICONS['fontaweseom']) ? $model::ICONS['fontaweseom'] : 'fa-solid fa-cube' }} 
                             @if(request()->routeIs(array_map(fn($route) => $table_name . '.' . $route, array_merge($model::ROUTES, ['edit']))))) fa-beat @endif"></i>
                     </span>
-                    <span class="menu-title fw-bold">@lang('word.model_management', ['model_name' => __('word.' . $snake_name)])</span>
+                    <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('word.' . $snake_name)])</span>
                     <span class="menu-arrow"></span>
                 </span>
 
@@ -125,7 +125,7 @@
                                 <div class="menu-item">
                                     <a class="menu-link @if(request()->routeIs($table_name . '.'. $route_name .'*')) active @endif" href="{{ route($table_name . '.' . $route_name) }}">
                                         <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                        {{-- <span class="menu-title fw-bold">@lang('word.' . $table_name . "_" . $route_name)</span> --}}
+                                        {{-- <span class="menu-title fw-bold">@lang('wncms::word.' . $table_name . "_" . $route_name)</span> --}}
                                         <span class="menu-title fw-bold">{{ wncms_model_word($snake_name . '', $route_name) }}</span>
                                     </a>
                                 </div>

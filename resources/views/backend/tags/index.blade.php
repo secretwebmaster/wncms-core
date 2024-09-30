@@ -15,7 +15,7 @@
                 @if(!empty($tagTypes))
                     <div class="col-6 col-md-auto mb-3 ms-0">
                         <select name="type" class="form-select form-select-sm">
-                            <option value="all">@lang('word.tag_type')</option>
+                            <option value="all">@lang('wncms::word.tag_type')</option>
                             @foreach($tagTypes as $tagType)
                                 <option value="{{ $tagType['slug'] }}" @if($tagType['slug'] == request()->type) selected @endif>{{ $tagType['name'] }}</option>
                             @endforeach
@@ -24,7 +24,7 @@
                 @endif
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -34,7 +34,7 @@
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                            <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
                 @endforeach
@@ -51,24 +51,24 @@
                 'model_prefix' => 'tags',
             ])
 
-            <a href="{{ route('tags.create', ['type' => request()->type]) }}" class="btn btn-sm btn-info fw-bold mb-1">@lang('word.create_current_tag_type')</a>
-            <a href="{{ route('tags.bulk_create') }}" class="btn btn-sm btn-info fw-bold mb-1">@lang('word.bulk_create_tag')</a>
-            <a href="{{ route('tags.keywords.index') }}" class="btn btn-sm btn-dark fw-bold mb-1">@lang('word.bind_keywords')</a>
+            <a href="{{ route('tags.create', ['type' => request()->type]) }}" class="btn btn-sm btn-info fw-bold mb-1">@lang('wncms::word.create_current_tag_type')</a>
+            <a href="{{ route('tags.bulk_create') }}" class="btn btn-sm btn-info fw-bold mb-1">@lang('wncms::word.bulk_create_tag')</a>
+            <a href="{{ route('tags.keywords.index') }}" class="btn btn-sm btn-dark fw-bold mb-1">@lang('wncms::word.bind_keywords')</a>
        
             {{-- Bulk sync parent --}}
-            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_bulk_sync_tag_parent">@lang('word.bulk_sync_tag_parent')</button>
+            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_bulk_sync_tag_parent">@lang('wncms::word.bulk_sync_tag_parent')</button>
             <div class="modal fade" tabindex="-1" id="modal_bulk_sync_tag_parent">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3 class="modal-title">@lang('word.bulk_sync_tag_parent')</h3>
+                            <h3 class="modal-title">@lang('wncms::word.bulk_sync_tag_parent')</h3>
                         </div>
             
                         <div class="modal-body">
                             <form id="form_bulk_sync_tag_parent">
-                                <label for="" class="form-label">@lang('word.parent_tag')</label>
+                                <label for="" class="form-label">@lang('wncms::word.parent_tag')</label>
                                 <select name="parent_id" class="form-select">
-                                    <option value="">@lang('word.please_select')</option>
+                                    <option value="">@lang('wncms::word.please_select')</option>
                                     @foreach ($allParents as $parent)
                                         <option value="{{ $parent->id }}">{{ $parent->name }}</option>
                                         @include('wncms::backend.tags.recursive_children_options', ['children' => $parent->children, 'depth' => 1])
@@ -78,20 +78,20 @@
                         </div>
             
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('word.close')</button>
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
                             <button type="button" class="btn btn-primary"
                                 wncms-btn-ajax
                                 wncms-get-model-ids
                                 wncms-btn-swal
                                 data-form="form_bulk_sync_tag_parent"
-                                data-original-text="@lang('word.submit')"
-                                data-loading-text="@lang('word.loading').."
-                                data-success-text="@lang('word.submitted')"
-                                data-fail-text="@lang('word.fail_to_submit')"
+                                data-original-text="@lang('wncms::word.submit')"
+                                data-loading-text="@lang('wncms::word.loading').."
+                                data-success-text="@lang('wncms::word.submitted')"
+                                data-fail-text="@lang('wncms::word.fail_to_submit')"
                                 data-route="{{ route('tags.bulk_set_parent') }}"
                                 data-method="POST"
                                 data-param-column="column"
-                            >@lang('word.submit')</button>
+                            >@lang('wncms::word.submit')</button>
                         </div>
                     </div>
                 </div>
@@ -111,17 +111,17 @@
                                     <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th>
-                            <th>@lang('word.action')</th>
-                            <th class="ps-3">@lang('word.tag_id')</th>
-                            <th>@lang('word.tag_type')</th>
-                            <th>@lang('word.tag_name')</th>
-                            <th>@lang('word.slug')</th>
-                            <th>@lang('word.order_culumn')</th>
-                            <th>@lang('word.model_count')</th>
-                            <th>@lang('word.tag_parent')</th>
-                            <th>@lang('word.tag_image')</th>
-                            <th>@lang('word.tag_icon')</th>
-                            <th>@lang('word.created_at')</th>
+                            <th>@lang('wncms::word.action')</th>
+                            <th class="ps-3">@lang('wncms::word.tag_id')</th>
+                            <th>@lang('wncms::word.tag_type')</th>
+                            <th>@lang('wncms::word.tag_name')</th>
+                            <th>@lang('wncms::word.slug')</th>
+                            <th>@lang('wncms::word.order_culumn')</th>
+                            <th>@lang('wncms::word.model_count')</th>
+                            <th>@lang('wncms::word.tag_parent')</th>
+                            <th>@lang('wncms::word.tag_image')</th>
+                            <th>@lang('wncms::word.tag_icon')</th>
+                            <th>@lang('wncms::word.created_at')</th>
                         </tr>
                     </thead>
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">
@@ -134,12 +134,12 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <a class="btn btn-sm px-2 py-1 btn-primary fw-bold" href="{{ route('tags.create' , ['type' => $parent->type,'parent_id' => $parent->id]) }}">@lang('word.add_children_tag')</a>
-                                    <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('tags.edit' , $parent) }}">@lang('word.edit')</a>
+                                    <a class="btn btn-sm px-2 py-1 btn-primary fw-bold" href="{{ route('tags.create' , ['type' => $parent->type,'parent_id' => $parent->id]) }}">@lang('wncms::word.add_children_tag')</a>
+                                    <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('tags.edit' , $parent) }}">@lang('wncms::word.edit')</a>
                                     @include('wncms::backend.parts.modal_delete' , ['model'=>$parent , 'route' => route('tags.destroy' , $parent)])
                                 </td>
                                 <td class="ps-3">{{ $parent->id }}</td>
-                                <td>@lang('word.' . $parent->type)</td>
+                                <td>@lang('wncms::word.' . $parent->type)</td>
                                 <td class="mw-200px text-truncate text-info fw-bold" title="{{ $parent->description }}">{{ $parent->name }}</td>
                                 <td class="mw-200px text-truncate">{{ $parent->slug }}</td>
                                 <td>{{ $parent->order_column }}</td>

@@ -22,7 +22,7 @@
                     <div class="card-body border-top p-3 p-md-9">
                         {{-- name --}}
                         <div class="row mb-6">
-                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.name')</label>
+                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.name')</label>
                             <div class="col-lg-9 fv-row">
                                 <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name') }}"/>
                             </div>
@@ -30,7 +30,7 @@
                         
                         {{-- common_suffixes --}}
                         <div class="row mb-3">
-                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.common_suffixes')</label>
+                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.common_suffixes')</label>
                             <div class="col-lg-9 fv-row">
                                 <div class="row align-items-center mt-3">
                                     @foreach($common_suffixes as $index => $common_suffix)
@@ -47,7 +47,7 @@
 
                         {{-- roles --}}
                         <div class="row mb-3">
-                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.roles')</label>
+                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.roles')</label>
                             <div class="col-lg-9 fv-row">
                                 <div class="row align-items-center mt-3">
                                     @foreach($roles as $index => $role)

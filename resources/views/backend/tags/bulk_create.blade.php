@@ -8,7 +8,7 @@
 <div class="card">
     <div class="card-header border-0 cursor-pointer px-3 px-md-9">
         <div class="card-title m-0">
-            <h3 class="fw-bolder m-0">@lang('word.bulk_create_tag')</h3>
+            <h3 class="fw-bolder m-0">@lang('wncms::word.bulk_create_tag')</h3>
         </div>
     </div>
 
@@ -20,7 +20,7 @@
                 {{-- tag data --}}
                 <div class="row mb-3">
                     <div class="col-12 col-md-4">
-                        <label class="form-label fw-bold fs-6">@lang('word.bulk_tag_data_input_rules')</label>
+                        <label class="form-label fw-bold fs-6">@lang('wncms::word.bulk_tag_data_input_rules')</label>
 
                         <div class="mb-3">
                             <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit w-100">
@@ -63,21 +63,21 @@
                     </div>
 
                     <div class="col-12 col-md-8">
-                        <label class="form-label fw-bold fs-6">@lang('word.bulk_tag_data_input')</label>
+                        <label class="form-label fw-bold fs-6">@lang('wncms::word.bulk_tag_data_input')</label>
                         <div class="d-flex flex-nowrap mb-3">
-                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_name" placeholder="@lang('word.tag_name')"></div>
-                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_slug" placeholder="@lang('word.tag_slug')"></div>
-                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_type" placeholder="@lang('word.tag_type')"></div>
-                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_description" placeholder="@lang('word.tag_description')"></div>
-                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_parent_name" placeholder="@lang('word.tag_parent_name')"></div>
-                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_icon" placeholder="@lang('word.tag_icon')"></div>
-                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_order" placeholder="@lang('word.tag_order')"></div>
+                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_name" placeholder="@lang('wncms::word.tag_name')"></div>
+                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_slug" placeholder="@lang('wncms::word.tag_slug')"></div>
+                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_type" placeholder="@lang('wncms::word.tag_type')"></div>
+                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_description" placeholder="@lang('wncms::word.tag_description')"></div>
+                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_parent_name" placeholder="@lang('wncms::word.tag_parent_name')"></div>
+                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_icon" placeholder="@lang('wncms::word.tag_icon')"></div>
+                            <div class="col p-1"><input class="form-control" type="text" data-column="tag_order" placeholder="@lang('wncms::word.tag_order')"></div>
                         </div>
 
                         <div class="d-flex">
-                            <div class="p-1"><button class="btn btn-info fw-bold btn-clear" type="button">@lang('word.clear')</button></div>
-                            <div class="p-1"><button class="btn btn-success fw-bold btn-restore" type="button">@lang('word.restore')</button></div>
-                            <div class="p-1"><button class="btn btn-dark fw-bold btn-append" type="button">@lang('word.add_new_row')</button></div>
+                            <div class="p-1"><button class="btn btn-info fw-bold btn-clear" type="button">@lang('wncms::word.clear')</button></div>
+                            <div class="p-1"><button class="btn btn-success fw-bold btn-restore" type="button">@lang('wncms::word.restore')</button></div>
+                            <div class="p-1"><button class="btn btn-dark fw-bold btn-append" type="button">@lang('wncms::word.add_new_row')</button></div>
                         </div>
 
                         <textarea name="bulk_tag_data_input" class="tox-target form-control" rows="25">{{ old('bulk_tag_data_input', $placeholder) }}</textarea>
@@ -108,8 +108,8 @@
                 // Show an alert and return, preventing further processing
                 Swal.fire({
                     icon: 'error',
-                    title: "@lang('word.oops')",
-                    text: "@lang('word.tag_name_cannot_be_empty')",
+                    title: "@lang('wncms::word.oops')",
+                    text: "@lang('wncms::word.tag_name_cannot_be_empty')",
                 });
 
                 return;

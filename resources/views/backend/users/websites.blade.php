@@ -20,14 +20,14 @@
                                     <path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="currentColor" />
                                 </svg>
                             </span>
-                            <input type="text" name="keyword" value="{{ request()->keyword }}" data-kt-ecommerce-order-filter="search" class="form-control form-control-sm ps-14" placeholder="@lang('word.search')" />
+                            <input type="text" name="keyword" value="{{ request()->keyword }}" data-kt-ecommerce-order-filter="search" class="form-control form-control-sm ps-14" placeholder="@lang('wncms::word.search')" />
                         </div>
 
 
                         {{-- 排序依據 --}}
                         <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
                             <select name="user" class="form-select form-select-sm">
-                                <option value="">@lang('word.select_user')</option>
+                                <option value="">@lang('wncms::word.select_user')</option>
                                 @foreach($users as $user)
                                     <option value="{{ $user->id }}" @if($user->id == request()->user) selected @endif>{{ $user->username }} - ID: {{ $user->id }}</option>
                                 @endforeach
@@ -38,9 +38,9 @@
                         {{-- 排序依據 --}}
                         <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
                             <select name="order" class="form-select form-select-sm">
-                                <option value="">@lang('word.select_order')</option>
+                                <option value="">@lang('wncms::word.select_order')</option>
                                 @foreach($orders as $order)
-                                    <option value="{{ $order }}" @if($order == request()->order) selected @endif>@lang('word.' . $order)</option>
+                                    <option value="{{ $order }}" @if($order == request()->order) selected @endif>@lang('wncms::word.' . $order)</option>
                                 @endforeach
                             </select>
                         </div>
@@ -48,15 +48,15 @@
                         {{-- 大小 --}}
                         <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
                             <select name="sort" class="form-select form-select-sm">
-                                <option value="">@lang('word.select_sort')</option>
+                                <option value="">@lang('wncms::word.select_sort')</option>
                                 @foreach(['asc','desc'] as $sort)
-                                    <option value="{{ $sort }}" @if($sort == request()->sort) selected @endif>@lang('word.sort_by_'. $sort)</option>
+                                    <option value="{{ $sort }}" @if($sort == request()->sort) selected @endif>@lang('wncms::word.sort_by_'. $sort)</option>
                                 @endforeach
                             </select>
                         </div>
 
                         <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                            <input type="submit" class="btn btn-sm btn-dark fw-bold" value="@lang('word.submit')">
+                            <input type="submit" class="btn btn-sm btn-dark fw-bold" value="@lang('wncms::word.submit')">
                         </div>
                     </div>
                 </form>
@@ -71,22 +71,22 @@
             <div class="card-toolbar flex-row-fluid gap-1">
 
                 {{-- Assign--}}
-                <button class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#assign_user_to_manage">@lang('word.assign_user_to_manage')</button>
+                <button class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#assign_user_to_manage">@lang('wncms::word.assign_user_to_manage')</button>
                 <div class="modal fade" tabindex="-1" id="assign_user_to_manage">
 
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h3 class="modal-title">@lang('word.please_choose_users_to_manage_website')</h3>
+                                <h3 class="modal-title">@lang('wncms::word.please_choose_users_to_manage_website')</h3>
                                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close"><span class="svg-icon svg-icon-1"></span></div>
                             </div>
 
                             <div class="modal-body">
-                                <p class="text-muted fw-bold">@lang('word.assign_user_description')</p>
+                                <p class="text-muted fw-bold">@lang('wncms::word.assign_user_description')</p>
 
                                 <div class="row mb-6">
                                     <div class="col">
-                                        <label class="form-label">@lang('word.select_users')</label>
+                                        <label class="form-label">@lang('wncms::word.select_users')</label>
                                         <input name="user_ids" class="form-control d-flex align-items-center" value="" id="kt_tagify_assign_user_to_manage" />
                                     </div>
                                 </div>
@@ -189,10 +189,10 @@
                             </div>
                 
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">@lang('word.cancel')</button>
+                                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">@lang('wncms::word.cancel')</button>
                                 <button type="button" class="btn btn-sm btn-info fw-bold assign_user_to_manage_submit" data-route="{{ route('users.websites.assign') }}">
-                                    <span class="indicator-label">@lang('word.assign')</span>
-                                    <span class="indicator-progress">@lang('word.please_wait')...<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+                                    <span class="indicator-label">@lang('wncms::word.assign')</span>
+                                    <span class="indicator-progress">@lang('wncms::word.please_wait')...<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                                 </button>
                             </div>
                         </div>
@@ -201,22 +201,22 @@
                 </div>
 
                 {{-- Remove--}}
-                <button class="btn btn-sm btn-danger fw-bold" data-bs-toggle="modal" data-bs-target="#remove_user_from_managing">@lang('word.remove_user_from_managing')</button>
+                <button class="btn btn-sm btn-danger fw-bold" data-bs-toggle="modal" data-bs-target="#remove_user_from_managing">@lang('wncms::word.remove_user_from_managing')</button>
                 <div class="modal fade" tabindex="-1" id="remove_user_from_managing">
 
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h3 class="modal-title">@lang('word.please_choose_users_to_remove_from')</h3>
+                                <h3 class="modal-title">@lang('wncms::word.please_choose_users_to_remove_from')</h3>
                                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close"><span class="svg-icon svg-icon-1"></span></div>
                             </div>
 
                             <div class="modal-body">
-                                <p class="text-muted fw-bold">@lang('word.remove_user_description')</p>
+                                <p class="text-muted fw-bold">@lang('wncms::word.remove_user_description')</p>
 
                                 <div class="row mb-6">
                                     <div class="col">
-                                        <label class="form-label">@lang('word.select_users')</label>
+                                        <label class="form-label">@lang('wncms::word.select_users')</label>
                                         <input name="user_ids" class="form-control d-flex align-items-center" value="" id="kt_tagify_remove_user_from_managing" />
                                     </div>
                                 </div>
@@ -319,10 +319,10 @@
                             </div>
                 
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">@lang('word.cancel')</button>
+                                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">@lang('wncms::word.cancel')</button>
                                 <button type="button" class="btn btn-sm btn-info fw-bold remove_user_from_managing_submit" data-route="{{ route('users.websites.remove') }}">
-                                    <span class="indicator-label">@lang('word.remove')</span>
-                                    <span class="indicator-progress">@lang('word.please_wait')...<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+                                    <span class="indicator-label">@lang('wncms::word.remove')</span>
+                                    <span class="indicator-progress">@lang('wncms::word.please_wait')...<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                                 </button>
                             </div>
                         </div>
@@ -345,14 +345,14 @@
                                 </div>
                             </th>
                             <th>#</th>
-                            <th>@lang('word.site_name')</th>
-                            <th>@lang('word.site_url')</th>
-                            <th>@lang('word.site_traffic')</th>
-                            <th>@lang('word.manager')</th>
-                            {{-- <th>@lang('word.site_click')</th> --}}
-                            <th>@lang('word.remark')</th>
-                            <th>@lang('word.created_at')</th>
-                            {{-- <th>@lang('word.action')</th> --}}
+                            <th>@lang('wncms::word.site_name')</th>
+                            <th>@lang('wncms::word.site_url')</th>
+                            <th>@lang('wncms::word.site_traffic')</th>
+                            <th>@lang('wncms::word.manager')</th>
+                            {{-- <th>@lang('wncms::word.site_click')</th> --}}
+                            <th>@lang('wncms::word.remark')</th>
+                            <th>@lang('wncms::word.created_at')</th>
+                            {{-- <th>@lang('wncms::word.action')</th> --}}
                         </tr>
                     </thead>
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">

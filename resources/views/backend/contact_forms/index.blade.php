@@ -12,7 +12,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -22,7 +22,7 @@
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                            <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
                 @endforeach
@@ -67,19 +67,19 @@
                                     <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th>
-                            <th>@lang('word.action')</th>
-                            <th>@lang('word.id')</th>
-                            <th>@lang('word.name')</th>
-                            <th>@lang('word.title')</th>
-                            <th>@lang('word.description')</th>
-                            <th>@lang('word.call_function')</th>
-                            <th>@lang('word.remark')</th>
+                            <th>@lang('wncms::word.action')</th>
+                            <th>@lang('wncms::word.id')</th>
+                            <th>@lang('wncms::word.name')</th>
+                            <th>@lang('wncms::word.title')</th>
+                            <th>@lang('wncms::word.description')</th>
+                            <th>@lang('wncms::word.call_function')</th>
+                            <th>@lang('wncms::word.remark')</th>
 
                             @if(request()->show_detail)
-                            <th>@lang('word.updated_at')</th>
+                            <th>@lang('wncms::word.updated_at')</th>
                             @endif
                             
-                            <th>@lang('word.created_at')</th>
+                            <th>@lang('wncms::word.created_at')</th>
                         </tr>
                     </thead>
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">
@@ -91,7 +91,7 @@
                                 </div>
                             </td>
                             <td>
-                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('contact_forms.edit' , $contact_form) }}">@lang('word.edit')</a>
+                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('contact_forms.edit' , $contact_form) }}">@lang('wncms::word.edit')</a>
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$contact_form , 'route' => route('contact_forms.destroy' , $contact_form), 'btn_class' => 'px-2 py-1'])
                             </td>
                             <td>{{ $contact_form->id }}</td>
@@ -101,7 +101,7 @@
                             <td>
                                 <div class="input-group w-300px">
                                     <input type="text" class="form-control form-control-sm" value="$wncms->contact_form()->render(contactFormId:{{ $contact_form->id }})">
-                                    <button class="btn btn-sm btn-primary fw-bold" btn-copy-to-clipboard data-original-text="@lang('word.copy')" data-copied-text="@lang('word.copied')" data-value="$wncms->contact_form()->render(contactFormId:{{ $contact_form->id }})">@lang('word.copy')</button>
+                                    <button class="btn btn-sm btn-primary fw-bold" btn-copy-to-clipboard data-original-text="@lang('wncms::word.copy')" data-copied-text="@lang('wncms::word.copied')" data-value="$wncms->contact_form()->render(contactFormId:{{ $contact_form->id }})">@lang('wncms::word.copy')</button>
                                 </div>
                             </td>
                             <td>{{ $contact_form->remark }}</td>

@@ -1,12 +1,12 @@
 <div class="card-body border-top p-3 p-md-9">
     {{-- status --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label required fw-bold fs-6" for="status">@lang('word.status')</label>
+        <label class="col-lg-3 col-form-label required fw-bold fs-6" for="status">@lang('wncms::word.status')</label>
         <div class="col-lg-9 fv-row">
             <select id="status" name="status" class="form-select form-select-sm" required>
-                <option value="">@lang('word.please_select')</option>
+                <option value="">@lang('wncms::word.please_select')</option>
                 @foreach($statuses as $status)
-                    <option  value="{{ $status }}" {{ $status === old('status', $faq->status ?? 'active') ? 'selected' :'' }}>@lang('word.' . $status)</option>
+                    <option  value="{{ $status }}" {{ $status === old('status', $faq->status ?? 'active') ? 'selected' :'' }}>@lang('wncms::word.' . $status)</option>
                 @endforeach
             </select>
         </div>
@@ -14,10 +14,10 @@
     
     {{-- website --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('word.website')</label>
+        <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('wncms::word.website')</label>
         <div class="col-lg-9 fv-row">
             <select id="website_id" name="website_id" class="form-select form-select-sm" required>
-                <option value=""@lang('word.please_select')> @lang('word.website')</option>
+                <option value=""@lang('wncms::word.please_select')> @lang('wncms::word.website')</option>
 
                 @foreach($websites ?? [] as $_website)
                     <option  value="{{ $_website->id }}" {{ $_website->id === old('website_id', $faq->website?->id ?? $website->id ?? null) ? 'selected' :'' }}>{{ $_website->domain }} #{{ $_website->id }}</option>
@@ -28,7 +28,7 @@
 
     {{-- slug --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="slug">@lang('word.slug')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="slug">@lang('wncms::word.slug')</label>
         <div class="col-lg-9 fv-row">
             <input id="slug" type="text" name="slug" class="form-control form-control-sm" value="{{ old('slug', (!empty($isCloning) ? wncms()->getUniqueSLug('faqs') : $faq->slug ?? null)) }}"/>
         </div>
@@ -42,7 +42,7 @@
     ] as $field)
         {{-- text_example --}}
         <div class="row mb-3">
-            <label class="col-lg-3 col-form-label fw-bold fs-6" for="{{ $field }}">@lang('word.' . $field)</label>
+            <label class="col-lg-3 col-form-label fw-bold fs-6" for="{{ $field }}">@lang('wncms::word.' . $field)</label>
             <div class="col-lg-9 fv-row">
                 <input id="{{ $field }}" type="text" name="{{ $field }}" class="form-control form-control-sm" value="{{ old($field, $faq->{$field} ?? null) }}"/>
             </div>
@@ -51,7 +51,7 @@
 
     {{-- order --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="order">@lang('word.order')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="order">@lang('wncms::word.order')</label>
         <div class="col-lg-9 fv-row">
             <input id="order" type="number" name="order" class="form-control form-control-sm" value="{{ old('order', $faq->order ?? null) }}"/>
         </div>
@@ -59,7 +59,7 @@
 
     {{-- is_pinned --}}
     <div class="row mb-3">
-        <label class="col-3 col-form-label fw-bold fs-6" for="is_pinned">@lang('word.is_pinned')</label>
+        <label class="col-3 col-form-label fw-bold fs-6" for="is_pinned">@lang('wncms::word.is_pinned')</label>
         <div class="col-9 d-flex align-items-center">
             <div class="form-check form-check-solid form-check-custom form-switch fv-row">
                 <input id="is_pinned" type="hidden" name="is_pinned" value="0">
@@ -71,7 +71,7 @@
 
     {{-- faq_tag --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('word.faq_tag')</label>
+        <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('wncms::word.faq_tag')</label>
         <div class="col-lg-9 fv-row">
             <input id="faq_tags" class="form-control form-control-sm p-0"  name="faq_tags" value="{{ $faq->tagsWithType('faq_tag')->implode('name', ',') }}"/>
         </div>

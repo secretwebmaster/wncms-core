@@ -17,8 +17,8 @@
 
             {{-- Nav group --}}
             <div class="nav-group nav-group-outline border border-2 border-dark mx-auto mb-10" data-kt-buttons="true">
-                <button class="btn btn-lg btn-color-gray-400 btn-active btn-active-dark fw-bold px-6 py-3 me-2 active" data-kt-plan="month">@lang('word.pay_monthly')</button>
-                <button class="btn btn-lg btn-color-gray-400 btn-active btn-active-dark fw-bold px-6 py-3" data-kt-plan="annual">@lang('word.pay_annually')</button>
+                <button class="btn btn-lg btn-color-gray-400 btn-active btn-active-dark fw-bold px-6 py-3 me-2 active" data-kt-plan="month">@lang('wncms::word.pay_monthly')</button>
+                <button class="btn btn-lg btn-color-gray-400 btn-active btn-active-dark fw-bold px-6 py-3" data-kt-plan="annual">@lang('wncms::word.pay_annually')</button>
             </div>
 
             {{-- plans --}}
@@ -45,7 +45,7 @@
                                         <div class="text-center">
                                             <span class="mb-2 text-info">NT$</span>
                                             <span class="fs-3x fw-bold text-info" data-kt-plan-price-month="{{ (int)$plan->price_monthly }}" data-kt-plan-price-annual="{{ (int)($plan->price_annually / 12)}}">{{ (int)$plan->price_monthly }}</span>
-                                            <span class="fs-7 fw-semibold opacity-50">/<span data-kt-element="period">@lang('word.per_month')</span></span>
+                                            <span class="fs-7 fw-semibold opacity-50">/<span data-kt-element="period">@lang('wncms::word.per_month')</span></span>
                                         </div>
 
                                     </div>
@@ -57,7 +57,7 @@
 
                                         {{-- Common --}}
                                         <div class="d-flex align-items-center mb-5">
-                                            <span class="fs-6 text-gray-800 flex-grow-1 pe-3 fw-bold">@lang('word.monthly_word_limit'): {{ $plan->monthly_word_limit }}</span>
+                                            <span class="fs-6 text-gray-800 flex-grow-1 pe-3 fw-bold">@lang('wncms::word.monthly_word_limit'): {{ $plan->monthly_word_limit }}</span>
                                             {{-- Svg Icon | path: icons/duotune/general/gen043.svg --}}
                                             <span class="svg-icon svg-icon-1 svg-icon-info">
                                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -68,7 +68,7 @@
                                         </div>
 
                                         <div class="d-flex align-items-center mb-5">
-                                            <span class="fs-6 text-gray-800 flex-grow-1 pe-3 fw-bold">@lang('word.monthly_image_limit'): {{ $plan->monthly_image_limit }}</span>
+                                            <span class="fs-6 text-gray-800 flex-grow-1 pe-3 fw-bold">@lang('wncms::word.monthly_image_limit'): {{ $plan->monthly_image_limit }}</span>
                                             {{-- Svg Icon | path: icons/duotune/general/gen043.svg --}}
                                             <span class="svg-icon svg-icon-1 svg-icon-info">
                                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -112,11 +112,11 @@
 
                                     {{-- Select --}}
                                     @if(auth()->user()->active_subscription?->plan?->id == $plan->id)
-                                        <button class="btn btn-lg btn-secondary fw-bold w-100" disabled type="button">@lang('word.current_plan')</button>
+                                        <button class="btn btn-lg btn-secondary fw-bold w-100" disabled type="button">@lang('wncms::word.current_plan')</button>
                                     @elseif(auth()->user()->active_subscription?->plan?->id != $plan->id && $plan->id == gss('free_plan', 1))
-                                        <button class="btn btn-lg btn-secondary fw-bold w-100 btn_submit_user_upgrade" @if($plan->id == gss('free_plan', 1))disabled @endif type="submit">@lang('word.free_plan')</button>
+                                        <button class="btn btn-lg btn-secondary fw-bold w-100 btn_submit_user_upgrade" @if($plan->id == gss('free_plan', 1))disabled @endif type="submit">@lang('wncms::word.free_plan')</button>
                                     @else
-                                        <button class="btn btn-lg btn-dark fw-bold w-100 btn_submit_user_upgrade" type="submit">@lang('word.upgrade_plan')</button>
+                                        <button class="btn btn-lg btn-dark fw-bold w-100 btn_submit_user_upgrade" type="submit">@lang('wncms::word.upgrade_plan')</button>
                                     @endif
 
                                 </div>

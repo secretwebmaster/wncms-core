@@ -11,17 +11,17 @@
     <div class="card mb-3">
         <div class="card-header border-0 cursor-pointer px-3 px-md-9" role="button">
             <div class="card-title m-0">
-                <h3 class="fw-bolder m-0">@lang('word.edit_user')</h3>
+                <h3 class="fw-bolder m-0">@lang('wncms::word.edit_user')</h3>
             </div>
         </div>
 
         <div class="card-body border-top p-3 p-md-9">
 
             <div class="row mb-6">
-                <label class="col-lg-4 col-form-label  fw-bold fs-6">@lang('word.role')</label>
+                <label class="col-lg-4 col-form-label  fw-bold fs-6">@lang('wncms::word.role')</label>
                 <div class="col-lg-8 fv-row">
                     <select name="role" class="form-select form-select-solid form-select-lg">
-                        <option value="">@lang('word.please_select')</option>
+                        <option value="">@lang('wncms::word.please_select')</option>
                         @foreach($roles as $role)
                             <option  value="{{ $role->name }}" @if($user->hasRole($role)) selected @endif><b>{{ $role->name }}</b></option>
                         @endforeach
@@ -30,35 +30,35 @@
             </div>
 
             <div class="row mb-6">
-                <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.username')</label>
+                <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.username')</label>
                 <div class="col-lg-8 fv-row">
                     <input type="text" name="username" class="form-control" value="{{ $user->username ?? old('username') }}"/>
                 </div>
             </div>
 
             <div class="row mb-6">
-                <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.email')</label>
+                <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.email')</label>
                 <div class="col-lg-8 fv-row">
                     <input type="text" name="email" class="form-control" value="{{ $user->email ?? old('email') }}"/>
                 </div>
             </div>
 
             <div class="row mb-6">
-                <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.password')</label>
+                <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.password')</label>
                 <div class="col-lg-8 fv-row">
                     <input type="password" name="password" class="form-control" value="{{ old('password') }}"/>
                 </div>
             </div>
 
             <div class="row mb-6">
-                <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.password_confirmation')</label>
+                <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.password_confirmation')</label>
                 <div class="col-lg-8 fv-row">
                     <input type="password" name="password_confirmation" class="form-control" value="{{ old('password_confirmation') }}"/>
                 </div>
             </div>
 
             <div class="row mb-6">
-                <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.api_token')</label>
+                <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.api_token')</label>
                 <div class="col-lg-8 fv-row">
                     <input type="text" name="api_token" class="form-control" value="{{ old('api_token', $user->api_token) }}" disabled/>
                 </div>
@@ -70,14 +70,14 @@
     <div class="card mb-3">
         <div class="card-header border-0 cursor-pointer px-3 px-md-9" role="button">
             <div class="card-title m-0">
-                <h3 class="fw-bolder m-0">@lang('word.general_info')</h3>
+                <h3 class="fw-bolder m-0">@lang('wncms::word.general_info')</h3>
             </div>
         </div>
 
         <div class="card-body border-top p-3 p-md-9">
 
             <div class="row mb-6">
-                <label class="col-lg-4 col-form-label  fw-bold fs-6">@lang('word.default_language')</label>
+                <label class="col-lg-4 col-form-label  fw-bold fs-6">@lang('wncms::word.default_language')</label>
                 <div class="col-lg-8 fv-row">
                     <select name="default_language" class="form-select form-select-sm">
                         @foreach ( [

@@ -12,7 +12,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -22,7 +22,7 @@
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                            <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
                 @endforeach
@@ -39,25 +39,25 @@
                 'model_prefix' => 'permissions',
             ])
             {{-- assign role --}}
-            <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modal_bulk_assign_roles_form">@lang('word.bulk_assign_roles')</button>
+            <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modal_bulk_assign_roles_form">@lang('wncms::word.bulk_assign_roles')</button>
             <div class="modal fade" tabindex="-1" id="modal_bulk_assign_roles_form">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3 class="modal-title">@lang('word.bulk_assign_roles')</h3>
+                            <h3 class="modal-title">@lang('wncms::word.bulk_assign_roles')</h3>
                         </div>
 
                         <form id="bulk_assign_roles_form" action="{{ route('permissions.bulk_assign_roles') }}" method="POST">
                             @csrf
                             <div class="modal-body">
                                 {{-- roles --}}
-                                <label class="form-label fw-bold fs-6">@lang('word.roles')</label>
+                                <label class="form-label fw-bold fs-6">@lang('wncms::word.roles')</label>
                                 <div class="row align-items-center mt-3">
                                     @foreach($roles as $index => $role)
                                         <div class="col-6 col-md-4 mb-1">
                                             <label class="form-check form-check-inline form-check-solid me-5">
                                                 <input class="form-check-input" name="role_ids[{{ $role->id }}]" type="checkbox"/>
-                                                <span class="fw-bold ps-2 fs-6">@lang('word.' . $role->name)</span>
+                                                <span class="fw-bold ps-2 fs-6">@lang('wncms::word.' . $role->name)</span>
                                             </label>
                                         </div>
                                     @endforeach
@@ -65,8 +65,8 @@
                             </div>
 
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('word.close')</button>
-                                <button type="submit" class="btn btn-primary fw-bold btn_bulk_assign_roles">@lang('word.submit')</button>
+                                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                <button type="submit" class="btn btn-primary fw-bold btn_bulk_assign_roles">@lang('wncms::word.submit')</button>
                             </div>                        
                         </form>
                         @push('foot_js')
@@ -97,25 +97,25 @@
             </div>
 
             {{-- remvoe role --}}
-            <button type="button" class="btn btn-sm btn-danger fw-bold" data-bs-toggle="modal" data-bs-target="#modal_bulk_remove_roles_form">@lang('word.bulk_remove_roles')</button>
+            <button type="button" class="btn btn-sm btn-danger fw-bold" data-bs-toggle="modal" data-bs-target="#modal_bulk_remove_roles_form">@lang('wncms::word.bulk_remove_roles')</button>
             <div class="modal fade" tabindex="-1" id="modal_bulk_remove_roles_form">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3 class="modal-title">@lang('word.bulk_remove_roles')</h3>
+                            <h3 class="modal-title">@lang('wncms::word.bulk_remove_roles')</h3>
                         </div>
 
                         <form id="bulk_remove_roles_form" action="{{ route('permissions.bulk_remove_roles') }}" method="POST">
                             @csrf
                             <div class="modal-body">
                                 {{-- roles --}}
-                                <label class="form-label fw-bold fs-6">@lang('word.roles')</label>
+                                <label class="form-label fw-bold fs-6">@lang('wncms::word.roles')</label>
                                 <div class="row align-items-center mt-3">
                                     @foreach($roles as $index => $role)
                                         <div class="col-6 col-md-4 mb-1">
                                             <label class="form-check form-check-inline form-check-solid me-5">
                                                 <input class="form-check-input" name="role_ids[{{ $role->id }}]" type="checkbox"/>
-                                                <span class="fw-bold ps-2 fs-6">@lang('word.' . $role->name)</span>
+                                                <span class="fw-bold ps-2 fs-6">@lang('wncms::word.' . $role->name)</span>
                                             </label>
                                         </div>
                                     @endforeach
@@ -123,8 +123,8 @@
                             </div>
 
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('word.close')</button>
-                                <button type="submit" class="btn btn-danger fw-bold btn_bulk_remove_roles">@lang('word.submit')</button>
+                                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                <button type="submit" class="btn btn-danger fw-bold btn_bulk_remove_roles">@lang('wncms::word.submit')</button>
                             </div>                        
                         </form>
                         @push('foot_js')
@@ -168,12 +168,12 @@
                                     <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th>
-                            <th>@lang('word.action')</th>
-                            <th>@lang('word.id')</th>
-                            <th>@lang('word.name')</th>
-                            <th>@lang('word.roles')</th>
-                            <th>@lang('word.created_at')</th>
-                            <th>@lang('word.updated_at')</th>
+                            <th>@lang('wncms::word.action')</th>
+                            <th>@lang('wncms::word.id')</th>
+                            <th>@lang('wncms::word.name')</th>
+                            <th>@lang('wncms::word.roles')</th>
+                            <th>@lang('wncms::word.created_at')</th>
+                            <th>@lang('wncms::word.updated_at')</th>
                         </tr>
                     </thead>
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">
@@ -185,7 +185,7 @@
                                 </div>
                             </td>
                             <td>
-                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('permissions.edit' , $permission) }}">@lang('word.edit')</a>
+                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('permissions.edit' , $permission) }}">@lang('wncms::word.edit')</a>
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$permission , 'route' => route('permissions.destroy' , $permission), 'btn_class' => 'px-2 py-1'])
                             </td>
                             <td>{{ $permission->id }}</td>
@@ -193,15 +193,15 @@
                             <td>
                                 @foreach($permission->roles as $role)
                                     @if($role->name == 'superadmin')
-                                        <span class="badge badge-info fw-bold">@lang('word.' . $role->name)</span>
+                                        <span class="badge badge-info fw-bold">@lang('wncms::word.' . $role->name)</span>
                                     @elseif($role->name == 'admin')
-                                        <span class="badge badge-primary fw-bold">@lang('word.' . $role->name)</span>
+                                        <span class="badge badge-primary fw-bold">@lang('wncms::word.' . $role->name)</span>
                                     @elseif($role->name == 'manager')
-                                        <span class="badge badge-success fw-bold">@lang('word.' . $role->name)</span>
+                                        <span class="badge badge-success fw-bold">@lang('wncms::word.' . $role->name)</span>
                                     @elseif($role->name == 'member')
-                                        <span class="badge badge-dark fw-bold">@lang('word.' . $role->name)</span>
+                                        <span class="badge badge-dark fw-bold">@lang('wncms::word.' . $role->name)</span>
                                     @elseif($role->name == 'suspended')
-                                        <span class="badge badge-danger fw-bold">@lang('word.' . $role->name)</span>
+                                        <span class="badge badge-danger fw-bold">@lang('wncms::word.' . $role->name)</span>
                                     @endif
                                 @endforeach
                             </td>

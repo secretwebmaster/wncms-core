@@ -20,7 +20,7 @@
                 {{-- @if(!empty($exampleItems))
                     <div class="col-6 col-md-auto mb-3 ms-0">
                         <select name="example_item_id" class="form-select form-select-sm">
-                            <option value="">@lang('word.select')@lang('word.example_item')</option>
+                            <option value="">@lang('wncms::word.select')@lang('wncms::word.example_item')</option>
                             @foreach($exampleItems as $exampleItem)
                                 <option value="{{ $exampleItem->id }}" @if($exampleItem->id == request()->example_item_id) selected @endif>{{ $exampleItem->name }}</option>
                             @endforeach
@@ -29,7 +29,7 @@
                 @endif --}}
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -39,7 +39,7 @@
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                            <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
                 @endforeach
@@ -71,14 +71,14 @@
                                     <input class="form-check-input" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th> --}}
-                            <th>@lang('word.id')</th>
-                            <td>@lang('word.domain')</td>
-                            <td>@lang('word.today')</td>
-                            <td>@lang('word.yesterday')</td>
-                            <td>@lang('word.recent_week')</td>
-                            <td>@lang('word.recent_month')</td>
-                            <td>@lang('word.recent_year')</td>
-                            <td>@lang('word.total')</td>
+                            <th>@lang('wncms::word.id')</th>
+                            <td>@lang('wncms::word.domain')</td>
+                            <td>@lang('wncms::word.today')</td>
+                            <td>@lang('wncms::word.yesterday')</td>
+                            <td>@lang('wncms::word.recent_week')</td>
+                            <td>@lang('wncms::word.recent_month')</td>
+                            <td>@lang('wncms::word.recent_year')</td>
+                            <td>@lang('wncms::word.total')</td>
                         </tr>
                     </thead>
 

@@ -12,7 +12,7 @@
         <div class="card shadow-sm">
             <div class="card-header border-0 cursor-pointer px-3 px-md-9">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">@lang('word.create_tag_type')</h3>
+                    <h3 class="fw-bolder m-0">@lang('wncms::word.create_tag_type')</h3>
                 </div>
             </div>
 
@@ -22,12 +22,12 @@
                     <div class="card-body border-top p-3 p-md-9">
                         {{-- name --}}
                         <div class="form-item mb-3">
-                            <label class="form-label fw-bold fs-6">@lang('word.name')</label>     
+                            <label class="form-label fw-bold fs-6">@lang('wncms::word.name')</label>     
                             <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name') }}"/>
                         </div>
                         {{-- slug --}}
                         <div class="form-item">
-                            <label class="form-label fw-bold fs-6">@lang('word.slug')</label>     
+                            <label class="form-label fw-bold fs-6">@lang('wncms::word.slug')</label>     
                             <input type="text" name="slug" class="form-control form-control-sm" value="{{ old('slug') }}"/>
                         </div>
                     </div>

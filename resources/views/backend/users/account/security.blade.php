@@ -8,7 +8,7 @@
         {{-- Card header --}}
         <div class="card-header border-0 cursor-pointer px-3 px-md-9" role="button" data-bs-toggle="collapse" data-bs-target="#kt_account_signin_method">
             <div class="card-title m-0">
-                <h3 class="fw-bold m-0">@lang('word.user_security')</h3>
+                <h3 class="fw-bold m-0">@lang('wncms::word.user_security')</h3>
             </div>
         </div>
 
@@ -26,31 +26,31 @@
 
                     {{-- Update Email --}}
                     <div>
-                        <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modal_change_email">@lang('word.change_email')</button>
+                        <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modal_change_email">@lang('wncms::word.change_email')</button>
                         <div class="modal fade" tabindex="-1" id="modal_change_email">
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <form action="{{ route('users.account.email.update') }}" method="POST">
                                         @csrf
                                         <div class="modal-header">
-                                            <h3 class="modal-title">@lang('word.enter_new_email')</h3>
+                                            <h3 class="modal-title">@lang('wncms::word.enter_new_email')</h3>
                                         </div>
 
                                         <div class="modal-body">
                                             <div class="mb-3">
-                                                <label class="form-label fs-6 fw-bold mb-3">@lang('word.new_email')</label>
+                                                <label class="form-label fs-6 fw-bold mb-3">@lang('wncms::word.new_email')</label>
                                                 <input type="email" class="form-control form-control-sm" name="email">
                                             </div>
 
                                             <div class="mb-3">
-                                                <label class="form-label fs-6 fw-bold mb-3">@lang('word.current_password')</label>
+                                                <label class="form-label fs-6 fw-bold mb-3">@lang('wncms::word.current_password')</label>
                                                 <input type="password" class="form-control form-control-sm" name="password">
                                             </div>
                                         </div>
 
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('word.close')</button>
-                                            <button type="submit" class="btn btn-primary">@lang('word.submit')</button>
+                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                            <button type="submit" class="btn btn-primary">@lang('wncms::word.submit')</button>
                                         </div>
                                     </form>
                                 </div>
@@ -70,41 +70,41 @@
                     <div class="d-flex flex-wrap align-items-center mb-10">
                         {{-- Label --}}
                         <div id="kt_signin_password" class="flex-grow-1">
-                            <div class="fs-6 fw-bold mb-1">@lang('word.password')</div>
+                            <div class="fs-6 fw-bold mb-1">@lang('wncms::word.password')</div>
                             <div class="fw-semibold text-gray-600">************</div>
                         </div>
 
                         <div>
-                            <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modal_change_password">@lang('word.reset_password')</button>
+                            <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modal_change_password">@lang('wncms::word.reset_password')</button>
                             <div class="modal fade" tabindex="-1" id="modal_change_password">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <form action="{{ route('users.account.password.update') }}" method="POST">
                                             @csrf
                                             <div class="modal-header">
-                                                <h3 class="modal-title">@lang('word.reset_password')</h3>
+                                                <h3 class="modal-title">@lang('wncms::word.reset_password')</h3>
                                             </div>
 
                                             <div class="modal-body">
     
 
                                                 <div class="mb-3">
-                                                    <label class="form-label fs-6 fw-bold mb-3">@lang('word.current_password')</label>
+                                                    <label class="form-label fs-6 fw-bold mb-3">@lang('wncms::word.current_password')</label>
                                                     <input type="password" class="form-control form-control-sm" name="current_password">
                                                 </div>
                                                 <div class="mb-3">
-                                                    <label class="form-label fs-6 fw-bold mb-3">@lang('word.new_password')</label>
+                                                    <label class="form-label fs-6 fw-bold mb-3">@lang('wncms::word.new_password')</label>
                                                     <input type="password" class="form-control form-control-sm" name="new_password">
                                                 </div>
                                                 <div class="mb-3">
-                                                    <label class="form-label fs-6 fw-bold mb-3">@lang('word.confirm_new_password')</label>
+                                                    <label class="form-label fs-6 fw-bold mb-3">@lang('wncms::word.confirm_new_password')</label>
                                                     <input type="password" class="form-control form-control-sm" name="new_password_confirmation">
                                                 </div>
                                             </div>
 
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('word.close')</button>
-                                                <button type="submit" class="btn btn-primary">@lang('word.submit')</button>
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                                <button type="submit" class="btn btn-primary">@lang('wncms::word.submit')</button>
                                             </div>
                                         </form>
                                     </div>

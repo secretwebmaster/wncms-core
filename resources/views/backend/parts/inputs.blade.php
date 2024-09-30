@@ -119,14 +119,14 @@
                         </label>
                     @endif
 
-                    <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="@lang('word.edit')">
+                    <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="@lang('wncms::word.edit')">
                         <i class="fa fa-times"></i>
                     </span>
 
                     @if(empty($option['disabled']) && empty($disabled))
                         <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow @if(!empty($has_translation) && !empty($locale_key)){{ $locale_key }}_{{ $option['name'] }}_remove @endif" 
                             @if(!empty($has_translation) && !empty($locale_key)) data-wncms-action="remove_translated_image" @endif 
-                            data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="@lang('word.remove')">
+                            data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="@lang('wncms::word.remove')">
                             <i class="fa fa-times"></i>
                         </span>
 
@@ -149,7 +149,7 @@
                 @if($option['options'] == 'pages')
         
                     <select name="{{ $inputName }}" class="form-select form-select-sm" @disabled(!empty($option['disabled']) || !empty($disabled)) @required(!empty($option['required']))>
-                        @if(empty($option['required'])) <option value="">@lang('word.please_select')</option> @endif
+                        @if(empty($option['required'])) <option value="">@lang('wncms::word.please_select')</option> @endif
                         @foreach(wncms_get_pages($website ?? null) as $page)
                             <option value="{{ $page->id }}" @if($currentValue == $page->id) selected @endif>{{ $page->title }}</option>
                         @endforeach
@@ -158,7 +158,7 @@
                 @elseif($option['options'] == 'menus')
 
                     <select name="{{ $inputName }}" class="form-select form-select-sm" @disabled(!empty($option['disabled']) || !empty($disabled)) @required(!empty($option['required']))>
-                        @if(empty($option['required'])) <option value="">@lang('word.please_select')</option> @endif
+                        @if(empty($option['required'])) <option value="">@lang('wncms::word.please_select')</option> @endif
                         @foreach(wncms_get_menus(null, $website ?? null) as $menu)
                             <option value="{{ $menu->id }}" @if($currentValue == $menu->id) selected @endif>{{ $menu->name }}</option>
                         @endforeach
@@ -167,17 +167,17 @@
                 @elseif($option['options'] == 'positions')
 
                     <select name="{{ $inputName }}" class="form-select form-select-sm" @disabled(!empty($option['disabled']) || !empty($disabled)) @required(!empty($option['required']))>
-                        @if(empty($option['required'])) <option value="">@lang('word.please_select')</option> @endif
+                        @if(empty($option['required'])) <option value="">@lang('wncms::word.please_select')</option> @endif
                         @foreach(\Wncms\Models\Advertisement::POSITIONS ?? [] as $option_key => $option_value)
                             <option value="{{ $option_value }}" @if(($current_options[$option['name']] ?? '') == $option_value) selected @endif>
-                                @if(isset($option['translate_option']) && $option['translate_option'] === false) {{ $option_value }} @else @lang('word.' . $option_value) @endif
+                                @if(isset($option['translate_option']) && $option['translate_option'] === false) {{ $option_value }} @else @lang('wncms::word.' . $option_value) @endif
                             </option>
                         @endforeach
                     </select>
 
                 @elseif($option['options'] == 'contact_forms')
                     <select name="{{ $inputName }}" class="form-select form-select-sm" @disabled(!empty($option['disabled']) || !empty($disabled)) @required(!empty($option['required']))>
-                        @if(empty($option['required'])) <option value="">@lang('word.please_select')</option> @endif
+                        @if(empty($option['required'])) <option value="">@lang('wncms::word.please_select')</option> @endif
                         @foreach($wncms->contact_form()->getList() as $contact_form)
                             <option value="{{ $contact_form->id }}" @if($currentValue == $contact_form->id) selected @endif>{{ $contact_form->name }}</option>
                         @endforeach
@@ -185,10 +185,10 @@
                 @else
                     
                     <select name="{{ $inputName }}" class="form-select form-select-sm" @disabled(!empty($option['disabled']) || !empty($disabled)) @required(!empty($option['required']))>
-                        @if(empty($option['required'])) <option value="">@lang('word.please_select')</option> @endif
+                        @if(empty($option['required'])) <option value="">@lang('wncms::word.please_select')</option> @endif
                         @foreach($option['options'] ?? [] as $option_key => $option_value)
                             <option value="{{ $option_value }}" @if(($current_options[$option['name']] ?? '') == $option_value) selected @endif>
-                                @if(isset($option['translate_option']) && $option['translate_option'] === false) {{ $option_value }} @else @lang('word.' . $option_value) @endif
+                                @if(isset($option['translate_option']) && $option['translate_option'] === false) {{ $option_value }} @else @lang('wncms::word.' . $option_value) @endif
                             </option>
                         @endforeach
                     </select>
@@ -577,8 +577,8 @@
                 
                 @if(!empty($option['repeat']) && $option['repeat'] > 1)
                     <div class="mb-3">
-                        <button type="button" class="btn btn-sm btn-dark fw-bold expand-all-accordion-items" data-target=".accordion_{{ $option['id'] . $randomIdSuffix }}">@lang('word.expand_all')</button>
-                        <button type="button" class="btn btn-sm btn-dark fw-bold collapse-all-accordion-items" data-target=".accordion_{{ $option['id'] . $randomIdSuffix }}">@lang('word.collapse_all')</button>
+                        <button type="button" class="btn btn-sm btn-dark fw-bold expand-all-accordion-items" data-target=".accordion_{{ $option['id'] . $randomIdSuffix }}">@lang('wncms::word.expand_all')</button>
+                        <button type="button" class="btn btn-sm btn-dark fw-bold collapse-all-accordion-items" data-target=".accordion_{{ $option['id'] . $randomIdSuffix }}">@lang('wncms::word.collapse_all')</button>
                     </div>
                 @endif
 

@@ -6,7 +6,7 @@
 
             <div class="card">
                 <div class="card-header align-items-center">
-                    <h2>@lang('word.install')</h2>
+                    <h2>@lang('wncms::word.install')</h2>
                 </div>
 
                 <div class="card-body">
@@ -23,8 +23,8 @@
                                             <span class="stepper-number">1</span>
                                         </div>
                                         <div class="stepper-label">
-                                            <h3 class="stepper-title">@lang('word.step_no',['step'=>1])</h3>
-                                            <div class="stepper-desc">@lang('word.system_check')</div>
+                                            <h3 class="stepper-title">@lang('wncms::word.step_no',['step'=>1])</h3>
+                                            <div class="stepper-desc">@lang('wncms::word.system_check')</div>
                                         </div>
                                     </div>
                                     <div class="stepper-line h-40px"></div>
@@ -38,8 +38,8 @@
                                             <span class="stepper-number">2</span>
                                         </div>
                                         <div class="stepper-label">
-                                            <h3 class="stepper-title">@lang('word.step_no',['step'=>2])</h3>
-                                            <div class="stepper-desc">@lang('word.website_info')</div>
+                                            <h3 class="stepper-title">@lang('wncms::word.step_no',['step'=>2])</h3>
+                                            <div class="stepper-desc">@lang('wncms::word.website_info')</div>
                                         </div>
                                     </div>
                                     <div class="stepper-line h-40px"></div>
@@ -53,8 +53,8 @@
                                             <span class="stepper-number">3</span>
                                         </div>
                                         <div class="stepper-label">
-                                            <h3 class="stepper-title">@lang('word.step_no',['step'=>3])</h3>
-                                            <div class="stepper-desc">@lang('word.database_info')</div>
+                                            <h3 class="stepper-title">@lang('wncms::word.step_no',['step'=>3])</h3>
+                                            <div class="stepper-desc">@lang('wncms::word.database_info')</div>
                                         </div>
                                     </div>
                                     <div class="stepper-line h-40px"></div>
@@ -68,8 +68,8 @@
                                             <span class="stepper-number">4</span>
                                         </div>
                                         <div class="stepper-label">
-                                            <h3 class="stepper-title">@lang('word.step_no',['step'=>4])</h3>
-                                            <div class="stepper-desc">@lang('word.admin_info')</div>
+                                            <h3 class="stepper-title">@lang('wncms::word.step_no',['step'=>4])</h3>
+                                            <div class="stepper-desc">@lang('wncms::word.admin_info')</div>
                                         </div>
                                     </div>
                                     <div class="stepper-line h-40px"></div>
@@ -84,17 +84,17 @@
                                 <div class="mb-5">
                                     {{-- Step 1 --}}
                                     <div class="flex-column current" data-kt-stepper-element="content">
-                                        <h2 class="mb-3 bg-dark text-white rounded p-2">@lang('word.php_version')</h2>
+                                        <h2 class="mb-3 bg-dark text-white rounded p-2">@lang('wncms::word.php_version')</h2>
                                         <div class="d-flex w-100 align-items-center mb-20">
                                             <span class="fw-bold fs-4">PHP 8.1</span>                                                
                                             @if(!empty($checks['php']))
                                             <i class="fa fa-check text-success ms-auto"></i>
                                             @else
-                                            <i class="fa fa-cross  text-danger ms-auto"></i><span>@lang('word.current_version'): {{ PHP_VERSION }}</span>
+                                            <i class="fa fa-cross  text-danger ms-auto"></i><span>@lang('wncms::word.current_version'): {{ PHP_VERSION }}</span>
                                             @endif
                                         </div>           
 
-                                        <h2 class="mb-3 bg-dark text-white rounded p-2">@lang('word.php_extension')</h2>
+                                        <h2 class="mb-3 bg-dark text-white rounded p-2">@lang('wncms::word.php_extension')</h2>
                                         @foreach ($required_extensions as $required_extension)
                                             <div class="d-flex w-100 align-items-center">
                                                 <span class="fw-bold fs-4">{{ $required_extension }}</span>                                                
@@ -110,17 +110,17 @@
                                     {{-- Step 2 --}}
                                     <div class="flex-column" data-kt-stepper-element="content">
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.site_name')</label>
+                                            <label class="form-label">@lang('wncms::word.site_name')</label>
                                             <input type="text" class="form-control form-control-solid" name="site_name" placeholder="" value="{{ old('site_name') }}" required/>
                                         </div>
 
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.site_url')</label>
+                                            <label class="form-label">@lang('wncms::word.site_url')</label>
                                             <input type="text" class="form-control form-control-solid" name="site_url" placeholder="" value="{{ old('site_url') }}" required/>
                                         </div>
 
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.license')</label>
+                                            <label class="form-label">@lang('wncms::word.license')</label>
                                             <input type="text" class="form-control form-control-solid" name="license" placeholder="" value="{{ old('license') }}" required/>
                                         </div>
                                     </div>
@@ -128,27 +128,27 @@
                                     {{-- Step 3 --}}
                                     <div class="flex-column" data-kt-stepper-element="content">
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.database_host')</label>
+                                            <label class="form-label">@lang('wncms::word.database_host')</label>
                                             <input type="text" class="form-control form-control-solid" name="database_host" placeholder="" value="{{ old('database_host','localhost') }}" required/>
                                         </div>
 
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.database_port')</label>
+                                            <label class="form-label">@lang('wncms::word.database_port')</label>
                                             <input type="text" class="form-control form-control-solid" name="database_port" placeholder="" value="{{ old('database_port', 3306) }}" required/>
                                         </div>
 
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.database_name')</label>
+                                            <label class="form-label">@lang('wncms::word.database_name')</label>
                                             <input type="text" class="form-control form-control-solid" name="database_name" placeholder="" value="{{ old('database_name') }}" required/>
                                         </div>
 
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.database_user')</label>
+                                            <label class="form-label">@lang('wncms::word.database_user')</label>
                                             <input type="text" class="form-control form-control-solid" name="database_user" placeholder="" value="{{ old('database_user') }}" required/>
                                         </div>
 
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.database_password')</label>
+                                            <label class="form-label">@lang('wncms::word.database_password')</label>
                                             <input type="text" class="form-control form-control-solid" name="database_password" placeholder="" value="{{ old('database_password') }}" required/>
                                         </div>
                                     </div>
@@ -156,22 +156,22 @@
                                     {{-- Step 4 --}}
                                     <div class="flex-column" data-kt-stepper-element="content">
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.admin_username')</label>
+                                            <label class="form-label">@lang('wncms::word.admin_username')</label>
                                             <input type="text" class="form-control form-control-solid" name="admin_username" placeholder="" value="{{ old('admin_username') }}" required/>
                                         </div>
 
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.admin_email')</label>
+                                            <label class="form-label">@lang('wncms::word.admin_email')</label>
                                             <input type="text" class="form-control form-control-solid" name="admin_email" placeholder="" value="{{ old('admin_email') }}" required/>
                                         </div>
 
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.password')</label>
+                                            <label class="form-label">@lang('wncms::word.password')</label>
                                             <input type="password" class="form-control form-control-solid" name="password" placeholder="" value="{{ old('password') }}" required/>
                                         </div>
 
                                         <div class="fv-row mb-10">
-                                            <label class="form-label">@lang('word.password_confirmation')</label>
+                                            <label class="form-label">@lang('wncms::word.password_confirmation')</label>
                                             <input type="password" class="form-control form-control-solid" name="password_confirmation" placeholder="" value="{{ old('password_confirmation') }}" required/>
                                         </div>
                                     </div>
@@ -181,21 +181,21 @@
                                 <div class="d-flex flex-stack">
                                     <div class="me-2">
                                         <button type="button" class="btn btn-light btn-active-light-primary" data-kt-stepper-action="previous">
-                                            @lang('word.back')
+                                            @lang('wncms::word.back')
                                         </button>
                                     </div>
 
                                     <div>
                                         <button type="submit" class="btn btn-primary" data-kt-stepper-action="submit">
                                             <span class="indicator-label">
-                                                @lang('word.submit')
+                                                @lang('wncms::word.submit')
                                             </span>
                                             <span class="indicator-progress">
-                                                @lang('word.please_wait')... <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                                @lang('wncms::word.please_wait')... <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
                                             </span>
                                         </button>
 
-                                        <button type="button" class="btn btn-primary fw-bold" data-kt-stepper-action="next">@lang('word.next_step')</button>
+                                        <button type="button" class="btn btn-primary fw-bold" data-kt-stepper-action="next">@lang('wncms::word.next_step')</button>
                                     </div>
                                 </div>
                             </form>

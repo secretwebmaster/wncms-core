@@ -6,12 +6,12 @@
             </div>
         </td>
         <td>
-            <a class="btn btn-sm px-2 py-1 btn-primary fw-bold" href="{{ route('tags.create' , ['type' => $child->type,'parent_id' => $child->id]) }}">@lang('word.add_children_tag')</a>
-            <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('tags.edit' , $child) }}">@lang('word.edit')</a>
+            <a class="btn btn-sm px-2 py-1 btn-primary fw-bold" href="{{ route('tags.create' , ['type' => $child->type,'parent_id' => $child->id]) }}">@lang('wncms::word.add_children_tag')</a>
+            <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('tags.edit' , $child) }}">@lang('wncms::word.edit')</a>
             @include('wncms::backend.parts.modal_delete' , ['model'=>$child , 'route' => route('tags.destroy' , $child)])
         </td>
         <td class="ps-3">{{ $child->id }}</td>
-        <td>@lang('word.' . $child->type)</td>
+        <td>@lang('wncms::word.' . $child->type)</td>
         <td class="@if($level < 2)text-info @endif" title="{{ $child->description }}">{{ $level === 1 ? "├─" : str_repeat('├─', $level)}} #{{ $child->id}} {{ $child->name }}</td>
         <td>{{ $child->slug }}</td>
         <td>{{ $child->order_column }}</td>

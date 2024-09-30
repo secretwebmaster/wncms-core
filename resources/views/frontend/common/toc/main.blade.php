@@ -5,7 +5,7 @@
 {{-- Toc --}}
 <div id="wn-toc" class="wn-toc-v2_0_55 counter-hierarchy wn-toc-counter wn-toc-grey wn-toc-direction">
     <div class="wn-toc-header-wrapper">
-        <p class="wn-toc-title">@lang('word.table_of_content')</p>
+        <p class="wn-toc-title">@lang('wncms::word.table_of_content')</p>
         {{-- Toggle --}}
         <label for="wn-toc-cssicon-toggle-item-650ad5951ac0b">
             <span class="">

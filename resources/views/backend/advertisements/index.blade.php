@@ -17,16 +17,16 @@
                 @if(!empty($positions))
                     <div class="col-6 col-md-auto mb-3 ms-0">
                         <select name="position" class="form-select form-select-sm">
-                            <option value="">@lang('word.select_website')</option>
+                            <option value="">@lang('wncms::word.select_website')</option>
                             @foreach($positions as $position)
-                                <option value="{{ $position }}" @if($position == request()->position) selected @endif>@lang('word.' . $position)</option>
+                                <option value="{{ $position }}" @if($position == request()->position) selected @endif>@lang('wncms::word.' . $position)</option>
                             @endforeach
                         </select>
                     </div>
                 @endif
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -36,7 +36,7 @@
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                            <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
                 @endforeach
@@ -69,38 +69,38 @@
                                     <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th>
-                            <th>@lang('word.action')</th>
-                            <th>@lang('word.id')</th>
-                            <th>@lang('word.website_id')</th>
-                            <th>@lang('word.status')</th>
-                            <th>@lang('word.expired_at')</th>
-                            <th>@lang('word.image')</th>
-                            <th>@lang('word.name')</th>
-                            <th>@lang('word.type')</th>
-                            <th>@lang('word.position')</th>
+                            <th>@lang('wncms::word.action')</th>
+                            <th>@lang('wncms::word.id')</th>
+                            <th>@lang('wncms::word.website_id')</th>
+                            <th>@lang('wncms::word.status')</th>
+                            <th>@lang('wncms::word.expired_at')</th>
+                            <th>@lang('wncms::word.image')</th>
+                            <th>@lang('wncms::word.name')</th>
+                            <th>@lang('wncms::word.type')</th>
+                            <th>@lang('wncms::word.position')</th>
  
                             @if(request()->show_view)
-                            <th>@lang('word.view_count')</th>
+                            <th>@lang('wncms::word.view_count')</th>
                             @endif
                             
                             @if(request()->show_click)
-                            <th>@lang('word.click_count')</th>
+                            <th>@lang('wncms::word.click_count')</th>
                             @endif
 
-                            <th>@lang('word.order')</th>
-                            <th>@lang('word.cta_text')</th>
-                            <th>@lang('word.url')</th>
-                            <th>@lang('word.cta_text_2')</th>
-                            <th>@lang('word.url_2')</th>
-                            <th>@lang('word.remark')</th>
-                            <th>@lang('word.text_color')</th>
-                            <th>@lang('word.background_color')</th>
-                            <th>@lang('word.advertisement_script')</th>
-                            <th>@lang('word.style')</th>
-                            <th>@lang('word.created_at')</th>
+                            <th>@lang('wncms::word.order')</th>
+                            <th>@lang('wncms::word.cta_text')</th>
+                            <th>@lang('wncms::word.url')</th>
+                            <th>@lang('wncms::word.cta_text_2')</th>
+                            <th>@lang('wncms::word.url_2')</th>
+                            <th>@lang('wncms::word.remark')</th>
+                            <th>@lang('wncms::word.text_color')</th>
+                            <th>@lang('wncms::word.background_color')</th>
+                            <th>@lang('wncms::word.advertisement_script')</th>
+                            <th>@lang('wncms::word.style')</th>
+                            <th>@lang('wncms::word.created_at')</th>
 
                             @if(request()->show_detail)
-                            <th>@lang('word.updated_at')</th>
+                            <th>@lang('wncms::word.updated_at')</th>
                             @endif
                             
                         </tr>
@@ -117,8 +117,8 @@
 
                             {{-- Actions --}}
                             <td>
-                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('advertisements.edit' , $advertisement) }}">@lang('word.edit')</a>
-                                <a class="btn btn-sm btn-info fw-bold px-2 py-1" href="{{ route('advertisements.clone' , $advertisement) }}">@lang('word.clone')</a>
+                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('advertisements.edit' , $advertisement) }}">@lang('wncms::word.edit')</a>
+                                <a class="btn btn-sm btn-info fw-bold px-2 py-1" href="{{ route('advertisements.clone' , $advertisement) }}">@lang('wncms::word.clone')</a>
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$advertisement , 'route' => route('advertisements.destroy' , $advertisement), 'btn_class' => 'px-2 py-1'])
                             </td>
 

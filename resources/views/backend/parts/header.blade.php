@@ -28,13 +28,13 @@
                 <div class="menu menu-rounded menu-column menu-lg-row my-5 my-lg-0 align-items-stretch fw-semibold px-2 px-lg-0" id="wn_backend_header_menu" data-kt-menu="true">
                     {{-- <div class="menu-item me-lg-1">
                         <a class="" href="javascript:;">
-                            <span class="btn btn-sm btn-link text-info fw-bold me-3">@lang('word.quick_link'):</span>
+                            <span class="btn btn-sm btn-link text-info fw-bold me-3">@lang('wncms::word.quick_link'):</span>
                         </a>
                     </div> --}}
                  
                     <div class="menu-item me-lg-1">
                         <a class="menu-link py-3" href="{{ route('users.account.profile.show') }}">
-                            <span class="menu-title text-dark fw-bold">@lang('word.my_account')</span>
+                            <span class="menu-title text-dark fw-bold">@lang('wncms::word.my_account')</span>
                         </a>
                     </div>
                  
@@ -70,8 +70,8 @@
                             <div class="menu-content d-flex align-items-center px-3">
                                 <div class="d-flex flex-column">
                                     <div class="fw-bold d-flex align-items-center fs-5">
-                                        <span href="#" class="fw-bold text-muted  fs-2">@lang('word.quick_link')</span>
-                                        <span class="badge bg-success ms-3">@lang('word.current_website_count' , ['count'=>$wncms->website()->get() ? $wncms->website()->get()->count() : 0])</span> 
+                                        <span href="#" class="fw-bold text-muted  fs-2">@lang('wncms::word.quick_link')</span>
+                                        <span class="badge bg-success ms-3">@lang('wncms::word.current_website_count' , ['count'=>$wncms->website()->get() ? $wncms->website()->get()->count() : 0])</span> 
                                     </div>
                                 </div>
                             </div>
@@ -83,7 +83,7 @@
                                     <a href="{{ wncms_add_http($website->domain) }}" class="menu-link" target="_blank">
                                         <span class="menu-text">{{ $website->domain }}</span>
                                         @if($website->created_at > today()->addDays(-7))
-                                        <span class="menu-badge"><span class="badge badge-light-danger fw-bold fs-7">@lang('word.new')</span></span>
+                                        <span class="menu-badge"><span class="badge badge-light-danger fw-bold fs-7">@lang('wncms::word.new')</span></span>
                                         @endif
                                     </a>
                                 </div>
@@ -194,7 +194,7 @@
                                         </svg>
                                     </span>
                                 </span>
-                                <span class="menu-title">@lang('word.light_mode')</span>
+                                <span class="menu-title">@lang('wncms::word.light_mode')</span>
                             </a>
                         </div>
 
@@ -210,7 +210,7 @@
                                         </svg>
                                     </span>
                                 </span>
-                                <span class="menu-title">@lang('word.dark_mode')</span>
+                                <span class="menu-title">@lang('wncms::word.dark_mode')</span>
                             </a>
                         </div>
 

@@ -13,13 +13,13 @@
 
                 {{-- title --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6" for="title">@lang('word.title')</label>
+                    <label class="form-label required fw-bold fs-6" for="title">@lang('wncms::word.title')</label>
                     <input type="text" name="title" class="form-control form-control-sm" value="{{ old('title', $post->title) }}" required />
                 </div>
 
                 {{-- category --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.category')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.category')</label>
 
                     <div class="row">
                         <div class="col-12 col-md-9 mb-1">
@@ -53,7 +53,7 @@
                             <div class="form-check form-check-custom form-switch fv-row">
                                 <input type="hidden" name="auto_generate_category" value="0">
                                 <input class="form-check-input w-35px h-20px" type="checkbox" name="auto_generate_category" value="1" {{ old('auto_generate_category') ? 'checked' : '' }} />
-                                <label class="form-check-label">@lang('word.auto_generate_category') <a href="{{ route('tags.keywords.index') }}" target="_blank" title="@lang('word.go_to_keyword_binding')">(?)</a></label>
+                                <label class="form-check-label">@lang('wncms::word.auto_generate_category') <a href="{{ route('tags.keywords.index') }}" target="_blank" title="@lang('wncms::word.go_to_keyword_binding')">(?)</a></label>
                             </div>
                         </div>
                     </div>
@@ -61,7 +61,7 @@
 
                 {{-- tag --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.tag')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.tag')</label>
 
                     <div class="row">
                         <div class="col-12 col-md-9 mb-1">
@@ -95,7 +95,7 @@
                             <div class="form-check form-check-custom form-switch fv-row">
                                 <input type="hidden" name="auto_generate_tag" value="0">
                                 <input class="form-check-input w-35px h-20px" type="checkbox" name="auto_generate_tag" value="1" {{ old('auto_generate_tag') ? 'checked' : '' }} />
-                                <label class="form-check-label">@lang('word.auto_generate_tag') <a href="{{ route('tags.keywords.index') }}" target="_blank" title="@lang('word.go_to_keyword_binding')">(?)</a></label>
+                                <label class="form-check-label">@lang('wncms::word.auto_generate_tag') <a href="{{ route('tags.keywords.index') }}" target="_blank" title="@lang('wncms::word.go_to_keyword_binding')">(?)</a></label>
                             </div>
                         </div>
                     </div>
@@ -105,7 +105,7 @@
                     {{-- label --}}
                     <div class="col-12 col-md-6">
                         <div class="form-item mb-3">
-                            <label class="form-label fw-bold fs-6">@lang('word.label')</label>
+                            <label class="form-label fw-bold fs-6">@lang('wncms::word.label')</label>
                             <input type="text" name="label" class="form-control form-control-sm" value="{{ old('label', $post->label) }}" />
                         </div>
                     </div>
@@ -113,7 +113,7 @@
                     {{-- slug --}}
                     <div class="col-12 col-md-6">
                         <div class="form-item mb-3">
-                            <label class="form-label required fw-bold fs-6">@lang('word.slug') (@lang('word.show_in_url'))</label>
+                            <label class="form-label required fw-bold fs-6">@lang('wncms::word.slug') (@lang('wncms::word.show_in_url'))</label>
                             <input type="text" name="slug" class="form-control form-control-sm" value="{{ old('slug', $post->slug) }}" />
                         </div>
                     </div>
@@ -121,13 +121,13 @@
 
                 {{-- excerpt --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.excerpt')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.excerpt')</label>
                     <textarea type="text" name="excerpt" class="form-control form-control-sm" rows="4">{{ old('excerpt', $post->excerpt) }}</textarea>
                 </div>
 
                 {{-- remark --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.remark')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.remark')</label>
                     <input type="text" name="remark" class="form-control form-control-sm" value="{{ old('remark', $post->remark) }}" />
                 </div>
 
@@ -135,7 +135,7 @@
                     <div class="col-12 col-md-4">
                         {{-- order --}}
                         <div class="form-item mb-3">
-                            <label class="form-label required fw-bold fs-6">@lang('word.order')</label>
+                            <label class="form-label required fw-bold fs-6">@lang('wncms::word.order')</label>
                             <input type="number" name="order" class="form-control form-control-sm" value="{{ old('order', $post->order) }}" />
                         </div>
 
@@ -143,14 +143,14 @@
                     <div class="col-12 col-md-4">
                         {{-- password --}}
                         <div class="form-item mb-3">
-                            <label class="form-label required fw-bold fs-6">@lang('word.password')</label>
+                            <label class="form-label required fw-bold fs-6">@lang('wncms::word.password')</label>
                             <input type="text" name="password" class="form-control form-control-sm" value="{{ old('password', $post->password) }}" />
                         </div>
                     </div>
                     <div class="col-12 col-md-4">
                         {{-- price --}}
                         <div class="form-item mb-3">
-                            <label class="form-label required fw-bold fs-6">@lang('word.price')</label>
+                            <label class="form-label required fw-bold fs-6">@lang('wncms::word.price')</label>
                             <input type="text" name="price" class="form-control form-control-sm" value="{{ old('price', $post->price) }}" />
                         </div>
                     </div>
@@ -162,7 +162,7 @@
         <div class="mt-3">
             {{-- content --}}
             <div class="form-item mb-3">
-                <label class="form-label fw-bold fs-6">@lang('word.content')</label>
+                <label class="form-label fw-bold fs-6">@lang('wncms::word.content')</label>
                 <textarea id="kt_docs_tinymce_basic" name="content" class="tox-target">{{ old('content', $post->content) }}</textarea>
             </div>
         </div>
@@ -175,7 +175,7 @@
         <div class="card">
             <div class="card-header border-0 cursor-pointer p-2 p-md-5">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">@lang('word.publish_related')</h3>
+                    <h3 class="fw-bolder m-0">@lang('wncms::word.publish_related')</h3>
                 </div>
             </div>
 
@@ -183,30 +183,30 @@
 
                 {{-- status --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.status')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.status')</label>
                     <select name="status" class="form-select form-select-sm" required>
-                        <option value="">@lang('word.please_select')</option>
+                        <option value="">@lang('wncms::word.please_select')</option>
                         @foreach($statuses as $status)
-                        <option value="{{ $status }}" {{ ($status===old('status', $post->status) || empty(old('status')) && $status == 'published') ? 'selected' :'' }}><b>@lang('word.' . $status)</b></option>
+                        <option value="{{ $status }}" {{ ($status===old('status', $post->status) || empty(old('status')) && $status == 'published') ? 'selected' :'' }}><b>@lang('wncms::word.' . $status)</b></option>
                         @endforeach
                     </select>
                 </div>
 
                 {{-- visibility --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.visibility')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.visibility')</label>
                     <select name="visibility" class="form-select form-select-sm" required>
-                        <option value="">@lang('word.please_select')</option>
+                        <option value="">@lang('wncms::word.please_select')</option>
                         @foreach($visibilities as $visibility)
-                        <option value="{{ $visibility }}" {{ ($visibility===old('visibility', $post->visibility) || empty(old('visibility')) && $visibility == 'public') ? 'selected' :'' }}><b>@lang('word.' . $visibility)</b></option>
+                        <option value="{{ $visibility }}" {{ ($visibility===old('visibility', $post->visibility) || empty(old('visibility')) && $visibility == 'public') ? 'selected' :'' }}><b>@lang('wncms::word.' . $visibility)</b></option>
                         @endforeach
                     </select>
                 </div>
 
                 {{-- published_at --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.published_at')</label>
-                    <input type="text" name="published_at" value="{{ old('published_at', $post->published_at?->format('m/d/Y H:i:s'), now()->format('m/d/Y H:i:s'))  }}" class="form-control form-control-sm" placeholder="@lang('word.choose_date_or_default_now')" id="picker_published_at" />
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.published_at')</label>
+                    <input type="text" name="published_at" value="{{ old('published_at', $post->published_at?->format('m/d/Y H:i:s'), now()->format('m/d/Y H:i:s'))  }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_default_now')" id="picker_published_at" />
                     <script>
                         window.addEventListener('DOMContentLoaded', (event) => {
                             $("#picker_published_at").daterangepicker({
@@ -236,8 +236,8 @@
 
                 {{-- expired_at --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.expired_at')</label>
-                    <input type="text" name="expired_at" value="{{ old('expired_at', $post->expired_at?->format('m/d/Y H:i:s'), now()->format('m/d/Y H:i:s'))  }}" class="form-control form-control-sm" placeholder="@lang('word.choose_date_or_leave_blank')" id="picker_expired_at" />
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.expired_at')</label>
+                    <input type="text" name="expired_at" value="{{ old('expired_at', $post->expired_at?->format('m/d/Y H:i:s'), now()->format('m/d/Y H:i:s'))  }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_leave_blank')" id="picker_expired_at" />
                     <script>
                         window.addEventListener('DOMContentLoaded', (event) => {
                             $("#picker_expired_at").daterangepicker({
@@ -275,7 +275,7 @@
                 {{-- Preview --}}
                 <div class="mb-3">
                     @foreach($post->websites as $preview_website)
-                    <div><a href="{{ $wncms->getRoute('frontend.posts.single', ['slug' => $post->slug],false, $preview_website->domain) }}" target="_blank">@lang('word.preview_on', ['domain' => $preview_website->domain])</a></div>
+                    <div><a href="{{ $wncms->getRoute('frontend.posts.single', ['slug' => $post->slug],false, $preview_website->domain) }}" target="_blank">@lang('wncms::word.preview_on', ['domain' => $preview_website->domain])</a></div>
                     @endforeach
                 </div>
 
@@ -287,7 +287,7 @@
             <div class="card-body p-2 p-md-5">
                 {{-- website_id --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.website')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.website')</label>
                     @foreach($websites as $index => $_website)
                     <div class="col-12 col-md-3 mb-1 website_ids_checkbox">
                         <label class="form-check form-check-inline form-check-solid me-5">
@@ -303,7 +303,7 @@
 
                 {{-- user_id --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.author')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.author')</label>
                     <select name="user_id" class="form-select form-select-sm" required>
                         @foreach($users as $user)
                         <option value="{{ $user->id }}" @if($user->id == $post->user?->id) selected @endif>#{{ $user->id }} {{ $user->username }}</option>
@@ -317,7 +317,7 @@
         <div class="card mt-5">
             <div class="card-header border-0 cursor-pointer p-2 p-md-5">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">@lang('word.images')</h3>
+                    <h3 class="fw-bolder m-0">@lang('wncms::word.images')</h3>
                 </div>
             </div>
 
@@ -325,7 +325,7 @@
 
                 {{--thumbnail --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.thumbnail')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.thumbnail')</label>
 
                     <div class="image-input image-input-outline w-100 {{ !empty($post->getFirstMediaUrl('post_thumbnail')) ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ !empty($post->getFirstMediaUrl('post_thumbnail')) ?: asset('wncms/images/placeholders/upload.png') }});background-position:center;">
                         <div class="image-input-wrapper w-100 h-100" style="background-image:{{ !empty($post->getFirstMediaUrl('post_thumbnail')) ? 'url('. $post->getFirstMediaUrl('post_thumbnail') .')' : 'none' }};aspect-ratio:16/10"></div>
@@ -348,14 +348,14 @@
                         </span>
                     </div>
 
-                    <div class="form-text">@lang('word.allow_image_type')</div>
+                    <div class="form-text">@lang('wncms::word.allow_image_type')</div>
                 </div>
 
 
 
                 {{-- external_thumbnail --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.external_thumbnail')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.external_thumbnail')</label>
                     <input type="text" name="external_thumbnail" class="form-control form-control-sm" value="{{ old('external_thumbnail', $post->external_thumbnail) }}" />
                 </div>
 
@@ -372,7 +372,7 @@
         <div class="card mt-5">
             <div class="card-header border-0 cursor-pointer p-2 p-md-5">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">@lang('word.post_attribute')</h3>
+                    <h3 class="fw-bolder m-0">@lang('wncms::word.post_attribute')</h3>
                 </div>
             </div>
 
@@ -380,7 +380,7 @@
 
                 {{-- is_pinned --}}
                 <div class="row mb-1">
-                    <label class="col-3 col-form-label fw-bold fs-6 py-1">@lang('word.is_pinned')</label>
+                    <label class="col-3 col-form-label fw-bold fs-6 py-1">@lang('wncms::word.is_pinned')</label>
                     <div class="col-8 d-flex align-items-center">
                         <div class="form-check form-check-custom form-switch fv-row">
                             <input type="hidden" name="is_pinned" value="0">
@@ -392,7 +392,7 @@
 
                 {{-- is_recommended --}}
                 <div class="row mb-1">
-                    <label class="col-3 col-form-label fw-bold fs-6 py-1">@lang('word.is_recommended')</label>
+                    <label class="col-3 col-form-label fw-bold fs-6 py-1">@lang('wncms::word.is_recommended')</label>
                     <div class="col-8 d-flex align-items-center">
                         <div class="form-check form-check-custom form-switch fv-row">
                             <input type="hidden" name="is_recommended" value="0">
@@ -404,7 +404,7 @@
 
                 {{-- is_dmca --}}
                 <div class="row mb-5">
-                    <label class="col-3 col-form-label fw-bold fs-6 py-1">@lang('word.is_dmca')</label>
+                    <label class="col-3 col-form-label fw-bold fs-6 py-1">@lang('wncms::word.is_dmca')</label>
                     <div class="col-8 d-flex align-items-center">
                         <div class="form-check form-check-custom form-switch fv-row">
                             <input type="hidden" name="is_dmca" value="0">

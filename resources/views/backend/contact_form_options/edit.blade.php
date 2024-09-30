@@ -20,7 +20,7 @@
 
                 {{-- name --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.name')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.name')</label>
                     <div class="col-lg-9 fv-row">
                         <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name', $contact_form_option->name ?? null) }}"/>
                     </div>
@@ -29,12 +29,12 @@
 
                 {{-- type --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('word.type')</label>
+                    <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('wncms::word.type')</label>
                     <div class="col-lg-9 fv-row">
                         <select name="type" class="form-select form-select-sm">
-                            <option value="" @lang('word.please_select')> @lang('word.type')</option>
+                            <option value="" @lang('wncms::word.please_select')> @lang('wncms::word.type')</option>
                             @foreach($types ?? [] as $type)
-                                <option  value="{{ $type }}" {{ $type === old('type', $contact_form_option->type ?? null) ? 'selected' :'' }}>@lang('word.option_type_' . $type)</option>
+                                <option  value="{{ $type }}" {{ $type === old('type', $contact_form_option->type ?? null) ? 'selected' :'' }}>@lang('wncms::word.option_type_' . $type)</option>
                             @endforeach
                         </select>
                     </div>
@@ -43,7 +43,7 @@
                 
                 {{-- display_name --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.display_name')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.display_name')</label>
                     <div class="col-lg-9 fv-row">
                         <input type="text" name="display_name" class="form-control form-control-sm" value="{{ old('display_name', $contact_form_option->display_name ?? null) }}"/>
                     </div>
@@ -52,7 +52,7 @@
                 
                 {{-- placeholder --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.placeholder')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.placeholder')</label>
                     <div class="col-lg-9 fv-row">
                         <input type="text" name="placeholder" class="form-control form-control-sm" value="{{ old('placeholder', $contact_form_option->placeholder ?? null) }}"/>
                     </div>
@@ -61,7 +61,7 @@
                 
                 {{-- default_value --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.default_value')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.default_value')</label>
                     <div class="col-lg-9 fv-row">
                         <input type="text" name="default_value" class="form-control form-control-sm" value="{{ old('default_value', $contact_form_option->default_value ?? null) }}"/>
                     </div>
@@ -70,7 +70,7 @@
                 
                 {{-- options --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.options')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.options')</label>
                     <div class="col-lg-9 fv-row">
                         <textarea name="options" class="form-control" rows="10">{{ $contact_form_option->options ?? '' }}</textarea>
                     </div>

@@ -17,9 +17,9 @@
                                 <div class="card-body d-flex ps-xl-15">
                                     <div class="m-0">
                                         <div class="position-relative fs-2x z-index-2 fw-bold text-white mb-7">
-                                            <span class="me-2">@lang('word.welcome_back')!</span>
+                                            <span class="me-2">@lang('wncms::word.welcome_back')!</span>
                                             <br>
-                                            <span>@lang('word.pick_a_service_to_start')</span>
+                                            <span>@lang('wncms::word.pick_a_service_to_start')</span>
                                         </div>
                                     </div>
                                     <div class="ms-auto d-none d-md-block">
@@ -41,7 +41,7 @@
                         <div class="card-header pt-5">
                             <div class="card-title d-flex flex-column">
                                 <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">{{ auth()->user()->active_subscription->plan?->name ?? __('word.free_plan') }}</span>
-                                <span class="text-white opacity-75 pt-1 fw-semibold fs-6">@lang('word.expiry_date') {{ auth()->user()->active_subscription?->expired_at }}</span>
+                                <span class="text-white opacity-75 pt-1 fw-semibold fs-6">@lang('wncms::word.expiry_date') {{ auth()->user()->active_subscription?->expired_at }}</span>
                             </div>
                         </div>
                         <div class="card-body d-flex align-items-end pt-0">
@@ -51,7 +51,7 @@
                                 </div>
                                 @if(auth()->user()->active_subscription?->plan?->monthly_word_limit > 0)
                                 <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-75 w-100 mt-auto mb-2">
-                                    <span>@lang('word.used_words', ['count' => auth()->user()->words_month_count])</span>
+                                    <span>@lang('wncms::word.used_words', ['count' => auth()->user()->words_month_count])</span>
                                     <span>{{ number_format( (float)( auth()->user()->words_month_count / auth()->user()->active_subscription?->plan?->monthly_word_limit) * 100, 2, '.', '') }}%</span>
                                 </div>
                                 <div class="h-8px mx-3 w-100 bg-white bg-opacity-50 rounded">
@@ -74,7 +74,7 @@
                                 <div class="card-header pt-5">
                                     <div class="card-title d-flex flex-column">
                                         <div class="d-flex align-items-center">
-                                            <span class="fs-2hx fw-bold text-dark me-2 lh-1 ls-n2">@lang('word.posts')</span>
+                                            <span class="fs-2hx fw-bold text-dark me-2 lh-1 ls-n2">@lang('wncms::word.posts')</span>
                                             <span class="badge badge-light-success fs-base">
                                         </div>
                                     </div>
@@ -86,12 +86,12 @@
                                     <div class="d-flex flex-column content-justify-center w-100">
                                         <div class="d-flex fs-6 fw-semibold align-items-center">
                                             <div class="bullet w-8px h-6px rounded-2 bg-danger me-3"></div>
-                                            <div class="text-gray-500 flex-grow-1 me-4">@lang('word.post_count')</div>
+                                            <div class="text-gray-500 flex-grow-1 me-4">@lang('wncms::word.post_count')</div>
                                             <div class="fw-bolder text-gray-700 text-xxl-end">{{ auth()->user()->posts()->count() }}</div>
                                         </div>
                                         <div class="d-flex fs-6 fw-semibold align-items-center my-3">
                                             <div class="bullet w-8px h-6px rounded-2 bg-primary me-3"></div>
-                                            <div class="text-gray-500 flex-grow-1 me-4">@lang('word.post_view_count')</div>
+                                            <div class="text-gray-500 flex-grow-1 me-4">@lang('wncms::word.post_view_count')</div>
                                             <div class="fw-bolder text-gray-700 text-xxl-end">{{ auth()->user()->words_month_count }}</div>
                                         </div>
                                     </div>

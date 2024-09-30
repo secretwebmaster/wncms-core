@@ -1,1 +1,1 @@
-<label class="form-label required fw-bold fs-6">@lang('word.title')</label>
+<label class="form-label required fw-bold fs-6">@lang('wncms::word.title')</label>

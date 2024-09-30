@@ -15,7 +15,7 @@
                 @if(!empty($tagTypes))
                     <div class="col-6 col-md-auto mb-3 ms-0">
                         <select name="type" class="form-select form-select-sm">
-                            <option value="all">@lang('word.tag_type')</option>
+                            <option value="all">@lang('wncms::word.tag_type')</option>
                             @foreach($tagTypes as $tagType)
                                 <option value="{{ $tagType['slug'] }}" @if($tagType['slug'] == request()->type) selected @endif>{{ $tagType['name'] }}</option>
                             @endforeach
@@ -24,7 +24,7 @@
                 @endif
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -34,7 +34,7 @@
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                            <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
                 @endforeach
@@ -51,8 +51,8 @@
             ])
 
 
-            <a href="{{ route('tags.bulk_create') }}" class="btn btn-sm btn-info fw-bold mb-1">@lang('word.bulk_create_tag')</a>
-            <a href="{{ route('tags.index') }}" class="btn btn-sm btn-dark fw-bold mb-1">@lang('word.back')</a>
+            <a href="{{ route('tags.bulk_create') }}" class="btn btn-sm btn-info fw-bold mb-1">@lang('wncms::word.bulk_create_tag')</a>
+            <a href="{{ route('tags.index') }}" class="btn btn-sm btn-dark fw-bold mb-1">@lang('wncms::word.back')</a>
         </div>
     </div>
 
@@ -68,11 +68,11 @@
                                     <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th>
-                            <th>@lang('word.action')</th>
-                            <th class="ps-3">@lang('word.tag_id')</th>
-                            <th>@lang('word.tag_type')</th>
-                            <th>@lang('word.tag_name')</th>
-                            <th>@lang('word.keywords')</th>
+                            <th>@lang('wncms::word.action')</th>
+                            <th class="ps-3">@lang('wncms::word.tag_id')</th>
+                            <th>@lang('wncms::word.tag_type')</th>
+                            <th>@lang('wncms::word.tag_name')</th>
+                            <th>@lang('wncms::word.keywords')</th>
                         </tr>
                     </thead>
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">
@@ -90,7 +90,7 @@
                                     ])
                                 </td>
                                 <td class="ps-3">{{ $parent->id }}</td>
-                                <td>@lang('word.' . $parent->type)</td>
+                                <td>@lang('wncms::word.' . $parent->type)</td>
                                 <td class="mw-200px text-truncate text-info fw-bold" title="{{ $parent->description }}">{{ $parent->name }}</td>
                                 <td>{{ $parent->keywords->pluck('name')->implode(",") }}</td>
                             <tr>

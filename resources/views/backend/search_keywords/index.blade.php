@@ -13,7 +13,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
         </form>
@@ -41,15 +41,15 @@
                                     <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th>
-                            <th>@lang('word.action')</th>
-                            <th>@lang('word.id')</th>
-                            <th>@lang('word.name')</th>
+                            <th>@lang('wncms::word.action')</th>
+                            <th>@lang('wncms::word.id')</th>
+                            <th>@lang('wncms::word.name')</th>
 
                             @if(request()->show_detail)
-                            <th>@lang('word.updated_at')</th>
+                            <th>@lang('wncms::word.updated_at')</th>
                             @endif
                             
-                            <th>@lang('word.created_at')</th>
+                            <th>@lang('wncms::word.created_at')</th>
                         </tr>
                     </thead>
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">
@@ -61,7 +61,7 @@
                                 </div>
                             </td>
                             <td>
-                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('search_keywords.edit' , $search_keyword) }}">@lang('word.edit')</a>
+                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('search_keywords.edit' , $search_keyword) }}">@lang('wncms::word.edit')</a>
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$search_keyword , 'route' => route('search_keywords.destroy' , $search_keyword), 'btn_class' => 'px-2 py-1'])
                             </td>
                             <td>{{ $search_keyword->id }}</td>

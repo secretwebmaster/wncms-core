@@ -6,7 +6,7 @@ event('backend.menu.render', $PluginMenuItems = new \Illuminate\Support\Collecti
 {{-- Plugin --}}
 <div class="menu-item">
     <div class="menu-content pt-5 pb-2">
-        <span class="menu-section text-white fw-bold text-uppercase fs-8 ls-1">@lang('word.plugin')</span>
+        <span class="menu-section text-white fw-bold text-uppercase fs-8 ls-1">@lang('wncms::word.plugin')</span>
     </div>
 </div>
 
@@ -16,7 +16,7 @@ event('backend.menu.render', $PluginMenuItems = new \Illuminate\Support\Collecti
             <span class="menu-icon">
                 <i class="fa-lg @if(request()->routeIs($menuItem['route_is'])) fa-beat @endif fa-solid fa-lock"></i>
             </span>
-            <span class="menu-title fw-bold">@lang('word.model_management', ['model_name' => __('word.role')])</span>
+            <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('word.role')])</span>
             <span class="menu-arrow"></span>
         </span>
 

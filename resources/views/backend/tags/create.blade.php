@@ -9,7 +9,7 @@
 <div class="card">
     <div class="card-header border-0 cursor-pointer px-3 px-md-9">
         <div class="card-title m-0">
-            <h3 class="fw-bolder m-0">@lang('word.create_tag')</h3>
+            <h3 class="fw-bolder m-0">@lang('wncms::word.create_tag')</h3>
         </div>
     </div>
 

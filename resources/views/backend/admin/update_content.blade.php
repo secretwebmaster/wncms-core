@@ -6,7 +6,7 @@
                 <button class="accordion-button fs-4 fw-bold bg-dark text-gray-100 shadow-none p-3 accordion-arrow-white" type="button" data-bs-toggle="collapse" data-bs-target="#update_log_body_{{ $itemData['name'] }}" aria-expanded="true" aria-controls="update_log_body_{{ $itemData['name'] }}">
                     <span>
                         <span>{{ $itemData['name'] }}</span>
-                        <small class="text-warning ms-3">@lang('word.latest_version'): {{  $itemData['latest_version'] ?? '-'  }}</small>
+                        <small class="text-warning ms-3">@lang('wncms::word.latest_version'): {{  $itemData['latest_version'] ?? '-'  }}</small>
                     </span>
                 </button>
             </h2>
@@ -20,9 +20,9 @@
                             <div class="border-bottom border-3 border-secondary pb-2 mt-3">
                                 <div class="d-flex align-items-center justify-content-between w-100">
                                     <h3 class="card-label fw-bold me-3 m-0 d-flex align-item-center">
-                                        <span>@lang('word.version') {{ $update['version'] ?? '' }}</span>
+                                        <span>@lang('wncms::word.version') {{ $update['version'] ?? '' }}</span>
                                         @if($loop->index == 0)<span class="badge badge-sm badge-exclusive badge-danger fw-boldpx-2 py-1 ms-2">New</span>@endif
-                                        @if(($update['version'] ?? '') == gss('version'))<span class="badge badge-sm badge-exclusive badge-info fw-boldpx-2 py-1 ms-2">@lang('word.your_version')</span>@endif
+                                        @if(($update['version'] ?? '') == gss('version'))<span class="badge badge-sm badge-exclusive badge-info fw-boldpx-2 py-1 ms-2">@lang('wncms::word.your_version')</span>@endif
                                     </h3>
                                     <span class="text-gray-400 fw-bold fs-6">{{ \Carbon\Carbon::parse($update['released_at'] ?? '')->format('Y-m-d') }}</span>
                                 </div>
@@ -35,7 +35,7 @@
                                         {{-- Item --}}
                                         @foreach ($update_items as $item_index => $update_item)
                                             <div class="timeline-item d-flex align-items-center mb-3 text-break">
-                                                <div class="timeline-label fw-bold text-{{ $colors[$update_type] ?? 'dark' }} fs-6">@if($item_index == 0)@lang('word.' . $update_type)@endif</div>
+                                                <div class="timeline-label fw-bold text-{{ $colors[$update_type] ?? 'dark' }} fs-6">@if($item_index == 0)@lang('wncms::word.' . $update_type)@endif</div>
                                                 <div class="timeline-badge">
                                                     <i class="fa fa-genderless text-{{ $colors[$update_type] ?? 'dark' }} fs-1"></i>
                                                 </div>
@@ -51,7 +51,7 @@
                         
                         <div class="card card-flush mb-10">
                             <div class="card-body pt-6 px-3">
-                                <span>@lang('word.no_update_yet')</span>
+                                <span>@lang('wncms::word.no_update_yet')</span>
                             </div>
                         </div>
                     @endforelse

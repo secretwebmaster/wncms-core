@@ -51,10 +51,10 @@
                     {{-- Footer --}}
                     <div class="d-flex flex-center flex-wrap px-5" id="auth-footer">
                         <div class="d-flex flex-wrap justify-content-center fw-bold fs-base">
-                            <a href="https://3dayseo.com" target="_blank" class="link-light px-3 mb-3">@lang('word.wn_official_website')</a>
-                            <a href="https://wncms.cc" target="_blank" class="link-light px-3 mb-3">@lang('word.wncms_official_website')</a>
-                            <a href="https://wntheme.com" target="_blank" class="link-light px-3 mb-3">@lang('word.wntheme_official_website')</a>
-                            <a href="https://t.me/secretwebmaster" target="_blank" class="link-light px-3 mb-3">@lang('word.live_support')</a>
+                            <a href="https://3dayseo.com" target="_blank" class="link-light px-3 mb-3">@lang('wncms::word.wn_official_website')</a>
+                            <a href="https://wncms.cc" target="_blank" class="link-light px-3 mb-3">@lang('wncms::word.wncms_official_website')</a>
+                            <a href="https://wntheme.com" target="_blank" class="link-light px-3 mb-3">@lang('wncms::word.wntheme_official_website')</a>
+                            <a href="https://t.me/secretwebmaster" target="_blank" class="link-light px-3 mb-3">@lang('wncms::word.live_support')</a>
                         </div>
                     </div>
 

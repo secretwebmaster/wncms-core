@@ -5,10 +5,10 @@
 <div class="card-body border-top p-3 p-md-9">
     {{-- website --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label required fw-bold fs-6" for="website_id">@lang('word.website')</label>
+        <label class="col-lg-3 col-form-label required fw-bold fs-6" for="website_id">@lang('wncms::word.website')</label>
         <div class="col-lg-9 fv-row">
             <select id="website_id" name="website_id" class="form-select form-select-sm" required>
-                <option value="">@lang('word.please_select')</option>
+                <option value="">@lang('wncms::word.please_select')</option>
                 @foreach($websites as $website)
                     <option  value="{{ $website->id }}" {{ $website->id === old('website_id', $advertisement?->website?->id ?? '') ? 'selected' : '' }}>{{ $website->domain }} #({{ $website->id }})</option>
                 @endforeach
@@ -18,12 +18,12 @@
 
     {{-- status --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label required fw-bold fs-6" for="status">@lang('word.status')</label>
+        <label class="col-lg-3 col-form-label required fw-bold fs-6" for="status">@lang('wncms::word.status')</label>
         <div class="col-lg-9 fv-row">
             <select id="status" name="status" class="form-select form-select-sm" required>
-                <option value="">@lang('word.please_select')</option>
+                <option value="">@lang('wncms::word.please_select')</option>
                 @foreach(['active','paused','suspended','pending'] as $status)
-                    <option  value="{{ $status }}" {{ $status === old('status', $advertisement->status ?? 'active') ? 'selected' :'' }}>@lang('word.' . $status)</option>
+                    <option  value="{{ $status }}" {{ $status === old('status', $advertisement->status ?? 'active') ? 'selected' :'' }}>@lang('wncms::word.' . $status)</option>
                 @endforeach
             </select>
         </div>
@@ -31,9 +31,9 @@
 
     {{-- expired_at --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="expired_at">@lang('word.expired_at')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="expired_at">@lang('wncms::word.expired_at')</label>
         <div class="col-lg-9 fv-row">
-            <input id="expired_at" name="expired_at" value="{{ !empty($advertisement->expired_at) ? $advertisement->expired_at->format('Y-m-d') : '' }}" class="form-control form-control-sm" placeholder="@lang('word.choose_date_or_leave_blank')" id="date_expired_at" />
+            <input id="expired_at" name="expired_at" value="{{ !empty($advertisement->expired_at) ? $advertisement->expired_at->format('Y-m-d') : '' }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_leave_blank')" id="date_expired_at" />
         </div>
         <script>
             window.addEventListener('DOMContentLoaded', (event) => {
@@ -62,7 +62,7 @@
 
     {{-- name --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6 required" for="name">@lang('word.name')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6 required" for="name">@lang('wncms::word.name')</label>
         <div class="col-lg-9 fv-row">
             <input id="name" type="text" name="name" class="form-control form-control-sm" value="{{ old('name', $advertisement->name ?? null) }}" required/>
         </div>
@@ -70,12 +70,12 @@
     
     {{-- type --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('word.type')</label>
+        <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('wncms::word.type')</label>
         <div class="col-lg-9 fv-row">
             <select id="type" name="type" class="form-select form-select-sm" required>
-                <option value=""@lang('word.please_select')> @lang('word.type')</option>
+                <option value=""@lang('wncms::word.please_select')> @lang('wncms::word.type')</option>
                 @foreach($types ?? [] as $type)
-                    <option  value="{{ $type }}" {{ $type === old('type', $advertisement->type ?? null) ? 'selected' :'' }}>@lang('word.' . $type)</option>
+                    <option  value="{{ $type }}" {{ $type === old('type', $advertisement->type ?? null) ? 'selected' :'' }}>@lang('wncms::word.' . $type)</option>
                 @endforeach
             </select>
         </div>
@@ -83,12 +83,12 @@
     
     {{-- position --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.position')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.position')</label>
         <div class="col-lg-9 fv-row">
             <select id="position" name="position" class="form-select form-select-sm">
-                <option value="">@lang('word.please_select')@lang('word.position')</option>
+                <option value="">@lang('wncms::word.please_select')@lang('wncms::word.position')</option>
                 @foreach($positions ?? [] as $position)
-                    <option  value="{{ $position }}" {{ $position === old('position', $advertisement->position ?? null) ? 'selected' :'' }}>@lang('word.' . $position)</option>
+                    <option  value="{{ $position }}" {{ $position === old('position', $advertisement->position ?? null) ? 'selected' :'' }}>@lang('wncms::word.' . $position)</option>
                 @endforeach
             </select>
         </div>
@@ -97,7 +97,7 @@
     
     {{-- order --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="order">@lang('word.order')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="order">@lang('wncms::word.order')</label>
         <div class="col-lg-9 fv-row">
             <input id="order" type="text" name="order" class="form-control form-control-sm" value="{{ old('order', $advertisement->order ?? null) }}"/>
         </div>
@@ -112,7 +112,7 @@
         ] as $field)
         {{-- text_example --}}
         <div class="row mb-3">
-            <label class="col-lg-3 col-form-label fw-bold fs-6" for="{{ $field }}">@lang('word.' . $field)</label>
+            <label class="col-lg-3 col-form-label fw-bold fs-6" for="{{ $field }}">@lang('wncms::word.' . $field)</label>
             <div class="col-lg-9 fv-row">
                 <input id="{{ $field }}" type="text" name="{{ $field }}" class="form-control form-control-sm" value="{{ old($field, $advertisement->{$field} ?? null) }}"/>
             </div>
@@ -121,7 +121,7 @@
 
     {{-- advertisement_thumbnail --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="advertisement_thumbnail">@lang('word.advertisement_thumbnail')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="advertisement_thumbnail">@lang('wncms::word.advertisement_thumbnail')</label>
         <div class="col-lg-9">
             <div class="image-input image-input-outline {{ isset($advertisement) && $advertisement->thumbnail ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center;">
                 <div class="image-input-wrapper w-400px h-150px mw-100" style="background-image: {{ isset($advertisement) && $advertisement->thumbnail ? 'url('.asset($advertisement->thumbnail).')' : 'none' }};background-size: 100% 100%;"></div>
@@ -142,13 +142,13 @@
                 </span>
             </div>
 
-            <div class="form-text">@lang('word.allow_file_types', ['types' => 'png, jpg, jpeg, gif'])</div>
+            <div class="form-text">@lang('wncms::word.allow_file_types', ['types' => 'png, jpg, jpeg, gif'])</div>
         </div>
     </div>
 
     {{-- text_color --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="text_color">@lang('word.text_color')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="text_color">@lang('wncms::word.text_color')</label>
         <div class="col-lg-3 fv-row">
             <div class="input-group mb-5">
                 <input id="text_color" type="text" name="text_color" value="{{ old('text_color', $advertisement->text_color ?? '') }}" class="form-control form-control-sm"/>
@@ -159,7 +159,7 @@
     
     {{-- background_color --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="background_color">@lang('word.background_color')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="background_color">@lang('wncms::word.background_color')</label>
         <div class="col-lg-3 fv-row">
             <div class="input-group mb-5">
                 <input id="background_color" type="text" name="background_color" {{ old('text_color', $advertisement->background_color ?? '') }} class="form-control form-control-sm"/>
@@ -170,7 +170,7 @@
     
     {{-- code --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="code">@lang('word.advertisement_script')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="code">@lang('wncms::word.advertisement_script')</label>
         <div class="col-lg-9 fv-row">
             <textarea id="code" name="code" class="form-control" rows="10">{{ $advertisement->code ?? '' }}</textarea>
         </div>
@@ -178,7 +178,7 @@
     
     {{-- style --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="style">@lang('word.style')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="style">@lang('wncms::word.style')</label>
         <div class="col-lg-9 fv-row">
             <textarea id="style" name="style" class="form-control" rows="10">{{ $advertisement->style ?? '' }}</textarea>
         </div>
@@ -186,7 +186,7 @@
 
     {{-- advertisement_tag --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.advertisement_tag')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.advertisement_tag')</label>
         <div class="col-lg-9 fv-row">
             <input id="advertisement_tags" class="form-control form-control-sm p-0"  name="advertisement_tags" value="{{ $advertisement?->tagsWithType('advertisement_tag')->implode('name', ',') }}"/>
         </div>

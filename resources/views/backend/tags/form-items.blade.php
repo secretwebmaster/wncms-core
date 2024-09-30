@@ -1,6 +1,6 @@
 {{-- tagType --}}
 <div class="row mb-3">
-    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.tag_type')</label>
+    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.tag_type')</label>
     <div class="col-lg-9 fv-row">
         <select name="type" class="form-select form-select-sm" required>
             @foreach($tagTypes as $tagType)
@@ -12,18 +12,18 @@
 
 {{-- Parent --}}
 <div class="row mb-3">
-    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.parent_tag')</label>
+    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.parent_tag')</label>
     <div class="col-lg-9 fv-row">
         <select name="parent_id" class="form-select form-select-sm">
             {{-- load options from js --}}
-            <option value="">@lang('word.do_not_have')</option>
+            <option value="">@lang('wncms::word.do_not_have')</option>
         </select>
     </div>
 </div>
 
 {{-- Tag name --}}
 <div class="row mb-3">
-    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.name')</label>
+    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.name')</label>
     <div class="col-lg-9 fv-row">
         <input type="text" name="name" class="form-control form-control-sm" value="{{ $tag->name ?? old('name') }}" />
     </div>
@@ -31,16 +31,16 @@
 
 {{-- Tag slug --}}
 <div class="row mb-3">
-    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.slug')</label>
+    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.slug')</label>
     <div class="col-lg-9 fv-row">
         <input type="text" name="slug" class="form-control form-control-sm" value="{{ $tag->slug ?? old('slug') }}" />
-        <div class="text-muted p-2">@lang('word.tag_slug_description')</div>
+        <div class="text-muted p-2">@lang('wncms::word.tag_slug_description')</div>
     </div>
 </div>
 
 {{-- Tag description --}}
 <div class="row mb-3">
-    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.tag_description')</label>
+    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.tag_description')</label>
     <div class="col-lg-9 fv-row">
         <input type="text" name="description" class="form-control form-control-sm" value="{{ old('description', $tag->description) }}" />
     </div>
@@ -48,7 +48,7 @@
 
 {{-- Tag background --}}
 <div class="row mb-3">
-    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.tag_background')</label>
+    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.tag_background')</label>
 
     <div class="col-lg-8">
         <div class="image-input image-input-outline {{ $tag->getFirstMediaUrl('tag_background') ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center">
@@ -70,13 +70,13 @@
             </span>
         </div>
 
-        <div class="form-text">@lang('word.allow_file_type'): png, jpg, jpeg. .gif .webp .svg</div>
+        <div class="form-text">@lang('wncms::word.allow_file_type'): png, jpg, jpeg. .gif .webp .svg</div>
     </div>
 </div>
 
 {{-- Tag image --}}
 <div class="row mb-3">
-    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.tag_thumbnail')</label>
+    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.tag_thumbnail')</label>
     <div class="col-lg-8">
         <div class="image-input image-input-outline {{ $tag->getFirstMediaUrl('tag_thumbnail') ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center">
             <div class="image-input-wrapper w-125px h-125px" style="background-image: {{ $tag->getFirstMediaUrl('tag_thumbnail') ? 'url('. $tag->getFirstMediaUrl('tag_thumbnail') .')' : 'none' }};background-size: 100% 100%;"></div>
@@ -97,13 +97,13 @@
             </span>
         </div>
 
-        <div class="form-text">@lang('word.allow_file_type'): png, jpg, jpeg. .gif .webp .svg</div>
+        <div class="form-text">@lang('wncms::word.allow_file_type'): png, jpg, jpeg. .gif .webp .svg</div>
     </div>
 </div>
 
 {{-- Icon --}}
 <div class="row mb-3">
-    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.tag_icon')</label>
+    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.tag_icon')</label>
     <div class="col-lg-9 fv-row">
         <input type="text" name="icon" class="form-control form-control-sm" value="{{ $tag->icon ?? old('tag_icon') }}" />
         <p>
@@ -116,7 +116,7 @@
 
 {{-- Order --}}
 <div class="row mb-3">
-    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.order')</label>
+    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.order')</label>
     <div class="col-lg-9 fv-row">
         <input type="text" name="order_column" class="form-control form-control-sm" value="{{ $tag->order_column ?? old('order_column') }}" />
     </div>

@@ -14,20 +14,20 @@
                 {{-- 表格 --}}
                 <div class="sign-up-new__left">
                     <div class="sign-up-new__left-top">
-                        <header class="sign-up-new__title">@lang('word.register')</header>
+                        <header class="sign-up-new__title">@lang('wncms::word.register')</header>
                         <form class="sign-up-new-form sign-up-new__center-wrapper" action="{{ route('frontend.members.register') }}" method="POST">
                             @csrf
                             <div class="sign-up-new-form__field">
-                                <input class="block input sign-up-new-form__input sign-up-new-form__input--with-icon text-default theme-transparent-light-10" type="text" name="username" maxlength="25" placeholder="@lang('word.username')">
+                                <input class="block input sign-up-new-form__input sign-up-new-form__input--with-icon text-default theme-transparent-light-10" type="text" name="username" maxlength="25" placeholder="@lang('wncms::word.username')">
                             </div>
                             <div class="sign-up-new-form__field">
-                                <input class="block input sign-up-new-form__input sign-up-new-form__input--with-icon text-default theme-transparent-light-10" type="text" name="email" placeholder="@lang('word.email')">
+                                <input class="block input sign-up-new-form__input sign-up-new-form__input--with-icon text-default theme-transparent-light-10" type="text" name="email" placeholder="@lang('wncms::word.email')">
                             </div>
                             <div class="sign-up-new-form__field">
-                                <input class="block input sign-up-new-form__input sign-up-new-form__input--with-icon text-default theme-transparent-light-10" type="password" name="password" placeholder="@lang('word.password')">
+                                <input class="block input sign-up-new-form__input sign-up-new-form__input--with-icon text-default theme-transparent-light-10" type="password" name="password" placeholder="@lang('wncms::word.password')">
                             </div>
                             <div class="sign-up-new-form__field">
-                                <input class="block input sign-up-new-form__input sign-up-new-form__input--with-icon text-default theme-transparent-light-10" type="password" name="password_confirmation" placeholder="@lang('word.password_confirmation')">
+                                <input class="block input sign-up-new-form__input sign-up-new-form__input--with-icon text-default theme-transparent-light-10" type="password" name="password_confirmation" placeholder="@lang('wncms::word.password_confirmation')">
                             </div>
                           
                             <div class="sign-up-new-form__field sign-up-new-form__field--hidden">

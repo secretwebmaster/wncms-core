@@ -98,11 +98,11 @@
                     {{-- Footer --}}
                     <div class="d-flex flex-center flex-wrap px-5">
                         <div class="d-flex fw-semibold text-primary fs-base">
-                            <a href="https://3dayseo.com" target="_blank" class="px-5">@lang('word.wn_official_website')</a>
-                            <a href="https://wncms.cc" target="_blank" class="px-5">@lang('word.wn_official_website')</a>
-                            <a href="https://wntheme.com" target="_blank" class="px-5">@lang('word.wntheme_official_website')</a>
-                            <a href="https://t.me/secretwebmaster" target="_blank" class="px-5">@lang('word.live_support')</a>
-                            <a href="https://t.me/secretwebmaster" target="_blank" class="px-5">@lang('word.contact_to_purchase')</a>
+                            <a href="https://3dayseo.com" target="_blank" class="px-5">@lang('wncms::word.wn_official_website')</a>
+                            <a href="https://wncms.cc" target="_blank" class="px-5">@lang('wncms::word.wn_official_website')</a>
+                            <a href="https://wntheme.com" target="_blank" class="px-5">@lang('wncms::word.wntheme_official_website')</a>
+                            <a href="https://t.me/secretwebmaster" target="_blank" class="px-5">@lang('wncms::word.live_support')</a>
+                            <a href="https://t.me/secretwebmaster" target="_blank" class="px-5">@lang('wncms::word.contact_to_purchase')</a>
                         </div>
                     </div>
 

@@ -5,18 +5,18 @@
         {{-- Nav tabs --}}
         <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold active" id="pills-basic-tab" data-bs-toggle="pill" data-bs-target="#pills-basic" type="button" role="tab" aria-controls="pills-basic" aria-selected="true">@lang('word.basic')</button>
+                <button class="nav-link fw-bold active" id="pills-basic-tab" data-bs-toggle="pill" data-bs-target="#pills-basic" type="button" role="tab" aria-controls="pills-basic" aria-selected="true">@lang('wncms::word.basic')</button>
             </li>
 
             @if($page->type == 'template' && $page->template_info && !empty($page->template_info['widgets']))
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link fw-bold" id="pills-template-tab" data-bs-toggle="pill" data-bs-target="#pills-template" type="button" role="tab" aria-controls="pills-template" aria-selected="false">@lang('word.theme_template_options')</button>
+                    <button class="nav-link fw-bold" id="pills-template-tab" data-bs-toggle="pill" data-bs-target="#pills-template" type="button" role="tab" aria-controls="pills-template" aria-selected="false">@lang('wncms::word.theme_template_options')</button>
                 </li>
             @endif
 
             @if($page->type == 'builder')
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link fw-bold" id="pills-builder-tab" data-bs-toggle="pill" data-bs-target="#pills-builder" type="button" role="tab" aria-controls="pills-builder" aria-selected="false">@lang('word.builder')</button>
+                    <button class="nav-link fw-bold" id="pills-builder-tab" data-bs-toggle="pill" data-bs-target="#pills-builder" type="button" role="tab" aria-controls="pills-builder" aria-selected="false">@lang('wncms::word.builder')</button>
                 </li>
             @endif
         </ul>
@@ -36,34 +36,34 @@
                     <div class="card-body p-2 p-md-5">
                         {{-- title --}}
                         <div class="form-item mb-3">
-                            <label class="form-label required fw-bold fs-6">@lang('word.title')</label>
+                            <label class="form-label required fw-bold fs-6">@lang('wncms::word.title')</label>
                             <input type="text" name="title" class="form-control form-control-sm" value="{{ old('title', $page->title) }}" required />
                         </div>
 
                         {{-- slug --}}
                         <div class="form-item mb-3">
-                            <label class="form-label required fw-bold fs-6">@lang('word.slug') (@lang('word.show_in_url'))</label>
+                            <label class="form-label required fw-bold fs-6">@lang('wncms::word.slug') (@lang('wncms::word.show_in_url'))</label>
                             <input type="text" name="slug" class="form-control form-control-sm" value="{{ old('slug', $page->slug) }}" />
                         </div>
 
                         {{-- type --}}
                         <div class="form-item mb-3">
-                            <label class="form-label required fw-bold fs-6">@lang('word.type')</label>
+                            <label class="form-label required fw-bold fs-6">@lang('wncms::word.type')</label>
                             <select name="type" class="form-select form-select-sm">
-                                <option value="" @lang('word.please_select')> @lang('word.type')</option>
+                                <option value="" @lang('wncms::word.please_select')> @lang('wncms::word.type')</option>
                                 @foreach($types ?? [] as $type)
-                                <option value="{{ $type }}" {{ $type===old('type', $page->type ?? null) ? 'selected' :'' }}>@lang('word.' . $type)</option>
+                                <option value="{{ $type }}" {{ $type===old('type', $page->type ?? null) ? 'selected' :'' }}>@lang('wncms::word.' . $type)</option>
                                 @endforeach
                             </select>
-                            <div class="text-muted">@lang('word.theme_template_list_will_be_shown_after_saving')</div>
+                            <div class="text-muted">@lang('wncms::word.theme_template_list_will_be_shown_after_saving')</div>
                         </div>
 
                         {{-- blade_name --}}
                         @if($page->type == 'template' && !empty($available_templates))
                             <div class="form-item mb-3">
-                                <label class="form-label fw-bold fs-6">@lang('word.available_theme_template')</label>
+                                <label class="form-label fw-bold fs-6">@lang('wncms::word.available_theme_template')</label>
                                 <select name="blade_name" class="form-select form-select-sm" required>
-                                    <option value="">@lang('word.not_using_theme_template')</option>
+                                    <option value="">@lang('wncms::word.not_using_theme_template')</option>
                                     @foreach($available_templates as $available_template)
                                     <option value="{{ $available_template['blade_name'] }}" {{ $available_template['blade_name']==old('blade_name', $page->blade_name) ? 'selected' :'' }}><b>{{ $available_template['blade_name'] }}</b></option>
                                     @endforeach
@@ -75,19 +75,19 @@
 
                         {{-- remark --}}
                         <div class="form-item mb-3">
-                            <label class="form-label fw-bold fs-6">@lang('word.remark')</label>
+                            <label class="form-label fw-bold fs-6">@lang('wncms::word.remark')</label>
                             <input type="text" name="remark" class="form-control form-control-sm" value="{{ old('remark', $page->remark) }}" />
                         </div>
 
                         {{-- order --}}
                         <div class="form-item mb-3">
-                            <label class="form-label fw-bold fs-6">@lang('word.order')</label>
+                            <label class="form-label fw-bold fs-6">@lang('wncms::word.order')</label>
                             <input type="number" name="order" class="form-control form-control-sm" value="{{ old('order', $page->order) }}" />
                         </div>
 
                         {{-- content --}}
                         <div class="form-item mb-3">
-                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.content')</label>
+                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.content')</label>
                             <textarea id="kt_docs_tinymce_basic" name="content" class="tox-target">{{ old('content', $page->content ?? null) }}</textarea>
                         </div>
                     </div>
@@ -101,7 +101,7 @@
                         
                         <div class="card-header border-0 cursor-pointer px-3 px-md-5">
                             <div class="card-title m-0">
-                                <h3 class="fw-bolder m-0">@lang('word.theme_template_options')</h3>
+                                <h3 class="fw-bolder m-0">@lang('wncms::word.theme_template_options')</h3>
                             </div>
                         </div>
 
@@ -169,7 +169,7 @@
                         
                         <div class="card-header border-0 cursor-pointer px-3 px-md-5">
                             <div class="card-title m-0">
-                                <h3 class="fw-bolder m-0">@lang('word.theme_template_options')</h3>
+                                <h3 class="fw-bolder m-0">@lang('wncms::word.theme_template_options')</h3>
                             </div>
                         </div>
 
@@ -178,7 +178,7 @@
 
                             <div class="row">
                                 <div class="col-12 col-md-3">
-                                    <h4>@lang('word.widgets')</h4>
+                                    <h4>@lang('wncms::word.widgets')</h4>
 
                                     <div id="widget-list" class="row g-2">
                                         @foreach(config('theme.' . $page->website?->theme . '.widgets') ?? [] as $widget)
@@ -193,7 +193,7 @@
                                 </div>
 
                                 <div class="col-12 col-md-9">
-                                    <h4>@lang('word.options')</h4>
+                                    <h4>@lang('wncms::word.options')</h4>
 
                                     <div id="widget-options" class="accordion list-group col min-h-200px border border-1 border-secondary border-dashed">
 
@@ -388,7 +388,7 @@
                     <div class="card mt-5">
                         <div class="card-header border-0 cursor-pointer px-3 px-md-5">
                             <div class="card-title m-0">
-                                <h3 class="fw-bolder m-0">@lang('word.page_builder')</h3>
+                                <h3 class="fw-bolder m-0">@lang('wncms::word.page_builder')</h3>
                             </div>
                         </div>
 
@@ -399,7 +399,7 @@
                             {{ $available_template }}
                             @endforeach
                             @else
-                            <div class="alert alert-secondary">@lang('word.no_template_is_available_for_this_theme')</div>
+                            <div class="alert alert-secondary">@lang('wncms::word.no_template_is_available_for_this_theme')</div>
                             @endif
                         </div> --}}
 
@@ -407,7 +407,7 @@
 
                             <div class="col-12 col-md-4 row g-2 mt-0 align-items-start flex-column">
                                 <div>
-                                    <button class="btn btn-dark w-100" type="button">@lang('word.add_to_page')</button>
+                                    <button class="btn btn-dark w-100" type="button">@lang('wncms::word.add_to_page')</button>
                                 </div>
                                 @foreach($available_templates as $template_name => $template_data)
                                 <div>
@@ -472,7 +472,7 @@
         <div class="card">
             <div class="card-header border-0 cursor-pointer p-2 p-md-5">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">@lang('word.publish_related')</h3>
+                    <h3 class="fw-bolder m-0">@lang('wncms::word.publish_related')</h3>
                 </div>
             </div>
 
@@ -480,22 +480,22 @@
 
                 {{-- status --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.status')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.status')</label>
                     <select name="status" class="form-select form-select-sm" required>
-                        <option value="">@lang('word.please_select')</option>
+                        <option value="">@lang('wncms::word.please_select')</option>
                         @foreach($statuses as $status)
-                        <option value="{{ $status }}" {{ ($status===old('status', $page->status) || empty(old('status')) && $status == 'published') ? 'selected' :'' }}><b>@lang('word.' . $status)</b></option>
+                        <option value="{{ $status }}" {{ ($status===old('status', $page->status) || empty(old('status')) && $status == 'published') ? 'selected' :'' }}><b>@lang('wncms::word.' . $status)</b></option>
                         @endforeach
                     </select>
                 </div>
 
                 {{-- visibility --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.visibility')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.visibility')</label>
                     <select name="visibility" class="form-select form-select-sm" required>
-                        <option value="">@lang('word.please_select')</option>
+                        <option value="">@lang('wncms::word.please_select')</option>
                         @foreach($visibilities as $visibility)
-                        <option value="{{ $visibility }}" {{ ($visibility===old('visibility', $page->visibility) || empty(old('visibility')) && $visibility == 'public') ? 'selected' :'' }}><b>@lang('word.' . $visibility)</b></option>
+                        <option value="{{ $visibility }}" {{ ($visibility===old('visibility', $page->visibility) || empty(old('visibility')) && $visibility == 'public') ? 'selected' :'' }}><b>@lang('wncms::word.' . $visibility)</b></option>
                         @endforeach
                     </select>
                 </div>
@@ -510,8 +510,8 @@
                 {{-- Preview --}}
                 @if(!empty($page->website))
                     <div class="mb-3">
-                        <a href="{{ $wncms->getRoute('frontend.pages', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" class="btn btn-dark fw-bold w-100">@lang('word.preview')</a>
-                        {{-- <a href="{{ route('frontend.pages', ['slug' => $page->slug]) }}" target="_blank" class="btn btn-dark w-100">@lang('word.preview')</a> --}}
+                        <a href="{{ $wncms->getRoute('frontend.pages', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" class="btn btn-dark fw-bold w-100">@lang('wncms::word.preview')</a>
+                        {{-- <a href="{{ route('frontend.pages', ['slug' => $page->slug]) }}" target="_blank" class="btn btn-dark w-100">@lang('wncms::word.preview')</a> --}}
                     </div>
                 @endif
 
@@ -523,7 +523,7 @@
             <div class="card-body p-2 p-md-5">
                 {{-- website_id --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.website')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.website')</label>
                     <select name="website_id" class="form-select form-select-sm" required>
                         @foreach($websites as $_website)
                         <option value="{{ $_website->id }}" @if($_website->id == $page->website?->id) selected @elseif(($_website->id != $page->website?->id) && wncms()->isSelectedWebsite($_website)) selected @endif>#{{ $_website->id }} {{ $_website->domain }}</option>
@@ -533,7 +533,7 @@
 
                 {{-- user_id --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.author')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.author')</label>
                     <select name="user_id" class="form-select form-select-sm" required>
                         @foreach($users as $user)
                         <option value="{{ $user->id }}" @if($user->id == $page->user?->id) selected @endif>#{{ $user->id }} {{ $user->username }}</option>
@@ -547,14 +547,14 @@
         <div class="card mt-5">
             <div class="card-header border-0 cursor-pointer p-2 p-md-5">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">@lang('word.images')</h3>
+                    <h3 class="fw-bolder m-0">@lang('wncms::word.images')</h3>
                 </div>
             </div>
 
             <div class="card-body p-2 p-md-5">
                 {{--thumbnail --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.thumbnail')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.thumbnail')</label>
 
                     <div class="image-input image-input-outline w-100 {{ !empty($page->getFirstMediaUrl('page_thumbnail')) ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ !empty($page->getFirstMediaUrl('page_thumbnail')) ?: asset('wncms/images/placeholders/upload.png') }});background-position: center;">
                         <div class="image-input-wrapper w-100 h-100" style="background-image:{{ !empty($page->getFirstMediaUrl('page_thumbnail')) ? 'url('. $page->getFirstMediaUrl('page_thumbnail') .')' : 'none' }};aspect-ratio:16/10;background-size: 100% 100%;"></div>
@@ -576,12 +576,12 @@
                         </span>
                     </div>
 
-                    <div class="form-text">@lang('word.allow_image_type')</div>
+                    <div class="form-text">@lang('wncms::word.allow_image_type')</div>
                 </div>
 
                 {{-- external_thumbnail --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('word.external_thumbnail')</label>
+                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.external_thumbnail')</label>
                     <input type="text" name="external_thumbnail" class="form-control form-control-sm" value="{{ old('external_thumbnail', $page->external_thumbnail) }}" />
                 </div>
 
@@ -598,7 +598,7 @@
         <div class="card mt-5">
             <div class="card-header border-0 cursor-pointer p-2 p-md-5">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">@lang('word.page_attribute')</h3>
+                    <h3 class="fw-bolder m-0">@lang('wncms::word.page_attribute')</h3>
                 </div>
             </div>
 
@@ -620,7 +620,7 @@
                                 <label class="form-check-label"></label>
                             </div>
                         </div>
-                        <label class="col-auto col-form-label fw-bold fs-6 py-1">@lang('word.' . $option)</label>
+                        <label class="col-auto col-form-label fw-bold fs-6 py-1">@lang('wncms::word.' . $option)</label>
                     </div>
 
                 @endforeach

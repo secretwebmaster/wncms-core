@@ -8,7 +8,7 @@
         <div class="card-header border-0 cursor-pointer px-3 px-md-9" role="button" data-bs-toggle="collapse" data-bs-target="#kt_account_profile_details" aria-expanded="true" aria-controls="kt_account_profile_details">
             {{-- Card title --}}
             <div class="card-title m-0">
-                <h3 class="fw-bold m-0">@lang('word.user_info')</h3>
+                <h3 class="fw-bold m-0">@lang('wncms::word.user_info')</h3>
             </div>
         </div>
 
@@ -20,7 +20,7 @@
 
                 {{-- avatar --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.avatar')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.avatar')</label>
         
                     <div class="col-lg-9">
                         <div class="image-input image-input-outline {{ isset($user) && $user->avatar ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center;">
@@ -43,22 +43,22 @@
                             </span>
                         </div>
 
-                        <div class="form-text">@lang('word.allow_file_types', ['types' => 'png, jpg, jpeg, gif'])</div>
+                        <div class="form-text">@lang('wncms::word.allow_file_types', ['types' => 'png, jpg, jpeg, gif'])</div>
                     </div>
                 </div>
 
                 {{-- name --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('word.name')</label>
+                    <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('wncms::word.name')</label>
                     <div class="col-lg-9">
                         <div class="row">
                             
                             <div class="col-lg-6 fv-row">
-                                <input type="text" name="last_name" class="form-control form-control-sm" placeholder="@lang('word.last_name')" value="{{ old('last_name', $user->last_name ?? '') }}"/>
+                                <input type="text" name="last_name" class="form-control form-control-sm" placeholder="@lang('wncms::word.last_name')" value="{{ old('last_name', $user->last_name ?? '') }}"/>
                             </div>
                             
                             <div class="col-lg-6 fv-row">
-                                <input type="text" name="first_name" class="form-control form-control-sm mb-3 mb-lg-0" placeholder="@lang('word.first_name')" value="{{ old('first_name', $user->first_name ?? '') }}"/>
+                                <input type="text" name="first_name" class="form-control form-control-sm mb-3 mb-lg-0" placeholder="@lang('wncms::word.first_name')" value="{{ old('first_name', $user->first_name ?? '') }}"/>
                             </div>
 
                         </div>
@@ -67,7 +67,7 @@
 
                 {{-- username --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.username')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.username')</label>
                     <div class="col-lg-9 fv-row">
                         <input type="text" name="username" class="form-control form-control-sm" value="{{ old('username', $user->username ?? null) }}" disabled/>
                     </div>
@@ -75,7 +75,7 @@
                 
                 {{-- email --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.email')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.email')</label>
                     <div class="col-lg-9 fv-row">
                         <input type="text" name="email" class="form-control form-control-sm" value="{{ old('email', $user->email ?? null) }}" disabled/>
                     </div>
@@ -83,7 +83,7 @@
 
                 {{-- registered_at --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.registered_at')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.registered_at')</label>
                     <div class="col-lg-9 fv-row">
                         <input type="text"  class="form-control form-control-sm" value="{{ $user->created_at->format('Y-m-d') }}" disabled/>
                     </div>
@@ -91,13 +91,13 @@
 
                 {{-- last_login_at --}}
                 <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.last_login_at')</label>
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.last_login_at')</label>
                     <div class="col-lg-9 fv-row">
                         <input type="text"  class="form-control form-control-sm" value="{{ $user->last_login_at?->format('Y-m-d') }}" disabled/>
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-dark fw-bold w-100">@lang('word.update')</button>
+                <button type="submit" class="btn btn-dark fw-bold w-100">@lang('wncms::word.update')</button>
 
             </div>
         </form>

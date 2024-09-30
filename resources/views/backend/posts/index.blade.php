@@ -15,7 +15,7 @@
                 {{-- 分類 --}}
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
                     <select name="category" class="form-select form-select-sm">
-                        <option value="">@lang('word.select_category')</option>
+                        <option value="">@lang('wncms::word.select_category')</option>
                         @foreach($post_category_parants as $category)
                             <option value="{{ $category->name }}" @if($category->name == request()->category) selected @endif>{{ $category->name }}</option>
                             @php
@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -47,7 +47,7 @@
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                            <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
                 @endforeach
@@ -66,23 +66,23 @@
         ])
 
         {{-- Bulk Soft Delete --}}
-        <button class="btn btn-sm btn-danger fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_delete_post">@lang('word.bulk_delete')</button>
+        <button class="btn btn-sm btn-danger fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_delete_post">@lang('wncms::word.bulk_delete')</button>
         <div class="modal fade" tabindex="-1" id="modal_delete_post">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 class="modal-title">@lang('word.pleease_choose_destination')</h3>
+                        <h3 class="modal-title">@lang('wncms::word.pleease_choose_destination')</h3>
                         <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close"><span class="svg-icon svg-icon-1"></span></div>
                     </div>
                     <div class="modal-body">
-                        <p class="alert alert-danger">@lang('word.posts_will_be_deleted')</p>
+                        <p class="alert alert-danger">@lang('wncms::word.posts_will_be_deleted')</p>
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">@lang('word.cancel')</button>
+                        <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">@lang('wncms::word.cancel')</button>
                         <button class="btn btn-sm btn-danger fw-bold bulk_delete_models" data-model="Post" data-route="{{ route('models.bulk_delete') }}">
-                            <span class="indicator-label">@lang('word.bulk_delete')</span>
-                            <span class="indicator-progress">@lang('word.bulk_delete')...<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+                            <span class="indicator-label">@lang('wncms::word.bulk_delete')</span>
+                            <span class="indicator-progress">@lang('wncms::word.bulk_delete')...<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                         </button>
                     </div>
                 </div>
@@ -90,23 +90,23 @@
         </div>
 
         {{-- Bulk Delete --}}
-        <button class="btn btn-sm btn-danger fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_force_delete_post">@lang('word.bulk_force_delete')</button>
+        <button class="btn btn-sm btn-danger fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_force_delete_post">@lang('wncms::word.bulk_force_delete')</button>
         <div class="modal fade" tabindex="-1" id="modal_force_delete_post">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 class="modal-title">@lang('word.pleease_choose_destination')</h3>
+                        <h3 class="modal-title">@lang('wncms::word.pleease_choose_destination')</h3>
                         <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close"><span class="svg-icon svg-icon-1"></span></div>
                     </div>
                     <div class="modal-body">
-                        <p class="alert alert-danger">@lang('word.posts_will_be_deleted')</p>
+                        <p class="alert alert-danger">@lang('wncms::word.posts_will_be_deleted')</p>
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">@lang('word.cancel')</button>
+                        <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">@lang('wncms::word.cancel')</button>
                         <button class="btn btn-sm btn-danger fw-bold bulk_force_delete_models" data-model="Post" data-force="1" data-route="{{ route('models.bulk_force_delete') }}">
-                            <span class="indicator-label">@lang('word.bulk_force_delete')</span>
-                            <span class="indicator-progress">@lang('word.bulk_force_delete')...<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+                            <span class="indicator-label">@lang('wncms::word.bulk_force_delete')</span>
+                            <span class="indicator-progress">@lang('wncms::word.bulk_force_delete')...<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                         </button>
                     </div>
                 </div>
@@ -114,29 +114,29 @@
         </div>
 
         {{-- Handle Tags --}}
-        <button type="button" class="btn btn-sm btn-info fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_update_post_tag">@lang('word.handling_post_tags')</button>
+        <button type="button" class="btn btn-sm btn-info fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_update_post_tag">@lang('wncms::word.handling_post_tags')</button>
         <div class="modal fade" tabindex="-1" id="modal_update_post_tag">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form id="form_bulk_sync_tags" action="{{ route('posts.bulk_sync_tags') }}" method="POST">
                         @csrf
                         <div class="modal-header">
-                            <h3 class="modal-title">@lang('word.handling_post_tags')</h3>
+                            <h3 class="modal-title">@lang('wncms::word.handling_post_tags')</h3>
                         </div>
 
                         <div class="modal-body">
                             <div class="form-item mb-3">
-                                <label for="" class="form-label">@lang('word.action')</label>
+                                <label for="" class="form-label">@lang('wncms::word.action')</label>
                                 <select class="form-select" name="action">
                                     @foreach(['attach', 'detach', 'sync'] as $action)
-                                    <option value="{{ $action }}">@lang('word.' . $action)</option>
+                                    <option value="{{ $action }}">@lang('wncms::word.' . $action)</option>
                                     @endforeach
                                 </select>
                             </div>
 
                             {{-- Category --}}
                             <div class="form-item mb-3">
-                                <label class="form-label">@lang('word.category')</label>
+                                <label class="form-label">@lang('wncms::word.category')</label>
                                 <input id="tagify_post_category" class="form-control form-control-sm p-0" name="post_categories" />
 
                                 @php
@@ -175,7 +175,7 @@
 
                             {{-- Tag --}}
                             <div class="form-item mb-3">
-                                <label class="form-label">@lang('word.tag')</label>
+                                <label class="form-label">@lang('wncms::word.tag')</label>
                                 <input id="tagify_post_tag" class="form-control form-control-sm p-0" name="post_tags" />
 
                                 @php
@@ -215,7 +215,7 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('word.close')</button>
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
                             <button type="button" class="btn btn-primary"
                                 wncms-btn-ajax
                                 wncsm-btn-swal
@@ -224,28 +224,28 @@
                                 data-route="{{ route('posts.bulk_sync_tags') }}"
                                 data-method="post"
                                 data-form="form_bulk_sync_tags"
-                                date-original-text="@lang('word.submit')"
-                                data-submitted-btn-text="@lang('word.loading')"
-                            >@lang('word.submit')</button>
+                                date-original-text="@lang('wncms::word.submit')"
+                                data-submitted-btn-text="@lang('wncms::word.loading')"
+                            >@lang('wncms::word.submit')</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_mulk_set_website">@lang('word.bulk_set_website')</button>
+        <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_mulk_set_website">@lang('wncms::word.bulk_set_website')</button>
         <div class="modal fade" tabindex="-1" id="modal_mulk_set_website">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form id="form_bulk_set_website" action="#" method="POST">
                         <div class="modal-header">
-                            <h3 class="modal-title">@lang('word.bulk_set_website')</h3>
+                            <h3 class="modal-title">@lang('wncms::word.bulk_set_website')</h3>
                         </div>
             
                         <div class="modal-body">
                             <div class="form-item">
                                 <select name="website_id" id="" class="form-select form-select-sm">
-                                    <option value="">@lang('word.please_select')</option>
+                                    <option value="">@lang('wncms::word.please_select')</option>
                                     @foreach($websites as $_website)
                                     <option value="{{ $_website->id }}">{{ $_website->domain }}</option>
                                     @endforeach
@@ -254,19 +254,19 @@
                         </div>
             
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('word.close')</button>
+                            <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
                             <button type="button" class="btn btn-primary fw-bold"
                                 wncms-btn-ajax
                                 wncms-get-model-ids
                                 wncms-btn-swal
                                 data-form="form_bulk_set_website"
-                                data-original-text="@lang('word.submit')"
-                                data-loading-text="@lang('word.loading').."
-                                data-success-text="@lang('word.submitted')"
-                                data-fail-text="@lang('word.fail_to_submit')"
+                                data-original-text="@lang('wncms::word.submit')"
+                                data-loading-text="@lang('wncms::word.loading').."
+                                data-success-text="@lang('wncms::word.submitted')"
+                                data-fail-text="@lang('wncms::word.fail_to_submit')"
                                 data-route="{{ route('posts.bulk_set_websites') }}"
                                 data-method="POST"
-                            >@lang('word.submit')</button>
+                            >@lang('wncms::word.submit')</button>
                         </div>
                     </form>
                 </div>
@@ -274,7 +274,7 @@
         </div>
 
         {{-- one_click_create_demo_posts --}}
-        <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#one_click_create_demo_posts">@lang('word.one_click_create_demo_posts')</button>
+        <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#one_click_create_demo_posts">@lang('wncms::word.one_click_create_demo_posts')</button>
         <div class="modal fade" tabindex="-1" id="one_click_create_demo_posts">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -282,16 +282,16 @@
                         @csrf
 
                         <div class="modal-header">
-                            <h3 class="modal-title">@lang('word.one_click_create_demo_posts')</h3>
+                            <h3 class="modal-title">@lang('wncms::word.one_click_create_demo_posts')</h3>
                         </div>
             
                         <div class="modal-body">
-                            <div class="alert alert-info">@lang('word.one_click_create_demo_posts_description')</div>
+                            <div class="alert alert-info">@lang('wncms::word.one_click_create_demo_posts_description')</div>
                         </div>
             
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('word.close')</button>
-                            <button type="submit" class="btn btn-primary fw-bold">@lang('word.submit')</button>
+                            <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                            <button type="submit" class="btn btn-primary fw-bold">@lang('wncms::word.submit')</button>
                         </div>
                     </form>
                 </div>
@@ -299,36 +299,36 @@
         </div>
 
         {{-- bulk_clone_posts --}}
-        <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_bulk_clone_posts">@lang('word.bulk_clone_posts')</button>
+        <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_bulk_clone_posts">@lang('wncms::word.bulk_clone_posts')</button>
         <div class="modal fade" tabindex="-1" id="modal_bulk_clone_posts">
             <div class="modal-dialog">
                 <form id="form_bulk_clone_posts">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3 class="modal-title">@lang('word.bulk_clone_posts')</h3>
+                            <h3 class="modal-title">@lang('wncms::word.bulk_clone_posts')</h3>
                         </div>
             
                         <div class="modal-body">
                             <select name="clone_status" class="form-select">
-                                <option value="published">@lang('word.published')</option>
-                                <option value="drafted">@lang('word.drafted')</option>
+                                <option value="published">@lang('wncms::word.published')</option>
+                                <option value="drafted">@lang('wncms::word.drafted')</option>
                             </select>
                         </div>
             
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('word.close')</button>
+                            <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
                             <button type="button" class="btn btn-primary fw-bold"
                                 wncms-btn-ajax
                                 wncms-get-model-ids
                                 wncms-btn-swal
                                 data-form="form_bulk_clone_posts"
-                                data-original-text="@lang('word.submit')"
-                                data-loading-text="@lang('word.loading').."
-                                data-success-text="@lang('word.submitted')"
-                                data-fail-text="@lang('word.fail_to_submit')"
+                                data-original-text="@lang('wncms::word.submit')"
+                                data-loading-text="@lang('wncms::word.loading').."
+                                data-success-text="@lang('wncms::word.submitted')"
+                                data-fail-text="@lang('wncms::word.fail_to_submit')"
                                 data-route="{{ route('posts.bulk_clone') }}"
                                 data-method="POST"
-                            >@lang('word.submit')</button>
+                            >@lang('wncms::word.submit')</button>
                         </div>
                     </div>
                 </form>
@@ -351,37 +351,37 @@
                                 <input class="form-check-input" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                             </div>
                         </th>
-                        <th>@lang('word.action')</th>
-                        <th>@lang('word.id')</th>
-                        <th>@lang('word.user')</th>
-                        <th>@lang('word.website') <a href="javascript:;" title="@lang('word.preview_the_post_on_specific_domain')"><i class="fa-regular fa-circle-question"></i></a></th>
-                        <th>@lang('word.status')</th>
-                        {{-- <th>@lang('word.is_trashed')</th> --}}
+                        <th>@lang('wncms::word.action')</th>
+                        <th>@lang('wncms::word.id')</th>
+                        <th>@lang('wncms::word.user')</th>
+                        <th>@lang('wncms::word.website') <a href="javascript:;" title="@lang('wncms::word.preview_the_post_on_specific_domain')"><i class="fa-regular fa-circle-question"></i></a></th>
+                        <th>@lang('wncms::word.status')</th>
+                        {{-- <th>@lang('wncms::word.is_trashed')</th> --}}
 
                         @if(request()->show_detail)<th>
-                            @lang('word.visibility')</th>
+                            @lang('wncms::word.visibility')</th>
                         @endif
 
                         @if(request()->show_detail || request()->show_thumbnail)
-                        <th>@lang('word.thumbnail')</th>
+                        <th>@lang('wncms::word.thumbnail')</th>
                         @endif
 
-                        <th>@lang('word.title') <a href="javascript:;" title="@lang('word.preview_the_post_on_current_domain')"><i class="fa-regular fa-circle-question"></i></button></th>
-                        <th>@lang('word.category')</th>
+                        <th>@lang('wncms::word.title') <a href="javascript:;" title="@lang('wncms::word.preview_the_post_on_current_domain')"><i class="fa-regular fa-circle-question"></i></button></th>
+                        <th>@lang('wncms::word.category')</th>
 
                         @if(request()->show_detail)
-                        <th>@lang('word.tag')</th>
+                        <th>@lang('wncms::word.tag')</th>
                         @endif
 
-                        <th>@lang('word.is_pinned')</th>
-                        <th>@lang('word.order')</th>
+                        <th>@lang('wncms::word.is_pinned')</th>
+                        <th>@lang('wncms::word.order')</th>
 
-                        <th>@lang('word.published_at')</th>
+                        <th>@lang('wncms::word.published_at')</th>
 
                         @if(request()->show_detail)
-                        <th>@lang('word.created_at')</th>
-                        <th>@lang('word.updated_at')</th>
-                        <th>@lang('word.expired_at')</th>
+                        <th>@lang('wncms::word.created_at')</th>
+                        <th>@lang('wncms::word.updated_at')</th>
+                        <th>@lang('wncms::word.expired_at')</th>
                         @endif
                     </tr>
                 </thead>
@@ -394,11 +394,11 @@
                                 </div>
                             </td>
                             <td>
-                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('posts.edit' , $post) }}">@lang('word.edit')</a>
-                                <a class="btn btn-sm btn-info fw-bold px-2 py-1" href="{{ route('posts.clone' , $post) }}">@lang('word.clone')</a>
+                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('posts.edit' , $post) }}">@lang('wncms::word.edit')</a>
+                                <a class="btn btn-sm btn-info fw-bold px-2 py-1" href="{{ route('posts.clone' , $post) }}">@lang('wncms::word.clone')</a>
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$post , 'route' => route('posts.destroy' , $post)])
                                 @if($post->trashed())
-                                <a class="btn btn-sm btn-success fw-bold px-2 py-1" href="{{ route('posts.restore' , $post) }}">@lang('word.restore')</a>
+                                <a class="btn btn-sm btn-success fw-bold px-2 py-1" href="{{ route('posts.restore' , $post) }}">@lang('wncms::word.restore')</a>
                                 @endif
                             </td>
                             <td>{{ $post->id }}</td>
@@ -409,7 +409,7 @@
                                 @endforeach
                             </td>
                             <td>@include('wncms::common.table_status', ['model' => $post])</td>
-                            {{-- <td>@if($post->trashed()) <span class="badge badge-danger">@lang('word.trashed')</span>@endif</td> --}}
+                            {{-- <td>@if($post->trashed()) <span class="badge badge-danger">@lang('wncms::word.trashed')</span>@endif</td> --}}
 
                             @if(request()->show_detail)
                             <td>{{ $post->visibility }}</td>

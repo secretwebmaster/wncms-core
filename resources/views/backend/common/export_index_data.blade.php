@@ -1,5 +1,5 @@
 {{-- export_selected --}}
-<a href="{{ route(str($modelName)->snake()->plural() . ".export", ['type' => 'selected']) }}" class="btn btn-sm btn-dark fw-bold mb-1 export-data" data-type="selected">@lang('word.export_selected')</a>
+<a href="{{ route(str($modelName)->snake()->plural() . ".export", ['type' => 'selected']) }}" class="btn btn-sm btn-dark fw-bold mb-1 export-data" data-type="selected">@lang('wncms::word.export_selected')</a>
 @push('foot_js')
     <script>
          $(document).ready(function() {
@@ -28,12 +28,12 @@
 @endpush
 
 {{-- export_current_page --}}
-<a href="{{ route(str($modelName)->snake()->plural() . ".export", ['type' => 'current_page', 'page' => request()->page ?? 1, 'page_size' => request()->page_size ?? 20]) }}{{ request()->getQueryString() ? '&' . request()->getQueryString() : '' }}" class="btn btn-sm btn-dark fw-bold mb-1 export-data" data-type="current_page" daata-current-page="{{ request()->page ?? 1 }}">@lang('word.export_current_page')</a>
+<a href="{{ route(str($modelName)->snake()->plural() . ".export", ['type' => 'current_page', 'page' => request()->page ?? 1, 'page_size' => request()->page_size ?? 20]) }}{{ request()->getQueryString() ? '&' . request()->getQueryString() : '' }}" class="btn btn-sm btn-dark fw-bold mb-1 export-data" data-type="current_page" daata-current-page="{{ request()->page ?? 1 }}">@lang('wncms::word.export_current_page')</a>
 
 
 {{-- export_current_query --}}
-<a href="{{ route(str($modelName)->snake()->plural() . ".export", ['type' => 'current_query']) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="btn btn-sm btn-dark fw-bold mb-1 export-data" data-type="current_query">@lang('word.export_current_query')</a>
+<a href="{{ route(str($modelName)->snake()->plural() . ".export", ['type' => 'current_query']) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="btn btn-sm btn-dark fw-bold mb-1 export-data" data-type="current_query">@lang('wncms::word.export_current_query')</a>
 
 
 {{-- export_current_all --}}
-<a href="{{ route(str($modelName)->snake()->plural() . ".export", ['type' => 'all']) }}" class="btn btn-sm btn-dark fw-bold mb-1 export-data" data-type="all">@lang('word.export_current_all')</a>
+<a href="{{ route(str($modelName)->snake()->plural() . ".export", ['type' => 'all']) }}" class="btn btn-sm btn-dark fw-bold mb-1 export-data" data-type="all">@lang('wncms::word.export_current_all')</a>

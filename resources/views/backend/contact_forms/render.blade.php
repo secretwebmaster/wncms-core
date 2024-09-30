@@ -46,7 +46,7 @@
                     @elseif($option->type == 'select')
 
                         <select name="{{ $option->name }}" class="form-select form-select-sm" @if( $option->pivot->is_required) required @endif>
-                            <option value="">@lang('word.please_select'){{ $option->display_name }}</option>
+                            <option value="">@lang('wncms::word.please_select'){{ $option->display_name }}</option>
                             @foreach(explode("\r\n", $option->options) as $optionOption)
                                 @if(strpos($optionOption, "|"))
                                 <option value="{{ explode("|", $optionOption)[0] }}">{{ explode("|", $optionOption)[1] }}</option>
@@ -91,7 +91,7 @@
                     @endif
 
                 </div>
-                <div class="form-error-message" style="display: none">@lang('word.this_field_is_required')</div>
+                <div class="form-error-message" style="display: none">@lang('wncms::word.this_field_is_required')</div>
             </div>
 
         @endforeach
@@ -103,11 +103,11 @@
                     data-route="{{ route('frontend.contact_form_submissions.submit_ajax') }}"
                     data-method="POST"
                     data-form="contact_form_{{ $contactForm->id }}"
-                    data-original-text="@lang('word.submit')"
-                    data-loading-text="@lang('word.loading').."
-                    data-success-text="@lang('word.submitted')"
-                    data-fail-text="@lang('word.fail_to_submit')"
-                >@lang('word.submit')</button>
+                    data-original-text="@lang('wncms::word.submit')"
+                    data-loading-text="@lang('wncms::word.loading').."
+                    data-success-text="@lang('wncms::word.submitted')"
+                    data-fail-text="@lang('wncms::word.fail_to_submit')"
+                >@lang('wncms::word.submit')</button>
             </div>
             <div class="form-result mt-4"></div>
         </div>

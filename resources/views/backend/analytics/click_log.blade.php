@@ -20,19 +20,19 @@
                                 <path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="currentColor" />
                             </svg>
                         </span>
-                        <input type="text" name="keyword" value="{{ request()->keyword }}" data-kt-ecommerce-order-filter="search" class="form-control form-control-sm form-control form-control-sm-solid w-250px ps-14" placeholder="@lang('word.search')" />
+                        <input type="text" name="keyword" value="{{ request()->keyword }}" data-kt-ecommerce-order-filter="search" class="form-control form-control-sm form-control form-control-sm-solid w-250px ps-14" placeholder="@lang('wncms::word.search')" />
 
                         {{-- 網站列表 --}}
                         <div class="w-200px ms-2">
                             <select name="website" class="form-select form-select-sm form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="Status" data-kt-ecommerce-order-filter="status">
-                                <option value="">@lang('word.select_website')</option>
+                                <option value="">@lang('wncms::word.select_website')</option>
                                 @foreach($websites as $website)
                                     <option value="{{ $website->id }}" @if($website->id == request()->website) selected @endif>{{ $website->domain }}</option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <input type="submit" class="btn btn-sm btn-primary ms-2 fw-bold" value="@lang('word.submit')">
+                        <input type="submit" class="btn btn-sm btn-primary ms-2 fw-bold" value="@lang('wncms::word.submit')">
                     </div>
                 </form>
 
@@ -60,10 +60,10 @@
                 <table class="table table-hover table-sm align-middle text-nowrap mb-0" id="kt_ecommerce_report_sales_table">
                     <thead class="table-dark">
                         <tr class="fw-bold gs-0">
-                            <th>@lang('word.id')</th>
-                            <th>@lang('word.datetime')</th>
-                            <th>@lang('word.website')</th>
-                            <th>@lang('word.link')</th>
+                            <th>@lang('wncms::word.id')</th>
+                            <th>@lang('wncms::word.datetime')</th>
+                            <th>@lang('wncms::word.website')</th>
+                            <th>@lang('wncms::word.link')</th>
                         </tr>
                     </thead>
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">

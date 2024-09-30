@@ -17,7 +17,7 @@
 
                     <div class="card-header bg-dark py-2 min-h-25">
                         <div class="card-title">
-                            <h2 class="fw-bold text-white">@lang('word.payment_period')</h2>
+                            <h2 class="fw-bold text-white">@lang('wncms::word.payment_period')</h2>
                         </div>
                     </div>
 
@@ -37,8 +37,8 @@
                                         </div> --}}
 
                                         <div class="flex-grow-1">
-                                            <h2 class="d-flex align-items-center fs-3 fw-bold flex-wrap">NT$ {{ $plan->{"price_" . $period} }} / @lang('word.' . $period) @if($period == 'annually') <span class="badge badge-danger ms-2">Save 17%</span> @endif</h2>
-                                            <div class="fw-semibold opacity-50">@lang('word.pay_' . $period)</div>
+                                            <h2 class="d-flex align-items-center fs-3 fw-bold flex-wrap">NT$ {{ $plan->{"price_" . $period} }} / @lang('wncms::word.' . $period) @if($period == 'annually') <span class="badge badge-danger ms-2">Save 17%</span> @endif</h2>
+                                            <div class="fw-semibold opacity-50">@lang('wncms::word.pay_' . $period)</div>
                                         </div>
                                     </div>
                                 </label>
@@ -55,7 +55,7 @@
                     {{-- Header --}}
                     <div class="card-header bg-dark py-2 min-h-25">
                         <div class="card-title">
-                            <h2 class="fw-bold text-white">@lang('word.payment_method')</h2>
+                            <h2 class="fw-bold text-white">@lang('wncms::word.payment_method')</h2>
                         </div>
                     </div>
 
@@ -96,7 +96,7 @@
                 <div class="card card-flush pt-3 mb-0 border border-1 border-dark shadow-sm" data-kt-sticky="true" data-kt-sticky-name="subscription-summary" data-kt-sticky-offset="{default: false, lg: '200px'}" data-kt-sticky-width="{lg: '250px', xl: '300px'}" data-kt-sticky-left="auto" data-kt-sticky-top="150px" data-kt-sticky-animation="false" data-kt-sticky-zindex="95">
                     <div class="card-header">
                         <div class="card-title">
-                            <h2>@lang('word.order_detail')</h2>
+                            <h2>@lang('wncms::word.order_detail')</h2>
                         </div>
                     </div>
 
@@ -108,10 +108,10 @@
                         
                         {{-- User info --}}
                         <div class="mb-7">
-                            <h5 class="mb-3">@lang('word.user_info')</h5>
+                            <h5 class="mb-3">@lang('wncms::word.user_info')</h5>
                             <div class="d-flex align-items-center mb-1">
                                 <span class="fw-bold text-gray-800 text-hover-primary me-2">{{ auth()->user()->username }}</span>
-                                <span class="badge badge-light-success">@lang('word.verified')</span>
+                                <span class="badge badge-light-success">@lang('wncms::word.verified')</span>
                             </div>
 
                             <span class="fw-semibold text-gray-600 text-hover-primary">{{ auth()->user()->email }}</span>
@@ -121,13 +121,13 @@
 
                         {{-- Plan --}}
                         <div class="mb-7">
-                            <h5 class="mb-3">@lang('word.plan_info')</h5>
+                            <h5 class="mb-3">@lang('wncms::word.plan_info')</h5>
                             <div class="mb-0">
                                 <ul>
                                     <li><span class="text-info fw-bold">{{ $plan->name }}</span></li>
-                                    <li>@lang('word.monthly_word_limit'): <span class="fw-bold text-info text_monthly_word_limit">{{ $plan->monthly_word_limit }}</span></li>
-                                    <li>@lang('word.monthly_document_limit'): <span class="fw-bold text-info text_monthly_document_limit">{{ $plan->monthly_document_limit == -1 ? __('word.unlimited') : $plan->monthly_document_limit }}</span></li>
-                                    <li>@lang('word.monthly_image_limit'): <span class="fw-bold text-info text_monthly_image_limit">{{ $plan->monthly_image_limit }}</span></li>
+                                    <li>@lang('wncms::word.monthly_word_limit'): <span class="fw-bold text-info text_monthly_word_limit">{{ $plan->monthly_word_limit }}</span></li>
+                                    <li>@lang('wncms::word.monthly_document_limit'): <span class="fw-bold text-info text_monthly_document_limit">{{ $plan->monthly_document_limit == -1 ? __('word.unlimited') : $plan->monthly_document_limit }}</span></li>
+                                    <li>@lang('wncms::word.monthly_image_limit'): <span class="fw-bold text-info text_monthly_image_limit">{{ $plan->monthly_image_limit }}</span></li>
                                     @foreach($plan->has_features as $feature)
                                     <li>{{ $feature }}</li>
                                     @endforeach
@@ -152,7 +152,7 @@
                         <div class="mb-0">
                             <button type="submit" class="btn btn-dark w-100 fw-bold" id="kt_subscriptions_create_button">
                                 {{-- Indicator label--}}
-                                <span class="indicator-label">@lang('word.confirm_and_pay')</span>
+                                <span class="indicator-label">@lang('wncms::word.confirm_and_pay')</span>
 
                                 {{-- Indicator progress--}}
                                 <span class="indicator-progress">Please wait...

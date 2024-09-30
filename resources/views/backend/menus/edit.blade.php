@@ -28,7 +28,7 @@
                     {{-- Accordion title --}}
                     <h2 class="accordion-header" id="wncms_accordion_header_{{ $tag_type_name }}">
                         <button class="accordion-button fw-bold text-white bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_{{ $tag_type_name }}" aria-expanded="true" aria-controls="menu_option_{{ $tag_type_name }}">
-                            @lang('word.'.$tag_type_name)
+                            @lang('wncms::word.'.$tag_type_name)
                         </button>
                     </h2>
 
@@ -38,11 +38,11 @@
                         <div class="accordion-body white-space-nowrap">
                             {{-- Add to menu button --}}
                             <div class="mb-3">
-                                <button class="btn btn-sm btn-secondary w-100 fw-bold add_to_menu">@lang('word.add_to_menu')</button>
+                                <button class="btn btn-sm btn-secondary w-100 fw-bold add_to_menu">@lang('wncms::word.add_to_menu')</button>
                             </div>
 
                             {{-- <div class="mb-3">
-                                <input class="form-control" type="text" name="test" value="test" placeholder="@lang('word.enter_keyword_to_search')">
+                                <input class="form-control" type="text" name="test" value="test" placeholder="@lang('wncms::word.enter_keyword_to_search')">
                             </div> --}}
 
                             {{-- Tag items --}}
@@ -60,7 +60,7 @@
             <div class="accordion-item">
                 <h2 class="accordion-header" id="wncms_accordion_page">
                     <button class="accordion-button fw-bold text-white bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_page" aria-expanded="true" aria-controls="menu_option_page">
-                        @lang('word.custom_page')
+                        @lang('wncms::word.custom_page')
                     </button>
                 </h2>
                 <div id="menu_option_page" class="menu_options accordion-collapse collapse" aria-labelledby="wncms_accordion_page" data-bs-parent="#wncms_accordion">
@@ -79,7 +79,7 @@
                                 @endforeach
                             </div>
 
-                            <div><button class="btn btn-sm btn-secondary w-100 mt-3 fw-bold add_to_menu">@lang('word.add_to_menu')</button></div>
+                            <div><button class="btn btn-sm btn-secondary w-100 mt-3 fw-bold add_to_menu">@lang('wncms::word.add_to_menu')</button></div>
                         </div>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
             <div class="accordion-item">
                 <h2 class="accordion-header" id="wncms_accordion_theme_page">
                     <button class="accordion-button fw-bold text-white bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_theme_page" aria-expanded="true" aria-controls="menu_option_theme_page">
-                        @lang('word.theme_page')
+                        @lang('wncms::word.theme_page')
                     </button>
                 </h2>
                 <div id="menu_option_theme_page" class="menu_options accordion-collapse collapse" aria-labelledby="wncms_accordion_theme_page" data-bs-parent="#wncms_accordion">
@@ -108,7 +108,7 @@
                             </div>
                         </div>
                         
-                        <button class="btn btn-sm btn-secondary w-100 mt-3 fw-bold add_theme_page_to_menu">@lang('word.add_to_menu')</button>
+                        <button class="btn btn-sm btn-secondary w-100 mt-3 fw-bold add_theme_page_to_menu">@lang('wncms::word.add_to_menu')</button>
                     </div>
                 </div>
             </div>
@@ -117,20 +117,20 @@
             <div class="accordion-item">
                 <h2 class="accordion-header" id="wncms_accordion_external_link">
                     <button class="accordion-button fw-bold text-white bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_external_link" aria-expanded="true" aria-controls="menu_option_external_link">
-                        @lang('word.external_link')
+                        @lang('wncms::word.external_link')
                     </button>
                 </h2>
                 <div id="menu_option_external_link" class="menu_options accordion-collapse collapse show" aria-labelledby="wncms_accordion_external_link" data-bs-parent="#wncms_accordion">
                     <div class="accordion-body mh-500px overflow-scroll white-space-nowrap">
                         <div class="form-group mb-3">
-                            <label class="form-label">@lang('word.title')</label>
+                            <label class="form-label">@lang('wncms::word.title')</label>
                             <input type="text" class="form-control form-control-sm" name="external_link_name" value="">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">@lang('word.url')</label>
+                            <label class="form-label">@lang('wncms::word.url')</label>
                             <input type="text" class="form-control form-control-sm" name="external_link_url" value="" placeholder="https://example.com">
                         </div>
-                        <button class="btn btn-sm btn-secondary w-100 mt-3 fw-bold add_external_link_to_menu">@lang('word.add_to_menu')</button>
+                        <button class="btn btn-sm btn-secondary w-100 mt-3 fw-bold add_external_link_to_menu">@lang('wncms::word.add_to_menu')</button>
                     </div>
                 </div>
             </div>
@@ -147,31 +147,31 @@
                 <div class="card-body p-2 p-md-5">
                     <div class="row">
                         <div class="col-6 mb-5">
-                            <label class="form-label fw-bold text-dark">@lang('word.website')</label>
+                            <label class="form-label fw-bold text-dark">@lang('wncms::word.website')</label>
                             <input type="text" class="form-control form-control-sm" value="{{ $menu->website?->domain }}" disabled>
                         </div>
     
                         <div class="col-6 mb-5">
-                            <label class="form-label fw-bold text-dark">@lang('word.menu_id')</label>
+                            <label class="form-label fw-bold text-dark">@lang('wncms::word.menu_id')</label>
                             <input type="text" class="form-control form-control-sm" value="{{ $menu->id }}" disabled>
                         </div>
                     </div>
 
                     <div class="mb-5">
-                        <label class="form-label fw-bold text-info">@lang('word.menu_name')</label>
+                        <label class="form-label fw-bold text-info">@lang('wncms::word.menu_name')</label>
                         <input type="text" class="form-control form-control-sm" name="name" value="{{ $menu->name }}" required>
                     </div>
 
-                    <label class="form-label fw-bold text-info">@lang('word.menu_items')</label>
+                    <label class="form-label fw-bold text-info">@lang('wncms::word.menu_items')</label>
                     <div class="d-flex">
-                        <button type="button" class="btn btn-sm btn-dark fw-bold dd_expand_all">@lang('word.expand_all')</button>
-                        <button type="button" class="btn btn-sm btn-dark fw-bold dd_collapse_all ms-1">@lang('word.collapse_all')</button>
+                        <button type="button" class="btn btn-sm btn-dark fw-bold dd_expand_all">@lang('wncms::word.expand_all')</button>
+                        <button type="button" class="btn btn-sm btn-dark fw-bold dd_collapse_all ms-1">@lang('wncms::word.collapse_all')</button>
                     </div>
                     <div class="dd" id="nestable-json"></div>
                 </div>
             </div>
 
-            <button class="btn btn-dark w-100 mt-5 update_menu" wncms-btn-loading>@lang('word.update')</button>
+            <button class="btn btn-dark w-100 mt-5 update_menu" wncms-btn-loading>@lang('wncms::word.update')</button>
 
         </form>
     </div>
@@ -182,7 +182,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">@lang('word.edit_menu_item')</h3>
+                <h3 class="modal-title">@lang('wncms::word.edit_menu_item')</h3>
 
                 <!--begin::Close-->
                 <div class="btn btn-icon btn-sm btn-danger ms-2" data-bs-dismiss="modal" aria-label="Close">
@@ -198,13 +198,13 @@
                     <div class="row">
                         <div class="col-6">
                             <div class="mb-3">
-                                <label for="menu_item_name" class="form-label">@lang('word.menu_id')</label>
+                                <label for="menu_item_name" class="form-label">@lang('wncms::word.menu_id')</label>
                                 <input type="text" class="form-control form-control-solid form-control-sm" id="modal_edit_menu_item_id" name="menu_item_id" readonly>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="mb-3">
-                                <label for="menu_item_url" class="form-label">@lang('word.menu_item_type')</label>
+                                <label for="menu_item_url" class="form-label">@lang('wncms::word.menu_item_type')</label>
                                 <input type="text" class="form-control form-control-solid form-control-sm" id="modal_edit_menu_item_type" name="menu_item_type" readonly>
                             </div>
                         </div>
@@ -213,13 +213,13 @@
                     <div class="row">
                         <div class="col-6">
                             <div class="mb-3">
-                                <label for="menu_item_url" class="form-label">@lang('word.menu_item_model_type')</label>
+                                <label for="menu_item_url" class="form-label">@lang('wncms::word.menu_item_model_type')</label>
                                 <input type="text" class="form-control form-control-solid form-control-sm" id="modal_edit_menu_item_model_type" name="menu_item_model_type" readonly>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="mb-3">
-                                <label for="menu_item_url" class="form-label">@lang('word.menu_item_model_id')</label>
+                                <label for="menu_item_url" class="form-label">@lang('wncms::word.menu_item_model_id')</label>
                                 <input type="text" class="form-control form-control-solid form-control-sm" id="modal_edit_menu_item_model_id" name="menu_item_model_id" readonly>
                             </div>
                         </div>
@@ -230,26 +230,26 @@
                         @foreach(wncms()->locale()->getSupportedLocales() as $locale_key => $locale)
                             <div class="col-6">
                                 <div class="mb-3">
-                                    <label for="menu_item_name" class="form-label">@lang('word.menu_item_name') <span class="text-muted">({{ $locale['native'] }})</span></label>
+                                    <label for="menu_item_name" class="form-label">@lang('wncms::word.menu_item_name') <span class="text-muted">({{ $locale['native'] }})</span></label>
                                     <input type="text" class="form-control form-control-sm modal_edit_menu_item_name" id="modal_edit_menu_item_name" name="menu_item_name[{{ $locale_key }}]">
                                 </div>
                             </div>
                         @endforeach
                         <div class="col-12 mb-3">
-                            <button class="btn btn-sm btn-dark fw-bold w-100 btn-fetch-tag-languages" type="button" data-tag-id style="display: none">@lang('word.fetch_tag_languages')</button>
+                            <button class="btn btn-sm btn-dark fw-bold w-100 btn-fetch-tag-languages" type="button" data-tag-id style="display: none">@lang('wncms::word.fetch_tag_languages')</button>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-6">
                             <div class="mb-5">
-                                <label for="menu_item_url" class="form-label">@lang('word.menu_item_url')</label>
+                                <label for="menu_item_url" class="form-label">@lang('wncms::word.menu_item_url')</label>
                                 <input type="text" class="form-control form-control-sm" id="modal_edit_menu_item_url" name="menu_item_url">
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="mb-5">
-                                <label for="menu_item_order" class="form-label">@lang('word.order')</label>
+                                <label for="menu_item_order" class="form-label">@lang('wncms::word.order')</label>
                                 <input type="text" class="form-control form-control-sm" id="modal_edit_menu_item_order" name="menu_item_order">
                             </div>
                         </div>
@@ -258,7 +258,7 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="mb-5">
-                                <label for="menu_item_description" class="form-label">@lang('word.description')</label>
+                                <label for="menu_item_description" class="form-label">@lang('wncms::word.description')</label>
                                 <input type="text" class="form-control form-control-sm" id="modal_edit_menu_item_description" name="menu_item_description">
                             </div>
                         </div>
@@ -267,31 +267,31 @@
                     <div class="row">
                         <div class="col-6">
                             <div class="mb-5">
-                                <label for="menu_item_icon" class="form-label">@lang('word.menu_item_icon')</label>
+                                <label for="menu_item_icon" class="form-label">@lang('wncms::word.menu_item_icon')</label>
                                 <input type="text" class="form-control form-control-sm" id="modal_edit_menu_item_icon" name="menu_item_icon">
                             </div>
                             <div class="mb-5">
-                                <label for="menu_item_thumbnail" class="form-label">@lang('word.thumbnail')</label>
+                                <label for="menu_item_thumbnail" class="form-label">@lang('wncms::word.thumbnail')</label>
                                 <input type="file" class="form-control" id="modal_edit_menu_item_thumbnail" name="menu_item_thumbnail">
                             </div>
                         </div>
 
                         <div class="col-6">
-                            <label class="form-label">@lang('word.current_thumbnail')</label>
+                            <label class="form-label">@lang('wncms::word.current_thumbnail')</label>
                             <img id="current_menu_item_thumbnail" class="w-100" src="{{ asset('wncms/images/placeholders/upload.png') }}" alt="">
                         </div>
                     </div>
 
                     <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" id="modal_edit_menu_item_is_new_window" name="menu_item_new_window">
-                        <label class="form-check-label" for="modal_edit_menu_item_is_new_window">@lang('word.new_window')</label>
+                        <label class="form-check-label" for="modal_edit_menu_item_is_new_window">@lang('wncms::word.new_window')</label>
                     </div>
 
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('word.cancel')</button>
-                <button type="button" class="btn btn-primary" id="modal_submit_form_edit_menu_item" wncms-btn-loading>@lang('word.edit')</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('wncms::word.cancel')</button>
+                <button type="button" class="btn btn-primary" id="modal_submit_form_edit_menu_item" wncms-btn-loading>@lang('wncms::word.edit')</button>
             </div>
         </div>
     </div>

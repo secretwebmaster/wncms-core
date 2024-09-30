@@ -14,7 +14,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -24,7 +24,7 @@
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                            <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
                 @endforeach
@@ -48,31 +48,31 @@
                 <table class="table table-hover table-sm align-middle text-nowrap mb-0" id="kt_ecommerce_report_sales_table">
                     <thead class="table-dark">
                         <tr class="fw-bold gs-0">
-                            <th>@lang('word.action')</th>
-                            <th>@lang('word.user_id')</th>
-                            <th>@lang('word.website')</th>
-                            <th>@lang('word.username')</th>
-                            <th>@lang('word.email')</th>
-                            <th>@lang('word.role')</th>
+                            <th>@lang('wncms::word.action')</th>
+                            <th>@lang('wncms::word.user_id')</th>
+                            <th>@lang('wncms::word.website')</th>
+                            <th>@lang('wncms::word.username')</th>
+                            <th>@lang('wncms::word.email')</th>
+                            <th>@lang('wncms::word.role')</th>
 
                             @if(request()->show_detail)
-                            <th>@lang('word.api_token')</th>
-                            <th>@lang('word.first_name')</th>
-                            <th>@lang('word.last_name')</th>
-                            <th>@lang('word.email_verified_at')</th>
-                            <th>@lang('word.last_login_at')</th>
+                            <th>@lang('wncms::word.api_token')</th>
+                            <th>@lang('wncms::word.first_name')</th>
+                            <th>@lang('wncms::word.last_name')</th>
+                            <th>@lang('wncms::word.email_verified_at')</th>
+                            <th>@lang('wncms::word.last_login_at')</th>
                             @endif
                     
                             @if(request()->show_detail)
-                            <th>@lang('word.locale')</th>
-                            <th>@lang('word.timezone')</th>
-                            <th>@lang('word.social_login_type')</th>
-                            <th>@lang('word.social_login_id')</th>
+                            <th>@lang('wncms::word.locale')</th>
+                            <th>@lang('wncms::word.timezone')</th>
+                            <th>@lang('wncms::word.social_login_type')</th>
+                            <th>@lang('wncms::word.social_login_id')</th>
                             @endif
                             
-                            <th>@lang('word.credit')</th>
-                            <th>@lang('word.created_at')</th>
-                            <th>@lang('word.updated_at')</th>
+                            <th>@lang('wncms::word.credit')</th>
+                            <th>@lang('wncms::word.created_at')</th>
+                            <th>@lang('wncms::word.updated_at')</th>
                         </tr>
                     </thead>
                     <tbody class="fw-semibold text-gray-600">
@@ -80,7 +80,7 @@
                         <tr>
                             <td>
                                 {{-- @include('wncms::backend.users.parts.modal_recharge_by_admin', ['user' => $user]) --}}
-                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('users.edit' , $user) }}">@lang('word.edit')</a>
+                                <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('users.edit' , $user) }}">@lang('wncms::word.edit')</a>
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$user , 'route' => route('users.destroy' , $user)])
 
                                 {{-- @if($user->trashed())

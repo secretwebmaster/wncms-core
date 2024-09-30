@@ -12,7 +12,7 @@
 
                 {{-- Notice --}}
                 <div class="mb-3">
-                    <h4 class="text-gray-900 fw-bold">@lang('word.your_api_token')</h4>
+                    <h4 class="text-gray-900 fw-bold">@lang('wncms::word.your_api_token')</h4>
 
                     {{-- Content --}}
                     <div class="d-flex flex-stack flex-grow-1 flex-wrap flex-md-nowrap align-items-center">
@@ -21,10 +21,10 @@
                                 <input class="form-control w-100" type="text" value="{{ auth()->user()->api_token }}" disabled>
                             </div>
                         </div>
-                        <a href="javascript:;" class="btn btn-primary px-6 align-self-center text-nowrap fw-bold" data-bs-toggle="modal" data-bs-target="#kt_modal_two_factor_authentication">@lang('word.copy')</a>
+                        <a href="javascript:;" class="btn btn-primary px-6 align-self-center text-nowrap fw-bold" data-bs-toggle="modal" data-bs-target="#kt_modal_two_factor_authentication">@lang('wncms::word.copy')</a>
                     </div>
 
-                    <h4 class="text-gray-900 fw-bold mt-10">@lang('word.usage')</h4>
+                    <h4 class="text-gray-900 fw-bold mt-10">@lang('wncms::word.usage')</h4>
 
                     <div class="card card-flush overflow-hidden h-lg-100">
                         <div class="card-header pt-5">

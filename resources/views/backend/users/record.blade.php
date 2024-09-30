@@ -20,7 +20,7 @@
     {{-- Card header --}}
     <div class="card-header border-0 cursor-pointer px-3 px-md-9" role="button" data-bs-toggle="collapse" data-bs-target="#kt_account_signin_method">
         <div class="card-title m-0">
-            <h3 class="fw-bold m-0">@lang('word.invite_friedns_to_get_reward')</h3>
+            <h3 class="fw-bold m-0">@lang('wncms::word.invite_friedns_to_get_reward')</h3>
         </div>
     </div>
 
@@ -41,15 +41,15 @@
                                         <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                     </div>
                                 </th>
-                                <th>@lang('word.action')</th>
-                                <th>@lang('word.id')</th>
-                                <th>@lang('word.name')</th>
+                                <th>@lang('wncms::word.action')</th>
+                                <th>@lang('wncms::word.id')</th>
+                                <th>@lang('wncms::word.name')</th>
 
                                 @if(request()->show_detail)
-                                <th>@lang('word.updated_at')</th>
+                                <th>@lang('wncms::word.updated_at')</th>
                                 @endif
 
-                                <th>@lang('word.created_at')</th>
+                                <th>@lang('wncms::word.created_at')</th>
                             </tr>
                         </thead>
                         <tbody id="table_with_checks" class="fw-semibold text-gray-600">
@@ -61,7 +61,7 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('users.edit' , $user) }}">@lang('word.edit')</a>
+                                    <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('users.edit' , $user) }}">@lang('wncms::word.edit')</a>
                                     @include('wncms::backend.parts.modal_delete' , ['model'=>$user , 'route' => route('users.destroy' , $user), 'btn_class' => 'px-2 py-1'])
                                 </td>
                                 <td>{{ $user->id }}</td>

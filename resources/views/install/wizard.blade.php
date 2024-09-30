@@ -1,7 +1,7 @@
 @extends('wncms::layouts.install')
 
 @section('title')
-@lang('installer_messages.environment.wizard.title')
+@lang('wncms::installer_messages.environment.wizard.title')
 @endsection
 
 
@@ -232,14 +232,14 @@
                 <button class="button btn-submit wncms-install"
                     wncms-btn-ajax
                     data-form="form-install-wncms"
-                    data-original-text="@lang('word.install')"
-                    data-loading-text="@lang('word.installing').."
-                    data-success-text="@lang('word.successfully_installed')"
-                    data-fail-text="@lang('word.install_again')"
+                    data-original-text="@lang('wncms::word.install')"
+                    data-loading-text="@lang('wncms::word.installing').."
+                    data-success-text="@lang('wncms::word.successfully_installed')"
+                    data-fail-text="@lang('wncms::word.install_again')"
                     data-route="{{ route('installer.wizard.install') }}"
                     data-method="POST"
                     type="button">
-                    <span>@lang('word.install')</span>
+                    <span>@lang('wncms::word.install')</span>
                     <i class="fa fa-angle-right fa-fw" aria-hidden="true"></i>
                 </button>
             </div>

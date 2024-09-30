@@ -17,7 +17,7 @@
                 {{-- @if(!empty($exampleItems))
                     <div class="col-6 col-md-auto mb-3 ms-0">
                         <select name="example_item_id" class="form-select form-select-sm">
-                            <option value="">@lang('word.select')@lang('word.example_item')</option>
+                            <option value="">@lang('wncms::word.select')@lang('wncms::word.example_item')</option>
                             @foreach($exampleItems as $exampleItem)
                                 <option value="{{ $exampleItem->id }}" @if($exampleItem->id == request()->example_item_id) selected @endif>{{ $exampleItem->name }}</option>
                             @endforeach
@@ -26,7 +26,7 @@
                 @endif --}}
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -36,7 +36,7 @@
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                            <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
                 @endforeach
@@ -72,22 +72,22 @@
                                     <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th>
-                            <th>@lang('word.action')</th>
-                            <th>@lang('word.id')</th>
-                            <th>@lang('word.website')</th>
-                            <th>@lang('word.status')</th>
-                            <th>@lang('word.slug')</th>
-                            <th>@lang('word.question')</th>
-                            <th>@lang('word.answer')</th>
-                            <th>@lang('word.faq_tag')</th>
-                            <th>@lang('word.label')</th>
-                            <th>@lang('word.remark')</th>
-                            <th>@lang('word.order')</th>
-                            <th>@lang('word.is_pinned')</th>
-                            <th>@lang('word.created_at')</th>
+                            <th>@lang('wncms::word.action')</th>
+                            <th>@lang('wncms::word.id')</th>
+                            <th>@lang('wncms::word.website')</th>
+                            <th>@lang('wncms::word.status')</th>
+                            <th>@lang('wncms::word.slug')</th>
+                            <th>@lang('wncms::word.question')</th>
+                            <th>@lang('wncms::word.answer')</th>
+                            <th>@lang('wncms::word.faq_tag')</th>
+                            <th>@lang('wncms::word.label')</th>
+                            <th>@lang('wncms::word.remark')</th>
+                            <th>@lang('wncms::word.order')</th>
+                            <th>@lang('wncms::word.is_pinned')</th>
+                            <th>@lang('wncms::word.created_at')</th>
 
                             @if(request()->show_detail)
-                            <th>@lang('word.updated_at')</th>
+                            <th>@lang('wncms::word.updated_at')</th>
                             @endif
                             
                         </tr>
@@ -105,8 +105,8 @@
                                 </td>
                                 {{-- Actions --}}
                                 <td>
-                                    <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('faqs.edit' , $faq) }}">@lang('word.edit')</a>
-                                    <a class="btn btn-sm btn-info fw-bold px-2 py-1" href="{{ route('faqs.clone' , $faq) }}">@lang('word.clone')</a>
+                                    <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('faqs.edit' , $faq) }}">@lang('wncms::word.edit')</a>
+                                    <a class="btn btn-sm btn-info fw-bold px-2 py-1" href="{{ route('faqs.clone' , $faq) }}">@lang('wncms::word.clone')</a>
                                     @include('wncms::backend.parts.modal_delete' , ['model'=>$faq , 'route' => route('faqs.destroy' , $faq), 'btn_class' => 'px-2 py-1'])
                                 </td>
 

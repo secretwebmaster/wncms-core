@@ -78,7 +78,7 @@
                         @if($d->input_class){{ $d->input_class }} @endif" 
                     @if($d->required) required @endif>
                     
-                    <option value="{{ $input_data['empty_value'] ?? '' }}">@lang('word.please_select_model', ['model_name' => __('word.' . $d->model_name )])</option>
+                    <option value="{{ $input_data['empty_value'] ?? '' }}">@lang('wncms::word.please_select_model', ['model_name' => __('word.' . $d->model_name )])</option>
                     @foreach($d->options as $option)
                         <option 
                             value="{{ $d->is_model ? $option->{$d->value_column} : $option }}" 
@@ -116,7 +116,7 @@
                             </span>
                         </div>
 
-                        <div class="form-text">@lang('word.allow_file_types', ['types' => 'png, jpg, jpeg, gif'])</div>
+                        <div class="form-text">@lang('wncms::word.allow_file_types', ['types' => 'png, jpg, jpeg, gif'])</div>
                     </div>
                 </div>
 

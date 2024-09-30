@@ -1,4 +1,4 @@
-<button wncms-check-all data-check-target="{{ $check_all_target_class ?? 'item_of_check_all' }}" type="button" class="btn btn-sm btn-dark {{ $custom_class ?? 'px-2 py-1' }} fw-bold">@lang('word.check_all')</button>
+<button wncms-check-all data-check-target="{{ $check_all_target_class ?? 'item_of_check_all' }}" type="button" class="btn btn-sm btn-dark {{ $custom_class ?? 'px-2 py-1' }} fw-bold">@lang('wncms::word.check_all')</button>
 @push('foot_js')
 <script>
     $('[wncms-check-all]').on('click', function(){

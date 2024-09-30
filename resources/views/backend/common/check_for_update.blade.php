@@ -2,7 +2,7 @@
     @if(!request()->routeIs('updates*'))
         <script>
             $(document).ready(function() {
-                console.log("@lang('word.checking_for_updates')");
+                console.log("@lang('wncms::word.checking_for_updates')");
                 $.ajax({
                     headers:{'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                     url: "{{ route('updates.check') }}",

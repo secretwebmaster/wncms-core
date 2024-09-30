@@ -8,7 +8,7 @@
         {{-- Card header --}}
         <div class="card-header border-0 cursor-pointer px-3 px-md-9" role="button" data-bs-toggle="collapse" data-bs-target="#kt_account_signin_method">
             <div class="card-title m-0">
-                <h3 class="fw-bold m-0">@lang('word.invite_friedns_to_get_reward')</h3>
+                <h3 class="fw-bold m-0">@lang('wncms::word.invite_friedns_to_get_reward')</h3>
             </div>
         </div>
 
@@ -19,7 +19,7 @@
 
                 {{-- Notice --}}
                 <div class="mb-3">
-                    <h4 class="text-gray-900 fw-bold">@lang('word.your_referral_link')</h4>
+                    <h4 class="text-gray-900 fw-bold">@lang('wncms::word.your_referral_link')</h4>
                     <div class="notice d-flex bg-light-primary rounded border-primary border border-dashed p-6">
                         {{-- Icon --}}
                         {{-- Svg Icon | path: icons/duotune/general/gen048.svg --}}
@@ -36,7 +36,7 @@
                                 <div class="fs-6 text-gray-700 pe-7 fw-bold"><input class="form-control w-100" type="text" value="{{ route('register')  . "?ref=" . auth()->id() }}"></div>
                             </div>
 
-                            <button class="btn btn-primary px-6 align-self-center text-nowrap fw-bold" btn-copy-to-clipboard data-value="{{ route('register')  . "?ref=" . auth()->id() }}" data-original-text="@lang('word.click_to_copy')" data-copied-text="@lang('word.copied')">@lang('word.click_to_copy')</button>
+                            <button class="btn btn-primary px-6 align-self-center text-nowrap fw-bold" btn-copy-to-clipboard data-value="{{ route('register')  . "?ref=" . auth()->id() }}" data-original-text="@lang('wncms::word.click_to_copy')" data-copied-text="@lang('wncms::word.copied')">@lang('wncms::word.click_to_copy')</button>
                         </div>
 
                     </div>
@@ -49,14 +49,14 @@
                             <thead class="table-dark">
                                 <tr class="text-start fw-bold gs-0">
 
-                                    <th>@lang('word.id')</th>
-                                    <th>@lang('word.name')</th>
+                                    <th>@lang('wncms::word.id')</th>
+                                    <th>@lang('wncms::word.name')</th>
 
                                     @if(request()->show_detail)
-                                    <th>@lang('word.updated_at')</th>
+                                    <th>@lang('wncms::word.updated_at')</th>
                                     @endif
 
-                                    <th>@lang('word.created_at')</th>
+                                    <th>@lang('wncms::word.created_at')</th>
                                 </tr>
                             </thead>
                             <tbody id="table_with_checks" class="fw-semibold text-gray-600">

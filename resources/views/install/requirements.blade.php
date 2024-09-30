@@ -16,7 +16,7 @@
                 <strong>{{ $type }}</strong>
                 @if($type == 'php')
                     <strong>
-                        <small>(version {{ $phpSupportInfo['minimum'] }} @lang('word.is_reuired'))</small>
+                        <small>(version {{ $phpSupportInfo['minimum'] }} @lang('wncms::word.is_reuired'))</small>
                     </strong>
                     <span class="float-right">
                         <strong>
@@ -26,7 +26,7 @@
                     </span>
                 @elseif($type == 'php_functions')
                     <strong>
-                        <small>(@lang('installer_messages.please_enable_these_php_functions'))</small>
+                        <small>(@lang('wncms::installer_messages.please_enable_these_php_functions'))</small>
                     </strong>
                 @endif
             </li>

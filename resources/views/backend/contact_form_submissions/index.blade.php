@@ -11,7 +11,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -21,7 +21,7 @@
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
-                            <label class="form-check-label fw-bold ms-1">@lang('word.' . $show)</label>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
                 @endforeach
@@ -47,7 +47,7 @@
                 data-param-model="ContactFormSubmission"
                 data-param-column="status"
                 data-param-value="read"
-            >@lang('word.bulk_set_read')</button>
+            >@lang('wncms::word.bulk_set_read')</button>
 
             <button class="btn btn-sm btn-info fw-bold mb-1"
                 wncms-btn-ajax
@@ -59,7 +59,7 @@
                 data-param-model="ContactFormSubmission"
                 data-param-column="status"
                 data-param-value="replied"
-            >@lang('word.bulk_set_replied')</button>
+            >@lang('wncms::word.bulk_set_replied')</button>
 
             <button class="btn btn-sm btn-danger fw-bold mb-1"
                 wncms-btn-ajax
@@ -71,7 +71,7 @@
                 data-param-model="ContactFormSubmission"
                 data-param-column="status"
                 data-param-value="unread"
-            >@lang('word.bulk_set_unread')</button>
+            >@lang('wncms::word.bulk_set_unread')</button>
 
             @include('wncms::backend.common.export_index_data', [
                 'modelName' => 'contact_form_submissions',
@@ -92,21 +92,21 @@
                                     <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th>
-                            <th>@lang('word.action')</th>
-                            <th>@lang('word.id')</th>
-                            <th>@lang('word.status')</th>
-                            <th>@lang('word.contact_form_id')</th>
-                            <th>@lang('word.content')</th>
+                            <th>@lang('wncms::word.action')</th>
+                            <th>@lang('wncms::word.id')</th>
+                            <th>@lang('wncms::word.status')</th>
+                            <th>@lang('wncms::word.contact_form_id')</th>
+                            <th>@lang('wncms::word.content')</th>
                             
                             @foreach($allKeys as $key)
                             <th>{{ $key }}</th>
                             @endforeach
 
                             @if(request()->show_detail)
-                            <th>@lang('word.updated_at')</th>
+                            <th>@lang('wncms::word.updated_at')</th>
                             @endif
                             
-                            <th>@lang('word.created_at')</th>
+                            <th>@lang('wncms::word.created_at')</th>
                         </tr>
                     </thead>
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600 align-top">
@@ -126,7 +126,7 @@
                                     data-param-model="ContactFormSubmission" 
                                     data-param-column="status" 
                                     data-param-value="read"
-                                >@lang('word.mark_read')</button>
+                                >@lang('wncms::word.mark_read')</button>
 
                                 <button class="btn btn-sm btn-info fw-bold px-2 py-1" 
                                     wncms-btn-ajax
@@ -136,7 +136,7 @@
                                     data-param-model="ContactFormSubmission" 
                                     data-param-column="status" 
                                     data-param-value="replied"
-                                >@lang('word.mark_replied')</button>
+                                >@lang('wncms::word.mark_replied')</button>
 
                                 <button class="btn btn-sm btn-danger fw-bold px-2 py-1" 
                                     wncms-btn-ajax
@@ -146,7 +146,7 @@
                                     data-param-model="ContactFormSubmission" 
                                     data-param-column="status" 
                                     data-param-value="unread"
-                                >@lang('word.mark_unread')</button>
+                                >@lang('wncms::word.mark_unread')</button>
 
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$contact_form_submission , 'route' => route('contact_form_submissions.destroy' , $contact_form_submission), 'btn_class' => 'px-2 py-1'])
                             </td>
@@ -159,19 +159,19 @@
                             </td>
                             <td>
                                 {{-- view_contact_form_content_detail --}}
-                                <button type="button" class="btn btn-sm px-2 py-1 btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modal_view_contact_form_content_detail_{{ $contact_form_submission->id }}">@lang('word.view_contact_form_content_detail')</button>
+                                <button type="button" class="btn btn-sm px-2 py-1 btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modal_view_contact_form_content_detail_{{ $contact_form_submission->id }}">@lang('wncms::word.view_contact_form_content_detail')</button>
                                 <div class="modal fade" tabindex="-1" id="modal_view_contact_form_content_detail_{{ $contact_form_submission->id }}">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h3 class="modal-title">@lang('word.view_contact_form_content_detail')</h3>
+                                                <h3 class="modal-title">@lang('wncms::word.view_contact_form_content_detail')</h3>
                                             </div>
                                 
                                             <div class="modal-body">
                                                 <table class="table">
                                                     <thead>
-                                                        <td>@lang('word.key')</td>
-                                                        <td>@lang('word.value')</td>
+                                                        <td>@lang('wncms::word.key')</td>
+                                                        <td>@lang('wncms::word.value')</td>
                                                     </thead>
                                                     <tbody>
 
@@ -193,8 +193,8 @@
                                             </div>
                                 
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('word.close')</button>
-                                                <button type="button" class="btn btn-primary fw-bold">@lang('word.submit')</button>
+                                                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                                <button type="button" class="btn btn-primary fw-bold">@lang('wncms::word.submit')</button>
                                             </div>
                                         </div>
                                     </div>

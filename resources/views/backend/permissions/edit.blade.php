@@ -9,7 +9,7 @@
         <div class="card shadow-sm">
             <div class="card-header border-0 cursor-pointer px-3 px-md-9">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">@lang('word.edit_model', ['model_name' => __('word.permission')])</h3>
+                    <h3 class="fw-bolder m-0">@lang('wncms::word.edit_model', ['model_name' => __('word.permission')])</h3>
                 </div>
             </div>
 
@@ -21,7 +21,7 @@
 
                         {{-- name --}}
                         <div class="row mb-6">
-                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.name')</label>
+                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.name')</label>
                             <div class="col-lg-9 fv-row">
                                 <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name', $permission?->name) }}"/>
                             </div>
@@ -29,7 +29,7 @@
 
                         {{-- roles --}}
                         <div class="row mb-3">
-                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('word.roles')</label>
+                            <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.roles')</label>
                             <div class="col-lg-9 fv-row">
                                 <div class="row align-items-center mt-3">
                                     @foreach($roles as $index => $role)

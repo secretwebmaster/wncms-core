@@ -12,7 +12,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
         </form>
@@ -40,15 +40,15 @@
                                     <input class="form-check-input" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
                             </th>
-                            <th>@lang('word.action')</th>
+                            <th>@lang('wncms::word.action')</th>
                             <th>#</th>
-                            <th>@lang('word.type')</th>
-                            <th>@lang('word.sub_type')</th>
-                            <th>@lang('word.status')</th>
-                            <th>@lang('word.message')</th>
-                            <th>@lang('word.detail')</th>
-                            <th>@lang('word.created_at')</th>
-                            <th>@lang('word.action')</th>
+                            <th>@lang('wncms::word.type')</th>
+                            <th>@lang('wncms::word.sub_type')</th>
+                            <th>@lang('wncms::word.status')</th>
+                            <th>@lang('wncms::word.message')</th>
+                            <th>@lang('wncms::word.detail')</th>
+                            <th>@lang('wncms::word.created_at')</th>
+                            <th>@lang('wncms::word.action')</th>
                         </tr>
                     </thead>
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">
@@ -60,12 +60,12 @@
                                 </div>
                             </td>
                             <td>
-                                <button type="button" class="btn btn-sm btn-primary fw-bold px-2 py-1" data-bs-toggle="modal" data-bs-target="#modal_show_record_detail_{{ $record->id }}">@lang('word.show')</button>
+                                <button type="button" class="btn btn-sm btn-primary fw-bold px-2 py-1" data-bs-toggle="modal" data-bs-target="#modal_show_record_detail_{{ $record->id }}">@lang('wncms::word.show')</button>
                                 <div class="modal fade" tabindex="-1" id="modal_show_record_detail_{{ $record->id }}">
                                     <div class="modal-dialog  modal-fullscreen">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h3 class="modal-title">@lang('word.record') #{{ $record->id }}</h3>
+                                                <h3 class="modal-title">@lang('wncms::word.record') #{{ $record->id }}</h3>
                                             </div>
                                 
                                             <div class="modal-body">
@@ -102,8 +102,8 @@
                                             </div>
                                 
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('word.close')</button>
-                                                <button type="button" class="btn btn-primary">@lang('word.submit')</button>
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                                <button type="button" class="btn btn-primary">@lang('wncms::word.submit')</button>
                                             </div>
                                         </div>
                                     </div>
@@ -117,7 +117,7 @@
                             <td>{{ $record->detail }}</td>
                             <td>{{ $record->created_at }}</td>
                             <td>
-                                <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('records.edit' , $record) }}">@lang('word.edit')</a>
+                                <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('records.edit' , $record) }}">@lang('wncms::word.edit')</a>
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$record , 'route' => route('records.destroy' , $record)])
                             </td>
                         <tr>

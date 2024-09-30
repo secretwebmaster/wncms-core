@@ -14,11 +14,11 @@
 @include('wncms::backend.parts.message')
 
 <div class="row mx-auto mb-3 gx-1">
-    <div class="ms-0 mb-1 mb-md-0 col-12 col-md-auto"><a href="{{ wncms_add_https($_website->domain) }}" target="_blank" class="btn btn-sm btn-info fw-bold text-truncate w-100">@lang('word.current_website'): {{ $_website->site_name }} ({{ $_website->domain }})</a></div>
-    <div class="ms-0 ms-md-1 mb-1 mb-md-0 col-6 col-md-auto"><span class="btn btn-sm btn-danger fw-bold text-truncate w-100">@lang('word.current_theme'): {{ $_website->theme }}</span></div>
-    <div class="ms-0 ms-md-1 mb-1 mb-md-0 col-6 col-md-auto"><a href="{{ route('websites.edit', $_website) }}" class="btn btn-sm btn-primary fw-bold text-truncate w-100">@lang('word.switch_to_edit_website')</a></div>
-    <div class="ms-0 ms-md-1 mb-1 mb-md-0 col-6 col-md-auto"><button type="button" class="btn btn-sm btn-primary fw-bold text-truncate w-100" data-bs-toggle="modal" data-bs-target="#clone_theme_options_from_another_website">@lang('word.clone_theme_options_from_another_website')</button></div>
-    <div class="ms-0 ms-md-1 mb-1 mb-md-0 col-6 col-md-auto"><button type="button" class="btn btn-sm btn-primary fw-bold text-truncate w-100" data-bs-toggle="modal" data-bs-target="#modal_import_default_theme_option">@lang('word.import_default_theme_option')</button></div>
+    <div class="ms-0 mb-1 mb-md-0 col-12 col-md-auto"><a href="{{ wncms_add_https($_website->domain) }}" target="_blank" class="btn btn-sm btn-info fw-bold text-truncate w-100">@lang('wncms::word.current_website'): {{ $_website->site_name }} ({{ $_website->domain }})</a></div>
+    <div class="ms-0 ms-md-1 mb-1 mb-md-0 col-6 col-md-auto"><span class="btn btn-sm btn-danger fw-bold text-truncate w-100">@lang('wncms::word.current_theme'): {{ $_website->theme }}</span></div>
+    <div class="ms-0 ms-md-1 mb-1 mb-md-0 col-6 col-md-auto"><a href="{{ route('websites.edit', $_website) }}" class="btn btn-sm btn-primary fw-bold text-truncate w-100">@lang('wncms::word.switch_to_edit_website')</a></div>
+    <div class="ms-0 ms-md-1 mb-1 mb-md-0 col-6 col-md-auto"><button type="button" class="btn btn-sm btn-primary fw-bold text-truncate w-100" data-bs-toggle="modal" data-bs-target="#clone_theme_options_from_another_website">@lang('wncms::word.clone_theme_options_from_another_website')</button></div>
+    <div class="ms-0 ms-md-1 mb-1 mb-md-0 col-6 col-md-auto"><button type="button" class="btn btn-sm btn-primary fw-bold text-truncate w-100" data-bs-toggle="modal" data-bs-target="#modal_import_default_theme_option">@lang('wncms::word.import_default_theme_option')</button></div>
 </div>
 
 <form class="form" method="POST" action="{{ route('websites.theme.options.update' , $_website) }}" enctype="multipart/form-data">
@@ -70,25 +70,25 @@
             <form id="form_clone_theme_options_from_another_website" action="{{ route('websites.theme.clone', $_website) }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h3 class="modal-title">@lang('word.clone_theme_options_from_another_website')</h3>
+                    <h3 class="modal-title">@lang('wncms::word.clone_theme_options_from_another_website')</h3>
                 </div>
     
                 <div class="modal-body">
                     @if($websites->isNotEmpty())
                         <select name="from_website_id" id="" class="form-select">
-                            <option value="">@lang('word.please_select')</option>
+                            <option value="">@lang('wncms::word.please_select')</option>
                             @foreach($websites as $websiteOption)
                             <option value="{{ $websiteOption->id }}">{{ $websiteOption->domain }}</option>
                             @endforeach
                         </select>
                     @else
-                        <p>@lang('word.no_other_websites_using_this_theme')</p>
+                        <p>@lang('wncms::word.no_other_websites_using_this_theme')</p>
                     @endif
                 </div>
     
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('word.close')</button>
-                    <button type="submit" class="btn btn-primary" form-id="form_clone_theme_options_from_another_website">@lang('word.submit')</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                    <button type="submit" class="btn btn-primary" form-id="form_clone_theme_options_from_another_website">@lang('wncms::word.submit')</button>
                 </div>
             </form>
            
@@ -104,17 +104,17 @@
                 @csrf
                 <input type="hidden" name="website_id" value="{{ $_website->id }}">
                 <div class="modal-header">
-                    <h3 class="modal-title">@lang('word.import_default_theme_option')</h3>
+                    <h3 class="modal-title">@lang('wncms::word.import_default_theme_option')</h3>
                 </div>
     
                 <div class="modal-body">
-                    <div class="alert alert-danger">@lang('word.importing_default_theme_options_will_override_your_current_options')</div>
-                    <input type="text" class="form-control" name="confirmation" placeholder="@lang('word.enter_default_to_confirm')" >
+                    <div class="alert alert-danger">@lang('wncms::word.importing_default_theme_options_will_override_your_current_options')</div>
+                    <input type="text" class="form-control" name="confirmation" placeholder="@lang('wncms::word.enter_default_to_confirm')" >
                 </div>
     
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('word.close')</button>
-                    <button type="submit" class="btn btn-danger fw-bold" form-id="form_import_default_theme_option">@lang('word.confirm')</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                    <button type="submit" class="btn btn-danger fw-bold" form-id="form_import_default_theme_option">@lang('wncms::word.confirm')</button>
                 </div>
             </form>
            

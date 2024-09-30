@@ -19,13 +19,13 @@
 
                 {{-- Status --}}
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label  fw-bold fs-6">@lang('word.status')</label>
+                    <label class="col-lg-4 col-form-label  fw-bold fs-6">@lang('wncms::word.status')</label>
 
                     <div class="col-lg-8 fv-row">
                         <select name="status" class="form-select form-select-sm">
-                            <option value="">@lang('word.please_select')</option>
+                            <option value="">@lang('wncms::word.please_select')</option>
                             @foreach(['active','paused','suspended','pending'] as $key => $value)
-                                <option  value="{{ $value }}" {{ $value === $contact_form_submission->status ? 'selected' :'' }}><b>@lang('word.' . $value)</b></option>
+                                <option  value="{{ $value }}" {{ $value === $contact_form_submission->status ? 'selected' :'' }}><b>@lang('wncms::word.' . $value)</b></option>
                             @endforeach
                         </select>
                     </div>
@@ -33,7 +33,7 @@
 
                 {{-- 分類 --}}
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label  fw-bold fs-6">@lang('word.status')</label>
+                    <label class="col-lg-4 col-form-label  fw-bold fs-6">@lang('wncms::word.status')</label>
                     <div class="col-lg-8 fv-row">
                         <input class="form-control" name="link_categories" value="{{ implode(',', $contact_form_submission->tagsWithType('contact_form_submission_category')->pluck('name')->toArray()) }}" id="link_categories"/>
                     </div>
@@ -63,7 +63,7 @@
 
                 {{-- Site Logo --}}
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.site_logo')</label>
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.site_logo')</label>
           
                     <div class="col-lg-8">
                         <div class="image-input image-input-outline {{ $contact_form_submission->getFirstMediaUrl('site_logo') ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center;">
@@ -90,42 +90,42 @@
                 </div>
 
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.site_name')</label>
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.site_name')</label>
                     <div class="col-lg-8 fv-row">
                         <input type="text" name="site_name" class="form-control form-control-sm" value="{{ $contact_form_submission->site_name ?? old('site_name') }}"/>
                     </div>
                 </div>
 
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.site_url')</label>
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.site_url')</label>
                     <div class="col-lg-8 fv-row">
                         <input type="text" name="site_url" class="form-control form-control-sm" value="{{ $contact_form_submission->site_url ?? old('site_url') }}"/>
                     </div>
                 </div>
 
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.site_slogan')</label>
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.site_slogan')</label>
                     <div class="col-lg-8 fv-row">
                         <input type="text" name="site_slogan" class="form-control form-control-sm" value="{{  $contact_form_submission->site_slogan ?? old('site_slogan') }}"/>
                     </div>
                 </div>
 
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.site_description')</label>
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.site_description')</label>
                     <div class="col-lg-8 fv-row">
                         <textarea id="kt_docs_tinymce_basic" name="site_description" class="tox-target">{{ $contact_form_submission->site_description ?? old('site_description') }}</textarea>
                     </div>
                 </div>
 
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.order')</label>
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.order')</label>
                     <div class="col-lg-8 fv-row">
                         <input type="number" name="order" class="form-control form-control-sm" value="{{ $contact_form_submission->order ?? old('order') }}"/>
                     </div>
                 </div>
 
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.color')</label>
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.color')</label>
                     <div class="col-lg-4 fv-row">
                         <div class="input-group mb-5">
                             <input type="text" name="color" class="form-control form-control-sm" value="{{ $contact_form_submission->color ?? old('color') }}"/>
@@ -135,7 +135,7 @@
                 </div>
 
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.background')</label>
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.background')</label>
                     <div class="col-lg-4 fv-row">
                         <div class="input-group mb-5">
                             <input type="text" name="background" class=" form-control form-control-sm" value="{{ $contact_form_submission->background ?? old('background') }}"/>
@@ -146,7 +146,7 @@
 
                 
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.is_pinned')</label>
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.is_pinned')</label>
 
                     <div class="col-lg-8 d-flex align-items-center">
                         <div class="form-check form-check-solid form-check-custom form-switch fv-row">
@@ -160,14 +160,14 @@
 
 
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.remark')</label>
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.remark')</label>
                     <div class="col-lg-8 fv-row">
                         <input type="text" name="remark" class="form-control form-control-sm" value="{{ $contact_form_submission->remark ?? old('remark') }}"/>
                     </div>
                 </div>
 
                 <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('word.contact')</label>
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.contact')</label>
                     <div class="col-lg-8 fv-row">
                         <input type="text" name="contact" class="form-control form-control-sm" value="{{ $contact_form_submission->contact ?? old('contact') }}"/>
                     </div>
@@ -246,7 +246,7 @@
             </div>
 
             <div class="card-footer d-flex justify-content-end py-6 px-9">
-                <button type="reset" class="btn btn-white btn-active-light-primary me-2">@lang('word.cancel')</button>
+                <button type="reset" class="btn btn-white btn-active-light-primary me-2">@lang('wncms::word.cancel')</button>
 
                 <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit">
                     @include('wncms::backend.parts.submit', ['label' => __('word.edit')])
