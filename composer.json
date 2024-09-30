@@ -39,7 +39,14 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Wncms\\Providers\\WncmsServiceProvider"
+                "Wncms\\Providers\\WncmsServiceProvider",
+                "Wncms\\Providers\\EventServiceProvider",
+                "Wncms\\Providers\\HelpersProvider",
+                "Wncms\\Providers\\MailServiceProvider",
+                "Wncms\\Providers\\ObserverServiceProvider",
+                "Wncms\\Providers\\PluginServiceProvider",
+                "Wncms\\Providers\\RouteServiceProvider",
+                "Wncms\\Providers\\SettingsServiceProvider"
             ]
         }
     },

@@ -40,6 +40,8 @@ class WncmsServiceProvider extends ServiceProvider
         // Load the theme configurations
         $this->mergeConfigFrom(__DIR__.'/../../config/theme/default.php', 'theme.default');
         $this->mergeConfigFrom(__DIR__.'/../../config/theme/starter.php', 'theme.starter');
+
+        $this->app->register(\Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class);
     }
 
     /**
