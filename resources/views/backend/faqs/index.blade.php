@@ -1,15 +1,15 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-    @include('backend.parts.message')
+    @include('wncms::backend.parts.message')
 
     {{-- WNCMS toolbar filters --}}
     <div class="wncms-toolbar-filter mt-5">
         <form action="{{ route('faqs.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('backend.common.default_toolbar_filters')
+                @include('wncms::backend.common.default_toolbar_filters')
 
                 {{-- Add custom toolbar item here --}}
 
@@ -48,14 +48,14 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('backend.common.default_toolbar_buttons', [
+            @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'faqs',
             ])
         </div>
     </div>
 
     {{-- Index --}}
-    @include('backend.common.showing_item_of_total', ['models' => $faqs])
+    @include('wncms::backend.common.showing_item_of_total', ['models' => $faqs])
 
     {{-- Model Data --}}
     <div class="card card-flush rounded overflow-hidden">
@@ -107,13 +107,13 @@
                                 <td>
                                     <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('faqs.edit' , $faq) }}">@lang('word.edit')</a>
                                     <a class="btn btn-sm btn-info fw-bold px-2 py-1" href="{{ route('faqs.clone' , $faq) }}">@lang('word.clone')</a>
-                                    @include('backend.parts.modal_delete' , ['model'=>$faq , 'route' => route('faqs.destroy' , $faq), 'btn_class' => 'px-2 py-1'])
+                                    @include('wncms::backend.parts.modal_delete' , ['model'=>$faq , 'route' => route('faqs.destroy' , $faq), 'btn_class' => 'px-2 py-1'])
                                 </td>
 
                                 {{-- Data --}}
                                 <td>{{ $faq->id }}</td>
                                 <td>{{ $faq->website?->domain }}</td>
-                                <td>@include('common.table_status' , ['model' => $faq])</td>
+                                <td>@include('wncms::common.table_status' , ['model' => $faq])</td>
                                 <td>{{ $faq->slug }}</td>
                                 <td>{{ $faq->question }}</td>
                                 <td class="mw-400px text-truncate">{{ $faq->answer }}</td>
@@ -142,7 +142,7 @@
     </div>
 
     {{-- Index --}}
-    @include('backend.common.showing_item_of_total', ['models' => $faqs])
+    @include('wncms::backend.common.showing_item_of_total', ['models' => $faqs])
 
     {{-- Pagination --}}
     {{-- <div class="mt-5">

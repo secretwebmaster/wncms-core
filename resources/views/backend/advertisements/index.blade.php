@@ -1,15 +1,15 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-    @include('backend.parts.message')
+    @include('wncms::backend.parts.message')
 
     {{-- WNCMS toolbar filters --}}
     <div class="wncms-toolbar-filter mt-5">
         <form action="{{ route('advertisements.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('backend.common.default_toolbar_filters')
+                @include('wncms::backend.common.default_toolbar_filters')
 
                 {{-- Add custom toolbar item here --}}
 
@@ -48,14 +48,14 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('backend.common.default_toolbar_buttons', [
+            @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'advertisements',
             ])
         </div>
     </div>
 
     {{-- Index --}}
-    @include('backend.common.showing_item_of_total', ['models' => $advertisements])
+    @include('wncms::backend.common.showing_item_of_total', ['models' => $advertisements])
 
     {{-- Model Data --}}
     <div class="card card-flush rounded overflow-hidden">
@@ -119,15 +119,15 @@
                             <td>
                                 <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('advertisements.edit' , $advertisement) }}">@lang('word.edit')</a>
                                 <a class="btn btn-sm btn-info fw-bold px-2 py-1" href="{{ route('advertisements.clone' , $advertisement) }}">@lang('word.clone')</a>
-                                @include('backend.parts.modal_delete' , ['model'=>$advertisement , 'route' => route('advertisements.destroy' , $advertisement), 'btn_class' => 'px-2 py-1'])
+                                @include('wncms::backend.parts.modal_delete' , ['model'=>$advertisement , 'route' => route('advertisements.destroy' , $advertisement), 'btn_class' => 'px-2 py-1'])
                             </td>
 
                             {{-- Data --}}
                             <td>{{ $advertisement->id }}</td>
                             <td> <a href="({{ $advertisement->website?->id }})" target="_blank">#{{ $advertisement->website?->id }}</a> </td>
                             <td>{{ $advertisement->status }}</td>
-                            <td>@include('common.table_date', ['model' => $advertisement, 'column' => 'expired_at'])</td>
-                            <td>@include('common.table_image', ['model' => $advertisement, 'attribute' => 'thumbnail'])</td>
+                            <td>@include('wncms::common.table_date', ['model' => $advertisement, 'column' => 'expired_at'])</td>
+                            <td>@include('wncms::common.table_image', ['model' => $advertisement, 'attribute' => 'thumbnail'])</td>
                             <td>{{ $advertisement->name }}</td>
                             <td>{{ $advertisement->type }}</td>
                             <td>{{ $advertisement->position }}</td>
@@ -142,9 +142,9 @@
 
                             <td>{{ $advertisement->order }}</td>
                             <td>{{ $advertisement->cta_text }}</td>
-                            <td>@include('common.table_url', ['url' => $advertisement->url])</td>
+                            <td>@include('wncms::common.table_url', ['url' => $advertisement->url])</td>
                             <td>{{ $advertisement->cta_text_2 }}</td>
-                            <td>@include('common.table_url', ['url' => $advertisement->url_2])</td>
+                            <td>@include('wncms::common.table_url', ['url' => $advertisement->url_2])</td>
                             <td>{{ $advertisement->remark }}</td>
                             <td>{{ $advertisement->text_color }}</td>
                             <td>{{ $advertisement->background_color }}</td>
@@ -165,7 +165,7 @@
     </div>
 
     {{-- Index --}}
-    @include('backend.common.showing_item_of_total', ['models' => $advertisements])
+    @include('wncms::backend.common.showing_item_of_total', ['models' => $advertisements])
 
     {{-- Pagination --}}
     {{-- <div class="mt-5">

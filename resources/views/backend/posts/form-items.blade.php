@@ -268,7 +268,7 @@
                 {{-- Publish --}}
                 <div class="mb-3">
                     <button type="submit" wncms-btn-loading class="btn btn-primary w-100 wncms-submit" disabled>
-                        @include('backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
+                        @include('wncms::backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
                     </button>
                 </div>
 
@@ -362,7 +362,7 @@
                 {{-- Publish --}}
                 <div class="mb-3">
                     <button type="submit" wncms-btn-loading class="btn btn-primary w-100 wncms-submit" disabled>
-                        @include('backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
+                        @include('wncms::backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
                     </button>
                 </div>
             </div>
@@ -417,7 +417,7 @@
                 {{-- Publish --}}
                 <div class="mb-3">
                     <button type="submit" wncms-btn-loading class="btn btn-primary w-100 wncms-submit" disabled>
-                        @include('backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
+                        @include('wncms::backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
                     </button>
                 </div>
 

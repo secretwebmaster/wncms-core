@@ -8,7 +8,7 @@
         <td>
             <a class="btn btn-sm px-2 py-1 btn-primary fw-bold" href="{{ route('tags.create' , ['type' => $child->type,'parent_id' => $child->id]) }}">@lang('word.add_children_tag')</a>
             <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('tags.edit' , $child) }}">@lang('word.edit')</a>
-            @include('backend.parts.modal_delete' , ['model'=>$child , 'route' => route('tags.destroy' , $child)])
+            @include('wncms::backend.parts.modal_delete' , ['model'=>$child , 'route' => route('tags.destroy' , $child)])
         </td>
         <td class="ps-3">{{ $child->id }}</td>
         <td>@lang('word.' . $child->type)</td>
@@ -22,6 +22,6 @@
         <td>{{ $child->created_at }}</td>
     <tr>
     @if ($child->children->count() > 0)
-        @include('backend.tags.children_tags', ['children' => $child->children, 'level' => $level + 1])
+        @include('wncms::backend.tags.children_tags', ['children' => $child->children, 'level' => $level + 1])
     @endif
 @endforeach

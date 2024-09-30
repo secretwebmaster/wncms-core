@@ -1,4 +1,4 @@
-@extends('frontend.theme.default.layouts.app')
+@extends('wncms::frontend.theme.default.layouts.app')
 
 @push('head_css')
     <style>

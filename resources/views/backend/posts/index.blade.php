@@ -1,8 +1,8 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 {{-- 工具欄 --}}
 <div class="card-header align-items-center pt-5 gap-2 gap-md-5">
@@ -10,7 +10,7 @@
         <form action="{{ route('posts.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('backend.common.default_toolbar_filters')
+                @include('wncms::backend.common.default_toolbar_filters')
 
                 {{-- 分類 --}}
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
@@ -61,7 +61,7 @@
     <div class="card-toolbar flex-row-fluid gap-1">
 
         {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-        @include('backend.common.default_toolbar_buttons', [
+        @include('wncms::backend.common.default_toolbar_buttons', [
             'model_prefix' => 'posts'
         ])
 
@@ -396,7 +396,7 @@
                             <td>
                                 <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('posts.edit' , $post) }}">@lang('word.edit')</a>
                                 <a class="btn btn-sm btn-info fw-bold px-2 py-1" href="{{ route('posts.clone' , $post) }}">@lang('word.clone')</a>
-                                @include('backend.parts.modal_delete' , ['model'=>$post , 'route' => route('posts.destroy' , $post)])
+                                @include('wncms::backend.parts.modal_delete' , ['model'=>$post , 'route' => route('posts.destroy' , $post)])
                                 @if($post->trashed())
                                 <a class="btn btn-sm btn-success fw-bold px-2 py-1" href="{{ route('posts.restore' , $post) }}">@lang('word.restore')</a>
                                 @endif
@@ -408,7 +408,7 @@
                                 <span title="{{ $website->domain }}"><a href="{{ $wncms->getRoute('frontend.posts.single', ['slug' => $post->slug], false, $website->domain) }}" target="_blank">#{{$website->id}}</a></span>
                                 @endforeach
                             </td>
-                            <td>@include('common.table_status', ['model' => $post])</td>
+                            <td>@include('wncms::common.table_status', ['model' => $post])</td>
                             {{-- <td>@if($post->trashed()) <span class="badge badge-danger">@lang('word.trashed')</span>@endif</td> --}}
 
                             @if(request()->show_detail)
@@ -426,7 +426,7 @@
                             <td>{{ $post->TagsWithType('post_tag')->implode('name',',') }}</td>
                             @endif
 
-                            <td>@include('common.table_is_active', ['model' => $post, 'active_column' => 'is_pinned'])</td>
+                            <td>@include('wncms::common.table_is_active', ['model' => $post, 'active_column' => 'is_pinned'])</td>
                             <td>{{ $post->order }}</td>
 
                             <td>{{ $post->published_at }}</td>

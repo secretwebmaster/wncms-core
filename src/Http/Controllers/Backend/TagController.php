@@ -63,7 +63,7 @@ class TagController extends Controller
             $subq->where('type', $request->type);
         })->get();
 
-        return view('backend.tags.index', [
+        return view('wncms::backend.tags.index', [
             'page_title' => __('word.category_management'),
             'parents' => $parents,
             'allParents' => $allParents,
@@ -85,7 +85,7 @@ class TagController extends Controller
 
         $tag ??= new Tag;
 
-        return view('backend.tags.create', [
+        return view('wncms::backend.tags.create', [
             'page_title' => __('word.category_management'),
             'tagTypes' => $tagTypes,
             'parents' => $parents,
@@ -142,7 +142,7 @@ class TagController extends Controller
     {
         dd($tag);
         $tagTypes = wncms()->tag()->getModelsWithHasTagsTraits();
-        return view('backend.tags.edit', [
+        return view('wncms::backend.tags.edit', [
             'page_title' => __('word.edit_tag'),
             'tagTypes' => $tagTypes,
             // 'tag' => $tag->with_recursive_children(),
@@ -248,7 +248,7 @@ class TagController extends Controller
         $placeholder .= "\r\n測試分類2|slug02|post_category|描述2|測試分類1|0|0";
         $placeholder .= "\r\n測試分類2|slug02|post_category|描述2|測試分類1|0|0";
 
-        return view('backend.tags.bulk_create', [
+        return view('wncms::backend.tags.bulk_create', [
             'page_title' => __('word.category_management'),
             'placeholder' => $placeholder,
         ]);
@@ -418,7 +418,7 @@ class TagController extends Controller
         })->toArray();
         // dd($selectedType,$allKeywords);
 
-        return view('backend.tags.keywords.index', [
+        return view('wncms::backend.tags.keywords.index', [
             'tagTypes' => $tagTypes,
             'parents' => $parents,
             'allKeywords' => $allKeywords,
@@ -460,7 +460,7 @@ class TagController extends Controller
     //! Types
     public function create_type()
     {
-        return view('backend.tags.types.create', [
+        return view('wncms::backend.tags.types.create', [
             'page_title' => wncms_model_word('tag', 'management'),
         ]);
     }

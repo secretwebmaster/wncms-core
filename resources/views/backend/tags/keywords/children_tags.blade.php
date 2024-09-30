@@ -6,7 +6,7 @@
             </div>
         </td>
         <td>
-            @include('backend.tags.keywords.modal_bind_keyword', [
+            @include('wncms::backend.tags.keywords.modal_bind_keyword', [
                 'binding_model' => $parent
             ])
         </td>
@@ -17,6 +17,6 @@
 
     <tr>
     @if ($child->children->count() > 0)
-        @include('backend.tags.keywords.children_tags', ['children' => $child->children, 'level' => $level + 1])
+        @include('wncms::backend.tags.keywords.children_tags', ['children' => $child->children, 'level' => $level + 1])
     @endif
 @endforeach

@@ -1,15 +1,15 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-    @include('backend.parts.message')
+    @include('wncms::backend.parts.message')
 
     {{-- WNCMS toolbar filters --}}
     <div class="wncms-toolbar-filter mt-5">
         <form action="{{ route('records.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('backend.common.default_toolbar_filters')
+                @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
                     <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
@@ -22,7 +22,7 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('backend.common.default_toolbar_buttons', [
+            @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'records',
             ])
         </div>
@@ -118,7 +118,7 @@
                             <td>{{ $record->created_at }}</td>
                             <td>
                                 <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('records.edit' , $record) }}">@lang('word.edit')</a>
-                                @include('backend.parts.modal_delete' , ['model'=>$record , 'route' => route('records.destroy' , $record)])
+                                @include('wncms::backend.parts.modal_delete' , ['model'=>$record , 'route' => route('records.destroy' , $record)])
                             </td>
                         <tr>
                         @endforeach

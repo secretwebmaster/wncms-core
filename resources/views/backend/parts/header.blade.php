@@ -119,7 +119,7 @@
                             </svg>
                         </span>
                     </div>
-                    @include('partials/menus/_notifications-menu')
+                    @include('wncms::partials/menus/_notifications-menu')
                 </div> --}}
 
                 {{-- Message Drawer --}}
@@ -148,7 +148,7 @@
                             </svg>
                         </span>
                     </div>
-                    @include('partials/menus/_quick-links-menu')
+                    @include('wncms::partials/menus/_quick-links-menu')
                 </div> --}}
 
                 {{-- Dark/Light Mode Toggle --}}
@@ -273,7 +273,7 @@
                             <img src="{{ auth()->user()->avatar }}" alt="user" />
                         </div>
 
-                        @include('backend.parts.header_user_menu')
+                        @include('wncms::backend.parts.header_user_menu')
                     </div>
                 @endauth
 

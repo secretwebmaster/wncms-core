@@ -1,4 +1,4 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
@@ -7,7 +7,7 @@
     @else
         <div class="row g-5 g-xl-10 mb-xl-10">
 
-            @include('backend.parts.message')
+            @include('wncms::backend.parts.message')
 
             @includeIf('backend.dashboards.custom_admin_dashboard_items')
             
@@ -65,7 +65,7 @@
             @if(empty(gss('hide_system_update_log')))
                 <div class="col-12 col-md-6">
                     <div style="max-height: 80vh;overflow-y: scroll;">
-                        @include('backend.admin.update_content')
+                        @include('wncms::backend.admin.update_content')
                     </div>
                 </div>
             @endif

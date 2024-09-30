@@ -1,8 +1,8 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-    @include('backend.parts.message')
+    @include('wncms::backend.parts.message')
 
     {{-- 工具欄 --}}
     <div class="card-header align-items-center pt-5 gap-2 gap-md-5">
@@ -10,7 +10,7 @@
             <form action="{{ route('themes.index') }}">
                 <div class="row gx-1 align-items-center position-relative my-1">
 
-                    @include('backend.common.default_toolbar_filters')
+                    @include('wncms::backend.common.default_toolbar_filters')
 
                     <div class="col-6 col-md-auto mb-3 ms-0">
                         <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
@@ -36,7 +36,7 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('backend.common.default_toolbar_buttons', [
+            @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'themes',
             ])
 
@@ -131,14 +131,14 @@
                                 @endif
                             </td>
                             <td>{{ $theme['id'] }}</td>
-                            <td>@include('common.table_is_active', ['model' => $theme, 'active_column' => 'isValid'])</td>
-                            {{-- <td>@include('common.table_status', ['model' => $theme])</td> --}}
+                            <td>@include('wncms::common.table_is_active', ['model' => $theme, 'active_column' => 'isValid'])</td>
+                            {{-- <td>@include('wncms::common.table_status', ['model' => $theme])</td> --}}
                             <td>{{ $theme['name'] }}</td>
                             @if(request()->show_detail)
                             <td class="mw-300px text-truncate text-hover-info" title="{{ $theme['description'] ?? '' }}">{{ $theme['description'] ?? '' }}</td>
                             @endif
 
-                            <td>@include('common.table_url', ['url' => $theme['demo_url'] ?? ''])</td>
+                            <td>@include('wncms::common.table_url', ['url' => $theme['demo_url'] ?? ''])</td>
                             @if(request()->show_detail)
                             <td>{{ $theme['author'] ?? '' }}</td>
                             <td>{{ $theme['version'] ?? '' }}</td>

@@ -1,10 +1,10 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 @push('head_css')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css" />
 @endpush
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 <div class="card">
     <div class="card-header border-0 cursor-pointer px-3 px-md-9">
         <div class="card-title m-0">
@@ -24,7 +24,7 @@
 
                         <div class="mb-3">
                             <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit w-100">
-                                @include('backend.parts.submit', ['label' => __('word.bulk_create_tag')])
+                                @include('wncms::backend.parts.submit', ['label' => __('word.bulk_create_tag')])
                             </button>
                         </div>
 
@@ -95,7 +95,7 @@
 @endsection
 
 @push('foot_js')
-@include('common.js.tinymce')
+@include('wncms::common.js.tinymce')
 
 <script>
     $(".btn-append").on("click", function() {

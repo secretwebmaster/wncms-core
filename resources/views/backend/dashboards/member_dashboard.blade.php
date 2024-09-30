@@ -1,4 +1,4 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
@@ -6,7 +6,7 @@
         @includeIf('backend.dashboards.custom_user_dashboard')
     @else
         <div class="row g-5 g-xl-10 mb-xl-10">
-            @include('backend.parts.message')
+            @include('wncms::backend.parts.message')
 
             <div class="row g-5 gx-xl-10">
                 {{-- Left --}}

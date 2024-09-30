@@ -13,7 +13,7 @@ class RoleController extends Controller
     public function index(Request $request)
     {
         $roles = Role::query()->get();
-        return view('backend.roles.index', [
+        return view('wncms::backend.roles.index', [
             'page_title' => __('word.model_management', ['model_name' => __('word.role')]),
             'roles' => $roles,
         ]);
@@ -21,7 +21,7 @@ class RoleController extends Controller
 
     public function create()
     {
-        return view('backend.roles.create', [
+        return view('wncms::backend.roles.create', [
             'page_title' => __('word.model_management', ['model_name' => __('word.role')]),
         ]);
     }
@@ -47,7 +47,7 @@ class RoleController extends Controller
     public function edit(Role $role)
     {
         $permissions = Permission::all();
-        return view('backend.roles.edit', [
+        return view('wncms::backend.roles.edit', [
             'page_title' => __('word.model_management', ['model_name' => __('word.role')]),
             'role' => $role,
             'permissions' => $permissions,

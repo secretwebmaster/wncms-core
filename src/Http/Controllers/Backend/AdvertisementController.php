@@ -67,7 +67,7 @@ class AdvertisementController extends Controller
         
         $advertisements = $q->paginate();
         $websites = wncms()->website()->getList();
-        return view('backend.advertisements.index', [
+        return view('wncms::backend.advertisements.index', [
             'page_title' => wncms_model_word('advertisement', 'management'),
             'advertisements' => $advertisements,
             'websites' => $websites,
@@ -82,7 +82,7 @@ class AdvertisementController extends Controller
         $advertisement_tags = Tag::where('type', 'advertisement_tag')->pluck('name')->toArray();
         $websites = wncms()->website()->getList();
 
-        return view('backend.advertisements.create', [
+        return view('wncms::backend.advertisements.create', [
             'page_title' => wncms_model_word('advertisement', 'management'),
             'advertisement' => $advertisement ??= new Advertisement,
             'advertisement_tags' => $advertisement_tags,
@@ -143,7 +143,7 @@ class AdvertisementController extends Controller
     {
         $advertisement_tags = Tag::where('type', 'advertisement_tag')->pluck('name')->toArray();
         $websites = wncms()->website()->getList();
-        return view('backend.advertisements.edit', [
+        return view('wncms::backend.advertisements.edit', [
             'page_title' => wncms_model_word('advertisement', 'management'),
             'advertisement' => $advertisement,
             'advertisement_tags' => $advertisement_tags,

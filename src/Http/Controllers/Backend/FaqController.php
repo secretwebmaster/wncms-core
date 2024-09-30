@@ -68,7 +68,7 @@ class FaqController extends Controller
         $faq_tag_parants = Tag::where('type','faq_tag')->whereNull('parent_id')->with('children')->get();
 
 
-        return view('backend.faqs.index', [
+        return view('wncms::backend.faqs.index', [
             'page_title' =>  wncms_model_word('faq', 'management'),
             'faqs' => $faqs,
             'faq_tag_parants' => $faq_tag_parants,
@@ -82,7 +82,7 @@ class FaqController extends Controller
     {
         $websites = wncms()->website()->getList();
         $isCloning = !empty($faq) ? true : false;
-        return view('backend.faqs.create', [
+        return view('wncms::backend.faqs.create', [
             'page_title' =>  wncms_model_word('faq', 'management'),
             'statuses' => Faq::STATUSES,
             'faq' => $faq ??= new Faq,
@@ -128,7 +128,7 @@ class FaqController extends Controller
             $websites = auth()->user()->websites;
         }
 
-        return view('backend.faqs.edit', [
+        return view('wncms::backend.faqs.edit', [
             'page_title' =>  wncms_model_word('faq', 'management'),
             'faq' => $faq,
             'statuses' => Faq::STATUSES,           

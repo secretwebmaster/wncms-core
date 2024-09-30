@@ -1,4 +1,4 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @push('head_css')
 <link rel="stylesheet" href="{{ asset('wncms/css/pickr.min.css') }}">
@@ -11,7 +11,7 @@
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="row mx-auto mb-3 gx-1">
     <div class="ms-0 mb-1 mb-md-0 col-12 col-md-auto"><a href="{{ wncms_add_https($_website->domain) }}" target="_blank" class="btn btn-sm btn-info fw-bold text-truncate w-100">@lang('word.current_website'): {{ $_website->site_name }} ({{ $_website->domain }})</a></div>
@@ -43,7 +43,7 @@
                 @foreach($option_tabs ?? [] as $tab_name => $options)
                     <div class="tab-pane fade @if($loop->iteration == 1) show active @endif" id="tab_{{ $tab_name }}" role="tabpanel">
                         @foreach($options as $option_index => $option)
-                            @include('backend.parts.inputs' , [
+                            @include('wncms::backend.parts.inputs' , [
                                 'website'=> $_website,
                                 'option_index'=>$option_index,
                                 'option'=>$option,
@@ -58,7 +58,7 @@
 
     <div class="mt-5 text-end">
         <button type="submit" wncms-btn-loading class="btn btn-primary fw-bold wncms-submit w-100 w-md-auto">
-            @include('backend.parts.submit', ['label' => __('word.save_all')])
+            @include('wncms::backend.parts.submit', ['label' => __('word.save_all')])
         </button>
     </div>
 </form>
@@ -125,7 +125,7 @@
 @endsection
 
 @push('foot_js')
-    @include('common.js.tinymce')
+    @include('wncms::common.js.tinymce')
     
     <script src="{{ asset('wncms/js/jquery.dragsort.min.js?v=' . wncms_get_version('js')) }}"></script>
     <script>

@@ -1,15 +1,15 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-    @include('backend.parts.message')
+    @include('wncms::backend.parts.message')
 
     {{-- WNCMS toolbar filters --}}
     <div class="wncms-toolbar-filter mt-5">
         <form action="{{ route('tags.keywords.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('backend.common.default_toolbar_filters')
+                @include('wncms::backend.common.default_toolbar_filters')
 
                 {{-- tagType --}}
                 @if(!empty($tagTypes))
@@ -46,7 +46,7 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('backend.common.default_toolbar_buttons', [
+            @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'tags',
             ])
 
@@ -85,7 +85,7 @@
                                     </div>
                                 </td>
                                 <td>
-                                    @include('backend.tags.keywords.modal_bind_keyword', [
+                                    @include('wncms::backend.tags.keywords.modal_bind_keyword', [
                                         'binding_model' => $parent
                                     ])
                                 </td>
@@ -98,7 +98,7 @@
                             {{-- Children --}}
                             {{-- 結構與Parent不同，所以由level = 1開始 --}}
                             @if(empty(request()->hide_children_tags))
-                                @include('backend.tags.keywords.children_tags', [
+                                @include('wncms::backend.tags.keywords.children_tags', [
                                     'children' => $parent->children,
                                     'level' => 1,
                                 ])

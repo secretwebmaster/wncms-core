@@ -1,8 +1,8 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="card">
     <div class="card-header border-0 cursor-pointer px-3 px-md-9">
@@ -32,7 +32,7 @@
                 <div class="col-lg-9 fv-row">
                     <div class="row align-items-center mt-3">
                         <div class="col-12 mb-3">
-                            @include('common.check_all', ['check_all_target_class' => 'permission_checkbox'])
+                            @include('wncms::common.check_all', ['check_all_target_class' => 'permission_checkbox'])
                         </div>
                         @foreach($permissions as $index => $permission)
                             <div class="col-12 col-sm-6 col-xl-6 col-xxl-4 mb-1">
@@ -50,7 +50,7 @@
 
             <div class="card-footer d-flex justify-content-end py-6 px-9">
                 <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit">
-                    @include('backend.parts.submit', ['label' => __('word.edit')])
+                    @include('wncms::backend.parts.submit', ['label' => __('word.edit')])
                 </button>
             </div>
         </form>

@@ -11,7 +11,7 @@ class SearchKeywordController extends Controller
     public function index()
     {
         $search_keywords = SearchKeyword::query()->get();
-        return view('backend.search_keywords.index', [
+        return view('wncms::backend.search_keywords.index', [
             'page_title' => __('word.model_management', ['model_name' => __('word.search_keyword')]),
             'search_keywords' => $search_keywords,
         ]);
@@ -19,7 +19,7 @@ class SearchKeywordController extends Controller
 
     public function create()
     {
-        return view('backend.search_keywords.create', [
+        return view('wncms::backend.search_keywords.create', [
             'page_title' => __('word.model_management', ['model_name' => __('word.search_keyword')]),
         ]);
     }
@@ -40,7 +40,7 @@ class SearchKeywordController extends Controller
 
     public function edit(SearchKeyword $search_keyword)
     {
-        return view('backend.search_keywords.edit', [
+        return view('wncms::backend.search_keywords.edit', [
             'page_title' => __('word.model_management', ['model_name' => __('word.search_keyword')]),
             'search_keyword' => $search_keyword,
         ]);

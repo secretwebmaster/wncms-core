@@ -1,14 +1,14 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-    @include('backend.parts.message')
+    @include('wncms::backend.parts.message')
 
     {{-- WNCMS toolbar filters --}}
     <div class="wncms-toolbar-filter mt-5">
         <form action="{{ route('contact_form_submissions.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
-                @include('backend.common.default_toolbar_filters')
+                @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
                     <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
@@ -33,7 +33,7 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('backend.common.default_toolbar_buttons', [
+            @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'contact_form_submissions',
             ])
 
@@ -73,7 +73,7 @@
                 data-param-value="unread"
             >@lang('word.bulk_set_unread')</button>
 
-            @include('backend.common.export_index_data', [
+            @include('wncms::backend.common.export_index_data', [
                 'modelName' => 'contact_form_submissions',
             ])
 
@@ -148,10 +148,10 @@
                                     data-param-value="unread"
                                 >@lang('word.mark_unread')</button>
 
-                                @include('backend.parts.modal_delete' , ['model'=>$contact_form_submission , 'route' => route('contact_form_submissions.destroy' , $contact_form_submission), 'btn_class' => 'px-2 py-1'])
+                                @include('wncms::backend.parts.modal_delete' , ['model'=>$contact_form_submission , 'route' => route('contact_form_submissions.destroy' , $contact_form_submission), 'btn_class' => 'px-2 py-1'])
                             </td>
                             <td>{{ $contact_form_submission->id }}</td>
-                            <td>@include('common.table_status', ['model' => $contact_form_submission])</td>
+                            <td>@include('wncms::common.table_status', ['model' => $contact_form_submission])</td>
                             <td>
                                 @if($contact_form_submission->contact_form)
                                 {{ $contact_form_submission->contact_form?->name }} ({{ $contact_form_submission->contact_form?->id }})

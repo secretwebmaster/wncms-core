@@ -69,18 +69,18 @@
 				@endif
 
 				{{-- Admin --}}
-				@include('backend.parts.sidebar.admin')
+				@include('wncms::backend.parts.sidebar.admin')
 
 				{{-- User --}}
-				@include('backend.parts.sidebar.member')
+				@include('wncms::backend.parts.sidebar.member')
 
 				{{-- Active routes --}}
-				@include('backend.parts.sidebar.model')
+				@include('wncms::backend.parts.sidebar.model')
 
 				{{-- Theme menu --}}
 
 				{{-- Plugin menu --}}
-				@include('backend.parts.sidebar.plugin')
+				@include('wncms::backend.parts.sidebar.plugin')
 				
 			</div>
 		</div>

@@ -1,11 +1,11 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 @push('head_css')
 <link rel="stylesheet" href="{{ asset('wncms/css/pickr.min.css') }}">
 @endpush
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="card">
     <div class="card-header border-0 cursor-pointer px-3 px-md-9">
@@ -22,7 +22,7 @@
 
                 {{-- theme_thumbnail --}}
                 <div class="row mb-3">
-                    @include('backend.inputs.form_items', [
+                    @include('wncms::backend.inputs.form_items', [
                         'input_data' => [
                             'type' => 'image',
                             'model' => $theme,
@@ -153,7 +153,7 @@
                 <button type="reset" class="btn btn-white btn-active-light-primary me-2">@lang('word.cancel')</button>
 
                 <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit">
-                    @include('backend.parts.submit', ['label' => __('word.edit')])
+                    @include('wncms::backend.parts.submit', ['label' => __('word.edit')])
                 </button>
             </div>
         </form>

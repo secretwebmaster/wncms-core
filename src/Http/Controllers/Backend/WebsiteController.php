@@ -37,7 +37,7 @@ class WebsiteController extends Controller
         $websites = $q->paginate($request->page_size ?? 50);
         // $websites = $q->get();
 
-        return view('backend.websites.index' , [
+        return view('wncms::backend.websites.index' , [
             'websites' => $websites,
             'page_title' => __('word.website_management')
         ]);
@@ -48,7 +48,7 @@ class WebsiteController extends Controller
         $themes = wncms()->theme()->getActivatedTheme();
         $first_website = Website::count() ? false : true;
 
-        return view('backend.websites.create',[
+        return view('wncms::backend.websites.create',[
             'themes' => $themes,
             'page_title' => __('word.website_management'),
             'first_website' => $first_website,
@@ -129,7 +129,7 @@ class WebsiteController extends Controller
 
         $themes = wncms()->theme()->getActivatedTheme();
 
-        return view('backend.websites.edit' , [
+        return view('wncms::backend.websites.edit' , [
             'page_title' => __('word.website_management'),
             'website' => $website,
             'themes' => $themes,
@@ -328,7 +328,7 @@ class WebsiteController extends Controller
             ['id', "<>", $website->id],
         ]);
 
-        return view('backend.websites.theme_options' , [
+        return view('wncms::backend.websites.theme_options' , [
             'page_title' => __('word.website_management'),
             '_website' => $website,
             'websites' => $websites,

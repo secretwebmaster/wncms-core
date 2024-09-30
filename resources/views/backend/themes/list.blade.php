@@ -1,4 +1,4 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @push('head_css')
 <style>
@@ -43,7 +43,7 @@
 @endpush
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="row">
     @foreach($themes as $theme)
@@ -108,7 +108,7 @@
                     <a class="btn btn-sm btn-info w-100 fw-bold mt-1" href="{{ route('themes.edit', $theme) }}">@lang('word.edit')</a>
                     @endcan
                     @can('theme_delete')
-                    @include('backend.parts.modal_delete', ['model' => $theme, 'route' => route('themes.destroy', $theme), 'btn_class' => 'mt-1 w-100'])
+                    @include('wncms::backend.parts.modal_delete', ['model' => $theme, 'route' => route('themes.destroy', $theme), 'btn_class' => 'mt-1 w-100'])
                     @endcan
                 </div>
             </div>

@@ -11,7 +11,7 @@ class ContactFormOptionController extends Controller
     public function index(Request $request)
     {
         $contact_form_options = ContactFormOption::query()->get();
-        return view('backend.contact_form_options.index', [
+        return view('wncms::backend.contact_form_options.index', [
             'page_title' => __('word.model_management', ['model_name' => __('word.contact_form_option')]),
             'contact_form_options' => $contact_form_options,
         ]);
@@ -20,7 +20,7 @@ class ContactFormOptionController extends Controller
     public function create(ContactFormOption $contact_form_option = null)
     {
         $contact_form_option ??= new ContactFormOption;
-        return view('backend.contact_form_options.create', [
+        return view('wncms::backend.contact_form_options.create', [
             'page_title' => __('word.model_management', ['model_name' => __('word.contact_form_option')]),
             'contact_form_option' => $contact_form_option,
             'types' => ContactFormOption::TYPES,
@@ -50,7 +50,7 @@ class ContactFormOptionController extends Controller
     public function edit(ContactFormOption $contact_form_option)
     {
         // dd($contact_form_option);
-        return view('backend.contact_form_options.edit', [
+        return view('wncms::backend.contact_form_options.edit', [
             'page_title' => __('word.model_management', ['model_name' => __('word.contact_form_option')]),
             'contact_form_option' => $contact_form_option,
             'types' => ContactFormOption::TYPES,

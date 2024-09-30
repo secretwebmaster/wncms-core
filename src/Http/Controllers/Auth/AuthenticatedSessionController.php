@@ -26,7 +26,7 @@ class AuthenticatedSessionController extends Controller
         if($website && view()->exists("frontend.theme.{$website?->theme}.auth.login")){
             return view("frontend.theme.{$website?->theme}.auth.login");
         }
-        return view('auth.login');
+        return view('wncms::auth.login');
     }
 
     /**

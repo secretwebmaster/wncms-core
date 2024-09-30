@@ -1,4 +1,4 @@
-@extends('layouts.auth')
+@extends('wncms::layouts.auth')
 @section('auth_content')
 
     <form class="form w-100 " novalidate="novalidate" id="kt_sign_in_form" action="{{ route('login') }}">
@@ -17,7 +17,7 @@
         {{-- 提交 --}}
         <div class="d-grid mb-10">
             <button type="submit" id="kt_sign_in_submit" class="btn btn-dark mt-5">
-                @include('partials.general._button-indicator', ['label' => __('word.send_reset_password_request')])
+                @include('wncms::partials.general._button-indicator', ['label' => __('word.send_reset_password_request')])
             </button>
         </div>
         

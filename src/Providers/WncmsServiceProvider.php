@@ -64,7 +64,7 @@ class WncmsServiceProvider extends ServiceProvider
         // routes
         $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
         $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
-        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'view');
+        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'wncms');
         $this->loadTranslationsFrom(__DIR__.'/../../lang', 'lang');
 
         // Publish the configuration files

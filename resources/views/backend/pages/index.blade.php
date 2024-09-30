@@ -1,15 +1,15 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-    @include('backend.parts.message')
+    @include('wncms::backend.parts.message')
 
     {{-- WNCMS toolbar filters --}}
     <div class="wncms-toolbar-filter mt-5">
         <form action="{{ route('pages.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('backend.common.default_toolbar_filters')
+                @include('wncms::backend.common.default_toolbar_filters')
 
                 {{-- Add custom toolbar item here --}}
 
@@ -48,7 +48,7 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('backend.common.default_toolbar_buttons', [
+            @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'pages',
             ])
 
@@ -126,13 +126,13 @@
                             <td>
                                 <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('pages.edit' , $page) }}">@lang('word.edit')</a>
                                 <a class="btn btn-sm px-2 py-1 btn-info fw-bold" href="{{ route('pages.clone' , $page) }}">@lang('word.clone')</a>
-                                @include('backend.parts.modal_delete' , ['model'=>$page , 'route' => route('pages.destroy' , $page)])
+                                @include('wncms::backend.parts.modal_delete' , ['model'=>$page , 'route' => route('pages.destroy' , $page)])
                             </td>
                             <td>{{ $page->id }}</td>
                             <td>{{ $page->slug }}</td>
                             <td>{{ $page->user?->username }}</td>
                             <td>{{ $page->website?->domain }}</td>
-                            <td>@include('common.table_status', ['model' => $page])</td>
+                            <td>@include('wncms::common.table_status', ['model' => $page])</td>
                             <td><img class="lazyload mw-100px rounded" src="{{ $page->thumbnail }}" alt=""></td>
                             <td class="mw-400px text-truncate"><a href="{{ $wncms->getRoute('frontend.pages.single', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td>
                             <td>{{ $page->visibility }}</td>

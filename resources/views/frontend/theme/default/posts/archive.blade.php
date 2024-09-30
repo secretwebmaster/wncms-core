@@ -1,4 +1,4 @@
-@extends('frontend.theme.default.layouts.app')
+@extends('wncms::frontend.theme.default.layouts.app')
 
 @section('content')
     <a class="nav-link" href="{{ route('frontend.pages.blog') }}">@lang('word.blog')</a>

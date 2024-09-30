@@ -34,7 +34,7 @@ class MenuController extends Controller
         $menus = $q->paginate($request->page_size ?? 20);
 
         $websites = wn('website')->getList();
-        return view('backend.menus.index', [
+        return view('wncms::backend.menus.index', [
             'menus' => $menus,
             'websites' => $websites,
             'page_title' => wncms_model_word('menu', 'management'),
@@ -47,7 +47,7 @@ class MenuController extends Controller
     public function create()
     {
         $websites = wn('website')->getList();
-        return view('backend.menus.create', [
+        return view('wncms::backend.menus.create', [
             'websites' => $websites,
         ]);
     }
@@ -99,7 +99,7 @@ class MenuController extends Controller
         }
 
         $menus = Menu::all();
-        return view('backend.menus.edit', [
+        return view('wncms::backend.menus.edit', [
             'page_title' =>__('word.menu_management'),
             'websites' => $websites,
             'current_website' => $current_website,

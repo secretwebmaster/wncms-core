@@ -1,10 +1,10 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 {{-- @push('head_css')
 <link rel="stylesheet" href="{{ asset('wncms/css/pickr.min.css') }}">
 @endpush --}}
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="card">
     <div class="card-header border-0 cursor-pointer px-3 px-md-9">
@@ -18,14 +18,14 @@
             @csrf
             @method('PATCH')
             <div class="card-body border-top p-3 p-md-9">
-                @include('backend.tags.form-items')
+                @include('wncms::backend.tags.form-items')
             </div>
 
             <div class="card-footer d-flex justify-content-end py-6 px-9">
                 <button type="reset" class="btn btn-white btn-active-light-primary me-2">@lang('word.cancel')</button>
 
                 <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit">
-                    @include('backend.parts.submit', ['label' => __('word.edit')])
+                    @include('wncms::backend.parts.submit', ['label' => __('word.edit')])
                 </button>
             </div>
         </form>
@@ -35,6 +35,6 @@
 @endsection
 
 @push('foot_js')
-@include('common.js.tinymce')
-@include('backend.tags.load_parent_tags')
+@include('wncms::common.js.tinymce')
+@include('wncms::backend.tags.load_parent_tags')
 @endpush

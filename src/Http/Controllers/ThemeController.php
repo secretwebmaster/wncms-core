@@ -48,7 +48,7 @@ class ThemeController extends Controller
         // Get the active theme
         $activatedThemeIds = array_keys(config('theme'));
 
-        return view('backend.themes.index', [
+        return view('wncms::backend.themes.index', [
             'themes' => $themes,
             'activatedThemeIds' => $activatedThemeIds,
             'page_title' => __('word.theme_list'),
@@ -220,7 +220,7 @@ class ThemeController extends Controller
     public function settings(){
         // Get the settings
         // $settings = Setting::all();
-        // return view('backend.themes.settings', [
+        // return view('wncms::backend.themes.settings', [
         //     'settings' => $settings
         // ]);
     }

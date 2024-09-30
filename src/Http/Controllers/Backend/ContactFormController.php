@@ -13,7 +13,7 @@ class ContactFormController extends Controller
     public function index(Request $request)
     {
         $contact_forms = ContactForm::query()->get();
-        return view('backend.contact_forms.index', [
+        return view('wncms::backend.contact_forms.index', [
             'page_title' => __('word.model_management', ['model_name' => __('word.contact_form')]),
             'contact_forms' => $contact_forms,
         ]);
@@ -23,7 +23,7 @@ class ContactFormController extends Controller
     {
         $contact_form ??= new ContactForm;
         $options = ContactFormOption::all();
-        return view('backend.contact_forms.create', [
+        return view('wncms::backend.contact_forms.create', [
             'page_title' => __('word.model_management', ['model_name' => __('word.contact_form')]),
             'contact_form' => $contact_form,
             'options' => $options,
@@ -80,7 +80,7 @@ class ContactFormController extends Controller
             return $item;
         });
 
-        return view('backend.contact_forms.edit', [
+        return view('wncms::backend.contact_forms.edit', [
             'page_title' => __('word.model_management', ['model_name' => __('word.contact_form')]),
             'contact_form' => $contact_form,
             'options' => $options,

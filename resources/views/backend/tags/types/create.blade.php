@@ -1,11 +1,11 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 {{-- @push('head_css')
 <link rel="stylesheet" href="{{ asset('wncms/css/pickr.min.css') }}">
 @endpush --}}
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="row justify-content-center">
     <div class="col-12 col-md-4">
@@ -34,7 +34,7 @@
 
                     <div class="card-footer d-flex justify-content-end py-6 px-9">
                         <button type="submit" class="btn btn-dark w-100" id="kt_account_profile_details_submit">
-                            @include('backend.parts.submit', ['label' => __('word.create')])
+                            @include('wncms::backend.parts.submit', ['label' => __('word.create')])
                         </button>
                     </div>
                 </form>
@@ -63,5 +63,5 @@
 @endsection
 
 @push('foot_js')
-@include('common.js.tinymce')
+@include('wncms::common.js.tinymce')
 @endpush

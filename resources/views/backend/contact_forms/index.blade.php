@@ -1,15 +1,15 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-    @include('backend.parts.message')
+    @include('wncms::backend.parts.message')
 
     {{-- WNCMS toolbar filters --}}
     <div class="wncms-toolbar-filter mt-5">
         <form action="{{ route('contact_forms.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('backend.common.default_toolbar_filters')
+                @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
                     <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
@@ -34,7 +34,7 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('backend.common.default_toolbar_buttons', [
+            @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'contact_forms',
             ])
 
@@ -92,7 +92,7 @@
                             </td>
                             <td>
                                 <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('contact_forms.edit' , $contact_form) }}">@lang('word.edit')</a>
-                                @include('backend.parts.modal_delete' , ['model'=>$contact_form , 'route' => route('contact_forms.destroy' , $contact_form), 'btn_class' => 'px-2 py-1'])
+                                @include('wncms::backend.parts.modal_delete' , ['model'=>$contact_form , 'route' => route('contact_forms.destroy' , $contact_form), 'btn_class' => 'px-2 py-1'])
                             </td>
                             <td>{{ $contact_form->id }}</td>
                             <td>{{ $contact_form->name }}</td>

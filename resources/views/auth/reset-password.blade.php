@@ -62,7 +62,7 @@
         <!--begin::Submit button-->
         <div class="d-grid mb-10">
             <button type="submit" id="kt_sign_up_submit" class="btn btn-primary">
-                @include('backend.parts.submit')
+                @include('wncms::backend.parts.submit')
             </button>
         </div>
         <!--end::Submit button-->

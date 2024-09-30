@@ -140,7 +140,7 @@
                                                             'isPageTemplateValue' => true,
                                                             'pageWidgetId' => $pageWidgetId,
                                                         ]) --}}
-                                                            @include('backend.parts.inputs', [
+                                                            @include('wncms::backend.parts.inputs', [
                                                                 'option' => $option,
                                                                 'current_options' => $page->options,
                                                                 'inputNameKey' => "inputs[" . $pageWidgetId . "]",
@@ -220,7 +220,7 @@
                                                         <div class="accordion-body">
                                                             @foreach($options as $option)
                                                             {{-- @dd($options, $current_options) --}}
-                                                                @include('backend.parts.inputs', [
+                                                                @include('wncms::backend.parts.inputs', [
                                                                     'option' => $option,
                                                                     'current_options' => $current_options,
                                                                     'inputNameKey' => "inputs[" . $groupId . "]",
@@ -443,7 +443,7 @@
                                                 $page_template->value[$option['name']],
                                                 );
                                                 @endphp
-                                                @include('backend.parts.inputs' , [
+                                                @include('wncms::backend.parts.inputs' , [
                                                 'website'=> $website,
                                                 'option_index'=>$option_index,
                                                 'option'=>$option,
@@ -503,7 +503,7 @@
                 {{-- Publish --}}
                 <div class="mb-3">
                     <button type="submit" wncms-btn-loading class="btn btn-primary w-100 wncms-submit">
-                        @include('backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
+                        @include('wncms::backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
                     </button>
                 </div>
 
@@ -588,7 +588,7 @@
                 {{-- Publish --}}
                 <div class="mb-3">
                     <button type="submit" wncms-btn-loading class="btn btn-primary w-100 wncms-submit">
-                        @include('backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
+                        @include('wncms::backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
                     </button>
                 </div>
             </div>
@@ -629,7 +629,7 @@
                 {{-- Publish --}}
                 <div class="mb-3">
                     <button type="submit" wncms-btn-loading class="btn btn-primary w-100 wncms-submit">
-                        @include('backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
+                        @include('wncms::backend.parts.submit', ['label' => $submitLabelText ?? __('word.save_all')])
                     </button>
                 </div>
 

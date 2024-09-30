@@ -1,4 +1,4 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 @push('head_css')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css" />
 <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/nestable2@1.6.0/jquery.nestable.min.css" />
@@ -7,7 +7,7 @@
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="row">
     <div class="col-12 col-md-4">
@@ -48,7 +48,7 @@
                             {{-- Tag items --}}
                             <div class="form-group mh-500px overflow-scroll text-truncate">
                                 <div class="row mw-100">
-                                    @include('backend.menus.children_tags', ['children' => $tags, 'level' => 0])
+                                    @include('wncms::backend.menus.children_tags', ['children' => $tags, 'level' => 0])
                                 </div>
                             </div>
                         </div>

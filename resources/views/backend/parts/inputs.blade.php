@@ -70,7 +70,7 @@
                 @foreach($newOption['sub_items'] ?? [] as $sub_item)
                     {{-- <div class="col-lg-{{ floor(12 / (count($option['sub_items'] ?? []) ?: 1)) }}"> --}}
                     <div class="col">
-                        @include('backend.parts.inputs', ['option' => $sub_item])
+                        @include('wncms::backend.parts.inputs', ['option' => $sub_item])
                     </div>
                 @endforeach
             </div>
@@ -80,7 +80,7 @@
             @foreach($option['sub_items'] ?? [] as $sub_item)
                 {{-- <div class="col-lg-{{ floor(12 / (count($option['sub_items'] ?? []) ?: 1)) }}"> --}}
                 <div class="col">
-                    @include('backend.parts.inputs', ['option' => $sub_item])
+                    @include('wncms::backend.parts.inputs', ['option' => $sub_item])
                 </div>
             @endforeach
         </div>
@@ -624,7 +624,7 @@
                                             $indexedTabContent['input_name_key'] = $inputNameKey;
                                         @endphp
                                         
-                                        @include('backend.parts.inputs', [
+                                        @include('wncms::backend.parts.inputs', [
                                             'option' => $indexedTabContent,
                                             'isPageTemplateValue' => $isPageTemplateValue ?? false,
                                             'pageWidgetId' => $pageWidgetId ?? null,

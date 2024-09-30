@@ -1,4 +1,4 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
@@ -19,7 +19,7 @@
 
                     <div class="card-body border-top p-3 p-md-9">
 
-                        @include('backend.parts.message')
+                        @include('wncms::backend.parts.message')
 
                         @if(!empty($first_website))
                         <div class="alert alert-success fw-bold">
@@ -70,7 +70,7 @@
 
                         <div>
                             <button type="submit" wncms-btn-loading class="btn btn-dark w-100 wncms-submit">
-                                @include('backend.parts.submit', ['label' => __('word.create')])
+                                @include('wncms::backend.parts.submit', ['label' => __('word.create')])
                             </button>
                             {{-- <a href="https://t.me/secretwebmaster" target="_blank" class="btn btn-info w-100 fw-bold me-2 mt-1">@lang('word.purchuse_more_license')</a> --}}
                         </div>

@@ -1,8 +1,8 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <form class="form" method="POST" action="{{ route('settings.update' , $website) }}" enctype="multipart/form-data">
     @csrf
@@ -256,7 +256,7 @@
             {{-- submit --}}
             <div class="card-footer d-flex justify-content-end mt-5">
                 <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit w-100">
-                    @include('backend.parts.submit', ['label' => __('word.save_all')])
+                    @include('wncms::backend.parts.submit', ['label' => __('word.save_all')])
                 </button>
             </div>
         </div>

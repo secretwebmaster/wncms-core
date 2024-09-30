@@ -1,16 +1,16 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
     <div class="card mb-5 mb-xl-10">
         <div class="card-body pt-9 pb-0">
             {{-- Details --}}
-            @include('backend.users.parts.info')
+            @include('wncms::backend.users.parts.info')
 
             {{-- Nav --}}
-            @include('backend.users.parts.nav')
+            @include('wncms::backend.users.parts.nav')
         </div>
     </div>
 

@@ -69,7 +69,7 @@ class AnalyticsController extends Controller
             }
         }
 
-        return view('backend.analytics.index', [
+        return view('wncms::backend.analytics.index', [
             'page_title' => __('word.website_analytics'),
             'websites' => $websites,
             'websiteAnalyticsDataSets' => $websiteAnalyticsDataSets,
@@ -102,7 +102,7 @@ class AnalyticsController extends Controller
             ->paginate(100);
 
             // dd($traffics->random()->first());
-        return view('backend.analytics.traffic_log', [
+        return view('wncms::backend.analytics.traffic_log', [
             'websites' => $websites,
             'link_categories' => $link_categories,
             'traffics' => $traffics,
@@ -143,7 +143,7 @@ class AnalyticsController extends Controller
             ->latest()
             ->paginate(100);
 
-        return view('backend.analytics.click_log', [
+        return view('wncms::backend.analytics.click_log', [
             'websites' => $websites,
             'link_categories' => $link_categories,
             'clicks' => $clicks,

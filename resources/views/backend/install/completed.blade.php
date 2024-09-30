@@ -1,4 +1,4 @@
-@extends('layouts.install')
+@extends('wncms::layouts.install')
 
 @section('content')
     completed

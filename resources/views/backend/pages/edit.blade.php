@@ -1,4 +1,4 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @push('head_css')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css" />
@@ -10,13 +10,13 @@
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <form class="form" method="POST" action="{{ route('pages.update', ['page' => $page]) }}" enctype="multipart/form-data">
     @csrf
     @method('PATCH')
 
-    @include('backend.pages.form-items', [
+    @include('wncms::backend.pages.form-items', [
         'submitLabelText' => __('word.update'),
         'available_templates' => $available_templates,
     ])
@@ -25,5 +25,5 @@
 @endsection
 
 @push('foot_js')
-@include('common.js.tinymce')
+@include('wncms::common.js.tinymce')
 @endpush

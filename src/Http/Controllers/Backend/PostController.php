@@ -87,7 +87,7 @@ class PostController extends Controller
 
         $post_category_parants = Tag::where('type','post_category')->whereNull('parent_id')->with('children')->get();
 
-        return view('backend.posts.index', [
+        return view('wncms::backend.posts.index', [
             'page_title' => __('word.post_management'),
             'posts' => $posts,
             'post_category_parants' => $post_category_parants,
@@ -109,7 +109,7 @@ class PostController extends Controller
             $websites = auth()->user()->websites;
         }
 
-        return view('backend.posts.create', [
+        return view('wncms::backend.posts.create', [
             'page_title' => __('word.post_management'),
             'statuses' => Post::STATUSES,
             'visibilities' => Post::VISIBILITIES,
@@ -206,7 +206,7 @@ class PostController extends Controller
     {
         $post = Post::where('slug', $slug)->first();
         if (!$post) return redirect()->route('frontend.pages.home');
-        return view('frontend.theme.default.posts.single', [
+        return view('wncms::frontend.theme.default.posts.single', [
             'post' => $post,
         ]);
     }
@@ -221,7 +221,7 @@ class PostController extends Controller
             $users = User::where('id', auth()->id())->get();
             $websites = auth()->user()->websites;
         }
-        return view('backend.posts.edit', [
+        return view('wncms::backend.posts.edit', [
             'page_title' => __('word.post_management'),
             'statuses' => Post::STATUSES,
             'visibilities' => Post::VISIBILITIES,

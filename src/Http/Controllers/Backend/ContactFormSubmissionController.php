@@ -33,7 +33,7 @@ class ContactFormSubmissionController extends Controller
 
         $allKeys = $allKeys->unique()->sort();
 
-        return view('backend.contact_form_submissions.index', [
+        return view('wncms::backend.contact_form_submissions.index', [
             'page_title' => __('word.model_management', ['model_name' => __('word.contact_form_submission')]),
             'contact_form_submissions' => $contact_form_submissions,
             'allKeys' => $allKeys,
@@ -43,7 +43,7 @@ class ContactFormSubmissionController extends Controller
 
     public function show(ContactFormSubmission $contact_form_submission)
     {
-        return view('backend.contact_form_submissions.show', [
+        return view('wncms::backend.contact_form_submissions.show', [
             'contact_form_submission' => $contact_form_submission,
         ]);
     }

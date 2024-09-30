@@ -25,7 +25,7 @@ class NewPasswordController extends Controller
         if($website && view()->exists("frontend.theme.{$website?->theme}.auth.reset-password")){
             return view("frontend.theme.{$website?->theme}.auth.reset-password");
         }
-        return view('auth.reset-password', compact('request', 'token'));
+        return view('wncms::auth.reset-password', compact('request', 'token'));
     }
 
     /**

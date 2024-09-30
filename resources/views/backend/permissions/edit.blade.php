@@ -1,8 +1,8 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="row justify-content-center">
     <div class="col-12 col-md-8">
@@ -48,7 +48,7 @@
 
                     <div class="card-footer d-flex justify-content-end py-6 px-9">
                         <button type="submit" class="btn btn-dark w-100" id="kt_account_profile_details_submit">
-                            @include('backend.parts.submit', ['label' => __('word.edit')])
+                            @include('wncms::backend.parts.submit', ['label' => __('word.edit')])
                         </button>
                     </div>
                 </form>

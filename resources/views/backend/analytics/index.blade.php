@@ -1,15 +1,15 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-    @include('backend.parts.message')
+    @include('wncms::backend.parts.message')
 
     {{-- WNCMS toolbar filters --}}
     <div class="wncms-toolbar-filter mt-5">
         <form action="{{ route('analytics.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('backend.common.default_toolbar_filters', [
+                @include('wncms::backend.common.default_toolbar_filters', [
                     'hideToolbarWebsiteFiller' => true,
                     'hideToolbarPageSizeFiller' => true,
                 ])
@@ -51,7 +51,7 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('backend.common.default_toolbar_buttons', [
+            @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'analytics',
             ])
         </div>
@@ -93,7 +93,7 @@
                                         </div>
                                     </td> --}}
                                     <td>{{ $website->id }}</td>
-                                    <td>@include('common.table_url', ['url' => $website->domain])</td>
+                                    <td>@include('wncms::common.table_url', ['url' => $website->domain])</td>
                                     <td>{{ $websiteAnalyticsDataSets[$website->domain]['today'] ?? 0 }}</td>
                                     <td>{{ $websiteAnalyticsDataSets[$website->domain]['yesterday'] ?? 0 }}</td>
                                     <td>{{ $websiteAnalyticsDataSets[$website->domain]['recent_week'] ?? 0 }}</td>

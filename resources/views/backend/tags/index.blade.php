@@ -1,15 +1,15 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-    @include('backend.parts.message')
+    @include('wncms::backend.parts.message')
 
     {{-- WNCMS toolbar filters --}}
     <div class="wncms-toolbar-filter mt-5">
         <form action="{{ route('tags.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('backend.common.default_toolbar_filters')
+                @include('wncms::backend.common.default_toolbar_filters')
 
                 {{-- tagType --}}
                 @if(!empty($tagTypes))
@@ -47,7 +47,7 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('backend.common.default_toolbar_buttons', [
+            @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'tags',
             ])
 
@@ -71,7 +71,7 @@
                                     <option value="">@lang('word.please_select')</option>
                                     @foreach ($allParents as $parent)
                                         <option value="{{ $parent->id }}">{{ $parent->name }}</option>
-                                        @include('backend.tags.recursive_children_options', ['children' => $parent->children, 'depth' => 1])
+                                        @include('wncms::backend.tags.recursive_children_options', ['children' => $parent->children, 'depth' => 1])
                                     @endforeach
                                 </select>
                             </form>
@@ -136,7 +136,7 @@
                                 <td>
                                     <a class="btn btn-sm px-2 py-1 btn-primary fw-bold" href="{{ route('tags.create' , ['type' => $parent->type,'parent_id' => $parent->id]) }}">@lang('word.add_children_tag')</a>
                                     <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('tags.edit' , $parent) }}">@lang('word.edit')</a>
-                                    @include('backend.parts.modal_delete' , ['model'=>$parent , 'route' => route('tags.destroy' , $parent)])
+                                    @include('wncms::backend.parts.modal_delete' , ['model'=>$parent , 'route' => route('tags.destroy' , $parent)])
                                 </td>
                                 <td class="ps-3">{{ $parent->id }}</td>
                                 <td>@lang('word.' . $parent->type)</td>
@@ -153,7 +153,7 @@
                             {{-- Children --}}
                             {{-- 結構與Parent不同，所以由level = 1開始 --}}
                             @if(empty(request()->hide_children_tags))
-                                @include('backend.tags.children_tags', ['children' => $parent->children, 'level' => 1])
+                                @include('wncms::backend.tags.children_tags', ['children' => $parent->children, 'level' => 1])
                             @endif
 
                         @endforeach

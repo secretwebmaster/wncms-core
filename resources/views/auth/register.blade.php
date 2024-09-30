@@ -1,4 +1,4 @@
-@extends('layouts.auth')
+@extends('wncms::layouts.auth')
 @section('auth_content')
 
     <form id="form_register" data-action="{{ route('register', ['is_ajax' => true]) }}">

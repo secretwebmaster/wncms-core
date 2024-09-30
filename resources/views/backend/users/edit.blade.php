@@ -1,7 +1,7 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 
 <form class="form" method="POST" action="{{ route('users.update', $user) }}" enctype="multipart/form-data">
@@ -133,7 +133,7 @@
 
     <div>
         <button type="submit" class="btn btn-primary w-100 fw-bold" id="kt_account_profile_details_submit">
-            @include('backend.parts.submit', ['label' => __('word.edit')])
+            @include('wncms::backend.parts.submit', ['label' => __('word.edit')])
         </button>
     </div>
 </form>

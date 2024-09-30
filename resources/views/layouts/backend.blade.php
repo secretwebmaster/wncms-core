@@ -43,12 +43,12 @@
             <div class="app-page flex-column flex-column-fluid" id="kt_app_page">
             
                 {{-- Header --}}
-                @include('backend.parts.header')
+                @include('wncms::backend.parts.header')
 
                 <div class="app-wrapper flex-column flex-row-fluid p-1 p-md-0" id="kt_app_wrapper">
 
                     {{-- Sidebar --}}
-                    @include('backend.parts.sidebar')
+                    @include('wncms::backend.parts.sidebar')
 
                     <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
 
@@ -87,7 +87,7 @@
                         <div class="d-flex flex-column flex-column-fluid">
 
                             {{-- Breadcrum  需要傳參數 --}}
-                            @include('backend.parts.toolbar')
+                            @include('wncms::backend.parts.toolbar')
 
                             
                             
@@ -101,7 +101,7 @@
                         </div>
 
                         {{-- Footer --}}
-                        @role('admin')@include('backend.parts.footer')@endrole
+                        @role('admin')@include('wncms::backend.parts.footer')@endrole
                     </div>
                     
                 </div>
@@ -125,7 +125,7 @@
         <script src="{{ asset('wncms/js/wncms.js?v='). $wncms->getVersion('js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
 
-        @include('backend.common.check_for_update')
+        @include('wncms::backend.common.check_for_update')
         @stack('foot_js')
         @stack('foot_css')
 

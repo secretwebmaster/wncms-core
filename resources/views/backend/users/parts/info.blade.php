@@ -19,7 +19,7 @@
                         {{-- Name --}}
                         <div class="d-flex align-items-center mb-3">
                             <a href="#" class="text-gray-900 text-hover-primary fs-2 fw-bold me-1">{{ auth()->user()->username }}</a>
-                            <a href="#">@include('common.svg.verified')</a>
+                            <a href="#">@include('wncms::common.svg.verified')</a>
                             <a href="#" class="btn btn-sm btn-light-primary border border-1 border-primary fw-bold ms-2 fs-8 py-1 px-3" data-bs-toggle="modal" data-bs-target="#kt_modal_upgrade_plan">{{ auth()->user()->active_subscription->plan?->name ?? __('word.free_plan') }}</a>
                         </div>
         

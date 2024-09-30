@@ -1,4 +1,4 @@
-@extends('layouts.install')
+@extends('wncms::layouts.install')
 
 @section('template_title')
     {{ trans('installer_messages.requirements.templateTitle') }}

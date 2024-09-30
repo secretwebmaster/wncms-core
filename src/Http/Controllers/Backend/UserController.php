@@ -25,7 +25,7 @@ class UserController extends Controller
 
         $users = $q->paginate(20);
 
-        return view('backend.users.index', [
+        return view('wncms::backend.users.index', [
             'users' => $users,
             'page_title' => __('word.user_management')
         ]);
@@ -34,7 +34,7 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        return view('backend.users.create', [
+        return view('wncms::backend.users.create', [
             'roles' => $roles,
             'page_title' => __('word.user_management')
         ]);
@@ -79,7 +79,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
-        return view('backend.users.edit', [
+        return view('wncms::backend.users.edit', [
             'user' => $user,
             'roles' => $roles,
             'page_title' => __('word.user_management')
@@ -145,7 +145,7 @@ class UserController extends Controller
     public function show_user_profile(Request $request)
     {
         $user = auth()->user();
-        return view('backend.users.account.profile', [
+        return view('wncms::backend.users.account.profile', [
             'page_title' => __('word.my_account'),
         ], [
             'user' => $user,
@@ -168,7 +168,7 @@ class UserController extends Controller
 
     public function show_user_security(Request $request)
     {
-        return view('backend.users.account.security', [
+        return view('wncms::backend.users.account.security', [
             'page_title' => __('word.my_account'),
         ]);
     }
@@ -193,21 +193,21 @@ class UserController extends Controller
 
     public function show_user_api(Request $request)
     {
-        return view('backend.users.account.api', [
+        return view('wncms::backend.users.account.api', [
             'page_title' => __('word.my_account'),
         ]);
     }
 
     public function update_user_api(Request $request)
     {
-        return view('backend.users.account.api', [
+        return view('wncms::backend.users.account.api', [
             'page_title' => __('word.my_account'),
         ]);
     }
 
     public function show_user_record(Request $request)
     {
-        return view('backend.users.record', [
+        return view('wncms::backend.users.record', [
             'page_title' => __('word.my_account'),
         ]);
     }

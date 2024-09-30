@@ -1,8 +1,8 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="row justify-content-center align-items-center h-100">
     <div class="col-12 col-md-6 col-xl-4">
@@ -23,7 +23,7 @@
         
                     <div class="card-footer d-flex justify-content-end py-6 px-9">
                         <button type="submit" wncms-btn-loading class="btn btn-primary w-100 wncms-submit">
-                            @include('backend.parts.submit', ['label' => __('word.create')])
+                            @include('wncms::backend.parts.submit', ['label' => __('word.create')])
                         </button>
                     </div>
                 </form>

@@ -1,8 +1,8 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="row justify-content-center mw-100 m-0">
     <div class="col-12 col-md-8 mb-3">
@@ -74,7 +74,7 @@
 
                     <div class="card-footer d-flex justify-content-end py-6 px-9">
                         <button type="submit" class="btn btn-dark w-100" id="kt_account_profile_details_submit">
-                            @include('backend.parts.submit', ['label' => __('word.create')])
+                            @include('wncms::backend.parts.submit', ['label' => __('word.create')])
                         </button>
                     </div>
                 </form>
@@ -97,7 +97,7 @@
         </div>
 
         <div class="alert alert-primary">
-            @include('backend.permissions.existing_permissions')
+            @include('wncms::backend.permissions.existing_permissions')
         </div>
     </div>
 

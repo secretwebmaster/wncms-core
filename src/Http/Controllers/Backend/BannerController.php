@@ -61,7 +61,7 @@ class BannerController extends Controller
 
         $websites = wncms()->website()->getList();
 
-        return view('backend.banners.index', [
+        return view('wncms::backend.banners.index', [
             'banners' => $banners,
             'websites' => $websites,
             'orders' => Banner::ORDERS,
@@ -77,7 +77,7 @@ class BannerController extends Controller
     public function create(Banner $banner = null)
     {
         $websites = wncms()->website()->getList();
-        return view('backend.banners.create', [
+        return view('wncms::backend.banners.create', [
             'page_title' => __('word.banner_management'),
             'positions' => Banner::POSITIONS,
             'statuses' => Banner::STATUSES,
@@ -188,7 +188,7 @@ class BannerController extends Controller
     public function edit(Banner $banner)
     {
         $websites = wncms()->website()->getList();
-        return view('backend.banners.edit', [
+        return view('wncms::backend.banners.edit', [
             'page_title' => __('word.banner_management'),
             'banner' => $banner,
             'positions' => Banner::POSITIONS,

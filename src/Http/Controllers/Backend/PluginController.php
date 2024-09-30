@@ -11,7 +11,7 @@ class PluginController extends Controller
     public function index()
 {
     $plugins = Plugin::all();
-    return view('backend.plugins.index', compact('plugins'));
+    return view('wncms::backend.plugins.index', compact('plugins'));
 }
 
     public function upload(Request $request)

@@ -30,7 +30,7 @@ class DashboardController extends Controller
             $result  = (new UpdateController)->getUpdateData();
             $colors  = (new UpdateController)->colors;
             
-            return view('backend.dashboards.admin_dashboard', [
+            return view('wncms::backend.dashboards.admin_dashboard', [
                 'page_title' => __('word.user_role_dashboard', ['role' => __('word.admin')]),
                 'result' => $result ?? [],
                 'colors' => $colors,
@@ -42,20 +42,20 @@ class DashboardController extends Controller
         }
 
         if(auth()->user()->hasRole(['manager'])){
-            return view('backend.dashboards.manager_dashboard', [
+            return view('wncms::backend.dashboards.manager_dashboard', [
                 'page_title' => __('word.user_role_dashboard', ['role' => __('word.manager')]),
                 'result' => $result,
             ]);
         }
 
         if(auth()->user()->hasRole(['suspended'])){
-            return view('backend.dashboards.suspended_dashboard', [
+            return view('wncms::backend.dashboards.suspended_dashboard', [
                 'page_title' => __('word.user_role_dashboard', ['role' => __('word.suspended')]),
                 'result' => $result,
             ]);
         }
 
-        return view('backend.dashboards.member_dashboard', [
+        return view('wncms::backend.dashboards.member_dashboard', [
             'page_title' => __('word.user_role_dashboard', ['role' => __('word.member')]),
         ]);
     }

@@ -19,7 +19,7 @@ class UpdateController extends Controller
     {
         $result = $this->getUpdateData();
         // dd($result);
-        return view('backend.admin.update', [
+        return view('wncms::backend.admin.update', [
             'page_title' => __('word.system_update'),
             'colors' => $this->colors,
             'result' => $result,

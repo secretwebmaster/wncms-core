@@ -1,4 +1,4 @@
-@extends('backend.users.account')
+@extends('wncms::backend.users.account')
 
 @section('account_content')
 

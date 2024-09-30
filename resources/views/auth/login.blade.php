@@ -1,4 +1,4 @@
-@extends('layouts.auth')
+@extends('wncms::layouts.auth')
 @section('auth_content')
 
     <form class="form w-100 " id="form_login" data-action="{{ route('login.ajax') }}">

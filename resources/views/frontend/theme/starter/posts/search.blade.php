@@ -1,4 +1,4 @@
-@extends('frontend.theme.starter.layouts.app')
+@extends('wncms::frontend.theme.starter.layouts.app')
 
 @section('content')
 

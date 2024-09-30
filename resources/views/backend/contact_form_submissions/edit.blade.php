@@ -1,8 +1,8 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="card">
     <div class="card-header border-0 cursor-pointer px-3 px-md-9">
@@ -249,7 +249,7 @@
                 <button type="reset" class="btn btn-white btn-active-light-primary me-2">@lang('word.cancel')</button>
 
                 <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit">
-                    @include('backend.parts.submit', ['label' => __('word.edit')])
+                    @include('wncms::backend.parts.submit', ['label' => __('word.edit')])
                 </button>
             </div>
         </form>

@@ -136,13 +136,13 @@
 
     <body>
         {{-- Header --}}
-        @include('frontend.theme.default.parts.header')
+        @include('wncms::frontend.theme.default.parts.header')
 
         {{-- Page content --}}
         @yield('content')
 
         {{-- Footer --}}
-        @include('frontend.theme.default.parts.footer')
+        @include('wncms::frontend.theme.default.parts.footer')
 
         {{-- JS --}}
         @stack('foot_js')

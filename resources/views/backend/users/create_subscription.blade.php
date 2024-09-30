@@ -1,8 +1,8 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-@include('backend.parts.message')				
+@include('wncms::backend.parts.message')				
                 
     <div>
         <form class="d-flex flex-column flex-lg-row" action="{{ route('users.user_orders.store') }}" method="POST">

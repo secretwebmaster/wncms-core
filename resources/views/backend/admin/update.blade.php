@@ -1,8 +1,8 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 @if(gss('disable_core_update'))
     <div class="alert alert-danger" role="alert">
         @lang('word.core_update_disabled')
@@ -61,7 +61,7 @@
 <h3 class="mt-10 mb-3">@lang('word.update_content')</h3>
 
 {{-- Update content --}}
-@include('backend.admin.update_content')
+@include('wncms::backend.admin.update_content')
 
 @endsection
 

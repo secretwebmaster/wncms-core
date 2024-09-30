@@ -15,7 +15,7 @@ class SettingController extends Controller
         //check if there is system update
         $settings = Setting::pluck('value','key')->toArray();
         $availableSettings = array_merge(config('wncms-system-settings'), (config('wncms.custom-settings') ?? []));
-        return view('backend.admin.settings',[
+        return view('wncms::backend.admin.settings',[
             'settings' => $settings,
             'page_title' => __('word.setting'),
             'availableSettings' => $availableSettings,

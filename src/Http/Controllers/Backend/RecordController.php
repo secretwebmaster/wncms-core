@@ -15,7 +15,7 @@ class RecordController extends Controller
     {
         $records = Record::latest()->paginate(50);
         $websites = wn('website')->getList();
-        return view('backend.records.index',[
+        return view('wncms::backend.records.index',[
             'records' => $records,
             'websites' => $websites,
             'types' => Record::TYPES,

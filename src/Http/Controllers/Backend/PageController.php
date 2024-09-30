@@ -36,7 +36,7 @@ class PageController extends Controller
 
         $websites = Website::all();
 
-        return view('backend.pages.index', [
+        return view('wncms::backend.pages.index', [
             'page_title' => __('word.page_management'),
             'pages' => $pages,
             'websites' => $websites,
@@ -56,7 +56,7 @@ class PageController extends Controller
             $websites = auth()->user()->websites;
         }
 
-        return view('backend.pages.create', [
+        return view('wncms::backend.pages.create', [
             'page_title' => __('word.page_management'),
             'websites' => $websites,
             'users' => $users,
@@ -183,7 +183,7 @@ class PageController extends Controller
 
         $available_templates = collect(config("theme." . $page->website?->theme . ".templates"));
 
-        return view('backend.pages.edit', [
+        return view('wncms::backend.pages.edit', [
             'page_title' => __('word.page_management'),
             'page' => $page,
             'websites' => $websites,
@@ -319,7 +319,7 @@ class PageController extends Controller
      */
     public function installed()
     {
-        return view('errors.installed');
+        return view('wncms::errors.installed');
     }
 
     public function create_theme_pages(Request $request)

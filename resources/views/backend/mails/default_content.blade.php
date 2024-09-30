@@ -1,4 +1,4 @@
-@extends('backend.mails.container')
+@extends('wncms::backend.mails.container')
 
 @section('content')
 

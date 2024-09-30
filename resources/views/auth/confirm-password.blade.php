@@ -22,7 +22,7 @@
         <!--begin::Actions-->
         <div class="d-flex flex-wrap justify-content-center pb-lg-0">
             <button type="button" id="kt_password_reset_submit" class="btn btn-primary me-4">
-                @include('backend.parts.submit')
+                @include('wncms::backend.parts.submit')
             </button>
             <a href="{{ theme()->getPageUrl('login') }}" class="btn btn-light">Cancel</a>
         </div>

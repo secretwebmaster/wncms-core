@@ -1,8 +1,8 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-    @include('backend.parts.message')
+    @include('wncms::backend.parts.message')
 
 
 
@@ -11,7 +11,7 @@
         <form action="{{ route('users.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('backend.common.default_toolbar_filters')
+                @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
                     <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('word.submit')">
@@ -36,7 +36,7 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('backend.common.default_toolbar_buttons', [
+            @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'users',
             ])
         </div>
@@ -79,12 +79,12 @@
                         @foreach($users as $user)
                         <tr>
                             <td>
-                                {{-- @include('backend.users.parts.modal_recharge_by_admin', ['user' => $user]) --}}
+                                {{-- @include('wncms::backend.users.parts.modal_recharge_by_admin', ['user' => $user]) --}}
                                 <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('users.edit' , $user) }}">@lang('word.edit')</a>
-                                @include('backend.parts.modal_delete' , ['model'=>$user , 'route' => route('users.destroy' , $user)])
+                                @include('wncms::backend.parts.modal_delete' , ['model'=>$user , 'route' => route('users.destroy' , $user)])
 
                                 {{-- @if($user->trashed())
-                                @include('backend.parts.modal_delete' , ['model'=>$user , 'route' => route('users.destroy.force' , $user), 'btn_text' => __('word.force_delete'), 'target' => 'form_delete'])
+                                @include('wncms::backend.parts.modal_delete' , ['model'=>$user , 'route' => route('users.destroy.force' , $user), 'btn_text' => __('word.force_delete'), 'target' => 'form_delete'])
                                 @endif --}}
                             </td>
                             <td>{{ $user->id }}</td>

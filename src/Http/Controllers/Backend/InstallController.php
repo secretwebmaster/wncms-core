@@ -35,7 +35,7 @@ class InstallController extends Controller
      */
     public function welcome()
     {
-        return view('install.welcome');
+        return view('wncms::install.welcome');
     }
 
     /**
@@ -46,7 +46,7 @@ class InstallController extends Controller
     {
         $phpSupportInfo = $this->requirementsChecker->checkPHPversion( config('installer.core.minPhpVersion'));
         $requirements = $this->requirementsChecker->check(config('installer.requirements'));
-        return view('install.requirements', compact('requirements', 'phpSupportInfo'));
+        return view('wncms::install.requirements', compact('requirements', 'phpSupportInfo'));
     }
 
     /**
@@ -56,7 +56,7 @@ class InstallController extends Controller
     public function permissions()
     {
         $permissions = $this->permissionChecker->check(config('installer.permissions'));
-        return view('install.permissions', compact('permissions'));
+        return view('wncms::install.permissions', compact('permissions'));
     }
 
     /**
@@ -66,7 +66,7 @@ class InstallController extends Controller
      */
     public function wizard()
     {
-        return view('install.wizard');
+        return view('wncms::install.wizard');
     }
 
     /**

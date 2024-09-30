@@ -35,11 +35,11 @@
 
         {!! $website->body_code !!}
 
-        @include('frontend.theme.starter.parts.header')
+        @include('wncms::frontend.theme.starter.parts.header')
 
         @yield('content')
 
-        @include('frontend.theme.starter.parts.footer')
+        @include('wncms::frontend.theme.starter.parts.footer')
 
         <script src="{{ asset('wncms/js/jquery.min.js?v=' . $wncms->getVersion('js')) }}"></script>
         <script src="{{ asset('wncms/js/lazysizes.min.js?v=' . $wncms->getVersion('js')) }}"></script>

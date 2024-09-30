@@ -1,16 +1,16 @@
-@extends('layouts.backend')
+@extends('wncms::layouts.backend')
 
 @section('content')
 
-@include('backend.parts.message')
+@include('wncms::backend.parts.message')
 
 <div class="card mb-5 mb-xl-10">
     <div class="card-body pt-9 pb-0">
         {{-- Details --}}
-        @include('backend.users.parts.info')
+        @include('wncms::backend.users.parts.info')
 
         {{-- Nav --}}
-        @include('backend.users.parts.nav')
+        @include('wncms::backend.users.parts.nav')
     </div>
 </div>
 
@@ -62,7 +62,7 @@
                                 </td>
                                 <td>
                                     <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('users.edit' , $user) }}">@lang('word.edit')</a>
-                                    @include('backend.parts.modal_delete' , ['model'=>$user , 'route' => route('users.destroy' , $user), 'btn_class' => 'px-2 py-1'])
+                                    @include('wncms::backend.parts.modal_delete' , ['model'=>$user , 'route' => route('users.destroy' , $user), 'btn_class' => 'px-2 py-1'])
                                 </td>
                                 <td>{{ $user->id }}</td>
                                 <td>{{ $user->name }}</td>

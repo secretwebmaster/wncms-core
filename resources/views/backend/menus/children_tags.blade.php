@@ -8,7 +8,7 @@
         </div>
 
         @if ($child->children->count() > 0)
-            @include('backend.menus.children_tags', ['children' => $child->children, 'level' => $level + 1])
+            @include('wncms::backend.menus.children_tags', ['children' => $child->children, 'level' => $level + 1])
         @endif
     @endforeach
 </div>
