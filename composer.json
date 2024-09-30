@@ -11,10 +11,10 @@
         "secretwebmaster\/wncms-tags": "^1.0.0",
         "spatie\/laravel-activitylog": "^4.8",
         "spatie\/laravel-medialibrary": "^11.9",
-        "spatie\/laravel-permission": "^6.9"
+        "spatie\/laravel-permission": "^6.9",
+        "fakerphp\/faker": "^1.23"
     },
     "require-dev": {
-        "fakerphp\/faker": "^1.23",
         "laravel\/pint": "^1.13",
         "laravel\/sail": "^1.26",
         "mockery\/mockery": "^1.6",
