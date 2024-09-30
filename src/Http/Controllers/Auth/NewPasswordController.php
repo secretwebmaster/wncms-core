@@ -23,7 +23,7 @@ class NewPasswordController extends Controller
     {
         $website = wn('website')->get();
         if($website && view()->exists("frontend.theme.{$website?->theme}.auth.reset-password")){
-            return view("frontend.theme.{$website?->theme}.auth.reset-password");
+            return view("wncms::frontend.theme.{$website?->theme}.auth.reset-password");
         }
         return view('wncms::auth.reset-password', compact('request', 'token'));
     }

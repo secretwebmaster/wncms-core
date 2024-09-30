@@ -113,7 +113,7 @@ class PageController extends Controller
 
         // page model does not exist. Load default static page
         if (view()->exists("frontend.theme.{$website?->theme}.pages." . $slug)) {
-            return view("frontend.theme.{$website?->theme}.pages." . $slug, [
+            return view("wncms::frontend.theme.{$website?->theme}.pages." . $slug, [
                 'page' => $page ?? new Page,
                 'pageTitle' => $page?->title,
             ]);
@@ -151,7 +151,7 @@ class PageController extends Controller
         
         //check if page exists
         if (view()->exists("frontend.theme.{$theme}.pages.{$pageNmae}")) {
-            return view("frontend.theme.{$theme}.pages.{$pageNmae}", $params);
+            return view("wncms::frontend.theme.{$theme}.pages.{$pageNmae}", $params);
         }
 
         if($fallbackRoute && wn()->getRoute($fallbackRoute)){

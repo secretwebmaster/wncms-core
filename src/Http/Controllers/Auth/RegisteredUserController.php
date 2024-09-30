@@ -31,7 +31,7 @@ class RegisteredUserController extends Controller
     {
         $website = wn('website')->get();
         if($website && view()->exists("frontend.theme.{$website?->theme}.auth.register")){
-            return view("frontend.theme.{$website?->theme}.auth.register");
+            return view("wncms::frontend.theme.{$website?->theme}.auth.register");
         }
         return view('wncms::auth.register');
     }

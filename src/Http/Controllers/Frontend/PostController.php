@@ -189,7 +189,7 @@ class PostController extends Controller
             $posts = wncms()->post()->getList(order:'created_at',count:$count,page:$page,pageSize:$pageSize);
         }
 
-        return view("frontend.theme.$theme.posts.archive", [
+        return view("wncms::frontend.theme.$theme.posts.archive", [
             'page_title' => $page_title ?? '',
             'posts' => $posts,
             'show_post_filter' => true,

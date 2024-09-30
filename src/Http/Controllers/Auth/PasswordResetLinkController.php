@@ -19,7 +19,7 @@ class PasswordResetLinkController extends Controller
     {
         $website = wn('website')->get();
         if($website && view()->exists("frontend.theme.{$website?->theme}.auth.forget_password")){
-            return view("frontend.theme.{$website?->theme}.auth.forget_password");
+            return view("wncms::frontend.theme.{$website?->theme}.auth.forget_password");
         }
         return view('wncms::auth.forgot-password');
     }
