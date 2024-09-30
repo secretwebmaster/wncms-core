@@ -266,7 +266,7 @@ class InstallController extends Controller
 
     public function install_lang_files()
     {
-        $availableLanguages = array_diff(scandir(lang_path()), ['.', '..']);
+        $availableLanguages = array_diff(scandir(lang_path()), ['.', '..', '.gitkeep', '.gitignore']);
         $customContent = "<?php\n\n\$custom_words = [\n\n];\n\nreturn \$custom_words;";
         info('adding custom.php to each lang dir');
         

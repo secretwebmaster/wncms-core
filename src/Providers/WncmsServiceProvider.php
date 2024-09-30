@@ -49,14 +49,13 @@ class WncmsServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Register LaravelLocalization middleware aliases
+        // middleware
         $this->app['router']->aliasMiddleware('localize', \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes::class);
         $this->app['router']->aliasMiddleware('localizationRedirect', \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter::class);
         $this->app['router']->aliasMiddleware('localeSessionRedirect', \Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect::class);
         $this->app['router']->aliasMiddleware('localeCookieRedirect', \Mcamara\LaravelLocalization\Middleware\LocaleCookieRedirect::class);
         $this->app['router']->aliasMiddleware('localeViewPath', \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath::class);
 
-        // Register middleware aliases
         $this->app['router']->aliasMiddleware('is_installed', \Wncms\Http\Middleware\IsInstalled::class);
         $this->app['router']->aliasMiddleware('has_website', \Wncms\Http\Middleware\HasWebsite::class);
         $this->app['router']->aliasMiddleware('full_page_cache', \Wncms\Http\Middleware\FullPageCache::class);
@@ -65,43 +64,38 @@ class WncmsServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
         $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
         $this->loadViewsFrom(__DIR__.'/../../resources/views', 'wncms');
-        $this->loadTranslationsFrom(__DIR__.'/../../lang', 'lang');
 
-        // Publish the configuration files
-        $this->publishes([
-            __DIR__.'/../../config/activitylog.php' => config_path('activitylog.php'),
-            __DIR__.'/../../config/app.php' => config_path('app.php'),
-            __DIR__.'/../../config/auth.php' => config_path('auth.php'),
-            __DIR__.'/../../config/cache.php' => config_path('cache.php'),
-            __DIR__.'/../../config/database.php' => config_path('database.php'),
-            __DIR__.'/../../config/debugbar.php' => config_path('debugbar.php'),
-            __DIR__.'/../../config/filesystems.php' => config_path('filesystems.php'),
-            __DIR__.'/../../config/installer.php' => config_path('installer.php'),
-            __DIR__.'/../../config/laravellocalization.php' => config_path('laravellocalization.php'),
-            __DIR__.'/../../config/logging.php' => config_path('logging.php'),
-            __DIR__.'/../../config/mail.php' => config_path('mail.php'),
-            __DIR__.'/../../config/permission.php' => config_path('permission.php'),
-            __DIR__.'/../../config/queue.php' => config_path('queue.php'),
-            __DIR__.'/../../config/services.php' => config_path('services.php'),
-            __DIR__.'/../../config/session.php' => config_path('session.php'),
-            __DIR__.'/../../config/translatable.php' => config_path('translatable.php'),
-            __DIR__.'/../../config/wncms-system-settings.php' => config_path('wncms-system-settings.php'),
-            __DIR__.'/../../config/wncms-tags.php' => config_path('wncms-tags.php'),
+        // translation
+        $this->loadTranslationsFrom(__DIR__.'/../../lang', 'wncms');
 
-            // Publish theme configurations
-            __DIR__.'/../../config/theme/default.php' => config_path('theme/default.php'),
-            __DIR__.'/../../config/theme/starter.php' => config_path('theme/starter.php'),
-        ], 'config');
-
-
-        // $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
+        // migrations
+        $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
         
-        // TODO:: load language from json
-        // $this->loadJsonTranslationsFrom(__DIR__.'/../lang');
+        // publish
+        // $this->publishes([
+        //     __DIR__.'/../../config/activitylog.php' => config_path('activitylog.php'),
+        //     __DIR__.'/../../config/app.php' => config_path('app.php'),
+        //     __DIR__.'/../../config/auth.php' => config_path('auth.php'),
+        //     __DIR__.'/../../config/cache.php' => config_path('cache.php'),
+        //     __DIR__.'/../../config/database.php' => config_path('database.php'),
+        //     __DIR__.'/../../config/debugbar.php' => config_path('debugbar.php'),
+        //     __DIR__.'/../../config/filesystems.php' => config_path('filesystems.php'),
+        //     __DIR__.'/../../config/installer.php' => config_path('installer.php'),
+        //     __DIR__.'/../../config/laravellocalization.php' => config_path('laravellocalization.php'),
+        //     __DIR__.'/../../config/logging.php' => config_path('logging.php'),
+        //     __DIR__.'/../../config/mail.php' => config_path('mail.php'),
+        //     __DIR__.'/../../config/permission.php' => config_path('permission.php'),
+        //     __DIR__.'/../../config/queue.php' => config_path('queue.php'),
+        //     __DIR__.'/../../config/services.php' => config_path('services.php'),
+        //     __DIR__.'/../../config/session.php' => config_path('session.php'),
+        //     __DIR__.'/../../config/translatable.php' => config_path('translatable.php'),
+        //     __DIR__.'/../../config/wncms-system-settings.php' => config_path('wncms-system-settings.php'),
+        //     __DIR__.'/../../config/wncms-tags.php' => config_path('wncms-tags.php'),
 
-        // $this->mergeConfigFrom(
-        //     __DIR__.'/../../config/courier.php', 'courier'
-        // );
+        //     // Publish theme configurations
+        //     __DIR__.'/../../config/theme/default.php' => config_path('theme/default.php'),
+        //     __DIR__.'/../../config/theme/starter.php' => config_path('theme/starter.php'),
+        // ], 'config');
 
         // ! Commands
         // if ($this->app->runningInConsole()) {
@@ -116,7 +110,6 @@ class WncmsServiceProvider extends ServiceProvider
         //     __DIR__.'/../public' => public_path('vendor/courier'),
         // ], 'public');
 
-        
         // !publishes
         // $this->publishes([
         //     __DIR__.'/../../config/courier.php' => config_path('courier.php'),
