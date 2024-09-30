@@ -1,11 +1,11 @@
 @extends('wncms::layouts.install')
 
 @section('template_title')
-    {{ trans('installer.requirements.templateTitle') }}
+    @lang('wncms::installer.requirements.templateTitle')
 @endsection
 
 @section('title')
-    {{ trans('installer.requirements.title') }}
+    @lang('wncms::installer.requirements.title')
 @endsection
 
 @section('container')
@@ -43,7 +43,7 @@
     @if ( ! isset($requirements['errors']) && $phpSupportInfo['supported'] )
         <div class="buttons">
             <a class="button" href="{{ route('installer.permissions') }}">
-                {{ trans('installer.requirements.next') }}
+                @lang('wncms::installer.requirements.next')
                 <i class="fa fa-angle-right fa-fw" aria-hidden="true"></i>
             </a>
         </div>
