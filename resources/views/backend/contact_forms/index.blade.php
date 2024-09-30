@@ -12,7 +12,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -101,7 +101,7 @@
                             <td>
                                 <div class="input-group w-300px">
                                     <input type="text" class="form-control form-control-sm" value="$wncms->contact_form()->render(contactFormId:{{ $contact_form->id }})">
-                                    <button class="btn btn-sm btn-primary fw-bold" btn-copy-to-clipboard data-original-text="@lang('wncms::word.copy')" data-copied-text="@lang('wncms::word.copied')" data-value="$wncms->contact_form()->render(contactFormId:{{ $contact_form->id }})">@lang('wncms::word.copy')</button>
+                                    <button class="btn btn-sm btn-primary fw-bold mb-1" btn-copy-to-clipboard data-original-text="@lang('wncms::word.copy')" data-copied-text="@lang('wncms::word.copied')" data-value="$wncms->contact_form()->render(contactFormId:{{ $contact_form->id }})">@lang('wncms::word.copy')</button>
                                 </div>
                             </td>
                             <td>{{ $contact_form->remark }}</td>

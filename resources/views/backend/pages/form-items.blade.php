@@ -229,7 +229,7 @@
                                                                 ])
                                                             @endforeach
 
-                                                            <button class="btn btn-sm btn-danger fw-bold w-100 remove-widget-option" type="button">@lang("word.delete")</button>
+                                                            <button class="btn btn-sm btn-danger fw-bold w-100 remove-widget-option" type="button">@lang("wncms::word.delete")</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -312,7 +312,7 @@
                                                     //append html to it
                                                     item.find('.accordion-body').append(response.html);
 
-                                                    var deleteButton = $('<button class="btn btn-sm btn-danger fw-bold w-100 remove-widget-option" type="button">@lang("word.delete")</button>');
+                                                    var deleteButton = $('<button class="btn btn-sm btn-danger fw-bold w-100 remove-widget-option" type="button">@lang("wncms::word.delete")</button>');
                                                     item.find('.accordion-body').append(deleteButton);
 
                                                     bindButtonFunctions();

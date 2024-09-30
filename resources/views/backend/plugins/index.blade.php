@@ -26,7 +26,7 @@
                 @endif --}}
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -53,7 +53,7 @@
             ])
 
             {{-- upload_plugin --}}
-            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_upload_plugin">{{ wncms_model_word('plugin', 'upload') }}</button>
+            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#modal_upload_plugin">{{ wncms_model_word('plugin', 'upload') }}</button>
             <div class="modal fade" tabindex="-1" id="modal_upload_plugin">
                 <div class="modal-dialog">
                     <form action="{{ route('plugins.upload') }}" method="POST" enctype="multipart/form-data">

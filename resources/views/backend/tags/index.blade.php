@@ -24,7 +24,7 @@
                 @endif
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -56,7 +56,7 @@
             <a href="{{ route('tags.keywords.index') }}" class="btn btn-sm btn-dark fw-bold mb-1">@lang('wncms::word.bind_keywords')</a>
        
             {{-- Bulk sync parent --}}
-            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_bulk_sync_tag_parent">@lang('wncms::word.bulk_sync_tag_parent')</button>
+            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#modal_bulk_sync_tag_parent">@lang('wncms::word.bulk_sync_tag_parent')</button>
             <div class="modal fade" tabindex="-1" id="modal_bulk_sync_tag_parent">
                 <div class="modal-dialog">
                     <div class="modal-content">

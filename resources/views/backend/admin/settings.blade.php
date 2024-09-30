@@ -18,7 +18,7 @@
                         @foreach($availableSettings as $nav_tab)
                             @if(!empty($nav_tab['tab_name']) && !empty($nav_tab['tab_content']))
                                 <li class="nav-item col-4 col-md-12 fw-bold me-0">
-                                    <a class="nav-link @if($loop->index == 0) active @endif" data-bs-toggle="tab" data-bs-target="#tab_{{ $nav_tab['tab_name'] }}" href="#tab_{{ $nav_tab['tab_name'] }}">@lang("word.". $nav_tab['tab_name'] ."_setting")</a>
+                                    <a class="nav-link @if($loop->index == 0) active @endif" data-bs-toggle="tab" data-bs-target="#tab_{{ $nav_tab['tab_name'] }}" href="#tab_{{ $nav_tab['tab_name'] }}">@lang("wncms::word.". $nav_tab['tab_name'] ."_setting")</a>
                                 </li>
                             @endif
                         @endforeach

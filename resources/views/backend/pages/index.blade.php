@@ -26,7 +26,7 @@
                 @endif --}}
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -52,7 +52,7 @@
                 'model_prefix' => 'pages',
             ])
 
-            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_one_click_create_theme_pages">@lang('wncms::word.one_click_create_theme_pages')</button>
+            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#modal_one_click_create_theme_pages">@lang('wncms::word.one_click_create_theme_pages')</button>
             <div class="modal fade" tabindex="-1" id="modal_one_click_create_theme_pages">
                 <div class="modal-dialog">
                     <form action="{{ route('pages.create_theme_pages') }}" method="POST">

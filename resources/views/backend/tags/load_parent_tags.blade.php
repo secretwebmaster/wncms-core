@@ -34,7 +34,7 @@
                     select_parent.empty();
 
                     // Add a default option
-                    select_parent.append('<option value="">@lang("word.do_not_have")</option>');
+                    select_parent.append('<option value="">@lang("wncms::word.do_not_have")</option>');
 
                     // Populate options based on the AJAX response
                     populateSelectWithTags(data);

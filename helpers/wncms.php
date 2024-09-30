@@ -42,15 +42,24 @@ if (!function_exists('wncms_get_model_names')) {
     function wncms_get_model_names()
     {
         // Use recursive glob to get all PHP files in subdirectories
-        $files = collect(File::allFiles(app_path('Models')))
+        $appModels = collect(File::allFiles(app_path('Models')))
             ->map(function ($file) {
                 // Get relative path and convert to namespace
                 $relativePath = Str::replaceFirst(app_path('Models') . DIRECTORY_SEPARATOR, '', $file->getPathname());
                 $namespacePath = str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath);
-                $modelName = 'Wncms\\Models\\' . Str::replace('.php', '', $namespacePath);
+                $modelName = 'App\\Models\\' . Str::replace('.php', '', $namespacePath);
 
                 return $modelName;
             });
+
+        $packageModels = collect(File::allFiles(dirname(__DIR__) . '/src/Models'))
+            ->map(function ($file) {
+                $relativePath = Str::replaceFirst(dirname(__DIR__) . '/src/Models' . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                $namespacePath = str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath);
+                return 'Wncms\\Models\\' . Str::replace('.php', '', $namespacePath);
+            });
+
+        $files = $appModels->merge($packageModels);
 
         $collection = $files->map(function ($modelName) {
             if (class_exists($modelName)) {
@@ -69,23 +78,6 @@ if (!function_exists('wncms_get_model_names')) {
         })->filter(); // Remove any null values
         return $collection;
     }
-
-    // function wncms_get_model_names()
-    // {
-    //     $path = app_path('Models') . '/*.php';
-    //     $collection = collect(glob($path))->map(function($file){
-    //         $modelName = "\Wncms\Models\\" . basename($file, '.php');
-    //         $model = new $modelName;
-    //         return [
-    //             'name' => basename($file, '.php'),
-    //             // TODO: 修改為可以在系統設定中自訂，儲存順序表，讀取，fallback
-    //             'priority' => $model->menuPriority ?? 0,
-    //             'routes' => defined(get_class($model) . "::ROUTES") ? $model::ROUTES : null,
-    //         ];
-    //     });
-
-    //     return $collection;
-    // }
 }
 
 if (!function_exists('wncms_route_exists')) {

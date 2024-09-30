@@ -12,7 +12,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
                 </div>
             </div>
         </form>
@@ -60,7 +60,7 @@
                                 </div>
                             </td>
                             <td>
-                                <button type="button" class="btn btn-sm btn-primary fw-bold px-2 py-1" data-bs-toggle="modal" data-bs-target="#modal_show_record_detail_{{ $record->id }}">@lang('wncms::word.show')</button>
+                                <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 px-2 py-1" data-bs-toggle="modal" data-bs-target="#modal_show_record_detail_{{ $record->id }}">@lang('wncms::word.show')</button>
                                 <div class="modal fade" tabindex="-1" id="modal_show_record_detail_{{ $record->id }}">
                                     <div class="modal-dialog  modal-fullscreen">
                                         <div class="modal-content">

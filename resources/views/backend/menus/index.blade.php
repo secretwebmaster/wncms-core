@@ -12,7 +12,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
                 </div>
             </div>
         </form>
@@ -27,7 +27,7 @@
             ])
 
             {{-- clone_menu --}}
-            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_clone_menu">@lang('wncms::word.clone_menu')</button>
+            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#modal_clone_menu">@lang('wncms::word.clone_menu')</button>
             <div class="modal fade" tabindex="-1" id="modal_clone_menu">
                 <div class="modal-dialog">
                     <form action="{{ route('menus.clone') }}" method="POST" id="form_clone_menu">
