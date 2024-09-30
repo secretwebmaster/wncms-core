@@ -11,7 +11,7 @@ if (!function_exists('wncms')) {
      */
     function wncms()
     {
-        return new \Wncms\Services\;
+        return new \Wncms\Services\Core;
     }
 }
 

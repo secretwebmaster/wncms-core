@@ -3,9 +3,9 @@
 namespace Wncms\Http\Controllers\Backend;
 
 use Wncms\Jobs\InstallWncms;
-use Wncms\Services\\Installer\DatabaseManager;
-use Wncms\Services\\Installer\PermissionChecker;
-use Wncms\Services\\Installer\RequirementChecker;
+use Wncms\Services\Installer\DatabaseManager;
+use Wncms\Services\Installer\PermissionChecker;
+use Wncms\Services\Installer\RequirementChecker;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;

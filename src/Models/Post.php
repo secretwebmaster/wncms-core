@@ -2,7 +2,7 @@
 
 namespace Wncms\Models;
 
-use Wncms\Services\\Models\WncmsModel;
+use Wncms\Services\Models\WncmsModel;
 use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
