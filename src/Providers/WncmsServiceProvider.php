@@ -18,28 +18,28 @@ class WncmsServiceProvider extends ServiceProvider
         $this->app->singleton(\Illuminate\Contracts\Debug\ExceptionHandler::class, WncmsExceptionHandler::class);
 
         // configs
-        $this->mergeConfigFrom(__DIR__.'/../config/activitylog.php', 'activitylog');
-        $this->mergeConfigFrom(__DIR__.'/../config/app.php', 'app');
-        $this->mergeConfigFrom(__DIR__.'/../config/auth.php', 'auth');
-        $this->mergeConfigFrom(__DIR__.'/../config/cache.php', 'cache');
-        $this->mergeConfigFrom(__DIR__.'/../config/database.php', 'database');
-        $this->mergeConfigFrom(__DIR__.'/../config/debugbar.php', 'debugbar');
-        $this->mergeConfigFrom(__DIR__.'/../config/filesystems.php', 'filesystems');
-        $this->mergeConfigFrom(__DIR__.'/../config/installer.php', 'installer');
-        $this->mergeConfigFrom(__DIR__.'/../config/laravellocalization.php', 'laravellocalization');
-        $this->mergeConfigFrom(__DIR__.'/../config/logging.php', 'logging');
-        $this->mergeConfigFrom(__DIR__.'/../config/mail.php', 'mail');
-        $this->mergeConfigFrom(__DIR__.'/../config/permission.php', 'permission');
-        $this->mergeConfigFrom(__DIR__.'/../config/queue.php', 'queue');
-        $this->mergeConfigFrom(__DIR__.'/../config/services.php', 'services');
-        $this->mergeConfigFrom(__DIR__.'/../config/session.php', 'session');
-        $this->mergeConfigFrom(__DIR__.'/../config/translatable.php', 'translatable');
-        $this->mergeConfigFrom(__DIR__.'/../config/wncms-system-settings.php', 'wncms-system-settings');
-        $this->mergeConfigFrom(__DIR__.'/../config/wncms-tags.php', 'wncms-tags');
+        $this->mergeConfigFrom(__DIR__.'/../../config/activitylog.php', 'activitylog');
+        $this->mergeConfigFrom(__DIR__.'/../../config/app.php', 'app');
+        $this->mergeConfigFrom(__DIR__.'/../../config/auth.php', 'auth');
+        $this->mergeConfigFrom(__DIR__.'/../../config/cache.php', 'cache');
+        $this->mergeConfigFrom(__DIR__.'/../../config/database.php', 'database');
+        $this->mergeConfigFrom(__DIR__.'/../../config/debugbar.php', 'debugbar');
+        $this->mergeConfigFrom(__DIR__.'/../../config/filesystems.php', 'filesystems');
+        $this->mergeConfigFrom(__DIR__.'/../../config/installer.php', 'installer');
+        $this->mergeConfigFrom(__DIR__.'/../../config/laravellocalization.php', 'laravellocalization');
+        $this->mergeConfigFrom(__DIR__.'/../../config/logging.php', 'logging');
+        $this->mergeConfigFrom(__DIR__.'/../../config/mail.php', 'mail');
+        $this->mergeConfigFrom(__DIR__.'/../../config/permission.php', 'permission');
+        $this->mergeConfigFrom(__DIR__.'/../../config/queue.php', 'queue');
+        $this->mergeConfigFrom(__DIR__.'/../../config/services.php', 'services');
+        $this->mergeConfigFrom(__DIR__.'/../../config/session.php', 'session');
+        $this->mergeConfigFrom(__DIR__.'/../../config/translatable.php', 'translatable');
+        $this->mergeConfigFrom(__DIR__.'/../../config/wncms-system-settings.php', 'wncms-system-settings');
+        $this->mergeConfigFrom(__DIR__.'/../../config/wncms-tags.php', 'wncms-tags');
 
         // Load the theme configurations
-        $this->mergeConfigFrom(__DIR__.'/../config/theme/default.php', 'theme.default');
-        $this->mergeConfigFrom(__DIR__.'/../config/theme/starter.php', 'theme.starter');
+        $this->mergeConfigFrom(__DIR__.'/../../config/theme/default.php', 'theme.default');
+        $this->mergeConfigFrom(__DIR__.'/../../config/theme/starter.php', 'theme.starter');
     }
 
     /**
@@ -67,28 +67,28 @@ class WncmsServiceProvider extends ServiceProvider
 
         // Publish the configuration files
         $this->publishes([
-            __DIR__.'/../config/activitylog.php' => config_path('activitylog.php'),
-            __DIR__.'/../config/app.php' => config_path('app.php'),
-            __DIR__.'/../config/auth.php' => config_path('auth.php'),
-            __DIR__.'/../config/cache.php' => config_path('cache.php'),
-            __DIR__.'/../config/database.php' => config_path('database.php'),
-            __DIR__.'/../config/debugbar.php' => config_path('debugbar.php'),
-            __DIR__.'/../config/filesystems.php' => config_path('filesystems.php'),
-            __DIR__.'/../config/installer.php' => config_path('installer.php'),
-            __DIR__.'/../config/laravellocalization.php' => config_path('laravellocalization.php'),
-            __DIR__.'/../config/logging.php' => config_path('logging.php'),
-            __DIR__.'/../config/mail.php' => config_path('mail.php'),
-            __DIR__.'/../config/permission.php' => config_path('permission.php'),
-            __DIR__.'/../config/queue.php' => config_path('queue.php'),
-            __DIR__.'/../config/services.php' => config_path('services.php'),
-            __DIR__.'/../config/session.php' => config_path('session.php'),
-            __DIR__.'/../config/translatable.php' => config_path('translatable.php'),
-            __DIR__.'/../config/wncms-system-settings.php' => config_path('wncms-system-settings.php'),
-            __DIR__.'/../config/wncms-tags.php' => config_path('wncms-tags.php'),
+            __DIR__.'/../../config/activitylog.php' => config_path('activitylog.php'),
+            __DIR__.'/../../config/app.php' => config_path('app.php'),
+            __DIR__.'/../../config/auth.php' => config_path('auth.php'),
+            __DIR__.'/../../config/cache.php' => config_path('cache.php'),
+            __DIR__.'/../../config/database.php' => config_path('database.php'),
+            __DIR__.'/../../config/debugbar.php' => config_path('debugbar.php'),
+            __DIR__.'/../../config/filesystems.php' => config_path('filesystems.php'),
+            __DIR__.'/../../config/installer.php' => config_path('installer.php'),
+            __DIR__.'/../../config/laravellocalization.php' => config_path('laravellocalization.php'),
+            __DIR__.'/../../config/logging.php' => config_path('logging.php'),
+            __DIR__.'/../../config/mail.php' => config_path('mail.php'),
+            __DIR__.'/../../config/permission.php' => config_path('permission.php'),
+            __DIR__.'/../../config/queue.php' => config_path('queue.php'),
+            __DIR__.'/../../config/services.php' => config_path('services.php'),
+            __DIR__.'/../../config/session.php' => config_path('session.php'),
+            __DIR__.'/../../config/translatable.php' => config_path('translatable.php'),
+            __DIR__.'/../../config/wncms-system-settings.php' => config_path('wncms-system-settings.php'),
+            __DIR__.'/../../config/wncms-tags.php' => config_path('wncms-tags.php'),
 
             // Publish theme configurations
-            __DIR__.'/../config/theme/default.php' => config_path('theme/default.php'),
-            __DIR__.'/../config/theme/starter.php' => config_path('theme/starter.php'),
+            __DIR__.'/../../config/theme/default.php' => config_path('theme/default.php'),
+            __DIR__.'/../../config/theme/starter.php' => config_path('theme/starter.php'),
         ], 'config');
 
 
@@ -98,7 +98,7 @@ class WncmsServiceProvider extends ServiceProvider
         // $this->loadJsonTranslationsFrom(__DIR__.'/../lang');
 
         // $this->mergeConfigFrom(
-        //     __DIR__.'/../config/courier.php', 'courier'
+        //     __DIR__.'/../../config/courier.php', 'courier'
         // );
 
         // ! Commands
@@ -117,7 +117,7 @@ class WncmsServiceProvider extends ServiceProvider
         
         // !publishes
         // $this->publishes([
-        //     __DIR__.'/../config/courier.php' => config_path('courier.php'),
+        //     __DIR__.'/../../config/courier.php' => config_path('courier.php'),
         // ]);
 
         // $this->publishesMigrations([
