@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Validator;
 use Str;
+use Wncms\Database\Seeders\DatabaseSeeder;
 
 class InstallController extends Controller
 {
@@ -114,7 +115,11 @@ class InstallController extends Controller
         info('generated key');
         
         //run migration and seeder
-        Artisan::call('migrate:fresh', ['--seed' => true,  '--force' => true]);
+        Artisan::call('migrate:fresh', [
+            '--seed' => true,
+            '--force' => true,
+            '--seeder' => DatabaseSeeder::class
+        ]);
         info('migration completed');
 
         //install lang files
