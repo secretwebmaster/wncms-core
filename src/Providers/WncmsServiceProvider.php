@@ -57,9 +57,9 @@ class WncmsServiceProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('localeViewPath', \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath::class);
 
         // Register middleware aliases
-        $this->app['router']->aliasMiddleware('is_installed', \Wncms\Middleware\IsInstalled::class);
-        $this->app['router']->aliasMiddleware('has_website', \Wncms\Middleware\HasWebsite::class);
-        $this->app['router']->aliasMiddleware('full_page_cache', \Wncms\Middleware\FullPageCache::class);
+        $this->app['router']->aliasMiddleware('is_installed', \Wncms\Http\Middleware\IsInstalled::class);
+        $this->app['router']->aliasMiddleware('has_website', \Wncms\Http\Middleware\HasWebsite::class);
+        $this->app['router']->aliasMiddleware('full_page_cache', \Wncms\Http\Middleware\FullPageCache::class);
 
         // routes
         $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
