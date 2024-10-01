@@ -115,6 +115,7 @@ class WncmsServiceProvider extends ServiceProvider
             __DIR__ . '/../../resources/theme-assets' => public_path('theme'),
             __DIR__ . '/../../resources/views/frontend' => resource_path('views/frontend'),
             __DIR__ . '/../../resources/views/errors' => resource_path('views/errors'),
+            __DIR__ . '/../../resources/views/layouts/error.blade.php' => resource_path('views/layouts/error.blade.php'),
         ], 'wncms-theme-assets');
 
         try {

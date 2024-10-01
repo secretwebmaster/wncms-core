@@ -14,19 +14,46 @@ class TagSeeder extends Seeder
      */
     public function run()
     {
-        $nameGroups = [
+        $tagGroups = [
             [
-                'default' => 'Uncategorized',
-                'zh_TW' => '未分類',
-                'zh_CN' => '未分类',
-                'en' => 'Uncategorized',
-                'ja' => '未分類',
-            ]
+                'type' => 'post_category',
+                'slug' => 'uncategorized',
+                'name' => [
+                    'default' => 'Uncategorized',
+                    'zh_TW' => '未分類',
+                    'zh_CN' => '未分类',
+                    'en' => 'Uncategorized',
+                    'ja' => '未分類',
+                ]
+            ],
+            // [
+            //     'type' => 'post_category',
+            //     'slug' => 'post_category_1',
+            //     'name' => [
+            //         'default' => 'Post Category 1',
+            //         'zh_TW' => '分類1',
+            //         'zh_CN' => '分类1',
+            //         'en' => 'Post Category 1',
+            //         'ja' => '分类1',
+            //     ]
+            // ],
+            // [
+            //     'type' => 'post_category',
+            //     'slug' => 'post_category_2',
+            //     'name' => [
+            //         'default' => 'Post Category 2',
+            //         'zh_TW' => '分類2',
+            //         'zh_CN' => '分类2',
+            //         'en' => 'Post Category 2',
+            //         'ja' => '分类2',
+            //     ]
+            // ],
         ];
 
-        foreach ($nameGroups as $nameGroup) {
-            $tag = Tag::findOrCreate(($nameGroup[config('app.locale')] ?? $nameGroup['default']), 'post_category');
-            foreach ($nameGroup as $locale => $value) {
+        foreach ($tagGroups as $tagGroup) {
+            $tag = Tag::findOrCreate(($tagGroup['name'][config('app.locale')] ?? $tagGroup['name']['default']), $tagGroup['type']);
+            $tag->update(['slug' => $tagGroup['slug']]);
+            foreach ($tagGroup['name'] as $locale => $value) {
 
                 if ($locale === 'default') {
                     continue;
