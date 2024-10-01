@@ -61,6 +61,10 @@
         "post-autoload-dump": [
             "@php artisan vendor:publish --provider=\"Wncms\\Providers\\WncmsServiceProvider\" --tag=wncms-assets",
             "@php artisan migrate --force"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --provider=\"Wncms\\Providers\\WncmsServiceProvider\" --tag=wncms-assets",
+            "@php artisan migrate --force"
         ]
     },
     "minimum-stability": "stable",
