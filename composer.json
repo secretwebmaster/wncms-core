@@ -59,7 +59,7 @@
     "scripts" : {
         "test" : "vendor/bin/phpunit",
         "post-autoload-dump": [
-            "@php artisan vendor:publish --provider=\"Wncms\\Providers\\WncmsServiceProvider\"",
+            "@php artisan vendor:publish --provider=\"Wncms\\Providers\\WncmsServiceProvider\" --tag=wncms-assets",
             "@php artisan migrate --force"
         ]
     },

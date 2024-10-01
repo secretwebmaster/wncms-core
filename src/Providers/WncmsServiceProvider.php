@@ -97,13 +97,13 @@ class WncmsServiceProvider extends ServiceProvider
             __DIR__ . '/../../config/translatable.php' => config_path('translatable.php'),
             __DIR__ . '/../../config/wncms-system-settings.php' => config_path('wncms-system-settings.php'),
             __DIR__ . '/../../config/wncms-tags.php' => config_path('wncms-tags.php'),
-        ], 'system-config');
+        ], 'wncms-system-config');
 
         // publish theme config
         $this->publishes([
             __DIR__ . '/../../config/theme/default.php' => config_path('theme/default.php'),
             __DIR__ . '/../../config/theme/starter.php' => config_path('theme/starter.php'),
-        ], 'theme-config');
+        ], 'wncms-theme-config');
 
         // assets
         $this->publishes([
