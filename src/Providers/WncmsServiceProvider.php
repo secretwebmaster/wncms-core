@@ -107,7 +107,7 @@ class WncmsServiceProvider extends ServiceProvider
 
         // assets
         $this->publishes([
-            __DIR__ . '/../resources/assets' => public_path('wncms'),
+            __DIR__ . '/../../resources/assets' => public_path('wncms'),
         ], 'wncms-assets');
 
         try {
