@@ -1,7 +1,7 @@
 <h2>{{ wncms_model_word('tag', 'index') }}</h2>
 <div class="tabs">
     @foreach($wncms->tag()->getTypes() as $type)
-        <button class="tab-link @if($loop->index == 0) active @endif" onclick="openTab(event, '{{ $type }}')">@lang('word.' . $type)</button>
+        <button class="tab-link @if($loop->index == 0) active @endif" onclick="openTab(event, '{{ $type }}')">@lang('wncms::word.' . $type)</button>
     @endforeach
 </div>
 
@@ -10,8 +10,8 @@
         <div class="table-container">
             <table>
                 <thead>
-                    <th>@lang('word.id')</th>
-                    <th>@lang('word.name')</th>
+                    <th>@lang('wncms::word.id')</th>
+                    <th>@lang('wncms::word.name')</th>
                 </thead>
                 <tbody>
                     @foreach($wncms->tag()->getList(tagType:$type,pageSize:10) as $tag)

@@ -1,9 +1,9 @@
-<h2>@lang('word.theme_options')</h2>
+<h2>@lang('wncms::word.theme_options')</h2>
 <div class="table-container">
     <table>
         <thead>
-            <th>@lang('word.key')</th>
-            <th>@lang('word.value')</th>
+            <th>@lang('wncms::word.key')</th>
+            <th>@lang('wncms::word.value')</th>
         </thead>
         <tbody>
             @foreach($website->get_options() as $key => $value)

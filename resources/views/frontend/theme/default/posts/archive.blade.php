@@ -1,14 +1,14 @@
 @extends('frontend.theme.default.layouts.app')
 
 @section('content')
-    <a class="nav-link" href="{{ route('frontend.pages.blog') }}">@lang('word.blog')</a>
-    <h2>{{ $pageTitle ?? __('word.post_archive') }}</h2>
+    <a class="nav-link" href="{{ route('frontend.pages.blog') }}">@lang('wncms::word.blog')</a>
+    <h2>{{ $pageTitle ?? __('wncms::word.post_archive') }}</h2>
     <table>
         <thead>
-            <th>@lang('word.id')</th>
-            <th>@lang('word.title')</th>
-            <th>@lang('word.category')</th>
-            <th>@lang('word.tag')</th>
+            <th>@lang('wncms::word.id')</th>
+            <th>@lang('wncms::word.title')</th>
+            <th>@lang('wncms::word.category')</th>
+            <th>@lang('wncms::word.tag')</th>
         </thead>
         <tbody>
             @foreach($posts as $post)

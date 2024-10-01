@@ -26,14 +26,14 @@
 ) --}}
 
 @section('content')
-    <a class="nav-link" href="{{ route('frontend.pages.blog') }}">< @lang('word.blog')</a>
+    <a class="nav-link" href="{{ route('frontend.pages.blog') }}">< @lang('wncms::word.blog')</a>
     <h2>{{ wncms_model_word('post', 'single') }}</h2>
 
     <div style="max-width: 100%;overflow-x:scroll">
         <table style="max-width: 100%;">
             <tbody>
                 <tr>
-                    <td>@lang('word.category')</td>
+                    <td>@lang('wncms::word.category')</td>
                     <td>
                         @foreach($post->post_categories as $category)    
                         <a href="{{ route('frontend.posts.category', ['tagName' => $category->name]) }}">{{ $category->name }}</a>
@@ -41,7 +41,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>@lang('word.tag')</td>
+                    <td>@lang('wncms::word.tag')</td>
                     <td>
                         @foreach($post->post_tags as $tag)    
                         <a href="{{ route('frontend.posts.tag', ['tagName' => $tag->name]) }}">{{ $tag->name }}</a>
@@ -60,7 +60,7 @@
     
     </div>
 
-    <h4>@lang('word.relationships')</h4>
+    <h4>@lang('wncms::word.relationships')</h4>
     <div>
         {!! $post->getTagNameWitHtmlTag("post_category","li", "myClass", "myId") !!}
     </div>

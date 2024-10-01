@@ -30,13 +30,13 @@
 @endpush
 
 @section('content')
-    <a href="{{ route('frontend.pages', ['slug' => 'faq']) }}">< @lang('word.faq')</a>
-    <h2>{{ $pageTitle ?? __('word.faq_archive') }}</h2>
+    <a href="{{ route('frontend.pages', ['slug' => 'faq']) }}">< @lang('wncms::word.faq')</a>
+    <h2>{{ $pageTitle ?? __('wncms::word.faq_archive') }}</h2>
     <table>
         <thead>
-            <th>@lang('word.id')</th>
-            <th>@lang('word.question')</th>
-            <th>@lang('word.tag')</th>
+            <th>@lang('wncms::word.id')</th>
+            <th>@lang('wncms::word.question')</th>
+            <th>@lang('wncms::word.tag')</th>
         </thead>
         <tbody>
             @foreach($faqs as $faq)

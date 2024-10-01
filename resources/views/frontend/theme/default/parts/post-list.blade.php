@@ -1,12 +1,12 @@
-<h2>@lang('word.post_list')</h2>
+<h2>@lang('wncms::word.post_list')</h2>
 <div class="table-container">
     <table>
         <thead>
-            <th>@lang('word.id')</th>
-            <th>@lang('word.thumbnail')</th>
-            <th>@lang('word.title')</th>
-            <th>@lang('word.category')</th>
-            <th>@lang('word.tag')</th>
+            <th>@lang('wncms::word.id')</th>
+            <th>@lang('wncms::word.thumbnail')</th>
+            <th>@lang('wncms::word.title')</th>
+            <th>@lang('wncms::word.category')</th>
+            <th>@lang('wncms::word.tag')</th>
         </thead>
         <tbody>
             @php $posts = $wncms->post()->getList(pageSize:5,count:24,sequence:'asc', pageName: 'post-page'); @endphp

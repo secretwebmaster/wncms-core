@@ -2,23 +2,23 @@
 
 
 @section('content')
-    <a class="nav-link" href="{{ route('frontend.pages.home') }}">< @lang('word.home')</a>
-    <h2>@lang('word.faq')</h2>
+    <a class="nav-link" href="{{ route('frontend.pages.home') }}">< @lang('wncms::word.home')</a>
+    <h2>@lang('wncms::word.faq')</h2>
     <table>
         <thead>
-            <th>@lang('word.id')</th>
-            <th>@lang('word.website')</th>
-            <th>@lang('word.status')</th>
-            <th>@lang('word.slug')</th>
-            <th>@lang('word.question')</th>
-            <th>@lang('word.answer')</th>
-            <th>@lang('word.faq_tag')</th>
-            <th>@lang('word.label')</th>
-            <th>@lang('word.remark')</th>
-            <th>@lang('word.order')</th>
-            <th>@lang('word.is_pinned')</th>
-            <th>@lang('word.created_at')</th>
-            <th>@lang('word.updated_at')</th>
+            <th>@lang('wncms::word.id')</th>
+            <th>@lang('wncms::word.website')</th>
+            <th>@lang('wncms::word.status')</th>
+            <th>@lang('wncms::word.slug')</th>
+            <th>@lang('wncms::word.question')</th>
+            <th>@lang('wncms::word.answer')</th>
+            <th>@lang('wncms::word.faq_tag')</th>
+            <th>@lang('wncms::word.label')</th>
+            <th>@lang('wncms::word.remark')</th>
+            <th>@lang('wncms::word.order')</th>
+            <th>@lang('wncms::word.is_pinned')</th>
+            <th>@lang('wncms::word.created_at')</th>
+            <th>@lang('wncms::word.updated_at')</th>
         </thead>
         <tbody>
             @foreach($wncms->faq()->getList(pageSize:10) as $faq)

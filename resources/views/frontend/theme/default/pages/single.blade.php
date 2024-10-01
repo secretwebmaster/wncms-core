@@ -10,7 +10,7 @@
     @if($page->type == 'builder')
         {!! $page->html !!}
     @else
-        <a href="{{ route('frontend.pages.home') }}">< @lang('word.home')</a>
+        <a href="{{ route('frontend.pages.home') }}">< @lang('wncms::word.home')</a>
         <h2>{{ $page->title }}</h2>
         <div class="page-content">
             {!! $page->content !!}

@@ -20,15 +20,15 @@
 </style>
 @endpush
 @section('content')
-    <a href="{{ route('frontend.pages.blog') }}">@lang('word.blog')</a>
+    <a href="{{ route('frontend.pages.blog') }}">@lang('wncms::word.blog')</a>
     <h2>{{ wncms_model_word('faq', 'single') }}</h2>
 
-    <h4>@lang('word.faq_detail')</h4>
+    <h4>@lang('wncms::word.faq_detail')</h4>
     <div style="max-width: 100%;overflow-x:scroll">
         <table style="max-width: 100%;">
             <tbody>
                 <tr>
-                    <td>@lang('word.tag')</td>
+                    <td>@lang('wncms::word.tag')</td>
                     <td>
                         @foreach($faq->tagsWithType('faq_tag') ?? [] as $tag)    
                         <a href="{{ route('frontend.faqs.tag', ['tagName' => $tag->name]) }}">{{ $tag->name }}</a>
@@ -47,7 +47,7 @@
     
     </div>
 
-    <h4>@lang('word.relationships')</h4>
+    <h4>@lang('wncms::word.relationships')</h4>
     <div>
         {!! $faq->getTagNameWitHtmlTag("faq_tag","li", "myClass", "myId") !!}
     </div>
