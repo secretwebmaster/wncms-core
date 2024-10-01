@@ -21,7 +21,6 @@ class TagController extends Controller
         //記錄當前請求地址，用於返回
         $q = Tag::query();
 
-
         $selectedType = $type ?? $request->type ?? 'post_category';
         if($selectedType != 'all'){
             $q->where('type', $selectedType);
@@ -110,7 +109,6 @@ class TagController extends Controller
             }
         }
 
-
         $existingTag = Tag::findFromString($request->name, $request->type);
         if($existingTag) return back()->withInput()->withErrors(['message' => __('wncms::word.tag_with_same_name_already_exists')]);
 
@@ -132,8 +130,8 @@ class TagController extends Controller
         if (!empty($request->tag_background_remove)) $tag->clearMediaCollection('tag_background');
         if (!empty($request->tag_background)) $tag->addMediaFromRequest('tag_background')->toMediaCollection('tag_background');
 
-        wncms()->cache()->flush(['pages', 'tags']);
-
+        wncms()->cache()->flush(['tags']);
+        wncms()->cache()->flush(['pages']);
 
         return redirect()->route('tags.index', ['type' => $request->type])->withInput()->withMessage(__('wncms::word.successfully_created'));
     }
@@ -206,16 +204,6 @@ class TagController extends Controller
             );
         }
 
-        // dd(
-        //     request()->all(),
-        //     app()->getLocale(),
-        //     LaravelLocalization::getDefaultLocale(),
-        //     $newName,
-        //     $tag,
-        //     $tag->translations,
-        // );
-
-
         //handle tag_thumbnail
         if (!empty($request->tag_thumbnail_remove)) $tag->clearMediaCollection('tag_thumbnail');
         if (!empty($request->tag_thumbnail)) $tag->addMediaFromRequest('tag_thumbnail')->toMediaCollection('tag_thumbnail');
@@ -224,7 +212,8 @@ class TagController extends Controller
         if (!empty($request->tag_background_remove)) $tag->clearMediaCollection('tag_background');
         if (!empty($request->tag_background)) $tag->addMediaFromRequest('tag_background')->toMediaCollection('tag_background');
 
-        wncms()->cache()->flush(['pages', 'tags']);
+        wncms()->cache()->flush(['tags']);
+        wncms()->cache()->flush(['pages']);
 
         return redirect()->route('tags.edit', $tag)->withInput()->withMessage(__('wncms::word.successfully_updated'));
     }
@@ -232,6 +221,9 @@ class TagController extends Controller
     public function destroy(Tag $tag)
     {
         $tag->delete();
+
+        wncms()->cache()->flush(['tags']);
+
         return redirect()->back()->withInput()->with([
             'status' => 'success',
             'message' => __('wncms::word.successfully_deleted')
@@ -246,6 +238,8 @@ class TagController extends Controller
         $placeholder .= "\r\n測試分類2|slug02|post_category|描述2|測試分類1|0|0";
         $placeholder .= "\r\n測試分類2|slug02|post_category|描述2|測試分類1|0|0";
         $placeholder .= "\r\n測試分類2|slug02|post_category|描述2|測試分類1|0|0";
+
+        wncms()->cache()->flush(['tags']);
 
         return view('wncms::backend.tags.bulk_create', [
             'page_title' => __('wncms::word.category_management'),
@@ -333,7 +327,8 @@ class TagController extends Controller
             }
         }
 
-        wncms()->cache()->flush(['pages', 'tags']);
+        wncms()->cache()->flush(['pages']);
+        wncms()->cache()->flush(['tags']);
 
         //返回之前的index
         return back()->withMessage(__('wncms::word.successfully_created_count', ['count' => $count]));
@@ -355,6 +350,8 @@ class TagController extends Controller
             ]);
         }
 
+        wncms()->cache()->flush(['tags']);
+
         return redirect()->route('{{ modelVariable }}s.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
 
     }
@@ -366,7 +363,8 @@ class TagController extends Controller
         }
 
         //clear cache
-        wncms()->cache()->flush(['pages', 'tags']);
+        wncms()->cache()->flush(['pages']);
+        wncms()->cache()->flush(['tags']);
 
         //返回之前的index
         if (session('current_url')) {
@@ -443,14 +441,6 @@ class TagController extends Controller
 
         $removedKeywords = $tag->keywords()->whereIn('name', $removingKeywords)->delete();
 
-        // dd(
-        //     $request->all(),
-        //     $tag->id,
-        //     $keywordsToUpdate,
-        //     $keywordNameList,
-        //     $removingKeywords,
-        //     $removedKeywords,
-        // );
         return redirect()->route('tags.keywords.index', [
             'type' => $tag->type,
         ])->withMessage(__('wncms::word.tag_keywords_are_updated'));
@@ -467,6 +457,7 @@ class TagController extends Controller
     public function store_type(Request $request)
     {
         $tag = Tag::findOrCreate(__('wncms::word.default'), $request->slug);
+
         return redirect()->route('tags.edit', [
             'tag' => $tag,
         ]);
@@ -513,6 +504,9 @@ class TagController extends Controller
         ]);
 
         if($tags){
+
+            wncms()->cache()->flush(['tags']);
+            
             return response()->json([
                 'status' => 'success',
                 'message' => __('wncms::word.successfully_created'),
