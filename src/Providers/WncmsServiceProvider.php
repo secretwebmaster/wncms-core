@@ -107,8 +107,12 @@ class WncmsServiceProvider extends ServiceProvider
 
         // assets
         $this->publishes([
-            __DIR__ . '/../../resources/assets' => public_path('wncms'),
-        ], 'wncms-assets');
+            __DIR__ . '/../../resources/core-assets' => public_path('wncms'),
+        ], 'wncms-core-assets');
+
+        $this->publishes([
+            __DIR__ . '/../../resources/theme-assets' => public_path('theme'),
+        ], 'wncms-theme-assets');
 
         try {
             // info(request()->all());

@@ -122,6 +122,12 @@ class InstallController extends Controller
         ]);
         info('migration completed');
 
+        Artisan::call('vendor:publish', ['--tag' => 'wncms-system-config']);
+        Artisan::call('vendor:publish', ['--tag' => 'wncms-theme-config']);
+        Artisan::call('vendor:publish', ['--tag' => 'wncms-core-assets']);
+        Artisan::call('vendor:publish', ['--tag' => 'wncms-theme-assets']);
+        info('assets published');
+
         //install lang files
         $this->install_lang_files();
 

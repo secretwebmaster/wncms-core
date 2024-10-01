@@ -57,15 +57,7 @@
         }
     ],
     "scripts" : {
-        "test" : "vendor/bin/phpunit",
-        "post-autoload-dump": [
-            "@php artisan vendor:publish --provider=\"Wncms\\Providers\\WncmsServiceProvider\" --tag=wncms-assets",
-            "@php artisan migrate --force"
-        ],
-        "post-update-cmd": [
-            "@php artisan vendor:publish --provider=\"Wncms\\Providers\\WncmsServiceProvider\" --tag=wncms-assets",
-            "@php artisan migrate --force"
-        ]
+        "test" : "vendor/bin/phpunit"
     },
     "minimum-stability": "stable",
     "prefer-stable": true
