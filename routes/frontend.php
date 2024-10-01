@@ -59,10 +59,10 @@ Route::name('frontend.')->middleware('full_page_cache')->group(function () {
 
 
     //custom frontend route
-    if (file_exists(__DIR__ . '/custom_frontend.php')) {
-        include __DIR__ . '/custom_frontend.php';
+    if (file_exists(base_path('routes/custom_frontend.php'))) {
+        include base_path('routes/custom_frontend.php');
     }
-
+    
     
     //page
     Route::get('page/{slug?}', [PageController::class, 'single'])->name('pages.single');

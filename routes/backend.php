@@ -314,7 +314,7 @@ Route::prefix('panel')->middleware(['auth'])->group(function () {
     Route::post('websites/{website}/options/import_default_option', [WebsiteController::class, 'importDefaultOption'])->middleware('can:website_edit')->name('websites.theme.import_default_option');
 
     //custom backend route
-    if (file_exists(__DIR__ . '/custom_backend.php')) {
-        include __DIR__ . '/custom_backend.php';
+    if (file_exists(base_path('routes/custom_backend.php'))) {
+        include base_path('routes/custom_backend.php');
     }
 });

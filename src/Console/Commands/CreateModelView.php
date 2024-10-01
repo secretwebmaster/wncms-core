@@ -45,13 +45,15 @@ class CreateModelView extends Command
 
         //generate view files
         foreach ($view_files as $view_file) {
-            $new_view_file = str_replace('/backend/starters/', "/backend/custom/{$plural_snake}/", $view_file);
+            $new_view_file = resource_path("views/backend/{$plural_snake}/") . basename($view_file);
 
             if (!File::exists($new_view_file)) {
+
                 $directory = dirname($new_view_file);
 
                 //make sure directory exists
                 if (!File::isDirectory($directory)) {
+  
                     File::makeDirectory($directory, 0755, true, true);
                     $this->info("created direcotry {$directory}");
                 }
@@ -63,7 +65,7 @@ class CreateModelView extends Command
                 $file_content = File::get($new_view_file);
 
                 // replace @inclde path
-                $updated_content = str_replace('backend.starters.', "backend.custom.{$plural_snake}.", $file_content);
+                $updated_content = str_replace('backend.starters.', "backend.{$plural_snake}.", $file_content);
    
                 //replace starter
                 $updated_content = str_replace('starter', $singulaer_snake, $updated_content);

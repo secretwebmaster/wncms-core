@@ -111,7 +111,7 @@ class CreateModel extends Command
             File::append($customBackendFile, $contentToAppend);
             
             // Prepend use statements
-            $useStatement = "use Wncms\\Http\\Controllers\\Backend\\{$className}Controller;";
+            $useStatement = "use App\\Http\\Controllers\\Backend\\{$className}Controller;";
             $this->prependUseStatement($customBackendFile, $useStatement);
             $this->info("Route file {$customBackendFile} has been updated");
         }
