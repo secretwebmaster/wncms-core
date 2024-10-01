@@ -151,10 +151,10 @@ class PageController extends Controller
         
         //check if page exists
         if (view()->exists("frontend.theme.{$theme}.pages.{$pageNmae}")) {
-            return view("wncms::frontend.theme.{$theme}.pages.{$pageNmae}", $params);
+            return view("frontend.theme.{$theme}.pages.{$pageNmae}", $params);
         }
 
-        if($fallbackRoute && wn()->getRoute($fallbackRoute)){
+        if($fallbackRoute && wncms()->getRoute($fallbackRoute)){
             return redirect()->route($fallbackRoute);
         }
 
