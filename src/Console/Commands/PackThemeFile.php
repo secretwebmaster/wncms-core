@@ -13,7 +13,7 @@ class PackThemeFile extends Command
      *
      * @var string
      */
-    protected $signature = 'wncms:pack_theme_file {themeName}';
+    protected $signature = 'wncms:pack-theme-file {themeName}';
 
     /**
      * The console command description.

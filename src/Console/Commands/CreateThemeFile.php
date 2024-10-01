@@ -12,7 +12,7 @@ class CreateThemeFile extends Command
      *
      * @var string
      */
-    protected $signature = 'wncms:create_theme_file {themeName}';
+    protected $signature = 'wncms:create-theme-file {themeName}';
 
     /**
      * The console command description.
