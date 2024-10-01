@@ -104,11 +104,9 @@ class WncmsServiceProvider extends ServiceProvider
             __DIR__ . '/../../config/theme/starter.php' => config_path('theme/starter.php'),
         ], 'theme-config');
 
-        //! Assets
+        // assets
         $this->publishes([
-            __DIR__ . '/../resources/assets/css' => public_path('wncms/css'),
-            __DIR__ . '/../resources/assets/js' => public_path('wncms/js'),
-            __DIR__ . '/../resources/assets/images' => public_path('wncms/images'),
+            __DIR__ . '/../resources/assets' => public_path('wncms'),
         ], 'wncms-assets');
 
         try {
