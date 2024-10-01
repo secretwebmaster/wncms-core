@@ -634,6 +634,8 @@ class PostController extends Controller
             $post->websites()->sync($website->id);
         }
 
+        wncms()->cache()->flush(['posts']);
+
         if($request->ajax()){
             return response()->json([
                 'status' => 'success',

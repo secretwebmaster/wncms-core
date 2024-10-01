@@ -57,7 +57,10 @@
         }
     ],
     "scripts" : {
-        "test" : "vendor/bin/phpunit"
+        "test" : "vendor/bin/phpunit",
+        "post-autoload-dump": [
+            "@php artisan vendor:publish --provider=\"Wncms\\Providers\\WncmsServiceProvider\""
+        ]
     },
     "minimum-stability": "stable",
     "prefer-stable": true

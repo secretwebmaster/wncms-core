@@ -1864,6 +1864,10 @@ $words = [
     'field_required' => ':field 為必填項目',
     'field_max' => ':field 長度最大爲 :max 個字元',
     'site_seo_description' => '網站SEO描述',
+    
+    // ! 5.0.0
+    'cannot_delete_default_themes' => '不能刪除默認主題',
+
 ];
 
 if(file_exists(__DIR__ . "/custom.php")){

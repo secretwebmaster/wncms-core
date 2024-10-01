@@ -18,28 +18,28 @@ class WncmsServiceProvider extends ServiceProvider
         $this->app->singleton(\Illuminate\Contracts\Debug\ExceptionHandler::class, WncmsExceptionHandler::class);
 
         // configs
-        $this->mergeConfigFrom(__DIR__.'/../../config/activitylog.php', 'activitylog');
-        $this->mergeConfigFrom(__DIR__.'/../../config/app.php', 'app');
-        $this->mergeConfigFrom(__DIR__.'/../../config/auth.php', 'auth');
-        $this->mergeConfigFrom(__DIR__.'/../../config/cache.php', 'cache');
-        $this->mergeConfigFrom(__DIR__.'/../../config/database.php', 'database');
-        $this->mergeConfigFrom(__DIR__.'/../../config/debugbar.php', 'debugbar');
-        $this->mergeConfigFrom(__DIR__.'/../../config/filesystems.php', 'filesystems');
-        $this->mergeConfigFrom(__DIR__.'/../../config/installer.php', 'installer');
-        $this->mergeConfigFrom(__DIR__.'/../../config/laravellocalization.php', 'laravellocalization');
-        $this->mergeConfigFrom(__DIR__.'/../../config/logging.php', 'logging');
-        $this->mergeConfigFrom(__DIR__.'/../../config/mail.php', 'mail');
-        $this->mergeConfigFrom(__DIR__.'/../../config/permission.php', 'permission');
-        $this->mergeConfigFrom(__DIR__.'/../../config/queue.php', 'queue');
-        $this->mergeConfigFrom(__DIR__.'/../../config/services.php', 'services');
-        $this->mergeConfigFrom(__DIR__.'/../../config/session.php', 'session');
-        $this->mergeConfigFrom(__DIR__.'/../../config/translatable.php', 'translatable');
-        $this->mergeConfigFrom(__DIR__.'/../../config/wncms-system-settings.php', 'wncms-system-settings');
-        $this->mergeConfigFrom(__DIR__.'/../../config/wncms-tags.php', 'wncms-tags');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/activitylog.php', 'activitylog');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/app.php', 'app');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/auth.php', 'auth');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/cache.php', 'cache');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/database.php', 'database');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/debugbar.php', 'debugbar');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/filesystems.php', 'filesystems');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/installer.php', 'installer');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/laravellocalization.php', 'laravellocalization');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/logging.php', 'logging');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/mail.php', 'mail');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/permission.php', 'permission');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/queue.php', 'queue');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/services.php', 'services');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/session.php', 'session');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/translatable.php', 'translatable');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-system-settings.php', 'wncms-system-settings');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-tags.php', 'wncms-tags');
 
         // Load the theme configurations
-        $this->mergeConfigFrom(__DIR__.'/../../config/theme/default.php', 'theme.default');
-        $this->mergeConfigFrom(__DIR__.'/../../config/theme/starter.php', 'theme.starter');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/theme/default.php', 'theme.default');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/theme/starter.php', 'theme.starter');
 
         $this->app->register(\Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class);
     }
@@ -61,75 +61,59 @@ class WncmsServiceProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('full_page_cache', \Wncms\Http\Middleware\FullPageCache::class);
 
         // routes
-        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
-        $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
-        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'wncms');
+        $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
+        $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
+        $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'wncms');
 
         // translation
-        $this->loadTranslationsFrom(__DIR__.'/../../lang', 'wncms');
+        $this->loadTranslationsFrom(__DIR__ . '/../../lang', 'wncms');
 
         // migrations
-        $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
-        
-        // publish
-        // $this->publishes([
-        //     __DIR__.'/../../config/activitylog.php' => config_path('activitylog.php'),
-        //     __DIR__.'/../../config/app.php' => config_path('app.php'),
-        //     __DIR__.'/../../config/auth.php' => config_path('auth.php'),
-        //     __DIR__.'/../../config/cache.php' => config_path('cache.php'),
-        //     __DIR__.'/../../config/database.php' => config_path('database.php'),
-        //     __DIR__.'/../../config/debugbar.php' => config_path('debugbar.php'),
-        //     __DIR__.'/../../config/filesystems.php' => config_path('filesystems.php'),
-        //     __DIR__.'/../../config/installer.php' => config_path('installer.php'),
-        //     __DIR__.'/../../config/laravellocalization.php' => config_path('laravellocalization.php'),
-        //     __DIR__.'/../../config/logging.php' => config_path('logging.php'),
-        //     __DIR__.'/../../config/mail.php' => config_path('mail.php'),
-        //     __DIR__.'/../../config/permission.php' => config_path('permission.php'),
-        //     __DIR__.'/../../config/queue.php' => config_path('queue.php'),
-        //     __DIR__.'/../../config/services.php' => config_path('services.php'),
-        //     __DIR__.'/../../config/session.php' => config_path('session.php'),
-        //     __DIR__.'/../../config/translatable.php' => config_path('translatable.php'),
-        //     __DIR__.'/../../config/wncms-system-settings.php' => config_path('wncms-system-settings.php'),
-        //     __DIR__.'/../../config/wncms-tags.php' => config_path('wncms-tags.php'),
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
 
-        //     // Publish theme configurations
-        //     __DIR__.'/../../config/theme/default.php' => config_path('theme/default.php'),
-        //     __DIR__.'/../../config/theme/starter.php' => config_path('theme/starter.php'),
-        // ], 'config');
+        // commands
+        if ($this->app->runningInConsole()) {
+            $this->loadCommands();
+        }
 
-        // ! Commands
-        // if ($this->app->runningInConsole()) {
-        //     $this->commands([
-        //         InstallCommand::class,
-        //         NetworkCommand::class,
-        //     ]);
-        // }
+        // publish system config
+        $this->publishes([
+            __DIR__ . '/../../config/activitylog.php' => config_path('activitylog.php'),
+            __DIR__ . '/../../config/app.php' => config_path('app.php'),
+            __DIR__ . '/../../config/auth.php' => config_path('auth.php'),
+            __DIR__ . '/../../config/cache.php' => config_path('cache.php'),
+            __DIR__ . '/../../config/database.php' => config_path('database.php'),
+            __DIR__ . '/../../config/debugbar.php' => config_path('debugbar.php'),
+            __DIR__ . '/../../config/filesystems.php' => config_path('filesystems.php'),
+            __DIR__ . '/../../config/installer.php' => config_path('installer.php'),
+            __DIR__ . '/../../config/laravellocalization.php' => config_path('laravellocalization.php'),
+            __DIR__ . '/../../config/logging.php' => config_path('logging.php'),
+            __DIR__ . '/../../config/mail.php' => config_path('mail.php'),
+            __DIR__ . '/../../config/permission.php' => config_path('permission.php'),
+            __DIR__ . '/../../config/queue.php' => config_path('queue.php'),
+            __DIR__ . '/../../config/services.php' => config_path('services.php'),
+            __DIR__ . '/../../config/session.php' => config_path('session.php'),
+            __DIR__ . '/../../config/translatable.php' => config_path('translatable.php'),
+            __DIR__ . '/../../config/wncms-system-settings.php' => config_path('wncms-system-settings.php'),
+            __DIR__ . '/../../config/wncms-tags.php' => config_path('wncms-tags.php'),
+        ], 'system-config');
 
-        //! Asset
-        // $this->publishes([
-        //     __DIR__.'/../public' => public_path('vendor/courier'),
-        // ], 'public');
+        // publish theme config
+        $this->publishes([
+            __DIR__ . '/../../config/theme/default.php' => config_path('theme/default.php'),
+            __DIR__ . '/../../config/theme/starter.php' => config_path('theme/starter.php'),
+        ], 'theme-config');
 
-        // !publishes
-        // $this->publishes([
-        //     __DIR__.'/../../config/courier.php' => config_path('courier.php'),
-        // ]);
+        //! Assets
+        $this->publishes([
+            __DIR__ . '/../resources/assets/css' => public_path('wncms/css'),
+            __DIR__ . '/../resources/assets/js' => public_path('wncms/js'),
+            __DIR__ . '/../resources/assets/images' => public_path('wncms/images'),
+        ], 'wncms-assets');
 
-        // $this->publishesMigrations([
-        //     __DIR__.'/../database/migrations' => database_path('migrations'),
-        // ]);
-
-        // $this->publishes([
-        //     __DIR__.'/../lang' => $this->app->langPath('vendor/courier'),
-        // ]);
-
-        // $this->publishes([
-        //     __DIR__.'/../resources/views' => resource_path('views/vendor/courier'),
-        // ]);
-
-        try{
+        try {
             // info(request()->all());
-            if(config('app.force_https') || gss('force_https') || request()->force_https){
+            if (config('app.force_https') || gss('force_https') || request()->force_https) {
                 \URL::forceScheme('https');
             }
 
@@ -139,15 +123,35 @@ class WncmsServiceProvider extends ServiceProvider
             if (wncms_is_installed()) {
                 $website = wncms()->website()->get();
                 view()->share('website', $website);
-            }else{
+            } else {
                 // redirect to installation guide
             }
-    
+
             // TODO: Allow to use theme paginator
             Paginator::useBootstrap();
-        }catch(Exception $e){
+        } catch (Exception $e) {
             logger()->error($e);
         }
+    }
 
+    /**
+     * Load all commands in the Console/Commands directory
+     */
+    protected function loadCommands()
+    {
+        $commandFiles = File::allFiles(__DIR__ . '/../Console/Commands');
+
+        $commands = [];
+        foreach ($commandFiles as $commandFile) {
+
+            $commandClass = 'Wncms\\Console\\Commands\\' . $commandFile->getFilenameWithoutExtension();
+
+            if (class_exists($commandClass)) {
+                $commands[] = $commandClass;
+            }
+        }
+
+        // Register the commands with Artisan
+        $this->commands($commands);
     }
 }
