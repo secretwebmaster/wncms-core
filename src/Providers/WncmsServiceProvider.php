@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Wncms\Exceptions\WncmsExceptionHandler;
+use Illuminate\Support\Facades\File;
 
 class WncmsServiceProvider extends ServiceProvider
 {
