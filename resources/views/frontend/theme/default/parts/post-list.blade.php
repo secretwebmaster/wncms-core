@@ -1,19 +1,19 @@
-@extends('frontend.theme.default.layouts.app')
-
-@section('content')
-    <a class="nav-link" href="{{ route('frontend.pages.home') }}">< @lang('word.home')</a>
-    <h2>@lang('word.post_list')</h2>
+<h2>@lang('word.post_list')</h2>
+<div class="table-container">
     <table>
         <thead>
             <th>@lang('word.id')</th>
+            <th>@lang('word.thumbnail')</th>
             <th>@lang('word.title')</th>
             <th>@lang('word.category')</th>
             <th>@lang('word.tag')</th>
         </thead>
         <tbody>
-            @foreach($wncms->post()->getList(pageSize:10) as $post)
+            @php $posts = $wncms->post()->getList(pageSize:5,count:24,sequence:'asc', pageName: 'post-page'); @endphp
+            @foreach($posts as $post)
                 <tr>
                     <td>{{ $post->id }}</td>
+                    <td><img class="post-thumbnail" src="{{ $post->thumbnail }}" alt=""></td>
                     <td><a href="{{ $post->singleUrl }}">{{ $post->title }}</a></td>
                     <td>
                         @foreach($post->postCategories as $postCategory)
@@ -31,6 +31,5 @@
             @endforeach
         </tbody>
     </table>
-
-    {!! $wncms->post()->getList(pageSize:10)->links() !!}
-@endsection
+</div>
+{!! $posts->links() !!}

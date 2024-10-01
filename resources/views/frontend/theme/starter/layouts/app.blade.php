@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace("_", "-", \wncms()->locale()->getCurrentLocale()) }}" dir="ltr">
+<html lang="{{ str_replace("_", "-", \LaravelLocalization::getCurrentLocale()) }}" dir="ltr">
 
     <head>
         {{-- Meta --}}
@@ -35,11 +35,11 @@
 
         {!! $website->body_code !!}
 
-        @include('wncms::frontend.theme.starter.parts.header')
+        @include('frontend.theme.starter.parts.header')
 
         @yield('content')
 
-        @include('wncms::frontend.theme.starter.parts.footer')
+        @include('frontend.theme.starter.parts.footer')
 
         <script src="{{ asset('wncms/js/jquery.min.js?v=' . $wncms->getVersion('js')) }}"></script>
         <script src="{{ asset('wncms/js/lazysizes.min.js?v=' . $wncms->getVersion('js')) }}"></script>

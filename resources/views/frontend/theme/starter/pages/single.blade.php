@@ -1,7 +1,7 @@
-@extends('wncms::frontend.theme.starter.layouts.app')
+@extends('frontend.theme.starter.layouts.app')
 
 @push('head_seo')
-    @include('wncms::frontend.common.seo.head-seo', [
+    @include('frontend.common.seo.head-seo', [
         'seoContentType' => 'article',
         'seoTitle' => $page->title,
         'seoDescription' => $page->excerpt,
