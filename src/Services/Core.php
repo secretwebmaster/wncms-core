@@ -30,6 +30,11 @@ class Core
 {
     public $customProperties = [];
     public $helpers = [];
+
+    public function getPackagePath($path = '')
+    {
+        return realpath(__DIR__ . '/../' . $path);
+    }
     
     /**
      * ----------------------------------------------------------------------------------------------------

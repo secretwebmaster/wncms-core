@@ -297,13 +297,10 @@ class TagManager
     public function getModelsWithHasTagsTraits()
     {
         // dd($request->all());
-        $modelsWithHasTagsTraits = collect(File::allFiles(app_path('Models')))
+        $appModelsWithHasTagsTraits = collect(File::allFiles(app_path('Models')))
         ->map(function ($file) {
-            //$class = 'Wncms\\Models\\' . Str::replace('.php', '', $file->getBasename());
-            //return app($class);
-
             $relativePath = Str::replaceFirst(app_path('Models') . DIRECTORY_SEPARATOR, '', $file->getPathname());
-            $class = 'Wncms\\Models\\' . Str::replace('.php', '', str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath));
+            $class = 'App\\Models\\' . Str::replace('.php', '', str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath));
             return class_exists($class) ? app($class) : null;
 
         })
@@ -311,6 +308,20 @@ class TagManager
             $reflection = new \ReflectionClass($model);
             return in_array("Wncms\Tags\HasTags", $reflection->getTraitNames());
         });
+
+        $packageModelsWithHasTagsTraits = collect(File::allFiles(wncms()->getPackagePath('Models')))
+        ->map(function ($file) {
+
+            $relativePath = Str::replaceFirst(wncms()->getPackagePath('Models') . DIRECTORY_SEPARATOR, '', $file->getPathname());
+            $class = 'Wncms\\Models\\' . Str::replace('.php', '', str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath));
+            return class_exists($class) ? app($class) : null;
+        })
+        ->filter(function ($model) {
+            $reflection = new \ReflectionClass($model);
+            return in_array("Wncms\Tags\HasTags", $reflection->getTraitNames());
+        });
+
+        $modelsWithHasTagsTraits = $appModelsWithHasTagsTraits->merge($packageModelsWithHasTagsTraits);
 
         $tagTypes = [];
         $index = 0;

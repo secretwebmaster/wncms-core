@@ -140,7 +140,6 @@ class TagController extends Controller
 
     public function edit(Tag $tag)
     {
-        dd($tag);
         $tagTypes = wncms()->tag()->getModelsWithHasTagsTraits();
         return view('wncms::backend.tags.edit', [
             'page_title' => __('wncms::word.edit_tag'),
