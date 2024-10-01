@@ -1858,13 +1858,25 @@ $words = [
     'theme_activated_successfully' => 'テーマが正常に有効化されました',
     'are_you_sure_to_deactivate_theme' => 'テーマ :theme_name を無効化しますか？',
     'theme_deactivated_successfully' => 'テーマが正常に無効化されました',
+
+    //! 4.5.0
+    'model_upload' => ':model_nameをアップロード',
+    'field_required' => ':fieldは必須項目です',
+    'field_max' => ':fieldの最大長は:max文字です',
+    'site_seo_description' => 'ウェブサイトSEO説明',
+
+    // ! 5.0.0
+    'cannot_delete_default_themes' => 'デフォルトのテーマを削除できません',
+
 ];
 
-if(file_exists(__DIR__ . "/custom.php")){
-    require "custom.php";
+$locale = basename(__DIR__);
+$custom_word_path = base_path("lang/$locale/custom.php");
+if(file_exists($custom_word_path)){
+    $custom_words = require $custom_word_path;
 }else{
     $custom_words = [];
 }
-$words = array_merge($words, $custom_words);
 
+$words = array_merge($words, $custom_words);
 return $words;

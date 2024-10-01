@@ -26,11 +26,13 @@ class CreateModelView extends Command
      */
     public function handle()
     {
+        $package_view_path = wncms()->getPackageRootPath('resources/views');
+
         $view_files = [
-            'index' => 'resources/views/backend/starters/index.blade.php',
-            'create' => 'resources/views/backend/starters/create.blade.php',
-            'edit' => 'resources/views/backend/starters/edit.blade.php',
-            'form-items' => 'resources/views/backend/starters/form-items.blade.php',
+            'index' => $package_view_path . '/backend/starters/index.blade.php',
+            'create' => $package_view_path . '/backend/starters/create.blade.php',
+            'edit' => $package_view_path . '/backend/starters/edit.blade.php',
+            'form-items' => $package_view_path . '/backend/starters/form-items.blade.php',
         ];
 
         //namings

@@ -36,27 +36,27 @@ class CreateModel extends Command
         $plural_snake = str($model_name)->snake()->plural();
 
         //! make model
-        Artisan::call("make:model Custom/{$className}");
+        Artisan::call("make:model {$className}");
         $this->info(trim(Artisan::output()));
         
         // make migration
         $migrationName = "create_{$plural_snake}_table";
-        $migrationPath = "database/migrations/custom";
+        $migrationPath = "database/migrations";
         Artisan::call("make:migration $migrationName --path={$migrationPath}");
         $this->info(trim(Artisan::output()));
 
         // make controller
-        Artisan::call("make:controller Backend/Custom/{$className}Controller --resource --model=Custom/{$className}");
+        Artisan::call("make:controller Backend/{$className}Controller --resource --model={$className}");
         $this->info(trim(Artisan::output()));
         
         // update controller file content
-        $controller_file = app_path("Http/Controllers/Backend/Custom/{$className}Controller.php");
+        $controller_file = app_path("Http/Controllers/Backend/{$className}Controller.php");
         if (File::exists($controller_file)) {
 
             // get file content
             $file_content = File::get($controller_file);
             // replace view name
-            $updatedContent = str_replace("backend.custom.{$plural_camel}.", "backend.custom.{$plural_snake}.", $file_content);
+            $updatedContent = str_replace("backend.{$plural_camel}.", "backend.{$plural_snake}.", $file_content);
             // replace route name
             $updatedContent = str_replace("route('{$plural_camel}.", "route('{$plural_snake}.", $updatedContent);
             // replace tag
@@ -111,7 +111,7 @@ class CreateModel extends Command
             File::append($customBackendFile, $contentToAppend);
             
             // Prepend use statements
-            $useStatement = "use Wncms\\Http\\Controllers\\Backend\\Custom\\{$className}Controller;";
+            $useStatement = "use Wncms\\Http\\Controllers\\Backend\\{$className}Controller;";
             $this->prependUseStatement($customBackendFile, $useStatement);
             $this->info("Route file {$customBackendFile} has been updated");
         }

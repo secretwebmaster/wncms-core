@@ -1858,12 +1858,25 @@ $words = [
     'theme_activated_successfully' => '主题启用成功',
     'are_you_sure_to_deactivate_theme' => '确定停用主题 :theme_name?',
     'theme_deactivated_successfully' => '主题停用成功',
+
+    //! 4.5.0
+    'model_upload' => '上传:model_name',
+    'field_required' => ':field为必填项',
+    'field_max' => ':field最大长度为:max个字符',
+    'site_seo_description' => '网站SEO描述',
+
+    // ! 5.0.0
+    'cannot_delete_default_themes' => '不能删除默认主题',
+
 ];
 
-if(file_exists(__DIR__ . "/custom.php")){
-    require "custom.php";
+$locale = basename(__DIR__);
+$custom_word_path = base_path("lang/$locale/custom.php");
+if(file_exists($custom_word_path)){
+    $custom_words = require $custom_word_path;
 }else{
     $custom_words = [];
 }
+
 $words = array_merge($words, $custom_words);
 return $words;

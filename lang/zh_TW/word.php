@@ -1867,13 +1867,15 @@ $words = [
     
     // ! 5.0.0
     'cannot_delete_default_themes' => '不能刪除默認主題',
-
 ];
 
-if(file_exists(__DIR__ . "/custom.php")){
-    require "custom.php";
+$locale = basename(__DIR__);
+$custom_word_path = base_path("lang/$locale/custom.php");
+if(file_exists($custom_word_path)){
+    $custom_words = require $custom_word_path;
 }else{
     $custom_words = [];
 }
+
 $words = array_merge($words, $custom_words);
 return $words;

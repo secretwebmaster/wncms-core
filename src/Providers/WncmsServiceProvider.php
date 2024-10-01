@@ -108,6 +108,7 @@ class WncmsServiceProvider extends ServiceProvider
         // core assets
         $this->publishes([
             __DIR__ . '/../../resources/core-assets' => public_path('wncms'),
+            __DIR__ . '/../../resources/stubs' => base_path('stubs'),
         ], 'wncms-core-assets');
 
         // theme assets

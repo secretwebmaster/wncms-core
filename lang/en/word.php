@@ -1858,12 +1858,24 @@ $words = [
     'theme_activated_successfully' => 'Theme activated successfully',
     'are_you_sure_to_deactivate_theme' => 'Are you sure to deactivate theme :theme_name?',
     'theme_deactivated_successfully' => 'Theme deactivated successfully',
+
+    //! 4.5.0
+    'model_upload' => 'Upload :model_name',
+    'field_required' => ':field is a required field',
+    'field_max' => ':field maximum length is :max characters',
+    'site_seo_description' => 'Website SEO description',
+
+    // ! 5.0.0
+    'cannot_delete_default_themes' => 'Cannot delete default themes',
 ];
 
-if(file_exists(__DIR__ . "/custom.php")){
-    require "custom.php";
+$locale = basename(__DIR__);
+$custom_word_path = base_path("lang/$locale/custom.php");
+if(file_exists($custom_word_path)){
+    $custom_words = require $custom_word_path;
 }else{
     $custom_words = [];
 }
+
 $words = array_merge($words, $custom_words);
 return $words;

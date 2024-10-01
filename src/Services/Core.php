@@ -35,6 +35,11 @@ class Core
     {
         return realpath(__DIR__ . '/../' . $path);
     }
+
+    public function getPackageRootPath($path = '')
+    {
+        return realpath(__DIR__ . '/../../' . $path);
+    }
     
     /**
      * ----------------------------------------------------------------------------------------------------
