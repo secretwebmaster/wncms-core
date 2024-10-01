@@ -9,7 +9,7 @@ return [
     /*
      * Toggle if tag name and description is translatable
      */
-    'is_translatable' => false,
+    'is_translatable' => true,
 
     /*
      * The name of the table associated with the taggable morph relation.
