@@ -38,13 +38,11 @@ class TagController extends Controller
         // $q->withCount('model_count');
 
         if ($request->keyword) {
-            $q->where('name->' . LaravelLocalization::getCurrentLocale(), 'like', "%$request->keyword%")
-                ->orWhereHas('children', function ($subq) use ($request) {
-                    $subq->where('name->' . LaravelLocalization::getCurrentLocale(), 'like', "%$request->keyword%");
-                })
-                ->orWhereHas('children.children', function ($subq) use ($request) {
-                    $subq->where('name->' . LaravelLocalization::getCurrentLocale(), 'like', "%$request->keyword%");
-                });
+            $q->where('name','like', "%$request->keyword%")
+            ->orWhereHas('translations', function ($subq) use ($request) {
+                $subq->where('value', 'like', "%$request->keyword%");
+            })
+            ->orWhere('slug', 'like', "%$request->keyword%");
         }
 
         if (in_array($request->order, Tag::ORDERS)) {

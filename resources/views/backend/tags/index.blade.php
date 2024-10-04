@@ -6,7 +6,8 @@
 
     {{-- WNCMS toolbar filters --}}
     <div class="wncms-toolbar-filter mt-5">
-        <form action="{{ route('tags.index') }}">
+
+        <form action="@if(request()->routeIs('tags.index.type')){{ route('tags.index.type', ['type' => $type]) }}@else{{ route('tags.index') }}@endif">
             <div class="row gx-1 align-items-center position-relative my-1">
 
                 @include('wncms::backend.common.default_toolbar_filters')
