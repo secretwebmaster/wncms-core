@@ -129,6 +129,12 @@ class WncmsServiceProvider extends ServiceProvider
             view()->share('wncms', $wncms);
             //檢查是否已安裝系統
             if (wncms_is_installed()) {
+
+                // override the config with the settings from the database
+                config([
+                    'multi_website' => gss('multi_website', config('wncms.multi_website', false)),
+                ]);
+
                 $website = wncms()->website()->get();
                 view()->share('website', $website);
             } else {

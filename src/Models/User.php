@@ -69,7 +69,8 @@ class User extends Authenticatable implements MustVerifyEmail,HasMedia
 
     public function posts()
     {
-        return $this->hasMany(Post::class);
+        $model = config('wncms.default_post_model', Post::class);
+        return $this->hasMany($model);
     }
 
     public function websites()

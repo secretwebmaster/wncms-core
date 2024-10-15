@@ -34,6 +34,7 @@ class SettingSeeder extends Seeder
             'cache_view_count' => 1,
             'enable_cache' => 1,
             'system_name' => 'WNCMS',
+            'multi_website' => false,
         ];
     }
 }

@@ -9,6 +9,7 @@ return [
             ['type' => 'switch', 'name' => 'check_beta_functions', 'badge'=>'Beta'],
             ['type' => 'switch', 'name' => 'show_developer_hints', 'badge'=>'Dev'],
             ['type' => 'switch', 'name' => 'force_https'],
+            ['type' => 'switch', 'name' => 'multi_website'],
             ['type' => 'text', 'name' => 'system_logo'],
             ['type' => 'text', 'name' => 'system_name'],
             ['type' => 'text', 'name' => 'system_description'],
