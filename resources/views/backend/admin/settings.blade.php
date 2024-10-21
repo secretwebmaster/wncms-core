@@ -15,7 +15,7 @@
             <div class="card">
                 <div class="card-body px-3 py-8">
                     <ul class="nav nav-tabs nav-pills border-0 flex-row flex-md-column me-0 me-md-5 mb-3 mb-md-0 fs-6 w-100">
-                        @foreach($availableSettings as $nav_tab)
+                        @foreach($availableSettings as $nav_tab_index => $nav_tab)
                             @if(!empty($nav_tab['tab_name']) && !empty($nav_tab['tab_content']))
                                 <li class="nav-item col-4 col-md-12 fw-bold me-0">
                                     <a class="nav-link @if($loop->index == 0) active @endif" data-bs-toggle="tab" data-bs-target="#tab_{{ $nav_tab['tab_name'] }}" href="#tab_{{ $nav_tab['tab_name'] }}">@lang("wncms::word.". $nav_tab['tab_name'] ."_setting")</a>
@@ -37,7 +37,7 @@
         <div class="col-12 col-sm-8 col-lg-10 tab-content" id="myTabContent">
             @foreach($availableSettings as $nav_tab_index => $nav_tab)
                 @if(!empty($nav_tab['tab_name']) && !empty($nav_tab['tab_content']))
-                    <div class="tab-pane fade @if($nav_tab_index == 0) show active @endif" id="tab_{{ $nav_tab['tab_name'] }}" role="tabpanel">
+                    <div class="tab-pane fade @if($loop->index == 0) show active @endif" id="tab_{{ $nav_tab['tab_name'] }}" role="tabpanel">
                         <div class="card">
                             <div class="collapse show">
                                 <div class="card-body border-top p-6">

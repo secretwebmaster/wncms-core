@@ -1,7 +1,7 @@
 <?php
 
 return [
-    [
+    'basic' => [
         'tab_name' => 'basic',
         'tab_content' => [
             ['type' => 'text', 'name' => 'version', 'disabled' => 'true'],
@@ -18,14 +18,14 @@ return [
             ['type' => 'custom', 'name' => 'display_model'],
         ]
     ],
-    [
+    'auth' => [
         'tab_name' => 'auth',
         'tab_content' => [
             ['type' => 'switch', 'name' => 'show_auth_page_side_image',],
             ['type' => 'switch', 'name' => 'allow_google_login'],
         ]
     ],
-    [
+    'smtp' => [
         'tab_name' => 'smtp',
         'tab_content' => [
             ['type' => 'switch', 'name' => 'enable_smtp'],
@@ -39,7 +39,7 @@ return [
             ['type' => 'text', 'name' => 'smtp_from_name'],
         ]
     ],
-    [
+    'api' => [
         'tab_name' => 'api',
         'tab_content' => [
             ['type' => 'text', 'name' => 'request_user_agent'],
@@ -48,7 +48,7 @@ return [
             ['type' => 'text', 'name' => 'cloudflare_account_id'],
         ]
     ],
-    [
+    'cache' => [
         'tab_name' => 'cache',
         'tab_content' => [
             ['type' => 'switch', 'name' => 'enable_cache'],
@@ -57,7 +57,7 @@ return [
             ['type' => 'switch', 'name' => 'cache_view_count'],
         ]
     ],
-    [
+    'social_login' => [
         'tab_name' => 'social_login',
         'tab_content' => [
             ['type' => 'heading', 'name' => 'Google'],
@@ -66,27 +66,27 @@ return [
             ['type' => 'text', 'name' => 'google_redirect'],
         ]
     ],
-    [
+    'page' => [
         'tab_name' => 'page',
         'tab_content' => [
             ['type' => 'switch', 'name' => 'hide_empty_page_title'],
         ]
     ],
-    [
+    'collect' => [
         'tab_name' => 'collect',
         'tab_content' => [
             ['type' => 'switch', 'name' => 'auto_tag_by_keywords'],
             ['type' => 'switch', 'name' => 'localize_post_image'],
         ]
     ],
-    [
+    'content' => [
         'tab_name' => 'content',
         'tab_content' => [
             ['type' => 'switch', 'name' => 'restore_trashed_content_to_published'],
             ['type' => 'switch', 'name' => 'convert_thumbnail_to_webp'],
         ]
     ],
-    [
+    'user' => [
         'tab_name' => 'user',
         'tab_content' => [
             ['type' => 'switch', 'name' => 'disable_registration'],
@@ -95,7 +95,7 @@ return [
             ['type' => 'switch', 'name' => 'use_custom_user_dashbaord'],
         ]
     ],
-    [
+    'admin' => [
         'tab_name' => 'admin',
         'tab_content' => [
             ['type' => 'switch', 'name' => 'use_custom_admin_dashbaord'],
@@ -103,7 +103,7 @@ return [
             ['type' => 'switch', 'name' => 'hide_system_update_log'],
         ]
     ],
-    [
+    'analytics' => [
         'tab_name' => 'analytics',
         'tab_content' => [
             ['type' => 'number', 'name' => 'click_count_cooldown'],
