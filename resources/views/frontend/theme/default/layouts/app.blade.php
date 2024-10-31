@@ -17,7 +17,7 @@
         {{-- CSS --}}
         <link rel="shortcut icon" type="images/x-icon" href="{{ $website->site_favicon ?: asset('wncms/images/logos/favicon.png') }}" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" referrerpolicy="no-referrer" />
-        <link rel="stylesheet" type="text/css" href="{{ asset(" theme/default/css/style.css?v=") . wncms_get_version() }}" />
+        <link rel="stylesheet" type="text/css" href="{{ asset("theme/default/css/style.css?v=") . wncms_get_version() }}" />
         <style>
             .mb-3{
                 margin-bottom: 1rem;
