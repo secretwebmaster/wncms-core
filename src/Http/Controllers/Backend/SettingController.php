@@ -64,4 +64,50 @@ class SettingController extends Controller
             'message' => __('wncms::word.smtp_test_mail_is_send_please_check_your_mailbox')  . " " . $request->recipient,
         ]);
     }
+
+    public function add_quick_link(Request $request)
+    {
+        // get current quick links
+        $quickLinkStr = gss('quick_links');
+        $quickLinks = json_decode($quickLinkStr, true) ?? [];
+
+        // prepare new quick link data
+        $quickLinkData = [
+            'route' => $request->route,
+            'name' => $request->name,
+        ];
+
+        // append new quick link
+        if(!in_array($quickLinkData, $quickLinks)){
+            $quickLinks[] = $quickLinkData;
+        }
+
+        // save quick links
+        uss('quick_links', json_encode($quickLinks));
+        
+        return back()->withMessage(__('wncms::word.successfully_updated'));
+    }
+
+    public function remove_quick_link(Request $request)
+    {
+        // get current quick links
+        $quickLinkStr = gss('quick_links');
+        $quickLinks = json_decode($quickLinkStr, true) ?? [];
+
+        // prepare new quick link data
+        $quickLinkData = [
+            'route' => $request->route,
+            'name' => $request->name,
+        ];
+
+        // remove quick link
+        $quickLinks = array_filter($quickLinks, function($quickLink) use ($quickLinkData){
+            return $quickLink != $quickLinkData;
+        });
+
+        // save quick links
+        uss('quick_links', json_encode($quickLinks));
+        
+        return back()->withMessage(__('wncms::word.successfully_updated'));
+    }
 }

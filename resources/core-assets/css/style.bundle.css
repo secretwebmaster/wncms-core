@@ -46405,19 +46405,19 @@ body,
     border-bottom: var(--wncms-app-header-base-border-bottom);
   }
   :root {
-    --wncms-app-header-height: 70px;
-    --wncms-app-header-height-actual: 70px;
+    --wncms-app-header-height: 50px;
+    --wncms-app-header-height-actual: 50px;
   }
   [data-kt-app-header-sticky=on] {
-    --wncms-app-header-height: 70px;
-    --wncms-app-header-height-actual: 70px;
+    --wncms-app-header-height: 50px;
+    --wncms-app-header-height-actual: 50px;
   }
   [data-kt-app-header-sticky=on][data-kt-app-header-stacked=true] {
     --wncms-app-header-height: calc(var(--wncms-app-header-primary-height, 0px) + var(--wncms-app-header-secondary-height, 0px));
     --wncms-app-header-height-actual: calc(70px + 70px);
   }
   [data-kt-app-header-minimize=on] {
-    --wncms-app-header-height: 70px;
+    --wncms-app-header-height: 50px;
   }
   .app-header {
     height: var(--wncms-app-header-height);
@@ -46479,15 +46479,15 @@ body,
     border-bottom: var(--wncms-app-header-base-border-bottom-mobile);
   }
   :root {
-    --wncms-app-header-height: 60px;
+    --wncms-app-header-height: 50px;
   }
   [data-kt-app-header-sticky=on] {
-    --wncms-app-header-height: 70px;
-    --wncms-app-header-height-actual: 70px;
+    --wncms-app-header-height: 50px;
+    --wncms-app-header-height-actual: 50px;
   }
   [data-kt-app-header-minimize=on] {
-    --wncms-app-header-height: 70px;
-    --wncms-app-header-height-actual: 70px;
+    --wncms-app-header-height: 50px;
+    --wncms-app-header-height-actual: 50px;
   }
   .app-header {
     height: var(--wncms-app-header-height);

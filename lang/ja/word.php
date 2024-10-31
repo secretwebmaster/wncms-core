@@ -1867,6 +1867,8 @@ $words = [
 
     // ! 5.0.0
     'cannot_delete_default_themes' => 'デフォルトのテーマを削除できません',
+    'add_to_quick_link' => 'クイックリンクに追加',
+    'remove_from_quick_link' => 'クイックリンクから削除',
 
 ];
 

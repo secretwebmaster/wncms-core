@@ -209,6 +209,8 @@ Route::prefix('panel')->middleware(['auth'])->group(function () {
     Route::get('settings', [SettingController::class, 'index'])->middleware('can:setting_index')->name('settings.index');
     Route::put('settings', [SettingController::class, 'update'])->middleware('can:setting_edit')->name('settings.update');
     Route::post('settings/smtp/test', [SettingController::class, 'smtp_test'])->middleware('can:setting_edit')->name('settings.smtp_test');
+    Route::post('settings/quick/add', [SettingController::class, 'add_quick_link'])->middleware('can:setting_edit')->name('settings.quick.add');
+    Route::post('settings/quick/remove', [SettingController::class, 'remove_quick_link'])->middleware('can:setting_edit')->name('settings.quick.remove');
 
 
     //theme

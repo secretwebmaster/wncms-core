@@ -1867,6 +1867,8 @@ $words = [
 
     // ! 5.0.0
     'cannot_delete_default_themes' => '不能删除默认主题',
+    'add_to_quick_link' => '添加到快捷链接',
+    'remove_from_quick_link' => '从快捷链接中移除',
 
 ];
 

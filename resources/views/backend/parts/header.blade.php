@@ -33,16 +33,28 @@
                     </div> --}}
                  
                     <div class="menu-item me-lg-1">
-                        <a class="menu-link py-3" href="{{ route('users.account.profile.show') }}">
+                        <a class="menu-link p-2" href="{{ route('users.account.profile.show') }}">
                             <span class="menu-title text-dark fw-bold">@lang('wncms::word.my_account')</span>
                         </a>
                     </div>
                  
                     <div class="menu-item me-lg-1">
-                        <a class="menu-link py-3" href="{{ route('websites.index') }}">
+                        <a class="menu-link p-2" href="{{ route('websites.index') }}">
                             <span class="menu-title text-dark fw-bold">{{ wncms_model_word('website', 'index') }}</span>
                         </a>
                     </div>
+
+                    @if(!empty($quickLinks = json_decode(gss('quick_links'), true)))
+                        @foreach($quickLinks as $quickLink)
+                            <div class="menu-item me-lg-1">
+                                <a class="menu-link p-2" href="{{ route($quickLink['route']) }}">
+                                    <span class="menu-title text-gray-700">{{ $quickLink['name'] }}</span>
+                                </a>
+                            </div>
+                        @endforeach
+
+                    @endif
+
                 </div>
             </div>
 

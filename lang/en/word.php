@@ -1867,6 +1867,8 @@ $words = [
 
     // ! 5.0.0
     'cannot_delete_default_themes' => 'Cannot delete default themes',
+    'add_to_quick_link' => 'Add to Quick Link',
+    'remove_from_quick_link' => 'Remove from Quick Link',
 ];
 
 $locale = basename(__DIR__);

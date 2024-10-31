@@ -24,7 +24,6 @@
 
     </head>
 
-
     {{-- Body --}}
     <body id="wncms_body"
         data-kt-app-layout="dark-sidebar"
@@ -83,14 +82,11 @@
                             </div>
                         </div>
                     
-
                         <div class="d-flex flex-column flex-column-fluid">
 
                             {{-- Breadcrum  需要傳參數 --}}
                             @include('wncms::backend.parts.toolbar')
 
-                            
-                            
                             {{-- Content --}}
                             <div id="kt_app_content" class="app-content flex-column-fluid">
                                 <div id="kt_app_content_container" class="app-container container-fluid h-100">

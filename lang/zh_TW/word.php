@@ -1867,6 +1867,8 @@ $words = [
     
     // ! 5.0.0
     'cannot_delete_default_themes' => '不能刪除默認主題',
+    'add_to_quick_link' => '添加到快捷鏈接',
+    'remove_from_quick_link' => '從快捷鏈接中移除',
 ];
 
 $locale = basename(__DIR__);
