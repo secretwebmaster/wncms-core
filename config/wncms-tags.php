@@ -4,7 +4,7 @@ return [
     /*
      * The fully qualified class name of the tag model.
      */
-    'tag_model' => Wncms\Models\Tag::class,
+    'tag_model' => Wncms\Tags\Tag::class,
 
     /*
      * Toggle if tag name and description is translatable
