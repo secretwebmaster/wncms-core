@@ -3,7 +3,6 @@
 namespace Wncms\Http\Controllers\Auth;
 
 use Wncms\Http\Controllers\Controller;
-use Wncms\Models\User;
 use Wncms\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
@@ -21,6 +20,12 @@ class RegisteredUserController extends Controller
             die;
         }
     }
+
+    public function getUserClass()
+    {
+        $model = config('wncms.default_user_model', \Wncms\Models\User::class);
+        return new $model;
+    }
     
     /**
      * Display the registration view.
@@ -29,7 +34,7 @@ class RegisteredUserController extends Controller
      */
     public function create()
     {
-        $website = wn('website')->get();
+        $website = wncms()->website()->get();
         if($website && view()->exists("frontend.theme.{$website?->theme}.auth.register")){
             return view("wncms::frontend.theme.{$website?->theme}.auth.register");
         }
@@ -65,7 +70,9 @@ class RegisteredUserController extends Controller
             ]
         );
 
-        $user = User::create([
+        $userModel = $this->getUserClass();
+
+        $user = $userModel::create([
             // 'first_name' => $request->first_name,
             // 'last_name'  => $request->last_name,
             'username' => "user_" . str_replace(".", "", microtime(true)),
@@ -113,8 +120,10 @@ class RegisteredUserController extends Controller
             'password'   => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $userModel = $this->getUserClass();
+
         $token = Str::random(60);
-        $user = User::create([
+        $user = $userModel::create([
             'first_name' => $request->first_name,
             'last_name'  => $request->last_name,
             'email'      => $request->email,
