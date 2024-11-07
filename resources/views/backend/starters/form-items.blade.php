@@ -179,7 +179,7 @@
     <div class="row mb-3">
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="expired_at">@lang('wncms::word.expired_at')</label>
         <div class="col-lg-9 fv-row">
-            <input id="expired_at" name="expired_at" value="{{ !empty($starter->expired_at) ? $starter->expired_at->format('Y-m-d') : '' }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_leave_blank')" id="date_expired_at" />
+            <input id="expired_at" name="expired_at" value="{{ !empty($starter->expired_at) ? $starter->expired_at->format('Y-m-d H:i:s') : '' }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_leave_blank')" id="date_expired_at" />
         </div>
         <script>
             window.addEventListener('DOMContentLoaded', (event) => {
@@ -190,12 +190,14 @@
                     showDropdowns: true,
                     drops:'down',
                     timePicker: true,
+                    timePicker24Hour: true,
+                    timePickerSeconds: true,
                     minYear: 1901,
                     maxYear: parseInt(moment().format("YYYY"),12),
                     locale: {
-                        cancelLabel: '清空',
-                        applyLabel: '設定',
-                        format: 'YYYY-MM-DD'
+                        cancelLabel: '{{ __("wncms::word.clear") }}',
+                        applyLabel: '{{ __("wncms::word.setup") }}',
+                        format: 'YYYY-MM-DD HH:mm:ss'
                     }
                 }).on("apply.daterangepicker", function (e, picker) {
                     picker.element.val(picker.startDate.format(picker.locale.format));
