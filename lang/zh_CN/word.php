@@ -1871,6 +1871,8 @@ $words = [
     'remove_from_quick_link' => '从快捷链接中移除',
     'setup' => '設定',
 
+    //! 5.1.1
+    'force_https' => '强制HTTPS',
 ];
 
 $locale = basename(__DIR__);

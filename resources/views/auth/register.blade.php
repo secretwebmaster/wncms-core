@@ -1,12 +1,12 @@
 @extends('wncms::layouts.auth')
 @section('auth_content')
 
-    <form id="form_register" data-action="{{ route('register', ['is_ajax' => true]) }}">
+    <form class="form w-100" id="form_register" data-action="{{ route('register', ['is_ajax' => true]) }}">
         @csrf
 
+        {{-- Title --}}
         <div class="text-center mb-11">
             <h1 class="text-light fw-bolder mb-3">@lang('wncms::word.register')</h1>
-            {{-- <div class="text-gray-500 fw-semibold fs-6">@lang('wncms::word.start_rewriting_post')</div> --}}
         </div>
 
         {{-- Email --}}
@@ -26,7 +26,8 @@
 
         {{-- 忘記密碼 --}}
         <div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8">
-            <div></div>
+            @include('wncms::auth.btn-force-https')
+
             @if (Route::has('password.request'))
                 <a href="{{ route('password.request') }}" class="link-light fw-bold">@lang('wncms::word.forgot_password') ?</a>
             @endif

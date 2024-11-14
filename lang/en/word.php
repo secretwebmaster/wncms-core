@@ -1870,6 +1870,9 @@ $words = [
     'add_to_quick_link' => 'Add to Quick Link',
     'remove_from_quick_link' => 'Remove from Quick Link',
     'setup' => 'Setup',
+
+    //! 5.1.1
+    'force_https' => 'Force HTTPS',
 ];
 
 $locale = basename(__DIR__);

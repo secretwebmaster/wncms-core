@@ -1870,6 +1870,9 @@ $words = [
     'add_to_quick_link' => '添加到快捷鏈接',
     'remove_from_quick_link' => '從快捷鏈接中移除',
     'setup' => '設定',
+        
+    //! 5.1.1
+    'force_https' => '強制HTTPS',
 ];
 
 $locale = basename(__DIR__);

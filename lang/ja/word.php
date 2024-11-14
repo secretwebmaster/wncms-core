@@ -1871,6 +1871,8 @@ $words = [
     'remove_from_quick_link' => 'クイックリンクから削除',
     'setup' => '設定',
 
+    //! 5.1.1
+    'force_https' => 'HTTPSを強制',
 ];
 
 $locale = basename(__DIR__);
