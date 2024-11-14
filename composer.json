@@ -1,6 +1,7 @@
 {
     "name": "secretwebmaster/wncms-core",
     "description": "Wncms core package",
+    "keywords": ["wncms", "cms", "laravel", "secretwebmaster"],
     "type": "library",
     "require": {
         "php": "^8.2",
