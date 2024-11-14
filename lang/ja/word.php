@@ -1873,13 +1873,30 @@ $words = [
 
     //! 5.1.1
     'force_https' => 'HTTPSを強制',
+
+    //! 5.2.0
+    'package_added_or_updated_successfully' => '更新/追加が成功しました。',
+    'package_updated_successfully' => '更新が成功しました。',
+    'package_add_successfully' => '追加が成功しました。',
+    'actions' => '操作',
+    'fail_to_update' => '更新に失敗しました。',
+    'checking_for_updates' => '更新を確認しています。',
+    'no_updates_available' => '利用可能な更新はありません。',
+    'packages' => 'パッケージ',
+    'add_package' => 'パッケージを追加',
+    'package_added_successfully' => 'パッケージの追加が成功しました。',
+    'fail_to_add_package' => 'パッケージの追加に失敗しました。',
+    'package_name' => 'パッケージ名',
+    'package_removed_successfully' => 'パッケージが正常に削除されました。',
+    'remove_package' => 'パッケージを削除',
+    'removing_item' => '項目 :name を削除中',
 ];
 
 $locale = basename(__DIR__);
 $custom_word_path = base_path("lang/$locale/custom.php");
-if(file_exists($custom_word_path)){
+if (file_exists($custom_word_path)) {
     $custom_words = require $custom_word_path;
-}else{
+} else {
     $custom_words = [];
 }
 

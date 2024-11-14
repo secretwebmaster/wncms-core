@@ -1824,7 +1824,7 @@ $words = [
     'maintenance' => 'Maintenance',
     'invalid_password' => 'Invalid Password',
     'disable_registration' => 'Disable Registration',
-        
+
     //! 4.2.0
     'install_failed_retry' => 'Installation failed, Try again',
     'tell_us_about_your_first_website' => 'Tell us about your first website',
@@ -1873,13 +1873,30 @@ $words = [
 
     //! 5.1.1
     'force_https' => 'Force HTTPS',
+
+    //! 5.2.0
+    'package_added_or_updated_successfully' => 'Successfully updated or added.',
+    'package_updated_successfully' => 'Successfully updated.',
+    'package_add_successfully' => 'Successfully added.',
+    'actions' => 'Actions',
+    'fail_to_update' => 'Failed to update.',
+    'checking_for_updates' => 'Checking for updates.',
+    'no_updates_available' => 'No updates available.',
+    'packages' => 'Packages',
+    'add_package' => 'Add Package',
+    'package_added_successfully' => 'Package added successfully.',
+    'fail_to_add_package' => 'Failed to add package.',
+    'package_name' => 'Package Name',
+    'package_removed_successfully' => 'Package removed successfully.',
+    'remove_package' => 'Remove Package',
+    'removing_item' => 'Removing item :name',
 ];
 
 $locale = basename(__DIR__);
 $custom_word_path = base_path("lang/$locale/custom.php");
-if(file_exists($custom_word_path)){
+if (file_exists($custom_word_path)) {
     $custom_words = require $custom_word_path;
-}else{
+} else {
     $custom_words = [];
 }
 

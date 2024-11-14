@@ -9,10 +9,10 @@ use Illuminate\Http\Request;
 class PluginController extends Controller
 {
     public function index()
-{
-    $plugins = Plugin::all();
-    return view('wncms::backend.plugins.index', compact('plugins'));
-}
+    {
+        $plugins = Plugin::all();
+        return view('wncms::backend.plugins.index', compact('plugins'));
+    }
 
     public function upload(Request $request)
     {
@@ -56,7 +56,4 @@ class PluginController extends Controller
 
         return redirect()->route('plugins.index')->with('success', 'Plugin deleted successfully!');
     }
-
-
-
 }

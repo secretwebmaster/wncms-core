@@ -177,6 +177,6 @@ class WncmsServiceProvider extends ServiceProvider
             __DIR__ . '/../../resources/views/layouts/error.blade.php' => resource_path('views/layouts/error.blade.php'),
         ], 'wncms-theme-assets');
 
-        info('Wncms assets published');
+        // info('Wncms assets published');
     }
 }

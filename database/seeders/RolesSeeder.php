@@ -75,6 +75,7 @@ class RolesSeeder extends Seeder
             'user',
             'website',
             'faq',
+            'package',
         ];
     }
 

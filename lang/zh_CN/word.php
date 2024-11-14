@@ -1824,7 +1824,7 @@ $words = [
     'maintenance' => '维护',
     'invalid_password' => '无效密码',
     'disable_registration' => '关闭注册',
-        
+
     //! 4.2.0
     'install_failed_retry' => '安装失败，请重试',
     'tell_us_about_your_first_website' => '告诉我们你的第一个网站',
@@ -1873,13 +1873,30 @@ $words = [
 
     //! 5.1.1
     'force_https' => '强制HTTPS',
+
+    //! 5.2.0
+    'package_added_or_updated_successfully' => '已更新/添加成功',
+    'package_updated_successfully' => '已更新成功',
+    'package_add_successfully' => '已添加成功',
+    'actions' => '操作',
+    'fail_to_update' => '更新失败',
+    'checking_for_updates' => '正在检查更新',
+    'no_updates_available' => '没有可用更新',
+    'packages' => '套件',
+    'add_package' => '添加套件',
+    'package_added_successfully' => '套件添加成功',
+    'fail_to_add_package' => '添加套件失败',
+    'package_name' => '套件名称',
+    'package_removed_successfully' => '套件移除成功',
+    'remove_package' => '移除套件',
+    'removing_item' => '移除项目 :name',
 ];
 
 $locale = basename(__DIR__);
 $custom_word_path = base_path("lang/$locale/custom.php");
-if(file_exists($custom_word_path)){
+if (file_exists($custom_word_path)) {
     $custom_words = require $custom_word_path;
-}else{
+} else {
     $custom_words = [];
 }
 

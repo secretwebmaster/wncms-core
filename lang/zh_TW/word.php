@@ -1873,6 +1873,23 @@ $words = [
         
     //! 5.1.1
     'force_https' => '強制HTTPS',
+
+    //! 5.2.0
+    'package_added_or_updated_successfully' => '已更新/添加成功',
+    'package_updated_successfully' => '已更新成功',
+    'package_add_successfully' => '已添加成功',
+    'actions' => '操作',
+    'fail_to_update' => '更新失敗',
+    'checking_for_updates' => '正在檢查更新',
+    'no_updates_available' => '沒有可用更新',
+    'packages' => '套件',
+    'add_package' => '添加Package',
+    'package_added_successfully' => 'Package添加成功',
+    'fail_to_add_package' => '添加Package失敗',
+    'package_name' => 'Package名稱',
+    'package_removed_successfully' => 'Package移除成功',
+    'remove_package' => '移除Package',
+    'removing_item' => '移除項目 :name',
 ];
 
 $locale = basename(__DIR__);

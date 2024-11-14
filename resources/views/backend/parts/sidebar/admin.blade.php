@@ -7,7 +7,7 @@
         </div>
     </div>
 
-    {{-- 系統設定 --}}
+    {{-- Setting --}}
     @can('setting_edit')
         <div class="menu-item">
             <a class="menu-link py-2 @if(request()->routeIs('settings.index')) active @endif" href="{{ route('settings.index') }}">
@@ -19,7 +19,7 @@
         </div>
     @endcan
 
-    {{-- 系統設定 --}}
+    {{-- Theme --}}
     @can('theme_index')
         <div class="menu-item">
             <a class="menu-link py-2 @if(request()->routeIs('themes.index')) active @endif" href="{{ route('themes.index') }}">
@@ -31,7 +31,7 @@
         </div>
     @endcan
 
-    {{-- 權限列表 --}}
+    {{-- Permission --}}
     @can('role_edit')
     <div data-kt-menu-trigger="click" class="menu-item menu-accordion @if(request()->routeIs('roles.*') || request()->routeIs('permissions.*')) show @endif">
         <span class="menu-link py-2">
