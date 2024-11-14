@@ -1890,6 +1890,7 @@ $words = [
     'package_removed_successfully' => 'Package移除成功',
     'remove_package' => '移除Package',
     'removing_item' => '移除項目 :name',
+    'forbidden_package' => '禁用Package',
 ];
 
 $locale = basename(__DIR__);

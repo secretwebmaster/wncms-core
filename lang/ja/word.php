@@ -1890,6 +1890,7 @@ $words = [
     'package_removed_successfully' => 'パッケージが正常に削除されました。',
     'remove_package' => 'パッケージを削除',
     'removing_item' => '項目 :name を削除中',
+    'forbidden_package' => '禁止されたパッケージ',
 ];
 
 $locale = basename(__DIR__);

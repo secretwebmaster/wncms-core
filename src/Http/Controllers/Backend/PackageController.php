@@ -66,11 +66,15 @@ class PackageController extends Controller
         $package = $formData['package'];
         $version = $formData['version'];
 
+        if (in_array($package, $this->forbiddenPackages())) {
+            return response()->json(['status' => 'error', 'message' => __('wncms::word.forbidden_package')]);
+        }
+
         $command = $version ? ["composer", "require", "{$package}:{$version}"] : ["composer", "require", $package];
 
         $result = $this->runComposerCommand($command, 'Package added successfully.');
         if ($result['error']) {
-            return response()->json(['status' => 'error', 'message' => $result['output']], 500);
+            return response()->json(['status' => 'error', 'message' => $result['output']]);
         }
 
         return response()->json([
@@ -149,6 +153,14 @@ class PackageController extends Controller
             'error' => false,
             'output' => $process->getOutput(),
             'message' => $successMessage,
+        ];
+    }
+
+    // Forbidden packages
+    public function forbiddenPackages()
+    {
+        return [
+            'secretwebmaster/wncms-core',
         ];
     }
 }
