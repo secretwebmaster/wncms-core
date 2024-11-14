@@ -18,30 +18,39 @@ class WncmsServiceProvider extends ServiceProvider
         // Replace the default exception handler with your custom one
         $this->app->singleton(\Illuminate\Contracts\Debug\ExceptionHandler::class, WncmsExceptionHandler::class);
 
-        // configs
-        $this->mergeConfigFrom(__DIR__ . '/../../config/activitylog.php', 'activitylog');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/app.php', 'app');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/auth.php', 'auth');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/cache.php', 'cache');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/database.php', 'database');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/debugbar.php', 'debugbar');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/filesystems.php', 'filesystems');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/installer.php', 'installer');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/laravellocalization.php', 'laravellocalization');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/logging.php', 'logging');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/mail.php', 'mail');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/permission.php', 'permission');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/queue.php', 'queue');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/services.php', 'services');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/session.php', 'session');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/translatable.php', 'translatable');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-system-settings.php', 'wncms-system-settings');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-tags.php', 'wncms-tags');
+        // Merge configurations
+        $configFiles = [
+            'activitylog',
+            'app',
+            'auth',
+            'cache',
+            'database',
+            'debugbar',
+            'filesystems',
+            'installer',
+            'laravellocalization',
+            'logging',
+            'mail',
+            'permission',
+            'queue',
+            'services',
+            'session',
+            'translatable',
+            'wncms-system-settings',
+            'wncms-tags'
+        ];
+
+        foreach ($configFiles as $config) {
+            $this->mergeConfigFrom(__DIR__ . "/../../config/{$config}.php", $config);
+        }
 
         // Load the theme configurations
-        $this->mergeConfigFrom(__DIR__ . '/../../config/theme/default.php', 'theme.default');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/theme/starter.php', 'theme.starter');
+        $themeConfigs = ['default', 'starter'];
+        foreach ($themeConfigs as $theme) {
+            $this->mergeConfigFrom(__DIR__ . "/../../config/theme/{$theme}.php", "theme.{$theme}");
+        }
 
+        // Register other necessary bindings
         $this->app->register(\Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class);
     }
 
@@ -50,34 +59,34 @@ class WncmsServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // middleware
+        // Middleware
         $this->app['router']->aliasMiddleware('localize', \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes::class);
         $this->app['router']->aliasMiddleware('localizationRedirect', \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter::class);
         $this->app['router']->aliasMiddleware('localeSessionRedirect', \Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect::class);
         $this->app['router']->aliasMiddleware('localeCookieRedirect', \Mcamara\LaravelLocalization\Middleware\LocaleCookieRedirect::class);
         $this->app['router']->aliasMiddleware('localeViewPath', \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath::class);
-
         $this->app['router']->aliasMiddleware('is_installed', \Wncms\Http\Middleware\IsInstalled::class);
         $this->app['router']->aliasMiddleware('has_website', \Wncms\Http\Middleware\HasWebsite::class);
         $this->app['router']->aliasMiddleware('full_page_cache', \Wncms\Http\Middleware\FullPageCache::class);
 
-        // routes
+        // Routes
         $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
         $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'wncms');
 
-        // translation
+        // Translation
         $this->loadTranslationsFrom(__DIR__ . '/../../lang', 'wncms');
 
-        // migrations
+        // Migrations
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
 
-        // commands
+        // Commands
         if ($this->app->runningInConsole()) {
             $this->loadCommands();
+            $this->autoPublishAssets();
         }
 
-        // publish system config
+        // Publish configurations and assets
         $this->publishes([
             __DIR__ . '/../../config/activitylog.php' => config_path('activitylog.php'),
             __DIR__ . '/../../config/app.php' => config_path('app.php'),
@@ -99,19 +108,19 @@ class WncmsServiceProvider extends ServiceProvider
             __DIR__ . '/../../config/wncms-tags.php' => config_path('wncms-tags.php'),
         ], 'wncms-system-config');
 
-        // publish theme config
+        // Publish theme config
         $this->publishes([
             __DIR__ . '/../../config/theme/default.php' => config_path('theme/default.php'),
             __DIR__ . '/../../config/theme/starter.php' => config_path('theme/starter.php'),
         ], 'wncms-theme-config');
 
-        // core assets
+        // Core assets
         $this->publishes([
             __DIR__ . '/../../resources/core-assets' => public_path('wncms'),
             __DIR__ . '/../../resources/stubs' => base_path('stubs'),
         ], 'wncms-core-assets');
 
-        // theme assets
+        // Theme assets
         $this->publishes([
             __DIR__ . '/../../resources/theme-assets' => public_path('theme'),
             __DIR__ . '/../../resources/views/frontend' => resource_path('views/frontend'),
@@ -120,28 +129,24 @@ class WncmsServiceProvider extends ServiceProvider
         ], 'wncms-theme-assets');
 
         try {
-            // info(request()->all());
+            // Force HTTPS if needed
             if (config('app.force_https') || gss('force_https') || request()->force_https) {
                 \URL::forceScheme('https');
             }
 
             $wncms = wncms();
             view()->share('wncms', $wncms);
-            //檢查是否已安裝系統
-            if (wncms_is_installed()) {
 
-                // override the config with the settings from the database
+            if (wncms_is_installed()) {
+                // Override config with database settings
                 config([
                     'multi_website' => gss('multi_website', config('wncms.multi_website', false)),
                 ]);
 
                 $website = wncms()->website()->get();
                 view()->share('website', $website);
-            } else {
-                // redirect to installation guide
             }
 
-            // TODO: Allow to use theme paginator
             Paginator::useBootstrap();
         } catch (Exception $e) {
             logger()->error($e);
@@ -149,15 +154,25 @@ class WncmsServiceProvider extends ServiceProvider
     }
 
     /**
-     * Load all commands in the Console/Commands directory
+     * Automatically publish assets and configurations.
      */
-    protected function loadCommands()
+    private function autoPublishAssets(): void
+    {
+        $this->callSilent('vendor:publish', ['--tag' => 'wncms-system-config', '--force' => true]);
+        $this->callSilent('vendor:publish', ['--tag' => 'wncms-theme-config', '--force' => true]);
+        $this->callSilent('vendor:publish', ['--tag' => 'wncms-core-assets', '--force' => true]);
+        $this->callSilent('vendor:publish', ['--tag' => 'wncms-theme-assets', '--force' => true]);
+    }
+
+    /**
+     * Load all commands in the Console/Commands directory.
+     */
+    protected function loadCommands(): void
     {
         $commandFiles = File::allFiles(__DIR__ . '/../Console/Commands');
 
         $commands = [];
         foreach ($commandFiles as $commandFile) {
-
             $commandClass = 'Wncms\\Console\\Commands\\' . $commandFile->getFilenameWithoutExtension();
 
             if (class_exists($commandClass)) {

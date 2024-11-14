@@ -59,10 +59,10 @@
     "scripts" : {
         "test" : "vendor/bin/phpunit",
         "post-autoload-dump": [
-            "@php artisan vendor:publish --tag=wncms-system-config --ansi",
-            "@php artisan vendor:publish --tag=wncms-theme-config --ansi",
-            "@php artisan vendor:publish --tag=wncms-core-assets --ansi",
-            "@php artisan vendor:publish --tag=wncms-theme-assets --ansi"
+            "@php artisan vendor:publish --tag=wncms-system-config --ansi --force",
+            "@php artisan vendor:publish --tag=wncms-theme-config --ansi --force",
+            "@php artisan vendor:publish --tag=wncms-core-assets --ansi --force",
+            "@php artisan vendor:publish --tag=wncms-theme-assets --ansi --force"
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi",
