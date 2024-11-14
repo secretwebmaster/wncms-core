@@ -57,19 +57,7 @@
         }
     ],
     "scripts" : {
-        "test" : "vendor/bin/phpunit",
-        "post-autoload-dump": [
-            "@php artisan vendor:publish --tag=wncms-system-config --ansi --force",
-            "@php artisan vendor:publish --tag=wncms-theme-config --ansi --force",
-            "@php artisan vendor:publish --tag=wncms-core-assets --ansi --force",
-            "@php artisan vendor:publish --tag=wncms-theme-assets --ansi --force"
-        ],
-        "post-create-project-cmd": [
-            "@php artisan key:generate --ansi",
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
-            "@php -r \"file_exists('database\/database.sqlite') || touch('database\/database.sqlite');\"",
-            "@php artisan migrate --graceful --ansi"
-        ]
+        "test" : "vendor/bin/phpunit"
     },
     "minimum-stability": "stable",
     "prefer-stable": true
