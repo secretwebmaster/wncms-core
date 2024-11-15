@@ -1,8 +1,10 @@
 <?php
 
+use Wncms\Http\Controllers\Frontend\ContactFormSubmissionController;
 use Wncms\Http\Controllers\Frontend\PageController;
 use Wncms\Http\Controllers\Frontend\PostController;
 use Wncms\Http\Controllers\Frontend\SitemapController;
+use Wncms\Http\Controllers\Frontend\FaqController;
 
 Route::name('frontend.')->middleware('full_page_cache')->group(function () {
         

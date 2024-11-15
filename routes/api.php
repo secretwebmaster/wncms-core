@@ -35,6 +35,6 @@ Route::prefix('v1')->name('api.v1.')->group(function(){
 });
 
 //custom api route
-if (file_exists(__DIR__ . '/custom_api.php')) {
-    include __DIR__ . '/custom_api.php';
+if (file_exists(base_path('routes/custom_api.php'))) {
+    include base_path('routes/custom_api.php');
 }
