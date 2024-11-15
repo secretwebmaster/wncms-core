@@ -40,17 +40,13 @@ class PackageController extends Controller
             $process->mustRun();
             $outdatedPackages = json_decode($process->getOutput(), true)['installed'] ?? [];
 
-            $updates = array_filter($outdatedPackages, function ($package) {
-                return in_array('wncms', $package['keywords'] ?? []);
-            });
-
             $updates = array_map(function ($package) {
                 return [
                     'name' => $package['name'],
                     'version' => $package['version'],
                     'latest' => $package['latest'],
                 ];
-            }, $updates);
+            }, $outdatedPackages);
 
             return response()->json(['updates' => $updates]);
         } catch (ProcessFailedException $exception) {

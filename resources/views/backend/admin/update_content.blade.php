@@ -1,63 +1,83 @@
-<div class="accordion" id="update_log">
-    @foreach($result['data'] ?? [] as $itemType => $itemData)
-    {{-- @dd($itemData) --}}
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="update_log_header_{{ $itemData['name'] }}">
-                <button class="accordion-button fs-4 fw-bold bg-dark text-gray-100 shadow-none p-3 accordion-arrow-white" type="button" data-bs-toggle="collapse" data-bs-target="#update_log_body_{{ $itemData['name'] }}" aria-expanded="true" aria-controls="update_log_body_{{ $itemData['name'] }}">
-                    <span>
-                        <span>{{ $itemData['name'] }}</span>
-                        <small class="text-warning ms-3">@lang('wncms::word.latest_version'): {{  $itemData['latest_version'] ?? '-'  }}</small>
-                    </span>
-                </button>
-            </h2>
-
-            <div id="update_log_body_{{ $itemData['name'] }}" class="accordion-collapse collapse @if($loop->iteration == 1) show @endif" aria-labelledby="update_log_header_{{ $itemData['name'] }}" data-bs-parent="#update_log">
-                <div class="accordion-body  border border-dark border-3 p-2">
-                    @forelse($itemData['updates'] as $update)
-                    {{-- @dd($update) --}}
-                        <div class="card card-flush mb-10 px-3">
-                            {{-- <div class="card-header bg-secondary"> --}}
-                            <div class="border-bottom border-3 border-secondary pb-2 mt-3">
-                                <div class="d-flex align-items-center justify-content-between w-100">
-                                    <h3 class="card-label fw-bold me-3 m-0 d-flex align-item-center">
-                                        <span>@lang('wncms::word.version') {{ $update['version'] ?? '' }}</span>
-                                        @if($loop->index == 0)<span class="badge badge-sm badge-exclusive badge-danger fw-boldpx-2 py-1 ms-2">New</span>@endif
-                                        @if(($update['version'] ?? '') == gss('version'))<span class="badge badge-sm badge-exclusive badge-info fw-boldpx-2 py-1 ms-2">@lang('wncms::word.your_version')</span>@endif
-                                    </h3>
-                                    <span class="text-gray-400 fw-bold fs-6">{{ \Carbon\Carbon::parse($update['released_at'] ?? '')->format('Y-m-d') }}</span>
-                                </div>
-                            </div>
-
-                            <div class="card-body pt-6 px-3">
-                                <div class="timeline-label">
-                                    {{-- Content --}}
-                                    @foreach($update['content'] as $update_type => $update_items)
-                                        {{-- Item --}}
-                                        @foreach ($update_items as $item_index => $update_item)
-                                            <div class="timeline-item d-flex align-items-center mb-3 text-break">
-                                                <div class="timeline-label fw-bold text-{{ $colors[$update_type] ?? 'dark' }} fs-6">@if($item_index == 0)@lang('wncms::word.' . $update_type)@endif</div>
-                                                <div class="timeline-badge">
-                                                    <i class="fa fa-genderless text-{{ $colors[$update_type] ?? 'dark' }} fs-1"></i>
-                                                </div>
-                                                <div class="d-flex align-items-center"><span class="fw-bold text-gray-800 px-3">{{ $update_item }}</span></div>
-                                            </div>
-                                        @endforeach
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-
-                    @empty
-                        
-                        <div class="card card-flush mb-10">
-                            <div class="card-body pt-6 px-3">
-                                <span>@lang('wncms::word.no_update_yet')</span>
-                            </div>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
+<div class="container mb-3 p-0 shadow-sm rounded bg-white">
+    <!-- Hidden Placeholders -->
+    <div class="update-group mb-3 border border-dark border-2 rounded d-none" id="update_group_placeholder">
+        <div class="d-flex align-items-center justify-content-between bg-dark p-3">
+            <h2 class="mb-0 text-gray-100 fs-5">@lang('wncms::word.version') <span class="version"></span></h2>
+            <span class="release-date text-gray-300 fs-6"></span>
         </div>
-    @endforeach
+        <div class="update-details bg-light border-top p-3 rounded-bottom">
+            <!-- Changes List -->
+            <ul class="changes-list list-unstyled mb-0"></ul>
+        </div>
+    </div>
 
+    <li class="change-item d-none mb-1 text-nowrap text-truncate" id="change_item_placeholder">
+        <span class="change-type fw-bold me-2"></span>
+        <span class="change-content text-dark"></span>
+    </li>
 </div>
+
+@push('foot_js')
+<script>
+    $(document).ready(function () {
+        const currentDomain = window.location.hostname;
+        const url = `https://api.wncms.cc/api/v1/update/logs?product=core&domain=${currentDomain}`;
+        const translations = @json($updateTypes);
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                if (response.status === "success" && Array.isArray(response.data)) {
+                    const updatesContainer = $(".container");
+                    const groupPlaceholder = $("#update_group_placeholder");
+                    const itemPlaceholder = $("#change_item_placeholder");
+
+                    response.data.forEach((update) => {
+                        const newGroup = groupPlaceholder.clone().removeClass("d-none").attr("id", `update_group_${update.id}`);
+                        newGroup.find(".version").text(`${update.version}`);
+                        newGroup.find(".release-date").text(new Date(update.released_at).toLocaleDateString());
+
+                        const changesList = newGroup.find(".changes-list");
+
+                        // Sort changes by type
+                        const sortedChanges = update.changes.sort((a, b) => a.type.localeCompare(b.type));
+
+                        sortedChanges.forEach((change) => {
+                            const newItem = itemPlaceholder.clone().removeClass("d-none");
+                            newItem.find(".change-type").text(translations[change.type] || change.type).addClass(`text-${getBadgeColor(change.type)}`);
+                            newItem.find(".change-content").text(change.content);
+
+                            changesList.append(newItem);
+                        });
+
+                        updatesContainer.append(newGroup);
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Failed to fetch update logs:", error);
+            }
+        });
+
+        // Helper to map change types to badge colors
+        function getBadgeColor(type) {
+            switch (type) {
+                case "fix":
+                    return "primary";
+                case "add":
+                    return "success";
+                case "improve":
+                    return "info";
+                case "remove":
+                    return "danger";
+                case "test":
+                    return "warning";
+                default:
+                    return "secondary";
+            }
+        }
+    });
+</script>
+@endpush

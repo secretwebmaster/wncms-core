@@ -63,8 +63,11 @@
             @endif
 
             @if(empty(gss('hide_system_update_log')))
+
+            
                 <div class="col-12 col-md-6">
                     <div style="max-height: 80vh;overflow-y: scroll;">
+                        
                         @include('wncms::backend.admin.update_content')
                     </div>
                 </div>

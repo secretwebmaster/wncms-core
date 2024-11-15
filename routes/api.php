@@ -38,3 +38,4 @@ Route::prefix('v1')->name('api.v1.')->group(function(){
 if (file_exists(base_path('routes/custom_api.php'))) {
     include base_path('routes/custom_api.php');
 }
+ 
