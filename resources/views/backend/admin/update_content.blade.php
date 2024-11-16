@@ -1,4 +1,4 @@
-<div class="container mb-3 p-0 shadow-sm rounded bg-white">
+<div class="container mb-3 mx-0 p-0 shadow-sm rounded bg-white">
 
     {{-- Empty placeholder --}}
     @for($i=0;$i<5;$i++)
@@ -83,6 +83,17 @@
         <span class="change-content text-dark"></span>
     </li>
 </div>
+
+@php
+    $updateTypes = [
+        'add' => __('wncms::word.add'),
+        'fix' => __('wncms::word.fix'),
+        'improve' => __('wncms::word.improve'),
+        'remove' => __('wncms::word.remove'),
+        'test' => __('wncms::word.test'),
+        'developer' => __('wncms::word.developer'),
+    ];
+@endphp
 
 @push('foot_js')
 <script>

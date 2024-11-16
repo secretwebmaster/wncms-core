@@ -13,7 +13,7 @@ class DashboardController extends Controller
         if(auth()->user()->hasRole(['superadmin','admin'])){
 
             //websites
-            $website_count = wn('website')->getList()->count();
+            $website_count = wncms()->website()->getList()->count();
             
             // TODO: stat
 
@@ -28,25 +28,15 @@ class DashboardController extends Controller
 
             //update
             $result  = (new UpdateController)->getUpdateData();
-            $colors  = (new UpdateController)->colors;
-            $updateTypes = [
-                'add' => __('wncms::word.add'),
-                'fix' => __('wncms::word.fix'),
-                'improve' => __('wncms::word.improve'),
-                'remove' => __('wncms::word.remove'),
-                'test' => __('wncms::word.test'),
-                'developer' => __('wncms::word.developer'),
-            ];
-            
+
             return view('wncms::backend.dashboards.admin_dashboard', [
                 'page_title' => __('wncms::word.user_role_dashboard', ['role' => __('wncms::word.admin')]),
                 'result' => $result ?? [],
-                'colors' => $colors,
                 'page_count' => $page_count,
                 'post_count' => $post_count,
                 'user_count' => $user_count,
                 'website_count' => $website_count,
-                'updateTypes' => $updateTypes,
+
             ]);
         }
 

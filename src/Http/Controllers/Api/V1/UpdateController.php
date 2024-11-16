@@ -12,6 +12,7 @@ class UpdateController extends Controller
 {
     public function update(Request $request)
     {
+        // info($request->all());
         if(gss('disalbe_core_update')){
             return response()->json([
                 'status' => 'fail',
@@ -19,29 +20,31 @@ class UpdateController extends Controller
             ]);
         }
 
-        Artisan::call('queue:restart');
-        sleep(5);
-        
-        // info($request->all());
-        if($request->itemType == 'core'){
-            info("set updating core to 1");
-            uss('updating_core', 1);
-            UpdateCore::dispatch();
-        }
+        // set system update status to 1
+        uss('updating_core', 1);
 
-        if($request->itemType == 'theme'){
-            UpdateTheme::dispatch($request->themeId);
-        }
+        // get package name to update
+        $pakage = $request->package;
+        $version = $request->version;
+
+        // call composer command to update specific package
+
+        // vertify the update
+
+        // update version number
+
+        // set system update status to 0
+        uss('updating_core', 0);
 
         return response()->json([
             'status' => 'success',
-            'message' => __('wncms::word.successfully_dispatched_job'),
+            'message' => __('wncms::word.successfully_updated'),
         ]);
     }
 
     public function progress(Request $request)
     {
-        if($request->itemType == 'core'){
+        if($request->itemId == 'core'){
             return response()->json([
                 'status' => 'success',
                 'message' => __('wncms::word.successfully_fetched_updating_progress'),

@@ -8,32 +8,27 @@ use Illuminate\Support\Facades\Http;
 
 class UpdateController extends Controller
 {
-    public $colors = [
-        'add' => 'success',
-        'fix' => 'primary',
-        'improve' => 'info',
-        'remove' => 'danger',
-    ];
-
     public function index()
     {
         $result = $this->getUpdateData();
-        // dd($result);
+
+        if(gss('disable_core_update') && !empty($result['data']['core'])){
+            unset($result['data']['core']);
+        }
+
         return view('wncms::backend.admin.update', [
             'page_title' => __('wncms::word.system_update'),
-            'colors' => $this->colors,
             'result' => $result,
         ]);
     }
 
     public function check()
     {
-        $response = Http::post("https://corev4.wncms.cc/api/v2/versions/latest");
+        $response = Http::get("https://api.wncms.cc/api/v1/update/latest");
 
         $currentVersion = gss('version');
 
-        $latestVersion = $response->json()['tag'] ?? null;
-        $latestVersion = str_replace('v', '', $latestVersion);
+        $latestVersion = $response->json()['data']['version'];
 
         $result = version_compare($currentVersion, $latestVersion);
 
@@ -64,9 +59,10 @@ class UpdateController extends Controller
     public function getUpdateData()
     {
         try{
-            $coreResponse = Http::post("https://core.wncms.cc/api/v1/update/check", [
+            $coreResponse = Http::post("https://api.wncms.cc/api/v1/update/check", [
                 'current_version' => gss('version'),
-                'domain' => request()->url(),
+                'domain' => request()->getHost(),
+                'products' => ['core', 'theme1', 'theme2', 'plugin1', 'plugin2'],
             ]);
             
             return json_decode($coreResponse->body(), true);
