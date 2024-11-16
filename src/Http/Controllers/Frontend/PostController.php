@@ -2,39 +2,38 @@
 
 namespace Wncms\Http\Controllers\Frontend;
 
-use Wncms\Http\Controllers\Controller;
-use Wncms\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
+use Wncms\Facades\Wncms;
+use Wncms\Models\Post;
 
-class PostController extends Controller
+
+class PostController extends FrontendController
 {
-    protected $website;
-    protected $theme;
-
-    public function __construct()
-    {
-        $this->website = wncms()->website()->get();
-        if (!$this->website) redirect()->route('websites.create')->send();
-        $this->theme = $this->website->theme ?? 'default';
-    }
-
+    /**
+     * Show the single post
+     * 
+     * @param string $slug
+     * @return \Illuminate\View\View
+     */
     public function single($slug)
     {
-        $post = wncms()->post()->getBySlug($slug);
+        $post = Wncms::post()->getBySlug($slug);
         if (!$post) return redirect()->route('frontend.pages.blog');
 
-        // TODO: record view can now be toggle in theme option and call dynamically in template
-        // RecordViews::dispatch($post->id);
-
-        // post event
-        event('frontend.model.single', $post);
-        event('frontend.post.single', $post);
+        Event::dispatch('wncms.posts.single', $post);
 
         return wncms_view('frontend.theme.' . $this->theme . '.posts.single', [
             'post' => $post,
         ]);
     }
 
+    /**
+     * Show the post list by category
+     * @param string $tagName
+     * 
+     * TODO: merge with tag
+     */
     public function category($tagName = null)
     {
         if(empty($tagName)){
@@ -43,6 +42,11 @@ class PostController extends Controller
         return $this->archive('post_category', $tagName);
     }
 
+    /**
+     * Show the post list by tag
+     * @param string $tagName
+     * @return \Illuminate\View\View
+     */
     public function tag($tagName = null)
     {
         if(empty($tagName)){
@@ -51,14 +55,19 @@ class PostController extends Controller
         return $this->archive('post_tag', $tagName);
     }
 
+    /**
+     * Show the post list by tag type and tag name
+     * @param string $tagType
+     * @param string $tagName
+     * @return \Illuminate\View\View
+     */
     public function archive($tagType, $tagName = null)
     {
-        // dd($tagName,$tagType);
         if(empty($tagName)){
             return route('frontend.pages.home');
         }
 
-        $tag = wncms()->tag()->getByName(
+        $tag = Wncms::tag()->getByName(
             tagName:$tagName,
             tagType:$tagType,
             withs: ['posts', 'posts.media', 'children'],
@@ -85,6 +94,10 @@ class PostController extends Controller
         ]);
     }
 
+    /**
+     * Process search request via post method
+     * @param Request $request
+     */
     public function search(Request $request)
     {
         if(empty($request->keyword)){
@@ -100,11 +113,17 @@ class PostController extends Controller
         ]);
     }
 
+    /**
+     * Show the search result
+     * @param Request $request
+     * @param string $keyword
+     * @return \Illuminate\View\View
+     */
     public function search_result(Request $request, $keyword)
     {
         // TODO: add to gss or gto
         $pageSize = gto('archive_post_count', 10);
-        $posts = wncms()->post()->search(
+        $posts = Wncms::post()->search(
             keyword: $keyword,
             pageSize: $pageSize,
             page:$request->page,
@@ -117,6 +136,12 @@ class PostController extends Controller
         ]);
     }
 
+    /**
+     * Show the post rank
+     * @param Request $request
+     * @param string $period
+     * @return \Illuminate\View\View
+     */
     public function rank(Request $request, $period = 'month')
     {
         $pageSize = gto('video_rank_page_size', 96);
@@ -145,11 +170,19 @@ class PostController extends Controller
         ]);
     }
 
-    // TODO: 製作list
+    /**
+     * Show a collection of specific posts
+     * @param Request $request
+     * @param string $name
+     * @param string $period
+     * @return \Illuminate\View\View
+     * 
+     * TODO: 製作list
+     */
     public function post_list(Request $request, $name, $period = 'total')
     {
 
-        $website = wncms()->website()->get();
+        $website = Wncms::website()->get();
         if (!$website) return redirect()->route('websites.create');
         
         $theme = $website->theme ?? 'default';
@@ -171,22 +204,22 @@ class PostController extends Controller
 
         if($name == 'hot'){
             $page_title = $period_text . __('wncms::word.hot_posts');
-            $posts = wncms()->post()->getList(order:'view_month',count:$count,page:$page,pageSize:$pageSize);
+            $posts = Wncms::post()->getList(order:'view_month',count:$count,page:$page,pageSize:$pageSize);
         }
 
         if($name == 'like'){
             $page_title = $period_text . __('wncms::word.most_liked_posts');
-            $posts = wncms()->post()->getList(order:'like',count:$count,page:$page,pageSize:$pageSize);
+            $posts = Wncms::post()->getList(order:'like',count:$count,page:$page,pageSize:$pageSize);
         }
         
         if($name == 'fav'){
             $page_title = $period_text . __('wncms::word.most_fav_posts');
-            $posts = wncms()->post()->getList(order:'view_month',count:$count,page:$page,pageSize:$pageSize);
+            $posts = Wncms::post()->getList(order:'view_month',count:$count,page:$page,pageSize:$pageSize);
         }
         
         if($name == 'new'){
             $page_title = $period_text . __('wncms::word.latest_posts');
-            $posts = wncms()->post()->getList(order:'created_at',count:$count,page:$page,pageSize:$pageSize);
+            $posts = Wncms::post()->getList(order:'created_at',count:$count,page:$page,pageSize:$pageSize);
         }
 
         return view("wncms::frontend.theme.$theme.posts.archive", [
@@ -195,5 +228,4 @@ class PostController extends Controller
             'show_post_filter' => true,
         ]);
     }
- 
 }

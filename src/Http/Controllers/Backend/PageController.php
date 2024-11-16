@@ -254,7 +254,8 @@ class PageController extends Controller
         }
 
         // dd($request->model_attributes);
-        $page->saveExtraAttribute($request->model_attributes);
+        // TODO: create a composer package for this and add event listener
+        // $page->saveExtraAttribute($request->model_attributes);
 
         //thubmnail
         $page->handleThumbnailFromRequest($request, 'page_thumbnail');

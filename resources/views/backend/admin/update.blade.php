@@ -3,6 +3,7 @@
 @section('content')
 
 @include('wncms::backend.parts.message')
+
 @if(gss('disable_core_update'))
     <div class="alert alert-danger" role="alert">
         @lang('wncms::word.core_update_disabled')
@@ -11,7 +12,6 @@
 
 <div class="row mb-3">
     <div class="col-12">
-
         <div class="card card-flush rounded overflow-hidden">
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -53,7 +53,6 @@
         </div>
     </div>
 </div>
-
 
 <h3 class="mt-10 mb-3">@lang('wncms::word.update_content')</h3>
 
@@ -134,6 +133,5 @@
         });
     });
 </script>
-
 
 @endpush

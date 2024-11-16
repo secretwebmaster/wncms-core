@@ -2,27 +2,24 @@
 
 namespace Wncms\Http\Controllers\Frontend;
 
-use Wncms\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Event;
+use Wncms\Facades\Wncms;
 use Wncms\Models\Page;
 
-class PageController extends Controller
+class PageController extends FrontendController
 {
     /**
      * Home page
      */
     public function home()
     {
-        $website = wncms()->website()->get();
-        if (!$website) return redirect()->route('websites.create');
-
         //get theme option to get custom home page
 
         //send to home blade if no custom theme option is found
         return $this->getFrontendPageView(
-            theme: $website->theme,
             pageNmae: 'home',
             params: [
-                'page_title' => $website->site_name ?? __('wncms::word.homepage'),
+                'page_title' => $this->website->site_name ?? __('wncms::word.homepage'),
                 'pageId' => 'home',
             ],
         );
@@ -41,16 +38,12 @@ class PageController extends Controller
      */
     public function blog($posts = null)
     {
-        $website = wncms()->website()->get();
-        if (!$website) return redirect()->route('websites.create');
-
-        $posts ??= wncms()->post()->getList(
+        $posts ??= Wncms::post()->getList(
             count: 100,
             pageSize: gto('default_page_size', 10),
         );
 
         return $this->getFrontendPageView(
-            theme: $website->theme,
             pageNmae: 'blog', 
             params: [
                 'pageTitle' => gto('blog_title', __('wncms::word.latest_posts')),
@@ -65,10 +58,6 @@ class PageController extends Controller
      * ----------------------------------------------------------------------------------------------------
      * Theme single page
      * ----------------------------------------------------------------------------------------------------
-     * @link https://wncms.cc
-     * @since 3.0.0
-     * @version 3.1.15
-
      * @param string|null $slug Page slug
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      * ----------------------------------------------------------------------------------------------------
@@ -77,11 +66,8 @@ class PageController extends Controller
     {
         if (!$slug) return redirect()->route('frontend.pages.home');
 
-        $website = wncms()->website()->get();
-        if (!$website) return redirect()->route('websites.create');
-
         //get page model
-        $page = wncms()->page()->getBySlug(slug:$slug);
+        $page = Wncms::page()->getBySlug(slug:$slug);
 
         //get template
         if($page){
@@ -89,7 +75,7 @@ class PageController extends Controller
 
             // load theme template with specific name as same as the page slug
             if($page->type == 'template'){
-                $pageTemplateView = "frontend.theme.{$page->website?->theme}.pages." . $page->blade_name;
+                $pageTemplateView = "frontend.theme.{$this->theme}.pages." . $page->blade_name;
                 if (view()->exists($pageTemplateView)) {
                     return view($pageTemplateView, [
                         'page' => $page,
@@ -101,7 +87,7 @@ class PageController extends Controller
             // load theme single page template
             if($page->type == 'plain'){
                 //get singe view if exist
-                $singlePageView = "frontend.theme.{$website->theme}.pages.single";
+                $singlePageView = "frontend.theme.{$this->theme}.pages.single";
                 if (view()->exists($singlePageView)) {
                     return view($singlePageView, [
                         'page' => $page,
@@ -111,9 +97,11 @@ class PageController extends Controller
             }
         }
 
+        Event::dispatch('wncms.pages.single', $page);
+
         // page model does not exist. Load default static page
-        if (view()->exists("frontend.theme.{$website?->theme}.pages." . $slug)) {
-            return view("wncms::frontend.theme.{$website?->theme}.pages." . $slug, [
+        if (view()->exists("frontend.theme.{$this->theme}.pages." . $slug)) {
+            return view("wncms::frontend.theme.{$this->theme}.pages." . $slug, [
                 'page' => $page ?? new Page,
                 'pageTitle' => $page?->title,
             ]);
@@ -132,8 +120,6 @@ class PageController extends Controller
      * Redirect to static pages
      * ----------------------------------------------------------------------------------------------------
      * @link https://wncms.cc
-     * @since 3.0.0
-     * @version 3.0.0
      * @param string|null $pageNmae 
      *      The blade file name without .blade.php. 
      *      For example:
@@ -142,25 +128,20 @@ class PageController extends Controller
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      * ----------------------------------------------------------------------------------------------------
      */
-    protected function getFrontendPageView($theme, $pageNmae, $params = [], $fallbackPage = "home", $fallbackRoute = null)
+    protected function getFrontendPageView($pageNmae, $params = [], $fallbackPage = "home", $fallbackRoute = null)
     {
-        $website = wncms()->website()->get();
-        if (!$website) return redirect()->route('websites.create');
-        
-        $theme ??= 'default';
-        
         //check if page exists
-        if (view()->exists("frontend.theme.{$theme}.pages.{$pageNmae}")) {
-            return view("frontend.theme.{$theme}.pages.{$pageNmae}", $params);
+        if (view()->exists("frontend.theme.{$this->theme}.pages.{$pageNmae}")) {
+            return view("frontend.theme.{$this->theme}.pages.{$pageNmae}", $params);
         }
 
-        if($fallbackRoute && wncms()->getRoute($fallbackRoute)){
+        if($fallbackRoute && Wncms::getRoute($fallbackRoute)){
             return redirect()->route($fallbackRoute);
         }
 
         //redirect to fallback page if not exists
         if ($fallbackPage) {
-            return $this->getFrontendPageView($theme, $fallbackPage, $params, null);
+            return $this->getFrontendPageView($fallbackPage, $params, null);
         }
 
         //throw 404 if both pages are not exists

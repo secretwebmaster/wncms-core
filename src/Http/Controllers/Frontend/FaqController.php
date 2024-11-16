@@ -2,10 +2,9 @@
 
 namespace Wncms\Http\Controllers\Frontend;
 
-use Wncms\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class FaqController extends Controller
+class FaqController extends FrontendController
 {
     /**
      * Display a single FAQ by its slug.

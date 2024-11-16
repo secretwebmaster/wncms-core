@@ -2,21 +2,16 @@
 
 namespace Wncms\Http\Controllers\Frontend;
 
-use Wncms\Http\Controllers\Controller;
 use Wncms\Models\Tag;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
 
-class SitemapController extends Controller
+class SitemapController extends FrontendController
 {
     public function posts()
     {
-        $website = wncms()->website()->getCurrent();
-        if(!$website) return route('frontend.pages.home');
-
         $sitemap = Sitemap::create();
-        foreach($website->posts()->orderBy('id', 'desc')->get() as $post){
-
+        foreach($this->website->posts()->orderBy('id', 'desc')->get() as $post){
             $sitemap
                 ->add(Url::create(route('frontend.posts.single', ['slug' => $post->slug]))
                 ->setLastModificationDate($post->updated_at));
@@ -27,12 +22,9 @@ class SitemapController extends Controller
 
     public function pages()
     {
-        $website = wncms()->website()->getCurrent();
-        if(!$website) return route('frontend.pages.home');
-
         $sitemap = Sitemap::create();
         $sitemap->add(Url::create(route('frontend.pages.home')));
-        foreach($website->pages()->orderBy('id', 'desc')->get() as $page){
+        foreach($this->website->pages()->orderBy('id', 'desc')->get() as $page){
 
             $sitemap
                 ->add(Url::create(route('frontend.pages', ['slug' => $page->slug]))
@@ -40,14 +32,10 @@ class SitemapController extends Controller
         }
 
         return $sitemap;
-
     }
 
     public function tags($model, $type)
     {
-        $website = wncms()->website()->getCurrent();
-        if(!$website) return route('frontend.pages.home');
-
         $sitemap = Sitemap::create();
         
         foreach(Tag::where('type', $type)->get() as $tag){
@@ -66,7 +54,23 @@ class SitemapController extends Controller
         }
 
         return $sitemap;
+    }
 
+    /**
+     * TODO: add dynamic models
+     */
+    public function model($model)
+    {
+        dd($model, 'get instance of class');
+        $sitemap = Sitemap::create();
+        foreach($this->website->post()->orderBy('id', 'desc')->get() as $post){
+
+            $sitemap
+                ->add(Url::create(route('frontend.posts.single', ['slug' => $post->slug]))
+                ->setLastModificationDate($post->updated_at));
+        }
+
+        return $sitemap;
     }
 
 }

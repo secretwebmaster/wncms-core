@@ -7,6 +7,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Wncms\Exceptions\WncmsExceptionHandler;
 use Illuminate\Support\Facades\File;
+use Illuminate\Foundation\AliasLoader;
 
 class WncmsServiceProvider extends ServiceProvider
 {
@@ -15,6 +16,13 @@ class WncmsServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Register the facade
+        $this->app->singleton('wncms', function ($app) {
+            return new \Wncms\Services\Wncms; // Assuming the core class for Wncms is located at Wncms\Wncms
+        });
+
+        AliasLoader::getInstance()->alias('Wncms', \Wncms\Facades\Wncms::class);
+
         // Replace the default exception handler with your custom one
         $this->app->singleton(\Illuminate\Contracts\Debug\ExceptionHandler::class, WncmsExceptionHandler::class);
 
@@ -97,6 +105,7 @@ class WncmsServiceProvider extends ServiceProvider
                 ]);
 
                 $website = wncms()->website()->get();
+
                 view()->share('website', $website);
             } else {
                 // redirect to installation guide

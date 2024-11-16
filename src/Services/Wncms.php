@@ -26,30 +26,35 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
  * @method \Wncms\Services\Managers\VideoManager video()
  * @method \Wncms\Services\Managers\WebsiteManager website()
  */
-class Core
+class Wncms
 {
     public $customProperties = [];
     public $helpers = [];
 
+    /**
+     * Get the path to the package folder
+     * @param string $path
+     * @return string
+     */
     public function getPackagePath($path = '')
     {
         return realpath(__DIR__ . '/../' . $path);
     }
 
+    /**
+     * Get the path to the package folder
+     * @param string $path
+     * @return string
+     */
     public function getPackageRootPath($path = '')
     {
         return realpath(__DIR__ . '/../../' . $path);
     }
-    
+
     /**
-     * ----------------------------------------------------------------------------------------------------
      * Get current system version
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.0.0
      * @param string|null $debugType Suppo
      * @return string
-     * ----------------------------------------------------------------------------------------------------
      */
     public function getVersion($debugType = null)
     {
@@ -65,14 +70,9 @@ class Core
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
      * Append current system version
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.0.0
      * @param string|null $debugType Suppo
      * @return string
-     * ----------------------------------------------------------------------------------------------------
      */
     public function addVersion($debugType = null)
     {
@@ -80,14 +80,9 @@ class Core
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
      * Get domain from string
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.0.0
      * @param string|null $url A valid url
      * @return string
-     * ----------------------------------------------------------------------------------------------------
      */
     public function getDomain($url = null)
     {
@@ -97,10 +92,16 @@ class Core
             : null;
     }
 
+    /**
+     * Check if the current url is active
+     * @param string $url
+     * @param string $activeClass
+     * @param string|null $inActiveClass
+     */
     public function isActiveUrl($url, $activeClass = 'active', $inActiveClass = null)
     {
         //trim slash if not at homepage
-        if($url != '/'){
+        if ($url != '/') {
             $url = trim($url, '/');
         }
 
@@ -111,13 +112,17 @@ class Core
         ];
 
         return in_array($url, $activeConditions) ? $activeClass : $inActiveClass;
-
     }
 
+    /**
+     * fnmatch for array
+     * @param array $patterns
+     * @param string $path
+     */
     public function array_fnmatch($patterns, $path)
     {
-        foreach($patterns as $pattern){
-            if(fnmatch("*/" . $pattern, $path)){
+        foreach ($patterns as $pattern) {
+            if (fnmatch("*/" . $pattern, $path)) {
                 return true;
             }
         }
@@ -126,20 +131,9 @@ class Core
     }
 
     /**
-     * !----------------------------------------------------------------------------------------------------
-     * ! Handling Urls
-     * !----------------------------------------------------------------------------------------------------
-     */
-
-    /**
-     * ----------------------------------------------------------------------------------------------------
      * Get domain from string
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.1.2
      * @param string|null $string String containing url that you would like to extract 
      * @return string
-     * ----------------------------------------------------------------------------------------------------
      */
     public function getDomainFromString($string, $includePort = true, $preserveWWW = false)
     {
@@ -147,49 +141,45 @@ class Core
         $string = trim($string);
         $array = explode(" ", $string);
 
-        foreach($array as $stringToParse){
+        foreach ($array as $stringToParse) {
 
             // $pattern = '/https?:\/\/\S+/';
             $pattern = '/\b[a-zA-Z0-9-]+\.[a-zA-Z0-9-:.]+\b/';
 
             preg_match($pattern, $stringToParse, $matches);
 
-            if(!empty($matches[0])){
-    
+            if (!empty($matches[0])) {
+
                 $url = $matches[0];
-    
+
                 $urlData = parse_url($url);
-    
-                if(!empty($urlData['host']) && !empty($urlData['port']) && $includePort){
+
+                if (!empty($urlData['host']) && !empty($urlData['port']) && $includePort) {
                     $result = $urlData['host'] . ":" . $urlData['port'];
                 };
-    
-                if(!empty($urlData['host']) && (empty($urlData['port']) || empty($includePort))){
+
+                if (!empty($urlData['host']) && (empty($urlData['port']) || empty($includePort))) {
                     $result = $urlData['host'];
                 };
-    
-                if(!empty($urlData['path'])){
+
+                if (!empty($urlData['path'])) {
                     $result = $urlData['path'];
                 }
 
                 //output result
-                if(!empty($result)){
+                if (!empty($result)) {
                     return $preserveWWW ? $result : str_replace("www.", '', $result);
                 }
             }
         }
-        
+
         return null;
     }
 
     /**
      * 獲取當前用戶語言
-     * @link https://wncms.cc
-     * @since 1.0.0
-     * @version 3.0.0
      * @return string
      */
-
     public function getLocale(): string
     {
         return LaravelLocalization::getCurrentLocale();
@@ -197,22 +187,15 @@ class Core
 
     /**
      * 檢查當前語言是否預設語言
-     * @link https://wncms.cc
-     * @since 4.0.0
-     * @version 4.0.0
      * @return string
      */
-
-     public function isDefaultLocale(): string
-     {
-         return LaravelLocalization::getCurrentLocale() == LaravelLocalization::getDefaultLocale();
-     }
+    public function isDefaultLocale(): string
+    {
+        return LaravelLocalization::getCurrentLocale() == LaravelLocalization::getDefaultLocale();
+    }
 
     /**
      * 獲取當前用戶語言名稱
-     * @link https://wncms.cc
-     * @since 3.1.15
-     * @version 3.1.15
      * @return string
      */
     public function getLocaleName(): string
@@ -222,9 +205,6 @@ class Core
 
     /**
      * 獲取當前用戶語言列表
-     * @link https://wncms.cc
-     * @since 3.1.15
-     * @version 3.1.15
      * @return array
      */
     public function getLocaleList()
@@ -232,6 +212,14 @@ class Core
         return LaravelLocalization::getSupportedLocales();
     }
 
+    /**
+     * Get route by parameters
+     * @param string $name Route name
+     * @param array $params Route parameters
+     * @param boolean $isFullPath Return full path or not
+     * @param string|null $domain Domain name
+     * @return string
+     */
     public function getRoute($name, $params = [], $isFullPath = true, $domain = null)
     {
         if (Route::has($name)) {
@@ -243,32 +231,43 @@ class Core
         }
     }
 
-    public function paginateWithLimit(LengthAwarePaginator $collection, $pageSize = null , $limit = null, $currentPage = null, $pageName = 'page')
+    /**
+     * Paginate collection with limit
+     * @param LengthAwarePaginator $collection Collection to paginate
+     * @param integer $pageSize Page size
+     * @param integer $limit Limit of total items
+     * @param integer $currentPage Current page
+     * @param string $pageName Page name
+     * @return LengthAwarePaginator
+     * 
+     * TODO: Monitor performance
+     */
+    public function paginateWithLimit(LengthAwarePaginator $collection, $pageSize = null, $limit = null, $currentPage = null, $pageName = 'page')
     {
-        if(empty($pageSize)) return $collection;
+        if (empty($pageSize)) return $collection;
 
         $currentPage ??= LengthAwarePaginator::resolveCurrentPage($pageName);
 
         //if total collection item exceed the limit, set the limit as total. Otherwise use original total item count as total
-        if(!empty($limit) && $collection->total() > $limit){
+        if (!empty($limit) && $collection->total() > $limit) {
             $total = $limit;
-        }else{
+        } else {
             $total = $collection->total();
         }
 
         //if accessing pages exceed allowed pages, empty the collection
-        if($currentPage > ceil($limit / $pageSize)){
+        if ($currentPage > ceil($limit / $pageSize)) {
             $items = collect([]);
-        }else{
+        } else {
             //if on last page, take the remaining items
-            if($currentPage == ceil($limit / $pageSize)){
+            if ($currentPage == ceil($limit / $pageSize)) {
                 // Calculate remaining items
                 $start = ($currentPage - 1) * $pageSize;
                 $remainingItems = $total - $start;
 
                 // Take limited count of items for the last page
                 $items = $collection->take($remainingItems);
-            }else{
+            } else {
                 $items = $collection->take($pageSize);
             }
         }
@@ -286,17 +285,12 @@ class Core
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
      * Get unique slug of a model table 
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.0.0
      * @param string $table Table name
      * @param string $column Column name. Defaul value is "slug"
      * @param string $length Length of slug to be generate. Default value is 8 
      * @param string|null $case "upper" = Upper case, "lower" = Lower case, null = Mixed
      * @return string
-     * ----------------------------------------------------------------------------------------------------
      */
     public function getUniqueSlug($table, $column = 'slug', $length = 8, $case = 'lower')
     {
@@ -315,6 +309,12 @@ class Core
         return $slug;
     }
 
+    /**
+     * Get all arguments of a function
+     * @param string|Closure $func Function name or closure
+     * @param array $func_get_args Function arguments
+     * @return array
+     */
     public function getAllArgs($func, $func_get_args = [])
     {
         if ((is_string($func) && function_exists($func)) || $func instanceof Closure) {
@@ -336,20 +336,13 @@ class Core
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
-     * 檢查傳入的網站變量是否當前所選擇的網站
-     * ----------------------------------------------------------------------------------------------------
-     * @link https://wncms.cc
-     * @since 3.1.12
-     * @version 3.1.12
-     * 
+     * Check if selected
      * @param App/Models/Website $_website
      * @return boolean
-     * ----------------------------------------------------------------------------------------------------
      */
     public function isSelectedWebsite($_website)
     {
-        if(
+        if (
             //當前篩選器
             $_website->id == request()->website ||
 
@@ -358,22 +351,16 @@ class Core
 
             //當前域名
             (!request()->has('website') && empty(session('selected_website_id')) && $this->website()->get()?->id == $_website->id)
-        ){
+        ) {
             return true;
         }
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
      * 檢查數值是否tagify數據
-     * ----------------------------------------------------------------------------------------------------
-     * @link https://wncms.cc
-     * @since 3.1.13
-     * @version 3.1.13
      * 
      * @param string $string 	- 參數描述
      * @return boolean
-     * ----------------------------------------------------------------------------------------------------
      */
     public static function isValidTagifyJson($string)
     {
@@ -398,21 +385,15 @@ class Core
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
      * 獲取所有Wncms\Models 下的模組
-     * ----------------------------------------------------------------------------------------------------
-     * @link https://wncms.cc
-     * @since 3.0.0
-     * @version 3.0.0
      * 
      * @param string|null $cacheKey 	- 參數描述
      * @return Collection
-     * ----------------------------------------------------------------------------------------------------
      */
     public function getModelNames()
     {
         $path = app_path('Models') . '/*.php';
-        $collection = collect(glob($path))->map(function($file){
+        $collection = collect(glob($path))->map(function ($file) {
             $modelName = "\Wncms\Models\\" . basename($file, '.php');
             $model = new $modelName;
             return [
@@ -425,14 +406,21 @@ class Core
         return $collection;
     }
 
+    /**
+     * Check if the website is licensed
+     * @param Website $website
+     * @return Website|Redirect
+     * 
+     * TODO: Not implemented yet
+     */
     public function checkLicense(Website $website)
     {
-        $u = "aHR0cHM6Ly9saWNlbnNlLjNkYXlzZW8uY29tL2FwaS92MS93ZWJzaXRlL2NoZWNr";
+        $url = "https://api.wncms.cc/api/v1/license/check";
         $cacheKey = "website_check";
         $cacheTag = ["websites"];
 
-        $result = wncms()->cache()->tags($cacheTag)->remember($cacheKey, 60 * 60 * 24, function () use ($u, $website) {
-            $response = Http::post(base64_decode($u), [
+        $result = wncms()->cache()->tags($cacheTag)->remember($cacheKey, 60 * 60 * 24, function () use ($url, $website) {
+            $response = Http::post($url, [
                 'domain' => $website->domain,
                 'license' => $website->license,
             ]);
@@ -447,11 +435,7 @@ class Core
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
      * 調用其他Manager Class的方法
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.0.0
      * 
      * @param string|null $helper
      *      預設值: -
@@ -464,16 +448,15 @@ class Core
      *      例子: wncms()->posts()->getPost(12, true) 中的 $id, $isPublished
      * 
      * @return mixed The result of the helper method call.
-     * ----------------------------------------------------------------------------------------------------
      */
     public function __call($helper, $args)
     {
-        if(array_key_exists($helper, $this->helpers)){
+        if (array_key_exists($helper, $this->helpers)) {
             return $this->helpers[$helper];
         }
-        
+
         $class = 'Wncms\Services\Managers\\' . ucfirst(str($helper)->camel()) . "Manager";
-        
+
         if (class_exists($class)) {
             return new $class($this, ...$args);
 
@@ -484,6 +467,11 @@ class Core
         throw new \RuntimeException("Class {$class} does not exist");
     }
 
+    /**
+     * Call __get magic method if the property doesn't exist
+     * @param string $name
+     * @return mixed
+     */
     public function __get($name)
     {
         // Check if the property exists in the $data array
@@ -493,8 +481,13 @@ class Core
             return null; // Return null if the property doesn't exist.
         }
     }
-    
-    // Method to set properties
+
+    /**
+     * Call __set magic method if the property doesn't exist
+     * @param string $name
+     * @param mixed $value
+     * @return void
+     */
     public function __set($name, $value)
     {
         $this->customProperties[$name] = $value;

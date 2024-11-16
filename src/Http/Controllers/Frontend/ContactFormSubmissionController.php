@@ -2,12 +2,12 @@
 
 namespace Wncms\Http\Controllers\Frontend;
 
-use Wncms\Http\Controllers\Controller;
 use Wncms\Jobs\ContactFormSubmissionNotification;
 use Wncms\Models\ContactFormSubmission;
 use Illuminate\Http\Request;
+use Wncms\Facades\Wncms;
 
-class ContactFormSubmissionController extends Controller
+class ContactFormSubmissionController extends FrontendController
 {
     public function submit_ajax(Request $request)
     {
@@ -19,10 +19,8 @@ class ContactFormSubmissionController extends Controller
         unset($formData['_token']);
         unset($formData['contact_form_id']);
 
-        $website = wncms()->website()->getCurrent();
-
         $contactFormSubmission = ContactFormSubmission::create([
-            'website_id' => $website?->id,
+            'website_id' => $this->website?->id,
             'contact_form_id' => $contactFormId,
             'content' => $formData,
             // 'content' => $request->except(['_token', 'contact_form_id'])
