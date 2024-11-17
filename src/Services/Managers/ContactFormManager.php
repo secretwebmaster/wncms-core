@@ -81,7 +81,7 @@ class ContactFormManager
             // dd($contactForm);
             if(!$contactForm) return;
 
-            return view('backend.contact_forms.render', [
+            return view('wncms::backend.contact_forms.render', [
                 'contactForm' => $contactForm,
                 'hideContactFormTitle' => $hideContactFormTitle,
             ])->render();

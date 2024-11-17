@@ -76,6 +76,8 @@ class RolesSeeder extends Seeder
             'website',
             'faq',
             'package',
+
+            //TODO: add new models
         ];
     }
 
@@ -129,6 +131,8 @@ class RolesSeeder extends Seeder
             'plugin_activate',
             'plugin_deactivate',
             'plugin_delete',
+
+            'credit_recharge',
         ];
         
     }

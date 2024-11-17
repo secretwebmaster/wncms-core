@@ -370,7 +370,7 @@ class PageController extends Controller
             }
 
             $widgetOption['input_name_key'] = $randomKey;
-            $html .= view('backend.parts.inputs', [
+            $html .= view('wncms::backend.parts.inputs', [
                 'option' => $widgetOption,
                 'current_options' => $current_options,
                 'randomIdSuffix' => $randomIdSuffix,

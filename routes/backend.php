@@ -28,6 +28,17 @@ use Wncms\Http\Controllers\Backend\UploadController;
 use Wncms\Http\Controllers\Backend\UserController;
 use Wncms\Http\Controllers\Backend\WebsiteController;
 use Wncms\Http\Controllers\Backend\PackageController;
+use Wncms\Http\Controllers\Backend\SubscriptionController;
+use Wncms\Http\Controllers\Backend\TransactionController;
+use Wncms\Http\Controllers\Backend\OrderItemController;
+use Wncms\Http\Controllers\Backend\OrderController;
+use Wncms\Http\Controllers\Backend\CardController;
+use Wncms\Http\Controllers\Backend\CreditTransactionController;
+use Wncms\Http\Controllers\Backend\CreditController;
+use Wncms\Http\Controllers\Backend\DiscountController;
+use Wncms\Http\Controllers\Backend\ProductController;
+use Wncms\Http\Controllers\Backend\PlanController;
+
 
 
 Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->group(function () {
@@ -335,6 +346,109 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::post('/{website}/options/clone', 'cloneThemeOptions')->middleware('can:website_edit')->name('websites.theme.clone');
         Route::post('/{website}/options/import_default_option', 'importDefaultOption')->middleware('can:website_edit')->name('websites.theme.import_default_option');
     });
+
+    // plan for model Plan
+    Route::get('plans', [PlanController::class, 'index'])->middleware('can:plan_index')->name('plans.index');
+    Route::get('plans/create', [PlanController::class, 'create'])->middleware('can:plan_create')->name('plans.create');
+    Route::get('plans/create/{plan}', [PlanController::class, 'create'])->middleware('can:plan_clone')->name('plans.clone');
+    Route::get('plans/{plan}/edit', [PlanController::class, 'edit'])->middleware('can:plan_edit')->name('plans.edit');
+    Route::post('plans/store', [PlanController::class, 'store'])->middleware('can:plan_create')->name('plans.store');
+    Route::patch('plans/{plan}', [PlanController::class, 'update'])->middleware('can:plan_edit')->name('plans.update');
+    Route::delete('plans/{plan}', [PlanController::class, 'destroy'])->middleware('can:plan_delete')->name('plans.destroy');
+    Route::post('plans/bulk_delete', [PlanController::class, 'bulk_delete'])->middleware('can:plan_bulk_delete')->name('plans.bulk_delete');
+
+    // product for model Product
+    Route::get('products', [ProductController::class, 'index'])->middleware('can:product_index')->name('products.index');
+    Route::get('products/create', [ProductController::class, 'create'])->middleware('can:product_create')->name('products.create');
+    Route::get('products/create/{product}', [ProductController::class, 'create'])->middleware('can:product_clone')->name('products.clone');
+    Route::get('products/{product}/edit', [ProductController::class, 'edit'])->middleware('can:product_edit')->name('products.edit');
+    Route::post('products/store', [ProductController::class, 'store'])->middleware('can:product_create')->name('products.store');
+    Route::patch('products/{product}', [ProductController::class, 'update'])->middleware('can:product_edit')->name('products.update');
+    Route::delete('products/{product}', [ProductController::class, 'destroy'])->middleware('can:product_delete')->name('products.destroy');
+    Route::post('products/bulk_delete', [ProductController::class, 'bulk_delete'])->middleware('can:product_bulk_delete')->name('products.bulk_delete');
+
+    // discount for model Discount
+    Route::get('discounts', [DiscountController::class, 'index'])->middleware('can:discount_index')->name('discounts.index');
+    Route::get('discounts/create', [DiscountController::class, 'create'])->middleware('can:discount_create')->name('discounts.create');
+    Route::get('discounts/create/{discount}', [DiscountController::class, 'create'])->middleware('can:discount_clone')->name('discounts.clone');
+    Route::get('discounts/{discount}/edit', [DiscountController::class, 'edit'])->middleware('can:discount_edit')->name('discounts.edit');
+    Route::post('discounts/store', [DiscountController::class, 'store'])->middleware('can:discount_create')->name('discounts.store');
+    Route::patch('discounts/{discount}', [DiscountController::class, 'update'])->middleware('can:discount_edit')->name('discounts.update');
+    Route::delete('discounts/{discount}', [DiscountController::class, 'destroy'])->middleware('can:discount_delete')->name('discounts.destroy');
+    Route::post('discounts/bulk_delete', [DiscountController::class, 'bulk_delete'])->middleware('can:discount_bulk_delete')->name('discounts.bulk_delete');
+
+    // credit for model Credit
+    Route::get('credits', [CreditController::class, 'index'])->middleware('can:credit_index')->name('credits.index');
+    Route::get('credits/recharge', [CreditController::class, 'show_recharge'])->middleware('can:credit_recharge')->name('credits.recharge');
+    Route::post('credits/recharge/submit', [CreditController::class, 'handle_recharge'])->middleware('can:credit_recharge')->name('credits.recharge.submit');
+    Route::get('credits/create', [CreditController::class, 'create'])->middleware('can:credit_create')->name('credits.create');
+    Route::get('credits/create/{credit}', [CreditController::class, 'create'])->middleware('can:credit_clone')->name('credits.clone');
+    Route::get('credits/{credit}/edit', [CreditController::class, 'edit'])->middleware('can:credit_edit')->name('credits.edit');
+    Route::post('credits/store', [CreditController::class, 'store'])->middleware('can:credit_create')->name('credits.store');
+    Route::patch('credits/{credit}', [CreditController::class, 'update'])->middleware('can:credit_edit')->name('credits.update');
+    Route::delete('credits/{credit}', [CreditController::class, 'destroy'])->middleware('can:credit_delete')->name('credits.destroy');
+    Route::post('credits/bulk_delete', [CreditController::class, 'bulk_delete'])->middleware('can:credit_bulk_delete')->name('credits.bulk_delete');
+
+    // credit_transaction for model CreditTransaction
+    Route::get('credit_transactions', [CreditTransactionController::class, 'index'])->middleware('can:credit_transaction_index')->name('credit_transactions.index');
+    Route::get('credit_transactions/create', [CreditTransactionController::class, 'create'])->middleware('can:credit_transaction_create')->name('credit_transactions.create');
+    Route::get('credit_transactions/create/{creditTransaction}', [CreditTransactionController::class, 'create'])->middleware('can:credit_transaction_clone')->name('credit_transactions.clone');
+    Route::get('credit_transactions/{creditTransaction}/edit', [CreditTransactionController::class, 'edit'])->middleware('can:credit_transaction_edit')->name('credit_transactions.edit');
+    Route::post('credit_transactions/store', [CreditTransactionController::class, 'store'])->middleware('can:credit_transaction_create')->name('credit_transactions.store');
+    Route::patch('credit_transactions/{creditTransaction}', [CreditTransactionController::class, 'update'])->middleware('can:credit_transaction_edit')->name('credit_transactions.update');
+    Route::delete('credit_transactions/{creditTransaction}', [CreditTransactionController::class, 'destroy'])->middleware('can:credit_transaction_delete')->name('credit_transactions.destroy');
+    Route::post('credit_transactions/bulk_delete', [CreditTransactionController::class, 'bulk_delete'])->middleware('can:credit_transaction_bulk_delete')->name('credit_transactions.bulk_delete');
+
+    // card for model Card
+    Route::get('cards', [CardController::class, 'index'])->middleware('can:card_index')->name('cards.index');
+    Route::get('cards/create', [CardController::class, 'create'])->middleware('can:card_create')->name('cards.create');
+    Route::get('cards/create/{card}', [CardController::class, 'create'])->middleware('can:card_clone')->name('cards.clone');
+    Route::get('cards/{card}/edit', [CardController::class, 'edit'])->middleware('can:card_edit')->name('cards.edit');
+    Route::post('cards/store', [CardController::class, 'store'])->middleware('can:card_create')->name('cards.store');
+    Route::patch('cards/{card}', [CardController::class, 'update'])->middleware('can:card_edit')->name('cards.update');
+    Route::delete('cards/{card}', [CardController::class, 'destroy'])->middleware('can:card_delete')->name('cards.destroy');
+    Route::post('cards/bulk_delete', [CardController::class, 'bulk_delete'])->middleware('can:card_bulk_delete')->name('cards.bulk_delete');
+
+    // order for model Order
+    Route::get('orders', [OrderController::class, 'index'])->middleware('can:order_index')->name('orders.index');
+    Route::get('orders/create', [OrderController::class, 'create'])->middleware('can:order_create')->name('orders.create');
+    Route::get('orders/create/{order}', [OrderController::class, 'create'])->middleware('can:order_clone')->name('orders.clone');
+    Route::get('orders/{order}/edit', [OrderController::class, 'edit'])->middleware('can:order_edit')->name('orders.edit');
+    Route::post('orders/store', [OrderController::class, 'store'])->middleware('can:order_create')->name('orders.store');
+    Route::patch('orders/{order}', [OrderController::class, 'update'])->middleware('can:order_edit')->name('orders.update');
+    Route::delete('orders/{order}', [OrderController::class, 'destroy'])->middleware('can:order_delete')->name('orders.destroy');
+    Route::post('orders/bulk_delete', [OrderController::class, 'bulk_delete'])->middleware('can:order_bulk_delete')->name('orders.bulk_delete');
+
+    // order_item for model OrderItem
+    Route::get('order_items', [OrderItemController::class, 'index'])->middleware('can:order_item_index')->name('order_items.index');
+    Route::get('order_items/create', [OrderItemController::class, 'create'])->middleware('can:order_item_create')->name('order_items.create');
+    Route::get('order_items/create/{orderItem}', [OrderItemController::class, 'create'])->middleware('can:order_item_clone')->name('order_items.clone');
+    Route::get('order_items/{orderItem}/edit', [OrderItemController::class, 'edit'])->middleware('can:order_item_edit')->name('order_items.edit');
+    Route::post('order_items/store', [OrderItemController::class, 'store'])->middleware('can:order_item_create')->name('order_items.store');
+    Route::patch('order_items/{orderItem}', [OrderItemController::class, 'update'])->middleware('can:order_item_edit')->name('order_items.update');
+    Route::delete('order_items/{orderItem}', [OrderItemController::class, 'destroy'])->middleware('can:order_item_delete')->name('order_items.destroy');
+    Route::post('order_items/bulk_delete', [OrderItemController::class, 'bulk_delete'])->middleware('can:order_item_bulk_delete')->name('order_items.bulk_delete');
+
+    // transaction for model Transaction
+    Route::get('transactions', [TransactionController::class, 'index'])->middleware('can:transaction_index')->name('transactions.index');
+    Route::get('transactions/create', [TransactionController::class, 'create'])->middleware('can:transaction_create')->name('transactions.create');
+    Route::get('transactions/create/{transaction}', [TransactionController::class, 'create'])->middleware('can:transaction_clone')->name('transactions.clone');
+    Route::get('transactions/{transaction}/edit', [TransactionController::class, 'edit'])->middleware('can:transaction_edit')->name('transactions.edit');
+    Route::post('transactions/store', [TransactionController::class, 'store'])->middleware('can:transaction_create')->name('transactions.store');
+    Route::patch('transactions/{transaction}', [TransactionController::class, 'update'])->middleware('can:transaction_edit')->name('transactions.update');
+    Route::delete('transactions/{transaction}', [TransactionController::class, 'destroy'])->middleware('can:transaction_delete')->name('transactions.destroy');
+    Route::post('transactions/bulk_delete', [TransactionController::class, 'bulk_delete'])->middleware('can:transaction_bulk_delete')->name('transactions.bulk_delete');
+
+    // subscription for model Subscription
+    Route::get('subscriptions', [SubscriptionController::class, 'index'])->middleware('can:subscription_index')->name('subscriptions.index');
+    Route::get('subscriptions/create', [SubscriptionController::class, 'create'])->middleware('can:subscription_create')->name('subscriptions.create');
+    Route::get('subscriptions/create/{subscription}', [SubscriptionController::class, 'create'])->middleware('can:subscription_clone')->name('subscriptions.clone');
+    Route::get('subscriptions/{subscription}/edit', [SubscriptionController::class, 'edit'])->middleware('can:subscription_edit')->name('subscriptions.edit');
+    Route::post('subscriptions/store', [SubscriptionController::class, 'store'])->middleware('can:subscription_create')->name('subscriptions.store');
+    Route::patch('subscriptions/{subscription}', [SubscriptionController::class, 'update'])->middleware('can:subscription_edit')->name('subscriptions.update');
+    Route::delete('subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])->middleware('can:subscription_delete')->name('subscriptions.destroy');
+    Route::post('subscriptions/bulk_delete', [SubscriptionController::class, 'bulk_delete'])->middleware('can:subscription_bulk_delete')->name('subscriptions.bulk_delete');
+
     //custom backend route
     if (file_exists(base_path('routes/custom_backend.php'))) {
         include base_path('routes/custom_backend.php');

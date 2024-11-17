@@ -407,6 +407,14 @@ class Wncms
     }
 
     /**
+     * Get user model class
+     */
+    public function getUserModelClass()
+    {
+        return config('wncms.default_user_model', config('auth.providers.users.model'));
+    }
+
+    /**
      * Check if the website is licensed
      * @param Website $website
      * @return Website|Redirect

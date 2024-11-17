@@ -14,7 +14,7 @@ class {{ class }} extends Controller
         
         ${{ modelVariable }}s = $q->paginate($request->page_size ?? 100);
 
-        return view('backend.custom.{{ modelVariable }}s.index', [
+        return view('backend.{{ modelVariable }}s.index', [
             'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
             '{{ modelVariable }}s' => ${{ modelVariable }}s,
         ]);
@@ -24,7 +24,7 @@ class {{ class }} extends Controller
     {
         ${{ modelVariable }} ??= new {{ model }};
 
-        return view('backend.custom.{{ modelVariable }}s.create', [
+        return view('backend.{{ modelVariable }}s.create', [
             'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
             '{{ modelVariable }}' => ${{ modelVariable }},
         ]);
@@ -47,7 +47,7 @@ class {{ class }} extends Controller
 
     public function edit({{ model }} ${{ modelVariable }})
     {
-        return view('backend.custom.{{ modelVariable }}s.edit', [
+        return view('backend.{{ modelVariable }}s.edit', [
             'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
             '{{ modelVariable }}' => ${{ modelVariable }},
         ]);
