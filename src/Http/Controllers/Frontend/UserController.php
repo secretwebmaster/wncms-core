@@ -29,7 +29,7 @@ class UserController extends FrontendController
         return Wncms::view(
             name: "frontend.theme.{$this->theme}.users.dashboard",
             params: [],
-            fallback: 'frontend.theme.default.users.dashboard',
+            fallback: 'wncms::frontend.theme.default.users.dashboard',
         );
     }
 
@@ -48,7 +48,7 @@ class UserController extends FrontendController
         return Wncms::view(
             name: "frontend.theme.{$this->theme}.users.login",
             params: [],
-            fallback: 'frontend.theme.default.users.login',
+            fallback: 'wncms::frontend.theme.default.users.login',
         );
     }
 
@@ -82,7 +82,7 @@ class UserController extends FrontendController
         return Wncms::view(
             name: "frontend.theme.{$this->theme}.users.register",
             params: [],
-            fallback: 'frontend.theme.default.users.register',
+            fallback: 'wncms::frontend.theme.default.users.register',
         );
     }
 
@@ -158,10 +158,49 @@ class UserController extends FrontendController
     public function show_profile()
     {
         return Wncms::view(
-            name: "frontend.theme.{$this->theme}.users.profile",
-            params: [],
-            fallback: 'frontend.theme.default.users.profile',
+            name: "frontend.theme.{$this->theme}.users.profile.show",
+            params: [
+                'user' => auth()->user(),
+            ],
+            fallback: 'wncms::frontend.theme.default.users.profile.show',
         );
+    }
+
+    public function edit_profile()
+    {
+        return Wncms::view(
+            name: "frontend.theme.{$this->theme}.users.profile.edit",
+            params: [
+                'user' => auth()->user(),
+            ],
+            fallback: 'wncms::frontend.theme.default.users.profile.edit',
+        );
+    }
+
+    public function update_profile(Request $request)
+    {
+        $user = auth()->user();
+
+        // Validate the input
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|min:8|confirmed',
+        ]);
+
+        // Update user details
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->password);
+        }
+
+        $user->save();
+
+        return redirect()
+            ->route('frontend.users.profile')
+            ->with('status', __('wncms::word.profile_updated_successfully'));
     }
 
     /**
@@ -174,7 +213,7 @@ class UserController extends FrontendController
         return Wncms::view(
             name: "frontend.theme.{$this->theme}.users.password.forgot",
             params: [],
-            fallback: 'frontend.theme.default.users.password.forgot',
+            fallback: 'wncms::frontend.theme.default.users.password.forgot',
         );
     }
 
@@ -205,10 +244,10 @@ class UserController extends FrontendController
                 params: [
                     'email' => $request->email,
                 ],
-                fallback: 'frontend.theme.default.users.password.sent',
+                fallback: 'wncms::frontend.theme.default.users.password.sent',
             );
         }
-    
+
         return back()->withErrors(['email' => __('wncms::word.reset_link_failed')]);
     }
 
@@ -226,7 +265,7 @@ class UserController extends FrontendController
                 'token' => $request->token,
                 'email' => $request->email,
             ],
-            fallback: 'frontend.theme.default.users.password.reset',
+            fallback: 'wncms::frontend.theme.default.users.password.reset',
         );
     }
 
@@ -267,7 +306,7 @@ class UserController extends FrontendController
             params: [
                 'status' => $status,
             ],
-            fallback: 'frontend.theme.default.users.password.completed',
+            fallback: 'wncms::frontend.theme.default.users.password.completed',
         );
     }
 }

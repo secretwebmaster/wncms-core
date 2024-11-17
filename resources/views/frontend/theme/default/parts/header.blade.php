@@ -64,6 +64,7 @@
     <ul class="">
         {{-- User menu --}}
         @auth
+        <li><a href="{{ route('frontend.users.dashboard') }}">@lang('wncms::word.dashboard')</a></li>
         <li><a href="{{ route('frontend.users.profile') }}">@lang('wncms::word.my_account')</a></li>
         <li><a href="{{ route('frontend.users.logout') }}">@lang('wncms::word.logout')</a></li>
         @else

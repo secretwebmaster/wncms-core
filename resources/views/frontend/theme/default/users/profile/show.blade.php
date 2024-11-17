@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="profile-container">
-    <h2>User Profile</h2>
+    <h2>@lang('wncms::word.my_account') <a class="small" href="{{ route('frontend.users.profile.edit') }}">[@lang('wncms::word.edit')]</a></h2>
     <table class="profile-table">
         @foreach([
             'id',
@@ -18,7 +18,7 @@
         ] as $field)
         <tr>
             <th>{{ $field }}</th>
-            <td>{{ auth()->user()->{$field} }}</td>
+            <td>{{ $user->{$field} }}</td>
         </tr>
         @endforeach
     </table>

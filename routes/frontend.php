@@ -54,6 +54,10 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     // user pages
     Route::prefix('user')->middleware(['auth'])->controller(UserController::class)->group(function () {
         Route::get('/logout', 'logout')->name('users.logout');
+        Route::get('/profile', 'show_profile')->name('users.profile');
+        Route::get('/profile/edit', 'edit_profile')->name('users.profile.edit');
+        Route::post('/profile/update', 'update_profile')->name('users.profile.update');
+
     });
 
     Route::prefix('user')->controller(UserController::class)->group(function () {
@@ -63,12 +67,12 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::post('/login/submit', 'login')->name('users.login.submit');
         Route::get('/register', 'show_register')->name('users.register');
         Route::post('/register/submit', 'register')->name('users.register.submit');
-
         Route::get('/password/forgot', 'show_password_forgot')->name('users.password.forgot');
         Route::post('/password/forgot/submit', 'handle_password_forgot')->name('users.password.forgot.submit');
         Route::get('/password/forgot/sent', 'show_password_forgot_sent')->name('users.password.forgot.sent');
         Route::get('/password/reset', 'show_password_reset')->name('users.password.reset');
         Route::post('/password/reset/submit', 'handle_password_reset')->name('users.password.reset.submit');
+
 
  
 
@@ -77,7 +81,7 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::get('/bindmsg', 'sendBindMessage')->name('users.bindmsg');
         Route::post('/bind', 'bindAccount')->name('users.bind');
         Route::post('/unbind', 'unbindAccount')->name('users.unbind');
-        Route::get('/profile', 'show_profile')->name('users.profile');
+
         Route::get('/regcheck', 'validateRegistration')->name('users.regcheck');
 
 
