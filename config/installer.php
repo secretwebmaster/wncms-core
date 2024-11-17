@@ -113,7 +113,7 @@ return [
     'installed' => [
         'redirectOptions' => [
             'route' => [
-                'name' => 'frontend.pages.installed',
+                'name' => 'installer.installed',
                 'data' => [],
             ],
             'abort' => [

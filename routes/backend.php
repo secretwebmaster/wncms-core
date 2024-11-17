@@ -29,7 +29,8 @@ use Wncms\Http\Controllers\Backend\UserController;
 use Wncms\Http\Controllers\Backend\WebsiteController;
 use Wncms\Http\Controllers\Backend\PackageController;
 
-Route::prefix('panel')->middleware(['auth'])->group(function () {
+
+Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->group(function () {
 
     //starter_model for model StarterModel
     // Route::get('starter_models', [StarterModelController::class, 'index'])->middleware('can:starter_model_index')->name('starter_models.index');
@@ -40,7 +41,6 @@ Route::prefix('panel')->middleware(['auth'])->group(function () {
     // Route::patch('starter_models/{starterModel}', [StarterModelController::class, 'update'])->middleware('can:starter_model_edit')->name('starter_models.update');
     // Route::delete('starter_models/{starterModel}', [StarterModelController::class, 'destroy'])->middleware('can:starter_model_delete')->name('starter_models.destroy');
     // Route::post('starter_models/bulk_delete', [StarterModelController::class, 'bulk_delete'])->middleware('can:starter_model_bulk_delete')->name('starter_models.bulk_delete');
-
 
     //advertisement
     Route::prefix('advertisements')->controller(AdvertisementController::class)->group(function () {
@@ -54,7 +54,6 @@ Route::prefix('panel')->middleware(['auth'])->group(function () {
         Route::delete('/{advertisement}', 'destroy')->middleware('can:advertisement_delete')->name('advertisements.destroy');
         Route::post('/bulk_delete', 'bulk_delete')->middleware('can:advertisement_bulk_delete')->name('advertisements.bulk_delete');
     });
-
 
     //Analytics
     Route::prefix('analytics')->controller(AnalyticsController::class)->group(function () {

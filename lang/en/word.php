@@ -1891,6 +1891,49 @@ $words = [
     'remove_package' => 'Remove Package',
     'removing_item' => 'Removing item :name',
     'forbidden_package' => 'Forbidden package',
+
+    //! 0.3.7
+    'multi_website' => 'Multi-Website',
+
+    //! 0.3.8
+    'registerd_redirecting' => 'Registration successful, redirecting...',
+    'confirm_password' => 'Confirm Password',
+    'enter_name' => 'Enter Name',
+    'enter_username' => 'Enter Username',
+    'enter_nickname' => 'Enter Nickname',
+
+    //! 0.3.9
+    'reset_password_notification' => 'Reset Password Notification',
+    'hello' => 'Hello!',
+    'reset_password_intro' => 'You are receiving this email because we received a password reset request for your account.',
+    'reset_password_instructions' => 'Click the button below to reset your password:',
+    'reset_password_button' => 'Reset Password',
+    'reset_password_disclaimer' => 'If you did not request a password reset, please ignore this email.',
+    'action_text_trouble' => 'If you\'re having trouble clicking the ":action_text" button, copy and paste the URL below into your web browser:',
+    'salutation' => 'Regards, :appName',
+    'token.required' => 'The reset token is required.',
+    'email.required' => 'The email address is required.',
+    'email.email' => 'Please enter a valid email address.',
+    'email.exists' => 'This email does not exist in our records.',
+    'password.required' => 'The password is required.',
+    'password.min' => 'The password must be at least 8 characters.',
+    'password.confirmed' => 'The password confirmation does not match.',
+    'reset_password' => 'Reset Password',
+    'enter_new_password' => 'Enter your new password below.',
+    'new_password' => 'New Password',
+    'confirm_new_password' => 'Confirm New Password',
+    'reset_password_button' => 'Reset Password',
+    'reset_completed_title' => 'Password Reset Successful',
+    'reset_completed_message' => 'Your password has been successfully reset. You can now use your new password to log in.',
+    'reset_failed_title' => 'Password Reset Failed',
+    'reset_failed_message' => 'We were unable to reset your password. Please try again or contact support.',
+    'invalid_token' => 'The password reset token is invalid or expired.',
+    'invalid_user' => 'The email address does not match any account in our records.',
+    'invalid_password' => 'The provided password is invalid.',
+    'login_button' => 'Log In',
+    'reset_email_sent_title' => 'Reset Password Email Sent',
+    'reset_email_sent_message' => 'A password reset email has been sent to :email. Please check your inbox and follow the instructions to reset your password.',
+    'back_to_login' => 'Back to Login',
 ];
 
 $locale = basename(__DIR__);

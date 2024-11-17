@@ -3,10 +3,10 @@
 namespace Wncms\Http\Controllers\Backend;
 
 use Wncms\Http\Controllers\Controller;
-use Wncms\Mail\TestMail;
+use Wncms\Mails\TestMail;
 use Wncms\Models\Setting;
 use Illuminate\Http\Request;
-use Mail;
+use Illuminate\Support\Facades\Mail;
 
 class SettingController extends Controller
 {

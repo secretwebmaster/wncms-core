@@ -35,7 +35,7 @@
 
         {{-- 提交 --}}
         <div class="d-grid mb-10">
-            <button type="submit" class="btn btn-dark w-100 mt-5" wncms-btn-loading data-form="form_register" data-success-text="@lang('wncms::word.registerd')">
+            <button type="submit" class="btn btn-dark w-100 mt-5" wncms-btn-loading data-form="form_register" data-success-text="@lang('wncms::word.registerd_redirecting')">
                 <span class="indicator-label fw-bold">@lang('wncms::word.register')</span>
                 <span class="indicator-progress" style="display:none;">@lang('wncms::word.please_wait')<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
             </button>

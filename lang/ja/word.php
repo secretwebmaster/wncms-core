@@ -1891,6 +1891,49 @@ $words = [
     'remove_package' => 'パッケージを削除',
     'removing_item' => '項目 :name を削除中',
     'forbidden_package' => '禁止されたパッケージ',
+
+    //! 0.3.7
+    'multi_website' => 'マルチウェブサイト',
+
+    //! 0.3.8
+    'registerd_redirecting' => '登録成功、リダイレクト中...',
+    'confirm_password' => 'パスワード確認',
+    'enter_name' => '名前を入力',
+    'enter_username' => 'ユーザー名を入力',
+    'enter_nickname' => 'ニックネームを入力',
+
+    //! 0.3.9
+    'reset_password_notification' => 'パスワードリセットのお知らせ',
+    'hello' => 'こんにちは！',
+    'reset_password_intro' => 'このメールは、アカウントのパスワードリセットリクエストを受け取ったため送信されました。',
+    'reset_password_instructions' => '以下のボタンをクリックしてパスワードをリセットしてください：',
+    'reset_password_button' => 'パスワードをリセット',
+    'reset_password_disclaimer' => 'パスワードリセットをリクエストしていない場合は、このメールを無視してください。',
+    'action_text_trouble' => '「:action_text」ボタンをクリックできない場合は、以下のURLをコピーしてブラウザに貼り付けてください：',
+    'salutation' => 'よろしくお願いいたします, :appName',
+    'token.required' => 'リセットトークンは必須です。',
+    'email.required' => 'メールアドレスは必須です。',
+    'email.email' => '有効なメールアドレスを入力してください。',
+    'email.exists' => 'このメールアドレスは当社の記録に存在しません。',
+    'password.required' => 'パスワードは必須です。',
+    'password.min' => 'パスワードは8文字以上である必要があります。',
+    'password.confirmed' => 'パスワードの確認が一致しません。',
+    'reset_password' => 'パスワードをリセットする',
+    'enter_new_password' => '以下に新しいパスワードを入力してください。',
+    'new_password' => '新しいパスワード',
+    'confirm_new_password' => '新しいパスワードを確認',
+    'reset_password_button' => 'パスワードをリセットする',
+    'reset_completed_title' => 'パスワードリセット成功',
+    'reset_completed_message' => 'パスワードが正常にリセットされました。新しいパスワードでログインできます。',
+    'reset_failed_title' => 'パスワードリセット失敗',
+    'reset_failed_message' => 'パスワードをリセットできませんでした。再試行するか、サポートに連絡してください。',
+    'invalid_token' => 'パスワードリセットトークンが無効か、期限切れです。',
+    'invalid_user' => 'メールアドレスが記録と一致しません。',
+    'invalid_password' => '提供されたパスワードが無効です。',
+    'login_button' => 'ログイン',
+    'reset_email_sent_title' => 'パスワードリセットメール送信済み',
+    'reset_email_sent_message' => ':email にパスワードリセットメールが送信されました。受信ボックスを確認し、指示に従ってパスワードをリセットしてください。',
+    'back_to_login' => 'ログイン画面に戻る',
 ];
 
 $locale = basename(__DIR__);

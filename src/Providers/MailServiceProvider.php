@@ -22,16 +22,17 @@ class MailServiceProvider extends ServiceProvider
             $website = wncms()->website()->get();
             if($website){
                 $smtp_config = [
-                    'driver' => gss('mail_driver', 'smtp'),
+                    // 'driver' => gss('mail_driver', 'smtp'),
+                    'transport' => gss('mail_driver', 'smtp'),
                     'host' => gss('smtp_host'),
                     'port' => gss('smtp_port', 465),
+                    'encryption' => gss('smtp_mode', 'ssl'),
+                    'username' => gss('smtp_username'),
+                    'password' => gss('smtp_password'),
                     'from' => [
                         'address' => gss('smtp_username'),
                         'name' => gss('smtp_from_name', $website->site_name)
                     ],
-                    'encryption' => gss('smtp_mode', 'ssl'),
-                    'username' => gss('smtp_username'),
-                    'password' => gss('smtp_password'),
                 ];
     
                 $new_config = array_merge(config('mail.mailers.smtp'), $smtp_config);

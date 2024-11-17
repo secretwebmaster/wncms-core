@@ -435,6 +435,24 @@ class Wncms
     }
 
     /**
+     * Check if view exists and return view
+     * @param string $view_name
+     * @param array $params
+     * @param string|null $fallback_view
+     * @return View
+     */
+    function view($name, $params, $fallback = null)
+    {
+        if(view()->exists($name)){
+            return view($name, $params);
+        }elseif(view()->exists($fallback)){
+            return view($fallback, $params);
+        }else{
+            dd('both theme and default view not found');
+        }
+    }
+
+    /**
      * 調用其他Manager Class的方法
      * 
      * @param string|null $helper

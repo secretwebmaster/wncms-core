@@ -38,11 +38,13 @@
                         </a>
                     </div>
                  
+                    @can('website_index')
                     <div class="menu-item me-lg-1">
                         <a class="menu-link p-2" href="{{ route('websites.index') }}">
                             <span class="menu-title text-dark fw-bold">{{ wncms_model_word('website', 'index') }}</span>
                         </a>
                     </div>
+                    @endcan
 
                     @if(!empty($quickLinks = json_decode(gss('quick_links'), true)))
                         @foreach($quickLinks as $quickLink)
@@ -64,6 +66,7 @@
                 @includeif('backend.parts.custom_header_items')
 
                 {{-- Website list --}}
+                @can('website_index')
                 <div class="app-navbar-item ms-1 ms-lg-3">
                     <div class="btn btn-icon btn-custom btn-icon-muted btn-active-light btn-active-color-primary w-25px h-25px w-md-40px h-md-40px" data-kt-menu-trigger="hover" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
                         <span class="svg-icon svg-icon-1">
@@ -101,9 +104,9 @@
                                 </div>
                             @endforeach
                         </div>
-                        
                     </div>
                 </div>
+                @endcan
 
                 {{-- Activities Drawer --}}
                 {{-- <div class="app-navbar-item ms-1 ms-lg-3">

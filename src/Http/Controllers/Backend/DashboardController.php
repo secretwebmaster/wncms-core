@@ -54,6 +54,15 @@ class DashboardController extends Controller
             ]);
         }
 
+        // custom user dashboard
+        if(gss('use_custom_user_dashbaord')){
+            dd('return custom user dashboard');
+        }
+
+        // if user logged in using backend panel login, redirect to fronend default theme user dashboard
+        return redirect()->route('frontend.users.dashboard');
+        
+        // TODO: user do not belongs to backend controller
         return view('wncms::backend.dashboards.member_dashboard', [
             'page_title' => __('wncms::word.user_role_dashboard', ['role' => __('wncms::word.member')]),
         ]);

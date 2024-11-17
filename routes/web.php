@@ -8,16 +8,18 @@ Route::group([
         'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath']
     ], function(){
 
-    require __DIR__ . '/auth.php';
+    // Install
     require __DIR__ . '/install.php';
 
-    Route::middleware(['is_installed', 'has_website'])->group(function(){
-        //! Backend 需登入
-        require __DIR__ . '/backend.php';
+    // Auth
+    require __DIR__ . '/auth.php';
 
-        //! Frontend 不需登入
-        require __DIR__ . '/frontend.php';
-    });
+    // Backend
+    require __DIR__ . '/backend.php';
+
+    // Frontend
+    require __DIR__ . '/frontend.php';
+
 });
 
 

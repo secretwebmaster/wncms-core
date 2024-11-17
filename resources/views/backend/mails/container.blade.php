@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ItsolutionStuff.com</title>
+    <title>wncms.cc</title>
 </head>
 <body>
     @yield('content')

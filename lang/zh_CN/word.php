@@ -1891,6 +1891,49 @@ $words = [
     'remove_package' => '移除套件',
     'removing_item' => '移除项目 :name',
     'forbidden_package' => '禁用套件',
+
+    //! 0.3.7
+    'multi_website' => '站群',
+
+    //! 0.3.8
+    'registerd_redirecting' => '注册成功，正在跳转',
+    'confirm_password' => '确认密码',
+    'enter_name' => '输入名称',
+    'enter_username' => '输入用户名',
+    'enter_nickname' => '输入暱称',
+
+    //! 0.3.9
+    'reset_password_notification' => '密码重置通知',
+    'hello' => '您好！',
+    'reset_password_intro' => '您收到此邮件是因为我们收到您帐户的密码重置请求。',
+    'reset_password_instructions' => '请点击下方按钮来重置您的密码：',
+    'reset_password_button' => '重置密码',
+    'reset_password_disclaimer' => '如果您未请求重置密码，请忽略此邮件。',
+    'action_text_trouble' => '如果您无法点击“:action_text”按钮，请将以下网址复制并粘贴到您的浏览器中：',
+    'salutation' => '此致, :appName',
+    'token.required' => '重置令牌是必填项。',
+    'email.required' => '邮箱地址是必填项。',
+    'email.email' => '请输入有效的邮箱地址。',
+    'email.exists' => '该邮箱地址不存在于我们的记录中。',
+    'password.required' => '密码是必填项。',
+    'password.min' => '密码必须至少包含8个字符。',
+    'password.confirmed' => '密码确认不匹配。',
+    'reset_password' => '重置密码',
+    'enter_new_password' => '请在下方输入您的新密码。',
+    'new_password' => '新密码',
+    'confirm_new_password' => '确认新密码',
+    'reset_password_button' => '重置密码',
+    'reset_completed_title' => '密码重置成功',
+    'reset_completed_message' => '您的密码已成功重置，现在可以使用新密码登录。',
+    'reset_failed_title' => '密码重置失败',
+    'reset_failed_message' => '我们无法重置您的密码。请重试或联系客服。',
+    'invalid_token' => '密码重置令牌无效或已过期。',
+    'invalid_user' => '此电子邮件地址与我们的记录不匹配。',
+    'invalid_password' => '提供的密码无效。',
+    'login_button' => '登录',
+    'reset_email_sent_title' => '密码重置邮件已发送',
+    'reset_email_sent_message' => '密码重置邮件已发送到 :email。请检查您的收件箱并按照指示重置密码。',
+    'back_to_login' => '返回登录',
 ];
 
 $locale = basename(__DIR__);

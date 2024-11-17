@@ -230,7 +230,8 @@ class InstallController extends Controller
             'REDIS_PASSWORD=' . ($input['redis_password']??'') . "\n".
             'REDIS_PORT=' . ($input['redis_port']??'') . "\n\n".
 
-            'MAIL_DRIVER=' . ($input['mail_driver']??'') . "\n".
+            // 'MAIL_DRIVER=' . ($input['mail_driver']??'') . "\n".
+            'MAIL_MAILER=' . ($input['mail_driver']??'') . "\n".
             'MAIL_HOST=' . ($input['mail_host']??'') . "\n".
             'MAIL_PORT=' . ($input['mail_port']??'') . "\n".
             'MAIL_USERNAME=' . ($input['mail_username']??'') . "\n".
@@ -386,6 +387,14 @@ class InstallController extends Controller
     {
         //run composer install
         // Process::run("composer install");
+    }
+
+    /**
+     * Show when user try to install at installed status 
+     */
+    public function installed()
+    {
+        return view('wncms::errors.installed');
     }
     
     

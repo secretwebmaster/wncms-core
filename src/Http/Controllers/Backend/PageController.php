@@ -313,16 +313,6 @@ class PageController extends Controller
         ]);
     }
 
-    /**
-     * ----------------------------------------------------------------------------------------------------
-     * Show when user try to install at installed status 
-     * ----------------------------------------------------------------------------------------------------
-     */
-    public function installed()
-    {
-        return view('wncms::errors.installed');
-    }
-
     public function create_theme_pages(Request $request)
     {
         // dd($request->all());

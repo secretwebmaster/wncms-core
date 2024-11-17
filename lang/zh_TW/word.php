@@ -1824,7 +1824,7 @@ $words = [
     'maintenance' => '維護',
     'invalid_password' => '無效密碼',
     'disable_registration' => '關閉註冊',
-    
+
     //! 4.2.0
     'install_failed_retry' => '安裝失敗，請重試',
     'tell_us_about_your_first_website' => '告訴我們你的第一個網站',
@@ -1838,7 +1838,7 @@ $words = [
     'update_now' => '立即更新',
     'disable_core_update' => '禁用核心更新',
     'core_update_disabled' => '核心更新已禁用',
-    
+
     //! 4.4.0
     'error_405_message' => '請求的 URL 不允許使用此方法。',
     'error_404_message' => '找不到頁面',
@@ -1864,13 +1864,13 @@ $words = [
     'field_required' => ':field 為必填項目',
     'field_max' => ':field 長度最大爲 :max 個字元',
     'site_seo_description' => '網站SEO描述',
-    
+
     // ! 5.0.0
     'cannot_delete_default_themes' => '不能刪除默認主題',
     'add_to_quick_link' => '添加到快捷鏈接',
     'remove_from_quick_link' => '從快捷鏈接中移除',
     'setup' => '設定',
-        
+
     //! 5.1.1
     'force_https' => '強制HTTPS',
 
@@ -1894,13 +1894,53 @@ $words = [
 
     //! 0.3.7
     'multi_website' => '站群',
+
+    //! 0.3.8
+    'registerd_redirecting' => '註冊成功，正在跳轉',
+    'confirm_password' => '確認密碼',
+    'enter_name' => '輸入名稱',
+    'enter_username' => '輸入用戶名',
+    'enter_nickname' => '輸入暱稱',
+
+    //! 0.3.9
+    'reset_password_notification' => '密碼重置通知',
+    'hello' => '您好！',
+    'reset_password_intro' => '您收到此郵件是因為我們收到您帳戶的密碼重置請求。',
+    'reset_password_instructions' => '請點擊下方按鈕來重置您的密碼：',
+    'reset_password_button' => '重置密碼',
+    'reset_password_disclaimer' => '如果您未請求重置密碼，請忽略此郵件。',
+    'action_text_trouble' => '如果您無法點擊「:action_text」按鈕，請將以下網址複製並貼到您的瀏覽器中：',
+    'salutation' => '此致, :appName',
+    'token.required' => '重置令牌為必填項。',
+    'email.required' => '電子郵件地址為必填項。',
+    'email.email' => '請輸入有效的電子郵件地址。',
+    'email.exists' => '此電子郵件地址不存在於我們的記錄中。',
+    'password.required' => '密碼為必填項。',
+    'password.min' => '密碼必須至少包含8個字符。',
+    'password.confirmed' => '密碼確認不匹配。',
+    'reset_password' => '重置密碼',
+    'enter_new_password' => '請在下方輸入您的新密碼。',
+    'new_password' => '新密碼',
+    'confirm_new_password' => '確認新密碼',
+    'reset_password_button' => '重置密碼',
+    'reset_completed_title' => '密碼重置成功',
+    'reset_completed_message' => '您的密碼已成功重置，現在可以使用新密碼登錄。',
+    'reset_failed_title' => '密碼重置失敗',
+    'reset_failed_message' => '我們無法重置您的密碼。請重試或聯繫支援。',
+    'invalid_token' => '密碼重置令牌無效或已過期。',
+    'invalid_user' => '此電子郵件地址與我們的記錄不匹配。',
+    'invalid_password' => '提供的密碼無效。',
+    'login_button' => '登錄',
+    'reset_email_sent_title' => '密碼重置電子郵件已發送',
+    'reset_email_sent_message' => '密碼重置電子郵件已發送至 :email。請檢查您的收件箱並按照指示重置密碼。',
+    'back_to_login' => '返回登錄',
 ];
 
 $locale = basename(__DIR__);
 $custom_word_path = base_path("lang/$locale/custom.php");
-if(file_exists($custom_word_path)){
+if (file_exists($custom_word_path)) {
     $custom_words = require $custom_word_path;
-}else{
+} else {
     $custom_words = [];
 }
 
