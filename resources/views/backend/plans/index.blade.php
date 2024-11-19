@@ -83,9 +83,8 @@
                             <th>@lang('wncms::word.action')</th>
                             <th>@lang('wncms::word.id')</th>
                             <th>@lang('wncms::word.name')</th>
-                            <th>@lang('wncms::word.price')</th>
-                            <th>@lang('wncms::word.billing_cycle')</th>
                             <th>@lang('wncms::word.status')</th>
+                            <th>@lang('wncms::word.plan_price')</th>
                             <th>@lang('wncms::word.created_at')</th>
 
                             @if(request()->show_detail)
@@ -120,10 +119,27 @@
                                 {{-- Data --}}
                                 <td>{{ $plan->id }}</td>
                                 <td>{{ $plan->name }}</td>
-                                <td>{{ $plan->price }}</td>
-                                <td>@lang('wncms::word.' . $plan->billing_cycle)</td>
                                 <td>@lang('wncms::word.' . $plan->status)</td>
                                 <td>{{ $plan->created_at }}</td>
+                                {{-- Plan Prices --}}
+                                <td>
+                                    @if($plan->prices->isNotEmpty())
+                                        <ul class="mb-0 list-unstyled">
+                                            @foreach($plan->prices as $price)
+                                                <li>
+                                                    <span>#{{ $price->id }}| </span>
+                                                    @if($price->is_lifetime)
+                                                    @lang('wncms::word.lifetime'): {{ $price->price }}
+                                                    @else
+                                                    {{ $price->duration }} @lang('wncms::word.' . $price->duration_unit):  {{ $price->price }}
+                                                    @endif
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <span class="text-muted">@lang('wncms::word.no_prices')</span>
+                                    @endif
+                                </td>
 
                                 @if(request()->show_detail)
                                     <td>{{ $plan->updated_at }}</td>

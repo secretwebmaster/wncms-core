@@ -8,6 +8,9 @@ use Illuminate\Support\ServiceProvider;
 use Wncms\Exceptions\WncmsExceptionHandler;
 use Illuminate\Support\Facades\File;
 use Illuminate\Foundation\AliasLoader;
+use Wncms\Facades\Wncms;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Route;
 
 class WncmsServiceProvider extends ServiceProvider
 {
@@ -17,11 +20,11 @@ class WncmsServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Register the facade
-        $this->app->singleton('wncms', function ($app) {
-            return new \Wncms\Services\Wncms; // Assuming the core class for Wncms is located at Wncms\Wncms
-        });
+        $this->app->singleton('wncms', fn($app) => new \Wncms\Services\Wncms);
+        $this->app->singleton('plan-manager', fn($app) => new \Wncms\Services\Managers\PlanManager);
 
         AliasLoader::getInstance()->alias('Wncms', \Wncms\Facades\Wncms::class);
+        AliasLoader::getInstance()->alias('PlanManger', \Wncms\Facades\PlanManager::class);
 
         // Replace the default exception handler with your custom one
         $this->app->singleton(\Illuminate\Contracts\Debug\ExceptionHandler::class, WncmsExceptionHandler::class);
@@ -45,6 +48,7 @@ class WncmsServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../../config/translatable.php', 'translatable');
         $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-system-settings.php', 'wncms-system-settings');
         $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-tags.php', 'wncms-tags');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/wncms.php', 'wncms');
 
         // Load the theme configurations
         $this->mergeConfigFrom(__DIR__ . '/../../config/theme/default.php', 'theme.default');
@@ -104,9 +108,13 @@ class WncmsServiceProvider extends ServiceProvider
                     'multi_website' => gss('multi_website', config('wncms.multi_website', false)),
                 ]);
 
-                $website = wncms()->website()->get();
+                View::share('website', Wncms::website()->get());
 
-                view()->share('website', $website);
+                View::composer('*', function ($view) {
+                    if (Route::currentRouteName() && str_starts_with(Route::currentRouteName(), 'frontend.')) {
+                        $view->with('user', auth()->user());
+                    }
+                });
             } else {
                 // redirect to installation guide
             }

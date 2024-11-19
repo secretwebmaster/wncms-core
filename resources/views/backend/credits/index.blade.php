@@ -13,10 +13,10 @@
 
                 {{-- Filter by Credit Type --}}
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <select name="credit_type" class="form-select form-select-sm">
+                    <select name="type" class="form-select form-select-sm">
                         <option value="">@lang('wncms::word.select')@lang('wncms::word.credit_type')</option>
-                        @foreach(\Wncms\Enums\CreditType::values() as $type)
-                            <option value="{{ $type }}" @if($type == request()->credit_type) selected @endif>@lang('wncms::word.' . $type)</option>
+                        @foreach($types as $type)
+                            <option value="{{ $type }}" @if($type == request()->type) selected @endif>@lang('wncms::word.' . $type)</option>
                         @endforeach
                     </select>
                 </div>
@@ -83,7 +83,7 @@
                                 {{-- Data --}}
                                 <td>{{ $credit->id }}</td>
                                 <td>{{ $credit->user?->username ?? '-' }}</td>
-                                <td>@lang('wncms::word.' . $credit->credit_type)</td>
+                                <td>@lang('wncms::word.' . $credit->type)</td>
                                 <td>{{ $credit->amount }}</td>
                                 <td>{{ $credit->created_at->format('Y-m-d H:i') }}</td>
                             </tr>

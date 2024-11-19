@@ -107,6 +107,7 @@ class UserController extends FrontendController
             return redirect()->back()->withErrors(['message' => __('wncms::word.user_already_exists')]);
         }
 
+        // TODO: move the manager to make all registration process consistent
         $user = $userModel::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
@@ -115,6 +116,10 @@ class UserController extends FrontendController
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        // set credits to 0
+        $user->credits()->create(['type' => 'balance', 'amount' => 0]);
+        $user->credits()->create(['type' => 'points', 'amount' => 0]);
 
         Event::dispatch('wncms.frontend.users.registered', $user);
 
@@ -307,6 +312,21 @@ class UserController extends FrontendController
                 'status' => $status,
             ],
             fallback: 'wncms::frontend.theme.default.users.password.completed',
+        );
+    }
+
+    /**
+     * Show user subscriptions.
+     */
+    public function show_subscription()
+    {
+        $subscriptions = auth()->user()->subscriptions()->with(['plan', 'price'])->get();
+        return Wncms::view(
+            name: "frontend.theme.{$this->theme}.users.subscriptions",
+            params: [
+                'subscriptions' => $subscriptions,
+            ],
+            fallback: 'wncms::frontend.theme.default.users.subscriptions',
         );
     }
 }

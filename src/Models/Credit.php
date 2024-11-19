@@ -25,6 +25,12 @@ class Credit extends Model
         'recharge',
     ];
 
+    public const TYPES = [
+        'credit',
+        'balance',
+    ];
+
+
     public function user()
     {
         return $this->belongsTo(User::class);

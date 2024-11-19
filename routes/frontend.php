@@ -1,5 +1,7 @@
 <?php
 
+use Wncms\Http\Controllers\Frontend\CardController;
+use Wncms\Http\Controllers\Frontend\PlanController;
 use Wncms\Http\Controllers\Frontend\ContactFormSubmissionController;
 use Wncms\Http\Controllers\Frontend\PageController;
 use Wncms\Http\Controllers\Frontend\PostController;
@@ -46,11 +48,17 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     Route::get('faq/tag/{tagName?}', [FaqController::class, 'tag'])->name('faqs.tag');
     Route::get('faq/{tagType}/{tagName?}', [FaqController::class, 'archive'])->name('faqs.archive');
 
+    //plan
+    Route::get('plans', [PlanController::class, 'index'])->name('plans.index');
+    Route::get('plans/{plan}', [PlanController::class, 'show'])->name('plans.show');
+    Route::post('plans/subscribe', [PlanController::class, 'subscribe'])->name('plans.subscribe');
+    Route::post('plans/unsubscribe', [PlanController::class, 'unsubscribe'])->name('plans.unsubscribe');
+
     //sitemap
     Route::get('sitemap/posts', [SitemapController::class, 'posts'])->name('sitemaps.posts');
     Route::get('sitemap/pages', [SitemapController::class, 'pages'])->name('sitemaps.pages');
     Route::get('sitemap/tags/{model}/{type}', [SitemapController::class, 'tags'])->name('sitemaps.tags');
-    
+
     // user pages
     Route::prefix('user')->middleware(['auth'])->controller(UserController::class)->group(function () {
         Route::get('/logout', 'logout')->name('users.logout');
@@ -58,6 +66,11 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::get('/profile/edit', 'edit_profile')->name('users.profile.edit');
         Route::post('/profile/update', 'update_profile')->name('users.profile.update');
 
+        
+        Route::prefix('card')->controller(CardController::class)->group(function () {
+            Route::get('/', 'show')->name('users.card');
+            Route::post('/use', 'use')->name('users.card.use');
+        });
     });
 
     Route::prefix('user')->controller(UserController::class)->group(function () {
@@ -73,8 +86,7 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::get('/password/reset', 'show_password_reset')->name('users.password.reset');
         Route::post('/password/reset/submit', 'handle_password_reset')->name('users.password.reset.submit');
 
-
- 
+        Route::get('/subscription', 'show_subscription')->name('users.subscription');
 
         Route::get('/oauth/{provider?}', 'oauth')->name('users.oauth');
         Route::get('/oauth/callback/{provider?}/{code?}', 'oauth_callback')->name('users.oauth.callback');
@@ -106,7 +118,7 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::get('/reward', 'showRewardsPage')->name('users.reward');
         Route::get('/orders', 'showOrderList')->name('users.orders');
         Route::get('/order/info', 'showOrderInfo')->name('users.order_info');
-        Route::get('/cards', 'showCardsPage')->name('users.cards');
+
         Route::post('/comment', 'showComments')->name('users.comment');
         Route::post('/gbook', 'showGuestBook')->name('users.gbook');
         Route::get('/visit', 'showVisits')->name('users.visit');
@@ -117,6 +129,8 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::post('/ajax/ulog', 'ajaxLog')->name('users.ajax.ulog');
         Route::post('/ajax/buy_popedom', 'ajaxBuyPermission')->name('users.ajax.buy_popedom');
     });
+
+
 
     //custom frontend route
     if (file_exists(base_path('routes/custom_frontend.php'))) {

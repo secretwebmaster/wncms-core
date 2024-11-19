@@ -27,7 +27,7 @@
                 <div class="col-6 col-md-auto mb-3 ms-0">
                     <select name="status" class="form-select form-select-sm">
                         <option value="">@lang('wncms::word.select_status')</option>
-                        @foreach(['pending', 'paid', 'failed', 'canceled', 'completed'] as $status)
+                        @foreach(['pending', 'paid', 'failed', 'cancelled', 'completed'] as $status)
                             <option value="{{ $status }}" @if(request('status') == $status) selected @endif>
                                 @lang('wncms::word.' . $status)
                             </option>

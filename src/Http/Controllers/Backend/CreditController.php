@@ -14,8 +14,8 @@ class CreditController extends Controller
     {
         $q = Credit::query();
 
-        if ($request->filled('credit_type')) {
-            $q->where('credit_type', $request->credit_type);
+        if ($request->filled('type')) {
+            $q->where('type', $request->type);
         }
 
         $credits = $q->paginate($request->page_size ?? 100);
@@ -23,6 +23,7 @@ class CreditController extends Controller
         return view('wncms::backend.credits.index', [
             'page_title' => wncms_model_word('credit', 'management'),
             'credits' => $credits,
+            'types' => Credit::TYPES,
         ]);
     }
 
@@ -34,6 +35,7 @@ class CreditController extends Controller
             'page_title' => wncms_model_word('credit', 'create'),
             'credit' => $credit,
             'users' => User::all(),
+            'types' => Credit::TYPES,
         ]);
     }
 
@@ -41,19 +43,19 @@ class CreditController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'credit_type' => 'required|string|in:' . implode(',', \Wncms\Enums\CreditType::values()),
+            'type' => 'required|string|in:' . implode(',', Credit::TYPES),
             'amount' => 'required|numeric|min:0',
         ]);
 
         $existingCredit = Credit::where([
             'user_id' => $validated['user_id'],
-            'credit_type' => $validated['credit_type'],
+            'type' => $validated['type'],
         ])->first();
 
         if ($existingCredit) {
             return back()
                 ->withErrors([
-                    'credit_type' => __('wncms::word.credit_already_exists', [
+                    'type' => __('wncms::word.credit_already_exists', [
                         'id' => $existingCredit->id,
                         'value' => $existingCredit->amount,
                     ]),
@@ -74,14 +76,15 @@ class CreditController extends Controller
             'page_title' => wncms_model_word('credit', 'edit'),
             'credit' => $credit,
             'users' => User::all(),
+            'types' => Credit::TYPES,
         ]);
     }
 
     public function update(Request $request, Credit $credit)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'credit_type' => 'required|string|in:' . implode(',', \Wncms\Enums\CreditType::values()),
+            // 'user_id' => 'required|exists:users,id',
+            // 'type' => 'required|string|in:' . implode(',', Credit::TYPES),
             'amount' => 'required|numeric|min:0',
         ]);
 
@@ -107,7 +110,7 @@ class CreditController extends Controller
         return view('wncms::backend.credits.recharge', [
             'page_title' => __('wncms::word.credit_recharge'),
             'users' => User::all(),
-            'types' => \Wncms\Enums\CreditType::values(),
+            'types' => Credit::TYPES,
         ]);
     }
 
@@ -118,14 +121,14 @@ class CreditController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'credit_type' => 'required|string|in:' . implode(',', \Wncms\Enums\CreditType::values()),
+            'type' => 'required|string|in:' . implode(',', Credit::TYPES),
             'amount' => 'required|numeric|min:0.01',
         ]);
 
         // Find the credit entry or create a new one
         $credit = Credit::firstOrNew([
             'user_id' => $validated['user_id'],
-            'credit_type' => $validated['credit_type'],
+            'type' => $validated['type'],
         ]);
 
         // Update the amount
@@ -135,7 +138,7 @@ class CreditController extends Controller
         // Create a credit transaction record
         CreditTransaction::create([
             'user_id' => $validated['user_id'],
-            'credit_type' => $validated['credit_type'],
+            'type' => $validated['type'],
             'amount' => $validated['amount'],
             'transaction_type' => 'recharge',
             'remark' => __('wncms::word.recharge_added_by_admin', [
@@ -147,7 +150,7 @@ class CreditController extends Controller
             ->withMessage(__('wncms::word.credit_recharged_successfully', [
                 'user' => $credit->user->username,
                 'amount' => $validated['amount'],
-                'type' => $validated['credit_type'],
+                'type' => $validated['type'],
             ]));
     }
 }

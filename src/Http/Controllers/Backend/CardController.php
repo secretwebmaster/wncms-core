@@ -2,7 +2,6 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Enums\CardStatus;
 use Wncms\Http\Controllers\Controller;
 use Wncms\Models\Card;
 use Wncms\Models\Plan;
@@ -31,7 +30,6 @@ class CardController extends Controller
             'statuses' => CardStatus::values(), // Passing statuses from the enum
         ]);
     }
-    
 
     public function create(Card $card = null)
     {
@@ -101,4 +99,64 @@ class CardController extends Controller
         return redirect()->route('cards.edit', $card)
             ->withMessage(__('wncms::word.successfully_updated'));
     }
+
+    public function destroy(Card $card)
+    {
+        $card->delete();
+        return redirect()->route('cards.index')->withMessage(__('wncms::word.successfully_deleted'));
+    }
+
+    public function bulk_delete(Request $request)
+    {
+        if(!is_array($request->model_ids)){
+            $modelIds = explode(",", $request->model_ids);
+        }else{
+            $modelIds = $request->model_ids;
+        }
+
+        $count = Card::whereIn('id', $modelIds)->delete();
+
+        if($request->ajax()){
+            return response()->json([
+                'status' => 'success',
+                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
+            ]);
+        }
+
+        return redirect()->route('cards.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
+    }
+
+    public function bulkCreate(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => 'required|string|in:credit,plan,product',
+            'value' => 'nullable|numeric|min:0',
+            'plan_id' => 'nullable|exists:plans,id',
+            'product_id' => 'nullable|exists:products,id',
+            'amount' => 'required|integer|min:1|max:1000', // Limit to 1000 for safety
+        ]);
+    
+        $cards = [];
+        for ($i = 0; $i < $validated['amount']; $i++) {
+            $cards[] = [
+                'code' => \Str::uuid()->toString(), // Generate UUID
+                'type' => $validated['type'],
+                'value' => $validated['value'],
+                'plan_id' => $validated['plan_id'],
+                'product_id' => $validated['product_id'],
+                'status' => 'active', // Default status
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+    
+        Card::insert($cards);
+    
+        wncms()->cache()->flush(['cards']);
+    
+        return redirect()->route('cards.index')
+            ->withMessage(__('wncms::word.bulk_create_success', ['amount' => $validated['amount']]));
+    }
+    
+
 }

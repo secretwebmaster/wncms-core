@@ -14,6 +14,7 @@ class Subscription extends Model
     protected $casts = [
         'subscribed_at' => 'datetime',
         'expired_at' => 'datetime',
+        'status' => 'string',
     ];
 
     public const ICONS = [
@@ -25,6 +26,12 @@ class Subscription extends Model
         'create',
     ];
 
+    public const STATUSES = [
+        'active',
+        'expired',
+        'cancelled',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -33,5 +40,10 @@ class Subscription extends Model
     public function plan()
     {
         return $this->belongsTo(Plan::class);
+    }
+
+    public function price()
+    {
+        return $this->belongsTo(PlanPrice::class, 'plan_price_id', 'id');
     }
 }

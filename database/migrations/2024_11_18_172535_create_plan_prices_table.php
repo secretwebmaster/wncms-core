@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('credit_transactions', function (Blueprint $table) {
+        Schema::create('plan_prices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('credit_type');
-            $table->decimal('amount', 10, 2);
-            $table->string('transaction_type');
-            $table->string('remark')->nullable();
+            $table->foreignId('plan_id')->constrained()->cascadeOnDelete();
+            $table->decimal('price', 10, 2);
+            $table->integer('duration')->nullable();
+            $table->string('duration_unit')->nullable();
+            $table->boolean('is_lifetime')->default(false);
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('credit_transactions');
+        Schema::dropIfExists('plan_prices');
     }
 };

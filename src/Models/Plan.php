@@ -24,4 +24,25 @@ class Plan extends Model
     {
         return $this->hasMany(Subscription::class);
     }
+
+    public function prices()
+    {
+        return $this->hasMany(PlanPrice::class);
+    }
+
+    /**
+     * Get the lifetime price for the plan.
+     */
+    public function getLifetimePrice(): ?PlanPrice
+    {
+        return $this->prices()->lifetime()->first();
+    }
+
+    /**
+     * Get the price for a specific duration.
+     */
+    public function getPriceForDuration(int $duration): ?PlanPrice
+    {
+        return $this->prices()->regular()->where('duration', $duration)->first();
+    }
 }

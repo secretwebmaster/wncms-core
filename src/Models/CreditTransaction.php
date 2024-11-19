@@ -24,6 +24,14 @@ class CreditTransaction extends Model
         'create',
     ];
 
+    public const TRANSACTION_TYPES = [
+        'earn',
+        'spend',
+        'recharge',
+        'refund',
+        'adjustment',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

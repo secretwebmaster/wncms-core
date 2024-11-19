@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('slug')->unique();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->enum('status', ['pending', 'paid', 'failed', 'canceled', 'completed'])->default('pending');
+            $table->enum('status', ['pending', 'paid', 'failed', 'cancelled', 'completed'])->default('pending');
             $table->decimal('total_amount', 10, 2);
             $table->string('payment_method')->nullable();
             $table->timestamps();

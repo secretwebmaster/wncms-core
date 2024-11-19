@@ -357,6 +357,16 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     Route::delete('plans/{plan}', [PlanController::class, 'destroy'])->middleware('can:plan_delete')->name('plans.destroy');
     Route::post('plans/bulk_delete', [PlanController::class, 'bulk_delete'])->middleware('can:plan_bulk_delete')->name('plans.bulk_delete');
 
+    // plan_price for model PlanPrice
+    Route::get('plan_prices', [PlanPriceController::class, 'index'])->middleware('can:plan_price_index')->name('plan_prices.index');
+    Route::get('plan_prices/create', [PlanPriceController::class, 'create'])->middleware('can:plan_price_create')->name('plan_prices.create');
+    Route::get('plan_prices/create/{planPrice}', [PlanPriceController::class, 'create'])->middleware('can:plan_price_clone')->name('plan_prices.clone');
+    Route::get('plan_prices/{planPrice}/edit', [PlanPriceController::class, 'edit'])->middleware('can:plan_price_edit')->name('plan_prices.edit');
+    Route::post('plan_prices/store', [PlanPriceController::class, 'store'])->middleware('can:plan_price_create')->name('plan_prices.store');
+    Route::patch('plan_prices/{planPrice}', [PlanPriceController::class, 'update'])->middleware('can:plan_price_edit')->name('plan_prices.update');
+    Route::delete('plan_prices/{planPrice}', [PlanPriceController::class, 'destroy'])->middleware('can:plan_price_delete')->name('plan_prices.destroy');
+    Route::post('plan_prices/bulk_delete', [PlanPriceController::class, 'bulk_delete'])->middleware('can:plan_price_bulk_delete')->name('plan_prices.bulk_delete');
+
     // product for model Product
     Route::get('products', [ProductController::class, 'index'])->middleware('can:product_index')->name('products.index');
     Route::get('products/create', [ProductController::class, 'create'])->middleware('can:product_create')->name('products.create');
@@ -408,6 +418,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     Route::patch('cards/{card}', [CardController::class, 'update'])->middleware('can:card_edit')->name('cards.update');
     Route::delete('cards/{card}', [CardController::class, 'destroy'])->middleware('can:card_delete')->name('cards.destroy');
     Route::post('cards/bulk_delete', [CardController::class, 'bulk_delete'])->middleware('can:card_bulk_delete')->name('cards.bulk_delete');
+    Route::post('cards/bulk_create', [CardController::class, 'bulkCreate'])->middleware('can:card_bulk_create')->name('cards.bulk_create');
 
     // order for model Order
     Route::get('orders', [OrderController::class, 'index'])->middleware('can:order_index')->name('orders.index');

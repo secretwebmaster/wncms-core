@@ -17,12 +17,12 @@
 
     {{-- Credit Type --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.credit_type')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.type')</label>
         <div class="col-lg-9 fv-row">
-            <select id="credit_type" name="credit_type" class="form-select form-select-sm" required>
+            <select id="type" name="type" class="form-select form-select-sm" required>
                 <option value="">@lang('wncms::word.please_select')</option>
                 @foreach(['balance', 'points'] as $type)
-                    <option value="{{ $type }}" {{ $type === old('credit_type', $creditTransaction->credit_type ?? null) ? 'selected' : '' }}>
+                    <option value="{{ $type }}" {{ $type === old('type', $creditTransaction->type ?? null) ? 'selected' : '' }}>
                         @lang('wncms::word.' . $type)
                     </option>
                 @endforeach

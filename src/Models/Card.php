@@ -26,6 +26,19 @@ class Card extends Model
         'create',
     ];
 
+    public const STATUSES = [
+        'active',
+        'redeemed',
+        'expired',
+    ];
+    
+    public const TYPES = [
+        'credit',
+        'balance',
+        'plan',
+        'product',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

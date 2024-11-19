@@ -27,7 +27,7 @@
                 <div class="col-6 col-md-auto mb-3 ms-0">
                     <select name="credit_type" class="form-select form-select-sm">
                         <option value="">@lang('wncms::word.select')@lang('wncms::word.credit_type')</option>
-                        @foreach(\Wncms\Enums\CreditType::values() as $type)
+                        @foreach($types as $type)
                             <option value="{{ $type }}" @if(request('credit_type') == $type) selected @endif>
                                 @lang('wncms::word.' . $type)
                             </option>

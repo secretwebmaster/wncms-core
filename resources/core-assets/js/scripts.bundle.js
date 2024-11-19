@@ -1996,8 +1996,8 @@ var KTImageInput = function(element, options) {
             the.hiddenElement.value = "0";
         }
 
-        // Fire canceled event
-        KTEventHandler.trigger(the.element, 'kt.imageinput.canceled', the);
+        // Fire cancelled event
+        KTEventHandler.trigger(the.element, 'kt.imageinput.cancelled', the);
     }
 
     var _remove = function(e) {
@@ -6497,7 +6497,7 @@ var KTUtil = function() {
             };
 
             // Animation loop
-            var canceled = false;
+            var cancelled = false;
             var change = to - from;
 
             function loop(timestamp) {

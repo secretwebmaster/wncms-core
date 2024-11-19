@@ -52,7 +52,7 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'status' => 'required|string|in:pending,paid,failed,canceled,completed',
+            'status' => 'required|string|in:pending,paid,failed,cancelled,completed',
             'total_amount' => 'required|numeric|min:0.01',
             'payment_method' => 'nullable|string|max:255',
         ]);
@@ -86,7 +86,7 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'status' => 'required|string|in:pending,paid,failed,canceled,completed',
+            'status' => 'required|string|in:pending,paid,failed,cancelled,completed',
             'total_amount' => 'required|numeric|min:0.01',
             'payment_method' => 'nullable|string|max:255',
         ]);

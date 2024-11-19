@@ -42,6 +42,98 @@
     {{-- WNCMS toolbar buttons --}}
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
+
+            <button type="button" class="btn btn-sm btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#bulkCreateModal">
+                @lang('wncms::word.bulk_create')
+            </button>
+            <div class="modal fade" id="bulkCreateModal" tabindex="-1" aria-labelledby="bulkCreateModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <form method="POST" action="{{ route('cards.bulk_create') }}">
+                        @csrf
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="bulkCreateModalLabel">@lang('wncms::word.bulk_create')</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                {{-- Type --}}
+                                <div class="mb-3">
+                                    <label for="type" class="form-label">@lang('wncms::word.type')</label>
+                                    <select name="type" id="type" class="form-select" required>
+                                        <option value="credit">@lang('wncms::word.credit')</option>
+                                        <option value="plan">@lang('wncms::word.plan')</option>
+                                        <option value="product">@lang('wncms::word.product')</option>
+                                    </select>
+                                </div>
+
+                                {{-- Amount --}}
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label">@lang('wncms::word.amount')</label>
+                                    <input type="number" name="amount" id="amount" class="form-control" min="1" max="1000" required>
+                                </div>
+            
+                                {{-- Value --}}
+                                <div class="mb-3">
+                                    <label for="value" class="form-label">@lang('wncms::word.value')</label>
+                                    <input type="number" name="value" id="value" class="form-control" step="0.01" min="0">
+                                </div>
+            
+                                {{-- Plan --}}
+                                <div class="mb-3 d-none" id="plan_field">
+                                    <label for="plan_id" class="form-label">@lang('wncms::word.plan')</label>
+                                    <select name="plan_id" id="plan_id" class="form-select">
+                                        <option value="">@lang('wncms::word.select')</option>
+                                        @foreach(\Wncms\Models\Plan::all() as $plan)
+                                            <option value="{{ $plan->id }}">{{ $plan->name }} #{{$plan->id}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+            
+                                {{-- Product --}}
+                                <div class="mb-3 d-none" id="product_field">
+                                    <label for="product_id" class="form-label">@lang('wncms::word.product')</label>
+                                    <select name="product_id" id="product_id" class="form-select">
+                                        <option value="">@lang('wncms::word.select')</option>
+                                        @foreach(\Wncms\Models\Product::all() as $product)
+                                            <option value="{{ $product->id }}">{{ $product->name }} #{{$product->id}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+            
+
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('wncms::word.cancel')</button>
+                                <button type="submit" class="btn btn-primary">@lang('wncms::word.submit')</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const typeSelect = document.getElementById('type');
+                    const planField = document.getElementById('plan_field');
+                    const productField = document.getElementById('product_field');
+            
+                    typeSelect.addEventListener('change', function () {
+                        // Hide all conditional fields
+                        planField.classList.add('d-none');
+                        productField.classList.add('d-none');
+            
+                        // Show the corresponding field based on selected type
+                        if (typeSelect.value === 'plan') {
+                            planField.classList.remove('d-none');
+                        } else if (typeSelect.value === 'product') {
+                            productField.classList.remove('d-none');
+                        }
+                    });
+                });
+            </script>
+            
+            
+            
             @include('wncms::backend.common.default_toolbar_buttons', ['model_prefix' => 'cards'])
         </div>
     </div>

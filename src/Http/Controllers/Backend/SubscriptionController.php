@@ -48,7 +48,7 @@ class SubscriptionController extends Controller
             'plan_id' => 'required|exists:plans,id',
             'subscribed_at' => 'required|date',
             'expired_at' => 'nullable|date|after:subscribed_at',
-            'status' => 'required|in:active,expired,canceled',
+            'status' => 'required|in:active,expired,cancelled',
         ]);
 
         $subscription = Subscription::create($validated);
@@ -76,7 +76,7 @@ class SubscriptionController extends Controller
             'plan_id' => 'required|exists:plans,id',
             'subscribed_at' => 'required|date',
             'expired_at' => 'nullable|date|after:subscribed_at',
-            'status' => 'required|in:active,expired,canceled',
+            'status' => 'required|in:active,expired,cancelled',
         ]);
 
         $subscription->update($validated);

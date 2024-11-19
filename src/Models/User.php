@@ -83,11 +83,26 @@ class User extends Authenticatable implements MustVerifyEmail,HasMedia
         return $this->hasMany(Email::class, 'to_user_id', 'id');
     }
 
+    public function credits()
+    {
+        return $this->hasMany(Credit::class);
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
   
     //! Attribues
     public function getAvatarAttribute()
     {
         return $this->getFirstMediaUrl('avatar') ?: asset('wncms/media/avatars/blank.png');
+    }
+
+    public function getBalanceAttribute()
+    {
+        return $this->credits->where('type', 'balance')->first()->amount ?? 0;
     }
 
 }

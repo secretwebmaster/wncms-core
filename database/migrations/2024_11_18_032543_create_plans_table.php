@@ -15,11 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->enum('billing_cycle', ['daily', 'weekly', 'monthly', 'yearly', 'one-time']);
-            $table->boolean('is_lifetime')->default(false);
             $table->integer('free_trial_duration')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('status')->default('active');
             $table->timestamps();
         });
     }

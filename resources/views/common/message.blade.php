@@ -20,6 +20,10 @@
     <div class="fw-bold alert alert-danger">{!! session('error_message') !!}</div>
 @endif
 
+@if (session()->has('error'))
+    <div class="fw-bold alert alert-danger">{!! session('error') !!}</div>
+@endif
+
 {{-- ajax --}}
 <div class="fw-bold alert alert-danger ajax_messag fail" style="display:none;">
     <ul class="mb-0">
