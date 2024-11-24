@@ -21,12 +21,12 @@ class OrderItemController extends Controller
             $q->where('order_id', $request->order_id);
         }
 
-        if ($request->filled('item_type')) {
-            $q->where('item_type', $request->item_type);
+        if ($request->filled('order_itemable_type')) {
+            $q->where('order_itemable_type', $request->order_itemable_type);
         }
 
-        if ($request->filled('item_id')) {
-            $q->where('item_id', $request->item_id);
+        if ($request->filled('order_itemable_id')) {
+            $q->where('order_itemable_id', $request->order_itemable_id);
         }
 
         $orderItems = $q->paginate($request->page_size ?? 100)->withQueryString();
@@ -57,8 +57,8 @@ class OrderItemController extends Controller
     {
         $validated = $request->validate([
             'order_id' => 'required|exists:orders,id',
-            'item_type' => 'required|string|in:' . implode(',', $this->getItemTypes()),
-            'item_id' => 'required|integer',
+            'order_itemable_type' => 'required|string|in:' . implode(',', $this->getItemTypes()),
+            'order_itemable_id' => 'required|integer',
             'quantity' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0',
             'total' => 'required|numeric|min:0',
@@ -90,8 +90,8 @@ class OrderItemController extends Controller
     {
         $validated = $request->validate([
             'order_id' => 'required|exists:orders,id',
-            'item_type' => 'required|string|in:' . implode(',', $this->getItemTypes()),
-            'item_id' => 'required|integer',
+            'order_itemable_type' => 'required|string|in:' . implode(',', $this->getItemTypes()),
+            'order_itemable_id' => 'required|integer',
             'quantity' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0',
             'total' => 'required|numeric|min:0',
