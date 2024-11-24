@@ -36,6 +36,7 @@ use Wncms\Http\Controllers\Backend\CardController;
 use Wncms\Http\Controllers\Backend\CreditTransactionController;
 use Wncms\Http\Controllers\Backend\CreditController;
 use Wncms\Http\Controllers\Backend\DiscountController;
+use Wncms\Http\Controllers\Backend\PaymentGatewayController;
 use Wncms\Http\Controllers\Backend\ProductController;
 use Wncms\Http\Controllers\Backend\PlanController;
 
@@ -191,6 +192,17 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::post('/update', 'update')->middleware('can:package_edit')->name('packages.update');
         Route::post('/remove', 'remove')->middleware('can:package_edit')->name('packages.remove');
     });
+
+    
+    //payment_gateway
+    Route::get('payment_gateways', [PaymentGatewayController::class, 'index'])->middleware('can:payment_gateway_index')->name('payment_gateways.index');
+    Route::get('payment_gateways/create', [PaymentGatewayController::class, 'create'])->middleware('can:payment_gateway_create')->name('payment_gateways.create');
+    Route::get('payment_gateways/create/{paymentGateway}', [PaymentGatewayController::class, 'create'])->middleware('can:payment_gateway_clone')->name('payment_gateways.clone');
+    Route::get('payment_gateways/{paymentGateway}/edit', [PaymentGatewayController::class, 'edit'])->middleware('can:payment_gateway_edit')->name('payment_gateways.edit');
+    Route::post('payment_gateways/store', [PaymentGatewayController::class, 'store'])->middleware('can:payment_gateway_create')->name('payment_gateways.store');
+    Route::patch('payment_gateways/{paymentGateway}', [PaymentGatewayController::class, 'update'])->middleware('can:payment_gateway_edit')->name('payment_gateways.update');
+    Route::delete('payment_gateways/{paymentGateway}', [PaymentGatewayController::class, 'destroy'])->middleware('can:payment_gateway_delete')->name('payment_gateways.destroy');
+    Route::post('payment_gateways/bulk_delete', [PaymentGatewayController::class, 'bulk_delete'])->middleware('can:payment_gateway_bulk_delete')->name('payment_gateways.bulk_delete');
 
     //permission
     Route::prefix('permissions')->controller(PermissionController::class)->group(function () {
@@ -357,15 +369,15 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     Route::delete('plans/{plan}', [PlanController::class, 'destroy'])->middleware('can:plan_delete')->name('plans.destroy');
     Route::post('plans/bulk_delete', [PlanController::class, 'bulk_delete'])->middleware('can:plan_bulk_delete')->name('plans.bulk_delete');
 
-    // plan_price for model PlanPrice
-    Route::get('plan_prices', [PlanPriceController::class, 'index'])->middleware('can:plan_price_index')->name('plan_prices.index');
-    Route::get('plan_prices/create', [PlanPriceController::class, 'create'])->middleware('can:plan_price_create')->name('plan_prices.create');
-    Route::get('plan_prices/create/{planPrice}', [PlanPriceController::class, 'create'])->middleware('can:plan_price_clone')->name('plan_prices.clone');
-    Route::get('plan_prices/{planPrice}/edit', [PlanPriceController::class, 'edit'])->middleware('can:plan_price_edit')->name('plan_prices.edit');
-    Route::post('plan_prices/store', [PlanPriceController::class, 'store'])->middleware('can:plan_price_create')->name('plan_prices.store');
-    Route::patch('plan_prices/{planPrice}', [PlanPriceController::class, 'update'])->middleware('can:plan_price_edit')->name('plan_prices.update');
-    Route::delete('plan_prices/{planPrice}', [PlanPriceController::class, 'destroy'])->middleware('can:plan_price_delete')->name('plan_prices.destroy');
-    Route::post('plan_prices/bulk_delete', [PlanPriceController::class, 'bulk_delete'])->middleware('can:plan_price_bulk_delete')->name('plan_prices.bulk_delete');
+    // price for model Price
+    Route::get('prices', [PriceController::class, 'index'])->middleware('can:price_index')->name('prices.index');
+    Route::get('prices/create', [PriceController::class, 'create'])->middleware('can:price_create')->name('prices.create');
+    Route::get('prices/create/{Price}', [PriceController::class, 'create'])->middleware('can:price_clone')->name('prices.clone');
+    Route::get('prices/{Price}/edit', [PriceController::class, 'edit'])->middleware('can:price_edit')->name('prices.edit');
+    Route::post('prices/store', [PriceController::class, 'store'])->middleware('can:price_create')->name('prices.store');
+    Route::patch('prices/{Price}', [PriceController::class, 'update'])->middleware('can:price_edit')->name('prices.update');
+    Route::delete('prices/{Price}', [PriceController::class, 'destroy'])->middleware('can:price_delete')->name('prices.destroy');
+    Route::post('prices/bulk_delete', [PriceController::class, 'bulk_delete'])->middleware('can:price_bulk_delete')->name('prices.bulk_delete');
 
     // product for model Product
     Route::get('products', [ProductController::class, 'index'])->middleware('can:product_index')->name('products.index');

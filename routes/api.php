@@ -1,12 +1,13 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use Wncms\Http\Controllers\Api\V1\AnalyticsController;
 use Wncms\Http\Controllers\Api\V1\MenuController;
 use Wncms\Http\Controllers\Api\V1\PageController;
 use Wncms\Http\Controllers\Api\V1\PostController;
 use Wncms\Http\Controllers\Api\V1\TagController;
 use Wncms\Http\Controllers\Api\V1\UpdateController;
-use Illuminate\Support\Facades\Route;
+use Wncms\Http\Controllers\Api\V1\PaymentGatewayController;
 
 Route::prefix('v1')->name('api.v1.')->group(function(){
 
@@ -31,7 +32,8 @@ Route::prefix('v1')->name('api.v1.')->group(function(){
 
     Route::post('update', [UpdateController::class, 'update'])->name('update');
     Route::post('update/progress', [UpdateController::class, 'progress'])->name('update.progress');
-
+    
+    Route::post('payment/notify', [PaymentGatewayController::class, 'notify'])->name('payment.notify');
 });
 
 //custom api route

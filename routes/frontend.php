@@ -7,6 +7,7 @@ use Wncms\Http\Controllers\Frontend\PageController;
 use Wncms\Http\Controllers\Frontend\PostController;
 use Wncms\Http\Controllers\Frontend\SitemapController;
 use Wncms\Http\Controllers\Frontend\FaqController;
+use Wncms\Http\Controllers\Frontend\OrderController;
 use Wncms\Http\Controllers\Frontend\UserController;
 
 Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_cache')->group(function () {
@@ -48,6 +49,8 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     Route::get('faq/tag/{tagName?}', [FaqController::class, 'tag'])->name('faqs.tag');
     Route::get('faq/{tagType}/{tagName?}', [FaqController::class, 'archive'])->name('faqs.archive');
 
+
+
     //plan
     Route::get('plans', [PlanController::class, 'index'])->name('plans.index');
     Route::get('plans/{plan}', [PlanController::class, 'show'])->name('plans.show');
@@ -67,6 +70,14 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::post('/profile/update', 'update_profile')->name('users.profile.update');
 
         
+        // orders
+        Route::prefix('orders')->controller(OrderController::class)->group(function () {
+            Route::get('/', 'index')->name('orders.index');
+            Route::get('/{order}', 'show')->name('orders.show');
+            Route::post('/{order}/pay', 'pay')->name('orders.pay');
+            Route::get('/{order}/success', 'success')->name('orders.success');
+        });
+
         Route::prefix('card')->controller(CardController::class)->group(function () {
             Route::get('/', 'show')->name('users.card');
             Route::post('/use', 'use')->name('users.card.use');
@@ -95,39 +106,6 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::post('/unbind', 'unbindAccount')->name('users.unbind');
 
         Route::get('/regcheck', 'validateRegistration')->name('users.regcheck');
-
-
-
-        Route::get('/reg_msg', 'sendRegistrationMessage')->name('users.reg_msg');
-        Route::post('/portrait', 'updateProfilePicture')->name('users.portrait');
-        Route::get('/buy', 'showPurchasePage')->name('users.buy');
-        Route::post('/pay', 'initiatePayment')->name('users.pay');
-        Route::get('/gopay', 'redirectToPaymentGateway')->name('users.gopay');
-        Route::get('/qrcode', 'generatePaymentQRCode')->name('users.qrcode');
-        Route::get('/upgrade', 'upgradeMembership')->name('users.upgrade');
-        Route::get('/popedom', 'showPermissionsPage')->name('users.popedom');
-        Route::get('/plays', 'showPlays')->name('users.plays');
-        Route::get('/downs', 'showDownloads')->name('users.downs');
-        Route::get('/favs', 'showFavorites')->name('users.favs');
-        Route::get('/ulog', 'showLogs')->name('users.ulog');
-        Route::post('/ulog/del', 'deleteLog')->name('users.ulog_del');
-        Route::get('/plog', 'showPurchaseLogs')->name('users.plog');
-        Route::post('/plog/del', 'deletePurchaseLog')->name('users.plog_del');
-        Route::get('/cash', 'showCashRecords')->name('users.cash');
-        Route::post('/cash/del', 'deleteCashRecord')->name('users.cash_del');
-        Route::get('/reward', 'showRewardsPage')->name('users.reward');
-        Route::get('/orders', 'showOrderList')->name('users.orders');
-        Route::get('/order/info', 'showOrderInfo')->name('users.order_info');
-
-        Route::post('/comment', 'showComments')->name('users.comment');
-        Route::post('/gbook', 'showGuestBook')->name('users.gbook');
-        Route::get('/visit', 'showVisits')->name('users.visit');
-
-        // Ajax Routes
-        Route::post('/ajax/login', 'ajaxLogin')->name('users.ajax.login');
-        Route::post('/ajax/info', 'ajaxInfo')->name('users.ajax.info');
-        Route::post('/ajax/ulog', 'ajaxLog')->name('users.ajax.ulog');
-        Route::post('/ajax/buy_popedom', 'ajaxBuyPermission')->name('users.ajax.buy_popedom');
     });
 
 
