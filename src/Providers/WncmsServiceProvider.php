@@ -22,9 +22,11 @@ class WncmsServiceProvider extends ServiceProvider
         // Register the facade
         $this->app->singleton('wncms', fn($app) => new \Wncms\Services\Wncms);
         $this->app->singleton('plan-manager', fn($app) => new \Wncms\Services\Managers\PlanManager);
+        $this->app->singleton('order-manager', fn($app) => new \Wncms\Services\Managers\OrderManager);
 
         AliasLoader::getInstance()->alias('Wncms', \Wncms\Facades\Wncms::class);
         AliasLoader::getInstance()->alias('PlanManger', \Wncms\Facades\PlanManager::class);
+        AliasLoader::getInstance()->alias('OrderManager', \Wncms\Facades\OrderManager::class);
 
         // Replace the default exception handler with your custom one
         $this->app->singleton(\Illuminate\Contracts\Debug\ExceptionHandler::class, WncmsExceptionHandler::class);

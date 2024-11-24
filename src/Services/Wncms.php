@@ -292,15 +292,17 @@ class Wncms
      * @param string|null $case "upper" = Upper case, "lower" = Lower case, null = Mixed
      * @return string
      */
-    public function getUniqueSlug($table, $column = 'slug', $length = 8, $case = 'lower')
+    public function getUniqueSlug($table, $column = 'slug', $length = 8, $case = 'lower', $prefix = '')
     {
         do {
             $slug = str()->random($length);
 
             if ($case == 'upper') {
-                $slug = strtoupper($slug);
+                $slug = $prefix . strtoupper($slug);
             } elseif ($case == 'lower') {
-                $slug = strtolower($slug);
+                $slug = $prefix . strtolower($slug);
+            }else{
+                $slug = $prefix . $slug;
             }
 
             $duplicated = DB::table($table)->where($column, $slug)->exists();
