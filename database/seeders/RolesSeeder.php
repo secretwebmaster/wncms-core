@@ -25,8 +25,8 @@ class RolesSeeder extends Seeder
         $admin = Role::where('name', 'admin')->first();
 
         //create and assign default permissions
-        foreach($this->default_models() as $modelName){
-            foreach($this->default_permission_suffixes() as $permissionSuffix){
+        foreach ($this->default_models() as $modelName) {
+            foreach ($this->default_permission_suffixes() as $permissionSuffix) {
                 $permissionName = "{$modelName}_{$permissionSuffix}";
                 $permission = Permission::firstOrCreate(['name' => $permissionName]);
                 $superadmin->givePermissionTo($permission);
@@ -35,7 +35,7 @@ class RolesSeeder extends Seeder
         }
 
         //create and assign special permissions
-        foreach($this->special_permissions() as $permissionName){
+        foreach ($this->special_permissions() as $permissionName) {
             $permission = Permission::firstOrCreate(['name' => $permissionName]);
             $superadmin->givePermissionTo($permission);
             $admin->givePermissionTo($permission);
@@ -78,6 +78,16 @@ class RolesSeeder extends Seeder
             'package',
 
             //TODO: add new models
+            'card',
+            'credit',
+            'credit_transaction',
+            'order',
+            'plan',
+            'price',
+            'product',
+            'payment_gateway',
+            'subscription',
+            'transaction',
         ];
     }
 
@@ -119,7 +129,7 @@ class RolesSeeder extends Seeder
             'user_profile_update',
             'user_record_show',
             'user_security_show',
-            
+
             'theme_apply',
             'theme_upload',
             'theme_activate',
@@ -134,6 +144,5 @@ class RolesSeeder extends Seeder
 
             'credit_recharge',
         ];
-        
     }
 }
