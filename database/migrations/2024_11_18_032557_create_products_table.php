@@ -14,10 +14,14 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('type', ['virtual', 'physical']);
+            $table->string('slug');
+            $table->string('status')->default('active');
+            $table->string('type'); // virtual, physical
             $table->decimal('price', 10, 2);
             $table->integer('stock')->nullable();
-            $table->json('variants')->nullable();
+            $table->boolean('is_variable')->default(false);
+            $table->json('attributes')->nullable(); // Fixed {"version": "1.0", "color": "red"}
+            $table->json('variants')->nullable(); // Selectable {"color": ["red", "blue"], "size": ["s", "m", "l"]}
             $table->timestamps();
         });
     }

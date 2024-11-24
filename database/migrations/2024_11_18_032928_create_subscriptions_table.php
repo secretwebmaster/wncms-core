@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
+            $table->string('status')->default('active')->change();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('plan_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('plan_price_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('plan_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('price_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamp('subscribed_at');
             $table->timestamp('expired_at')->nullable();
-             $table->string('status')->default('active')->change();
             $table->timestamps();
         });
     }

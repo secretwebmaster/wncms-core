@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('slug')->unique();
             $table->text('description')->nullable();
-            $table->integer('free_trial_duration')->nullable();
             $table->string('status')->default('active');
+            $table->integer('free_trial_duration')->default(0)->nullable();
             $table->timestamps();
         });
     }

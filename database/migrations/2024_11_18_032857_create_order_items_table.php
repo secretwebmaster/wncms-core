@@ -14,10 +14,9 @@ return new class extends Migration
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
-            $table->morphs('item'); // For `item_type` and `item_id`
+            $table->morphs('order_itemable');
             $table->integer('quantity')->default(1);
-            $table->decimal('price', 10, 2);
-            $table->decimal('total', 10, 2);
+            $table->decimal('amount', 10, 2);
             $table->timestamps();
         });
     }

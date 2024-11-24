@@ -15,9 +15,26 @@ return new class extends Migration
             $table->id();
             $table->string('slug')->unique();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->enum('status', ['pending', 'paid', 'failed', 'cancelled', 'completed'])->default('pending');
+            $table->string('status')->default('pending_payment');
             $table->decimal('total_amount', 10, 2);
             $table->string('payment_method')->nullable();
+
+            // coupon
+            $table->foreignId('coupon_id')->nullable()->constrained()->nullOnDelete();
+            $table->decimal('original_amount', 10, 2)->nullable();
+
+            // account-free checkout
+            $table->string('email')->nullable();
+            $table->string('nickname')->nullable();
+            $table->string('tel')->nullable();
+            $table->string('address')->nullable();
+            $table->string('password')->nullable();
+
+            // payment gateway
+            $table->foreignId('payment_gateway_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('tracking_code')->nullable();
+            
+            $table->text('remark')->nullable();
             $table->timestamps();
         });
     }

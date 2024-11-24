@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
-            $table->string('transaction_id')->nullable();
+            $table->string('status');
             $table->decimal('amount', 10, 2);
-            $table->enum('status', ['pending', 'paid', 'failed', 'refunded']);
             $table->string('payment_method')->nullable();
+            $table->string('ref_id')->nullable();
+            $table->boolean('is_fraud')->default(false);
             $table->timestamps();
         });
     }
