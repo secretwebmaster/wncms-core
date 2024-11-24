@@ -3,6 +3,7 @@
 namespace Wncms\Http\Controllers\Frontend;
 
 use Illuminate\Http\Request;
+use Wncms\Facades\OrderManager;
 use Wncms\Facades\PlanManager;
 use Wncms\Facades\Wncms;
 use Wncms\Models\Plan;
@@ -52,14 +53,30 @@ class PlanController extends FrontendController
             return redirect()->back()->with('error', 'Price not found');
         }
 
-        $result = PlanManager::subscribe(auth()->user(), $plan, $price);
-
-        if (isset($result['error'])) {
-            return redirect()->back()->with('error', $result['error']);
+        // check if user already subscribed to this plan
+        if (auth()->user()->subscriptions()->where('plan_id', $plan->id)->where('price_id', $price->id)->where('status', 'active')->exists()) {
+            return redirect()->back()->with('error', 'Already subscribed to this plan');
         }
 
-        return redirect()->back()->with('message', 'Subscribed successfully');
+        // if user has enough balance, directly subscribe
+        if (auth()->user()->balance >= $price->amount) {
+            $result = PlanManager::subscribe(auth()->user(), $plan, $price);
+            if (isset($result['error'])) {
+                return redirect()->back()->with('error', $result['error']);
+            }
 
+            auth()->user()->credits()->where('type', 'balance')->first()->decrement('amount', $price->amount ?? 0);
+
+            return redirect()->route('frontend.users.subscription')->with('message', 'Subscribed successfully');
+        }
+
+        // create order to receive payment
+        $order = OrderManager::create(auth()->user(), $price);
+
+        // redirect to order details
+        return redirect()->route('frontend.orders.show', [
+            'order' => $order,
+        ]);
     }
 
     /**
@@ -67,13 +84,13 @@ class PlanController extends FrontendController
      */
     public function unsubscribe(Request $request)
     {
-        if(!$request->subscription_id) {
+        if (!$request->subscription_id) {
             return redirect()->back()->with('error', 'Subscription ID is required');
         }
 
         try {
             $subscription = PlanManager::unsubscribe(auth()->user(), $request->subscription_id);
-    
+
             return redirect()->route('frontend.users.subscription')->with('message', 'Unsubscribed successfully');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
