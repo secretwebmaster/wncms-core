@@ -31,6 +31,9 @@
         {{-- Header --}}
         @include('frontend.theme.default.parts.header')
 
+        {{-- Message --}}
+        @include('wncms::common.message')
+
         {{-- Page content --}}
         @yield('content')
 

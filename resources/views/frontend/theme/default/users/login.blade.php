@@ -1,38 +1,37 @@
 @extends('frontend.theme.default.layouts.app')
 
 @section('content')
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white text-center">
-                    <h4>Login</h4>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ route('frontend.users.login.submit') }}">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Username / Email</label>
-                            <input type="username" class="form-control" id="username" name="username" placeholder="Enter your username" required autofocus>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                            <label class="form-check-label" for="remember">Remember Me</label>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Login</button>
-                    </form>
-                </div>
-                <div class="card-footer text-center">
-                    <small>
-                        Don't have an account? <a href="{{ route('register') }}">Register here</a>.
-                    </small>
-                </div>
-            </div>
+<div class="login-container">
+    <h2>@lang('wncms::word.login')</h2>
+    <form method="POST" action="{{ route('frontend.users.login.submit') }}">
+        @csrf
+        <table class="login-table mb-3">
+            <tr>
+                <th>@lang('wncms::word.username_or_email')</th>
+                <td>
+                    <input type="text" name="username" class="form-control" id="username" placeholder="{{ __('wncms::word.enter_username') }}" autofocus required>
+                </td>
+            </tr>
+            <tr>
+                <th>@lang('wncms::word.password')</th>
+                <td>
+                    <input type="password" name="password" class="form-control" id="password" placeholder="{{ __('wncms::word.enter_password') }}" required>
+                </td>
+            </tr>
+            <tr>
+                <th>@lang('wncms::word.remember_me')</th>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <input type="checkbox" id="remember" name="remember">
+                        <label for="remember">@lang('wncms::word.remember_me')</label>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">@lang('wncms::word.login')</button>
+            <small class="d-block mt-3 text-center">@lang('wncms::word.no_account')? <a href="{{ route('register') }}">@lang('wncms::word.register_here')</a>.</small>
         </div>
-    </div>
+    </form>
 </div>
 @endsection
