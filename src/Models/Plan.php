@@ -20,6 +20,11 @@ class Plan extends Model
         'create',
     ];
 
+    public const STATUSES = [
+        'active',
+        'inactive',
+    ];
+
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
@@ -27,13 +32,13 @@ class Plan extends Model
 
     public function prices()
     {
-        return $this->hasMany(PlanPrice::class);
+        return $this->morphMany(Price::class, 'priceable');
     }
 
     /**
      * Get the lifetime price for the plan.
      */
-    public function getLifetimePrice(): ?PlanPrice
+    public function getLifetimePrice(): ?Price
     {
         return $this->prices()->lifetime()->first();
     }
@@ -41,8 +46,16 @@ class Plan extends Model
     /**
      * Get the price for a specific duration.
      */
-    public function getPriceForDuration(int $duration): ?PlanPrice
+    public function getPriceForDuration(int $duration): ?Price
     {
         return $this->prices()->regular()->where('duration', $duration)->first();
+    }
+
+    /**
+     * Get the latest active subscription for the plan.
+     */
+    public function getActiveSubscriptionAttribute(): ?Subscription
+    {
+        return $this->subscriptions()->where('status', 'active')->latest()->first();
     }
 }

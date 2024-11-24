@@ -14,6 +14,7 @@ class Product extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'variants' => 'array',
+        'attributes' => 'array',
     ];
 
     public const ICONS = [
@@ -25,8 +26,26 @@ class Product extends Model
         'create',
     ];
 
+    public const STATUSES = [
+        'active',
+        'inactive',
+    ];
+
+    public const TYPES = [
+        'virtual',
+        'physical',
+    ];
+
     public function orderItems()
     {
         return $this->morphMany(OrderItem::class, 'item');
+    }
+
+    /**
+     * Get all of the product's prices.
+     */
+    public function prices()
+    {
+        return $this->morphMany(Price::class, 'priceable');
     }
 }

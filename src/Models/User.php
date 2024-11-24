@@ -93,6 +93,11 @@ class User extends Authenticatable implements MustVerifyEmail,HasMedia
         return $this->hasMany(Subscription::class);
     }
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
   
     //! Attribues
     public function getAvatarAttribute()
@@ -103,6 +108,24 @@ class User extends Authenticatable implements MustVerifyEmail,HasMedia
     public function getBalanceAttribute()
     {
         return $this->credits->where('type', 'balance')->first()->amount ?? 0;
+    }
+
+    public function getPlans()
+    {
+        // get an collections of unique plans
+        return $this->subscriptions->map(function ($subscription) {
+            return $subscription->plan;
+        })->unique();
+
+    }
+
+    public function hasPlan($planId = null)
+    {
+        if (!$planId) {
+            return $this->subscriptions->where('status', 'active')->count() > 0;
+        }
+
+        return $this->getPlans()->contains('id', $planId);
     }
 
 }

@@ -12,8 +12,7 @@ class OrderItem extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'total' => 'decimal:2',
+        'amount' => 'decimal:2',
     ];
 
     public const ICONS = [
@@ -30,7 +29,7 @@ class OrderItem extends Model
         return $this->belongsTo(Order::class);
     }
 
-    public function item()
+    public function order_itemable()
     {
         return $this->morphTo();
     }

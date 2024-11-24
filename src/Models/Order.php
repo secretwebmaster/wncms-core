@@ -25,13 +25,24 @@ class Order extends Model
         'create',
     ];
 
+    public const STATUSES = [
+        'pending_payment',
+        // 'pending_verification',
+        // 'pending_confirmation', 
+        'pending_processing',
+        'processing',
+        'cancelled',
+        'completed',
+        'failed',
+    ];
+
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
             do {
-                $slug = 'ORD-' . Wncms::getUniqueSlug('orders', 'slug', 12, 'lower');
+                $slug = Wncms::getUniqueSlug('orders', 'slug', 12, 'upper', 'ORD-');
             } while (self::where('slug', $slug)->exists());
 
             $model->slug = $slug;
@@ -43,7 +54,7 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function items()
+    public function order_items()
     {
         return $this->hasMany(OrderItem::class);
     }
@@ -51,5 +62,10 @@ class Order extends Model
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function payment_gateway()
+    {
+        return $this->belongsTo(PaymentGateway::class);
     }
 }

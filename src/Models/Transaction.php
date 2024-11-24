@@ -24,6 +24,12 @@ class Transaction extends Model
         'create',
     ];
 
+    public const STATUSES = [
+        'completed',
+        'refunded',
+        'failed',
+    ];
+
     public function order()
     {
         return $this->belongsTo(Order::class);
