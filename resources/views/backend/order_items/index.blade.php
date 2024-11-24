@@ -13,10 +13,10 @@
 
             {{-- Filter by Item Type --}}
             <div class="col-6 col-md-auto mb-3 ms-0">
-                <select name="item_type" class="form-select form-select-sm">
-                    <option value="">@lang('wncms::word.select_item_type')</option>
+                <select name="order_itemable_type" class="form-select form-select-sm">
+                    <option value="">@lang('wncms::word.select_order_itemable_type')</option>
                     @foreach($itemTypes as $type)
-                    <option value="{{ $type }}" @if(request('item_type')==$type) selected @endif>
+                    <option value="{{ $type }}" @if(request('order_itemable_type')==$type) selected @endif>
                         {{ class_basename($type) }}
                     </option>
                     @endforeach
@@ -25,8 +25,8 @@
 
             {{-- Filter by Item ID --}}
             <div class="col-6 col-md-auto mb-3 ms-0">
-                <input type="text" name="item_id" class="form-control form-control-sm"
-                    value="{{ request('item_id') }}" placeholder="@lang('wncms::word.item_id')">
+                <input type="text" name="order_itemable_type" class="form-control form-control-sm"
+                    value="{{ request('order_itemable_type') }}" placeholder="@lang('wncms::word.order_itemable_type')">
             </div>
 
             {{-- Submit --}}
@@ -54,7 +54,7 @@
                     <tr>
                         <th>@lang('wncms::word.id')</th>
                         <th>@lang('wncms::word.order')</th>
-                        <th>@lang('wncms::word.item_type')</th>
+                        <th>@lang('wncms::word.order_itemable_type')</th>
                         <th>@lang('wncms::word.quantity')</th>
                         <th>@lang('wncms::word.price')</th>
                         <th>@lang('wncms::word.total')</th>
@@ -68,7 +68,7 @@
                     <tr>
                         <td>{{ $orderItem->id }}</td>
                         <td>{{ $orderItem->order->slug ?? '-' }}</td>
-                        <td>{{ $orderItem->item_type }}</td>
+                        <td>{{ $orderItem->order_itemable_type }}</td>
                         <td>{{ $orderItem->quantity }}</td>
                         <td>{{ number_format($orderItem->price, 2) }}</td>
                         <td>{{ number_format($orderItem->total, 2) }}</td>

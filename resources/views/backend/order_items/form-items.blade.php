@@ -17,17 +17,17 @@
 
     {{-- Item Type --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="item_type">@lang('wncms::word.item_type')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="order_itemable_type">@lang('wncms::word.order_itemable_type')</label>
         <div class="col-lg-9 fv-row">
-            <input id="item_type" type="text" name="item_type" class="form-control form-control-sm" value="{{ old('item_type', $orderItem->item_type ?? null) }}" required />
+            <input id="order_itemable_type" type="text" name="order_itemable_type" class="form-control form-control-sm" value="{{ old('order_itemable_type', $orderItem->order_itemable_type ?? null) }}" required />
         </div>
     </div>
 
     {{-- Item ID --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="item_id">@lang('wncms::word.item_id')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="order_itemable_type">@lang('wncms::word.order_itemable_type')</label>
         <div class="col-lg-9 fv-row">
-            <input id="item_id" type="number" name="item_id" class="form-control form-control-sm" value="{{ old('item_id', $orderItem->item_id ?? null) }}" required />
+            <input id="order_itemable_type" type="number" name="order_itemable_type" class="form-control form-control-sm" value="{{ old('order_itemable_type', $orderItem->order_itemable_type ?? null) }}" required />
         </div>
     </div>
 

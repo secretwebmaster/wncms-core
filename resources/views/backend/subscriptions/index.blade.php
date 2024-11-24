@@ -79,6 +79,7 @@
                             <th>@lang('wncms::word.id')</th>
                             <th>@lang('wncms::word.user_id')</th>
                             <th>@lang('wncms::word.plan')</th>
+                            <th>@lang('wncms::word.price')</th>
                             <th>@lang('wncms::word.status')</th>
                             <th>@lang('wncms::word.subscribed_at')</th>
                             <th>@lang('wncms::word.expired_at')</th>
@@ -108,7 +109,8 @@
                                 {{-- Data --}}
                                 <td>{{ $subscription->id }}</td>
                                 <td>{{ $subscription->user_id }}</td>
-                                <td>{{ $subscription->plan->name }}</td>
+                                <td>{{ $subscription->plan?->name }}</td>
+                                <td title="{{ $subscription->price?->id }}">{{ $subscription->price?->amount }}</td>
                                 <td>@lang('wncms::word.' . $subscription->status)</td>
                                 <td>{{ $subscription->subscribed_at }}</td>
                                 <td>{{ $subscription->expired_at ?? __('wncms::word.not_applicable') }}</td>

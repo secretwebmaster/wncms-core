@@ -30,7 +30,7 @@
     <div class="row mb-3">
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="slug">@lang('wncms::word.slug')</label>
         <div class="col-lg-9 fv-row">
-            <input id="slug" type="text" name="slug" class="form-control form-control-sm" value="{{ old('slug', (!empty($isCloning) ? wncms()->getUniqueSLug('faqs') : $faq->slug ?? null)) }}"/>
+            <input id="slug" type="text" name="slug" class="form-control form-control-sm" value="{{ old('slug', (!empty($isCloning) ? wncms()->getUniqueSlug('faqs') : $faq->slug ?? null)) }}"/>
         </div>
     </div>
 
