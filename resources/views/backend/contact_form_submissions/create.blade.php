@@ -53,7 +53,7 @@
                     <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('wncms::word.select_example')</label>
                     <div class="col-lg-9 fv-row">
                         <select name="select_example" class="form-select form-select-sm">
-                            <option value=""@lang('wncms::word.please_select')> @lang('wncms::word.select_example')</option>
+                            <option value="">@lang('wncms::word.please_select') @lang('wncms::word.select_example')</option>
                             @foreach($select_examples ?? [] as $select_example)
                                 <option  value="{{ $select_example }}" {{ $select_example === old('select_example', $contact_form_submission->select_example ?? null) ? 'selected' :'' }}>@lang('wncms::word.' . $select_example)</option>
                             @endforeach

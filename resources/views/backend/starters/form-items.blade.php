@@ -19,7 +19,7 @@
         <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('wncms::word.user')</label>
         <div class="col-lg-9 fv-row">
             <select id="user" name="user_id" class="form-select form-select-sm">
-                <option value=""@lang('wncms::word.please_select')> @lang('wncms::word.user')</option>
+                <option value="">@lang('wncms::word.please_select') @lang('wncms::word.user')</option>
                 @foreach($users ?? [] as $user)
                     <option  value="{{ $user->id }}" {{ $user->id === old('user_id', $starter->user?->id ?? null) ? 'selected' :'' }}>{{ $user->username }} #{{ $user->id }}</option>
                 @endforeach
@@ -61,7 +61,7 @@
         <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('wncms::word.select_example')</label>
         <div class="col-lg-9 fv-row">
             <select id="select_example" name="select_example" class="form-select form-select-sm">
-                <option value=""@lang('wncms::word.please_select')> @lang('wncms::word.select_example')</option>
+                <option value="">@lang('wncms::word.please_select') @lang('wncms::word.select_example')</option>
                 @foreach($select_examples ?? [] as $select_example)
                     <option  value="{{ $select_example }}" {{ $select_example === old('select_example', $starter->select_example ?? null) ? 'selected' :'' }}>@lang('wncms::word.' . $select_example)</option>
                 @endforeach

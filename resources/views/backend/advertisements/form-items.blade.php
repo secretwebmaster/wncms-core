@@ -73,7 +73,7 @@
         <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('wncms::word.type')</label>
         <div class="col-lg-9 fv-row">
             <select id="type" name="type" class="form-select form-select-sm" required>
-                <option value=""@lang('wncms::word.please_select')> @lang('wncms::word.type')</option>
+                <option value="">@lang('wncms::word.please_select') @lang('wncms::word.type')</option>
                 @foreach($types ?? [] as $type)
                     <option  value="{{ $type }}" {{ $type === old('type', $advertisement->type ?? null) ? 'selected' :'' }}>@lang('wncms::word.' . $type)</option>
                 @endforeach
