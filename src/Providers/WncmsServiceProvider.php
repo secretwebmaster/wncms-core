@@ -64,6 +64,8 @@ class WncmsServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        config('app.debug') ? error_reporting(E_ALL) : error_reporting(0);
+
         // middleware
         $this->app['router']->aliasMiddleware('localize', \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes::class);
         $this->app['router']->aliasMiddleware('localizationRedirect', \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter::class);
