@@ -9,17 +9,19 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Traits\Macroable;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class User extends Authenticatable implements MustVerifyEmail,HasMedia
+class User extends Authenticatable implements MustVerifyEmail, HasMedia
 {
     use HasFactory, Notifiable;
     use LogsActivity;
     use HasRoles;
     use InteractsWithMedia;
     use WnModelTrait;
+    use Macroable;
 
 
     protected $guarded = [];
@@ -46,7 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail,HasMedia
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-        ->logOnly(['username']);
+            ->logOnly(['username']);
         // Chain fluent methods for configuration options
     }
 
@@ -98,7 +100,7 @@ class User extends Authenticatable implements MustVerifyEmail,HasMedia
         return $this->hasMany(Order::class);
     }
 
-  
+
     //! Attribues
     public function getAvatarAttribute()
     {
@@ -116,7 +118,6 @@ class User extends Authenticatable implements MustVerifyEmail,HasMedia
         return $this->subscriptions->map(function ($subscription) {
             return $subscription->plan;
         })->unique();
-
     }
 
     public function hasPlan($planId = null)
@@ -127,5 +128,4 @@ class User extends Authenticatable implements MustVerifyEmail,HasMedia
 
         return $this->getPlans()->contains('id', $planId);
     }
-
 }
