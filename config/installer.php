@@ -12,7 +12,7 @@ return [
     | by looping through the array and run "extension_loaded" on it.
     |
     */
-    'version'=>'4.3.0',
+    'version'=>'4.99.4.2',
     'core' => [
         'minPhpVersion' => '8.2.0+',
     ],
@@ -29,6 +29,7 @@ return [
             'JSON',
             'cURL',
             'fileinfo',
+            'exif',
         ],
         'apache' => [
             'mod_rewrite',

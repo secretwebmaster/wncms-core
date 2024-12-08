@@ -21,8 +21,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     use HasRoles;
     use InteractsWithMedia;
     use WnModelTrait;
-    use Macroable;
-
 
     protected $guarded = [];
 

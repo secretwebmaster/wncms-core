@@ -58,12 +58,17 @@ class UserController extends FrontendController
     public function login(Request $request)
     {
         $request->validate([
-            'username' => 'required',
+            'email' => 'required_without:username',
+            'username' => 'required_without:email',
             'password' => 'required',
         ]);
 
-        $credentials = $request->only('username', 'password');
-        $user = $this->auth($credentials['username'], $credentials['password']);
+        // Determine which credential is provided
+        $credentialKey = $request->filled('email') ? 'email' : 'username';
+        $credentials = $request->only($credentialKey, 'password');
+
+        // Perform authentication
+        $user = $this->auth($credentials[$credentialKey], $credentials['password']);
 
         if ($user) {
             return redirect()->route('frontend.pages.home');

@@ -176,6 +176,7 @@ class FaqController extends Controller
     /**
      * ----------------------------------------------------------------------------------------------------
      * ! Frontend routes
+     * TODO: move to FrontendController
      * ----------------------------------------------------------------------------------------------------
      */
     public function single($slug)

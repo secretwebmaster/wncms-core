@@ -19,6 +19,7 @@ class WncmsServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        
         // Register the facade
         $this->app->singleton('wncms', fn($app) => new \Wncms\Services\Wncms);
         $this->app->singleton('plan-manager', fn($app) => new \Wncms\Services\Managers\PlanManager);
