@@ -64,12 +64,17 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
 
     // user pages
     Route::prefix('user')->middleware(['auth'])->controller(UserController::class)->group(function () {
+        Route::get('/', 'dashboard')->name('users.dashboard');
         Route::get('/logout', 'logout')->name('users.logout');
         Route::get('/profile', 'show_profile')->name('users.profile');
         Route::get('/profile/edit', 'edit_profile')->name('users.profile.edit');
         Route::post('/profile/update', 'update_profile')->name('users.profile.update');
+        Route::get('/subscription', 'show_subscription')->name('users.subscription');
 
-        
+        Route::get('/bindmsg', 'sendBindMessage')->name('users.bindmsg');
+        Route::post('/bind', 'bindAccount')->name('users.bind');
+        Route::post('/unbind', 'unbindAccount')->name('users.unbind');
+
         // orders
         Route::prefix('orders')->controller(OrderController::class)->group(function () {
             Route::get('/', 'index')->name('orders.index');
@@ -85,10 +90,9 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     });
 
     Route::prefix('user')->controller(UserController::class)->group(function () {
-        Route::get('/', 'dashboard')->name('users.dashboard');
-
         Route::get('/login', 'show_login')->name('users.login');
         Route::post('/login/submit', 'login')->name('users.login.submit');
+        Route::post('/login/ajax', 'login_ajax')->name('users.login.ajax');
         Route::get('/register', 'show_register')->name('users.register');
         Route::post('/register/submit', 'register')->name('users.register.submit');
         Route::get('/password/forgot', 'show_password_forgot')->name('users.password.forgot');
@@ -97,13 +101,8 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::get('/password/reset', 'show_password_reset')->name('users.password.reset');
         Route::post('/password/reset/submit', 'handle_password_reset')->name('users.password.reset.submit');
 
-        Route::get('/subscription', 'show_subscription')->name('users.subscription');
-
         Route::get('/oauth/{provider?}', 'oauth')->name('users.oauth');
         Route::get('/oauth/callback/{provider?}/{code?}', 'oauth_callback')->name('users.oauth.callback');
-        Route::get('/bindmsg', 'sendBindMessage')->name('users.bindmsg');
-        Route::post('/bind', 'bindAccount')->name('users.bind');
-        Route::post('/unbind', 'unbindAccount')->name('users.unbind');
 
         Route::get('/regcheck', 'validateRegistration')->name('users.regcheck');
     });

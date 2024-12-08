@@ -78,6 +78,31 @@ class UserController extends FrontendController
     }
 
     /**
+     * handle the login form submission.
+     */
+    public function login_ajax(Request $request)
+    {
+        $request->validate([
+            'email' => 'required_without:username',
+            'username' => 'required_without:email',
+            'password' => 'required',
+        ]);
+
+        // Determine which credential is provided
+        $credentialKey = $request->filled('email') ? 'email' : 'username';
+        $credentials = $request->only($credentialKey, 'password');
+
+        // Perform authentication
+        $user = $this->auth($credentials[$credentialKey], $credentials['password']);
+
+        if ($user) {
+            return response()->json(['status' => 'success']);
+        } else {
+            return response()->json(['status' => 'error', 'message' => __('wncms::word.invalid_credentials')]);
+        }
+    }
+
+    /**
      * Show the user registration form.
      * 
      * @return \Illuminate\View\View
