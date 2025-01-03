@@ -27,6 +27,11 @@ class Tag extends WncmsTag implements HasMedia
         'created_at',
         'updated_at',
     ];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('tag_thumbnail')->singleFile();
+    }
     
     public function advertisement()
     {
