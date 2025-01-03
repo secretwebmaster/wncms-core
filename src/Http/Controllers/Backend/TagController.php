@@ -164,13 +164,13 @@ class TagController extends Controller
         $icon_name = str_replace('<i class="', '', $icon_name);
         $icon_name = str_replace('"></i>', '', $icon_name);
 
-        //check if selected parent_id is one of the children 
-        if (!empty($request->parent_id)) {
-            $children_ids = $tag->descendants()->pluck('id')->toArray();
-            if (in_array($request->parent_id, $children_ids)) {
-                return back()->withErrors(['message' => __('wncms::word.cannot_set_child_as_parent')]);
-            };
-        }
+        //TODO: check if selected parent_id is one of the children 
+        // if (!empty($request->parent_id)) {
+        //     $children_ids = $tag->descendants()->pluck('id')->toArray();
+        //     if (in_array($request->parent_id, $children_ids)) {
+        //         return back()->withErrors(['message' => __('wncms::word.cannot_set_child_as_parent')]);
+        //     };
+        // }
 
         if(app()->getLocale() != LaravelLocalization::getDefaultLocale()){
             $newName = $tag->getTranslation('name', LaravelLocalization::getDefaultLocale());
