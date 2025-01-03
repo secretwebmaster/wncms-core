@@ -12,7 +12,7 @@
         </td>
         <td class="ps-3">{{ $child->id }}</td>
         <td>@lang('wncms::word.' . $child->type)</td>
-        <td class="@if($level < 2)text-info @endif" title="{{ $child->description }}">{{ $level === 1 ? "├─" : str_repeat('├─', $level)}} #{{ $child->id}} {{ $child->name }}</td>
+        <td class="@if($level < 2)text-info @endif" title="{{ $child->description }}">{{ $level === 1 ? "├─" : str_repeat('├─', $level)}} {{ $child->name }}</td>
         <td>{{ $child->slug }}</td>
         <td>{{ $child->order_column }}</td>
         <td>{{ $child->links_count }}</td>
