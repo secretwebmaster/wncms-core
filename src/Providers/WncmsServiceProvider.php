@@ -111,6 +111,7 @@ class WncmsServiceProvider extends ServiceProvider
                 // override the config with the settings from the database
                 config([
                     'multi_website' => gss('multi_website', config('wncms.multi_website', false)),
+                    'filesystems.disks.public.url' => url('/storage')
                 ]);
 
                 View::share('website', Wncms::website()->get());
