@@ -42,10 +42,7 @@ class MenuManager
 
             $menu = $website->menus()
             ->where(function($q) use($name){
-                foreach(LaravelLocalization::getSupportedLanguagesKeys() as $localeKey){
-                    $q->orwhere("name->{$localeKey}", $name);
-                }
-                $q->orWhere('id', $name);
+                $q->orwhere("name", $name)->orWhere('id', $name);
             })
             ->with('menu_items')
             ->first();
