@@ -138,7 +138,7 @@ class PostController extends Controller
             'post_tags' => $this->post_tags,
             'users' => $users,
             'websites' => $websites,
-            'post' => $post ?? new $model,
+            'post' => $post ?? new $modelClass,
         ]);
     }
 
