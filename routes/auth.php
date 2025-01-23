@@ -31,6 +31,6 @@ Route::prefix('panel')->middleware(['is_installed'])->group(function () {
     Route::get('verify-email', [EmailVerificationPromptController::class, '__invoke'])->middleware('auth')->name('verification.notice');
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])->middleware('auth')->name('password.confirm');
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store'])->middleware('auth');
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth')->name('logout');
+    Route::any('logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth')->name('logout');
 });
 
