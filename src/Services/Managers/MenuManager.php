@@ -208,7 +208,7 @@ class MenuManager
         if ($menuItem->model_type == "page") {
             $page = wncms()->page()->get(pageId:$menuItem->model_id);
             if($page){
-                return wncms()->getRoute('frontend.pages', ['slug' => $page->slug], false, $page->website->domain);
+                return wncms()->getRoute('frontend.pages.single', ['slug' => $page->slug], false, $page->website->domain);
             }
         }
 

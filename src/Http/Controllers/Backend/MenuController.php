@@ -230,7 +230,8 @@ class MenuController extends Controller
 
         // info(wncms_get_fontawesome_class($request->menu_item_icon));
 
-        $menu_item->setTranslations('name',$request->menu_item_name);
+        //% TODO: Rewrtie this part to add translation function
+        // $menu_item->setTranslations('name',$request->menu_item_name);
         $menu_item->save();
         // info($menu_item);
 
