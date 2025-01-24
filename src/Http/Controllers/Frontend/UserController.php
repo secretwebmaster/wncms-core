@@ -71,6 +71,23 @@ class UserController extends FrontendController
         $user = $this->auth($credentials[$credentialKey], $credentials['password']);
 
         if ($user) {
+            // if user has intented url
+            if ($request->has('intended')) {
+                dd("intended");
+                return redirect($request->intended);
+            }
+
+            // if theme has set rediret page after login
+            if (gto('redirect_after_login')) {
+                dd("redirect_after_login");
+                return redirect(gto('redirect_after_login'));
+            }
+
+            // if theme has dashboard page
+            if (view()->exists("frontend.theme.{$this->theme}.users.dashboard")) {
+                return redirect()->route('frontend.users.dashboard');
+            }
+
             return redirect()->route('frontend.pages.home');
         } else {
             return redirect()->back()->withErrors(['message' => __('wncms::word.invalid_credentials')]);
@@ -217,14 +234,20 @@ class UserController extends FrontendController
         $user = auth()->user();
 
         // Validate the input
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:8|confirmed',
-        ]);
+        $request->validate(
+            [
+                'nickname' => 'nullable|string|max:255',
+                'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
+                'password' => 'nullable|min:8|confirmed',
+            ],
+            [
+                'email.email' => __('wncms::word.email_is_invalid'),
+                'email.unique' => __('wncms::word.email_is_already_taken'),
+            ]
+        );
 
         // Update user details
-        $user->name = $request->name;
+        $user->nickname = $request->nickname;
         $user->email = $request->email;
 
         if ($request->filled('password')) {
@@ -234,8 +257,12 @@ class UserController extends FrontendController
         $user->save();
 
         return redirect()
-            ->route('frontend.users.profile')
-            ->with('status', __('wncms::word.profile_updated_successfully'));
+            ->back()
+            ->with('message', __('wncms::word.profile_updated_successfully'));
+
+        // return redirect()
+        //     ->route('frontend.users.profile')
+        //     ->with('status', __('wncms::word.profile_updated_successfully'));
     }
 
     /**
