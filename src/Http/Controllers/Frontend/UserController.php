@@ -440,4 +440,14 @@ class UserController extends FrontendController
             fallback: 'wncms::frontend.theme.default.users.subscriptions',
         );
     }
+
+    //other pages
+    public function page($page)
+    {;
+        return Wncms::view(
+            name: "frontend.theme.{$this->theme}.users.{$page}",
+            params: [],
+            fallback: "frontend.theme.{$this->theme}.pages.home",
+        );
+    }
 }

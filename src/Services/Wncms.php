@@ -451,7 +451,7 @@ class Wncms
      * @param string|null $fallback_view
      * @return View
      */
-    function view($name, $params, $fallback = null)
+    public function view($name, $params, $fallback = null)
     {
         if(view()->exists($name)){
             return view($name, $params);

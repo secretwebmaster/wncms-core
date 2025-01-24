@@ -87,6 +87,8 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
             Route::get('/', 'show')->name('users.card');
             Route::post('/use', 'use')->name('users.card.use');
         });
+
+        Route::get('/{page}', 'page')->name('users.page');
     });
 
     Route::prefix('user')->controller(UserController::class)->group(function () {
