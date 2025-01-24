@@ -37,7 +37,7 @@
             @else
             <td>
                 @foreach( $user->getPlans() as $userPlan)
-                <span>{{ $userPlan->name }} (#{{ $userPlan->id }}) {{ $userPlan->activeSubscription->expired_at }}</span>
+                <span>{{ $userPlan->name }} (#{{ $userPlan->id }}) {{ $userPlan->activeSubscription?->expired_at }}</span>
                 @endforeach
             </td>
             <td>
