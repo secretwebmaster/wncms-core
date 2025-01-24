@@ -57,11 +57,18 @@ class UserController extends FrontendController
      */
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required_without:username',
-            'username' => 'required_without:email',
-            'password' => 'required',
-        ]);
+        $request->validate(
+            [
+                'email' => 'required_without:username',
+                'username' => 'required_without:email',
+                'password' => 'required',
+            ],
+            [
+                'email.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.email')]),
+                'username.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.username')]),
+                'password.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.password')]),
+            ]
+        );
 
         // Determine which credential is provided
         $credentialKey = $request->filled('email') ? 'email' : 'username';
