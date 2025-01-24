@@ -289,11 +289,14 @@ class UserController extends FrontendController
             [
                 'nickname' => 'nullable|string|max:255',
                 'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
-                'password' => 'nullable|min:8|confirmed',
+                'password' => 'nullable|min:6|max:20|confirmed',
             ],
             [
                 'email.email' => __('wncms::word.email_is_invalid'),
                 'email.unique' => __('wncms::word.email_is_already_taken'),
+                'password.min' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
+                'password.max' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
+                'password.confirmed' => __('wncms::word.password_confirmation_is_not_the_same'),
             ]
         );
 
