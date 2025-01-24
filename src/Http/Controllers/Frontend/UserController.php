@@ -145,13 +145,40 @@ class UserController extends FrontendController
      * 
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
+     * 
+     * TODO: allow user either to register with email or username
+     * TODO: allow admin to set if send welcome email
      */
     public function register(Request $request)
     {
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required',
-        ]);
+        $request->validate(
+            [
+                'email' => 'required_without:username',
+                'username' => 'required_without:email',
+                'password' => 'required',
+            ],
+            [
+                'email.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.email')]),
+                'username.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.username')]),
+                'password.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.password')]),
+            ]
+        );
+
+        $sendWelcomeEmail = false;
+
+        // if username is not provided, use string before @ in email as username
+        if (!$request->filled('username')) {
+            $username = explode('@', $request->email)[0];
+        }else{
+            $username = $request->username;
+        }
+
+        // if email is not provided, use username plus current domain as email
+        if (!$request->filled('email')) {
+            $email = $request->username . '@' . request()->getHttpHost();
+        }else{
+            $email = $request->email;
+        }
 
         $userModel = $this->getModelClass();
 
@@ -178,6 +205,23 @@ class UserController extends FrontendController
         Event::dispatch('wncms.frontend.users.registered', $user);
 
         $this->auth($request->username, $request->password);
+
+        // if user has intented url
+        if ($request->has('intended')) {
+            dd("intended");
+            return redirect($request->intended);
+        }
+
+        // if theme has set rediret page after login
+        if (gto('redirect_after_login')) {
+            dd("redirect_after_login");
+            return redirect(gto('redirect_after_login'));
+        }
+
+        // if theme has dashboard page
+        if (view()->exists("frontend.theme.{$this->theme}.users.dashboard")) {
+            return redirect()->route('frontend.users.dashboard');
+        }
 
         return redirect()->route('frontend.pages.home');
     }
