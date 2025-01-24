@@ -2055,6 +2055,9 @@ $words = [
     'telephone' => '電話',
     'not_specified' => '未指定',
     'add_price' => '新增價格',
+
+    //! 0.4.6
+    'profile_updated_successfully' => '個人資料更新成功',
 ];
 
 $locale = basename(__DIR__);
