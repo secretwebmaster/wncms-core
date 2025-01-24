@@ -168,11 +168,11 @@ class UserController extends FrontendController
 
         // if username is not provided, use string before @ in email as username
         if (!$request->filled('username')) {
-            $username = explode('@', $request->email)[0];
+            $username = 'user_' . time() . rand(10,99);
         }else{
             $username = $request->username;
         }
-
+        
         // if email is not provided, use username plus current domain as email
         if (!$request->filled('email')) {
             $email = $request->username . '@' . request()->getHttpHost();
@@ -193,8 +193,8 @@ class UserController extends FrontendController
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'nickname' => $request->nickname,
-            'username' => $request->username,
-            'email' => $request->email,
+            'username' => $username,
+            'email' => $email,
             'password' => Hash::make($request->password),
         ]);
 
@@ -204,7 +204,7 @@ class UserController extends FrontendController
 
         Event::dispatch('wncms.frontend.users.registered', $user);
 
-        $this->auth($request->username, $request->password);
+        $this->auth($username, $request->password);
 
         // if user has intented url
         if ($request->has('intended')) {
