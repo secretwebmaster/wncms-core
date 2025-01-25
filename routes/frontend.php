@@ -2,6 +2,7 @@
 
 use Wncms\Http\Controllers\Frontend\CardController;
 use Wncms\Http\Controllers\Frontend\PlanController;
+use Wncms\Http\Controllers\Frontend\CommentController;
 use Wncms\Http\Controllers\Frontend\ContactFormSubmissionController;
 use Wncms\Http\Controllers\Frontend\PageController;
 use Wncms\Http\Controllers\Frontend\PostController;
@@ -108,6 +109,11 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
 
         Route::get('/regcheck', 'validateRegistration')->name('users.regcheck');
     });
+
+    Route::prefix('comment')->controller(CommentController::class)->group(function () {
+        Route::post('store', 'store')->name('comments.store');
+    });
+
 
 
 

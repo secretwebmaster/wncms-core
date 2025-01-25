@@ -61,6 +61,11 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
 
 
     //! Relationships
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
     public function pages()
     {
         return $this->hasMany(Page::class);
