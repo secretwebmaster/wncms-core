@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->morphs('commentable');
             $table->string('status')->default('visible'); // approved | pending | rejected
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('parent_id')->nullable()->constrained('comments')->onDelete('cascade');
             $table->string('content');
             $table->timestamps();
