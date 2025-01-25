@@ -2058,6 +2058,9 @@ $words = [
 
     //! 0.4.6
     'profile_updated_successfully' => '個人資料更新成功',
+
+    //! 0.4.8
+    'insufficient_credits' => '積分不足',
 ];
 
 $locale = basename(__DIR__);
