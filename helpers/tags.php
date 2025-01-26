@@ -70,7 +70,7 @@ if (!function_exists('wncms_get_tags_by_type')) {
     {
         $cacheKey = "wncms_get_tags_by_type_{$type}_{$count}_{$parent_only}";
         $cacheTags = ['tags'];
-        wncms_clear_cache($cacheKey, $cacheTags);
+        // wncms_clear_cache($cacheKey, $cacheTags);
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, gss('data_cache_time', 3600), function () use ($type, $count, $parent_only) {
             $q = Tag::query();
             $q->where('type', $type);
