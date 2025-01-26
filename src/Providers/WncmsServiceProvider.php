@@ -11,6 +11,7 @@ use Illuminate\Foundation\AliasLoader;
 use Wncms\Facades\Wncms;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 
 class WncmsServiceProvider extends ServiceProvider
 {
@@ -79,6 +80,12 @@ class WncmsServiceProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('has_website', \Wncms\Http\Middleware\HasWebsite::class);
         $this->app['router']->aliasMiddleware('full_page_cache', \Wncms\Http\Middleware\FullPageCache::class);
 
+        // Modify VerifyCsrfToken after it's resolved
+        $this->app->resolving(VerifyCsrfToken::class, function ($csrfMiddleware) {
+            $csrfMiddleware->except('panel/uploads/image');
+            $csrfMiddleware->except('install/*');
+        });
+        
         // routes
         $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
         $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
