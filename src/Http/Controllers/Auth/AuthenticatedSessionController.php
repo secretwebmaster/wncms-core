@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Route;
 use Socialite;
 
 class AuthenticatedSessionController extends Controller
@@ -22,10 +23,10 @@ class AuthenticatedSessionController extends Controller
      */
     public function create()
     {
-        // $website = wncms()->website()->get();
-        // if($website && view()->exists("frontend.theme.{$website?->theme}.users.login")){
-        //     return view("frontend.theme.{$website?->theme}.users.login");
-        // }
+        $website = wncms()->website()->get();
+        if($website && view()->exists("frontend.theme.{$website?->theme}.users.login")){
+            return view("frontend.theme.{$website?->theme}.users.login");
+        }
         return view('wncms::auth.login');
     }
 
