@@ -2061,6 +2061,13 @@ $words = [
 
     //! 0.4.8
     'insufficient_credits' => '積分不足',
+
+    //! 0.4.9
+    'link_icon' => '連結圖標',
+    'link_thumbnail' => '連結縮略圖',
+    'hit_at' => '點擊日期',
+    'slogan' => '標語',
+    'link_tag' => '連結標籤',
 ];
 
 $locale = basename(__DIR__);

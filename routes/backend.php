@@ -36,6 +36,7 @@ use Wncms\Http\Controllers\Backend\CardController;
 use Wncms\Http\Controllers\Backend\CreditTransactionController;
 use Wncms\Http\Controllers\Backend\CreditController;
 use Wncms\Http\Controllers\Backend\DiscountController;
+use Wncms\Http\Controllers\Backend\LinkController;
 use Wncms\Http\Controllers\Backend\PaymentGatewayController;
 use Wncms\Http\Controllers\Backend\ProductController;
 use Wncms\Http\Controllers\Backend\PlanController;
@@ -143,6 +144,18 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::patch('/{faq}', 'update')->middleware('can:faq_edit')->name('faqs.update');
         Route::delete('/{faq}', 'destroy')->middleware('can:faq_delete')->name('faqs.destroy');
         Route::post('/bulk_delete', 'bulk_delete')->middleware('can:faq_bulk_delete')->name('faqs.bulk_delete');
+    });
+
+    //link
+    Route::prefix('links')->controller(LinkController::class)->group(function () {
+        Route::get('/', 'index')->middleware('can:link_index')->name('links.index');
+        Route::get('/create', 'create')->middleware('can:link_create')->name('links.create');
+        Route::get('/create/{link}', 'create')->middleware('can:link_clone')->name('links.clone');
+        Route::get('/{link}/edit', 'edit')->middleware('can:link_edit')->name('links.edit');
+        Route::post('/store', 'store')->middleware('can:link_create')->name('links.store');
+        Route::patch('/{link}', 'update')->middleware('can:link_edit')->name('links.update');
+        Route::delete('/{link}', 'destroy')->middleware('can:link_delete')->name('links.destroy');
+        Route::post('/bulk_delete', 'bulk_delete')->middleware('can:link_bulk_delete')->name('links.bulk_delete');
     });
 
     //menu
