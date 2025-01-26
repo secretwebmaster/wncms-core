@@ -64,6 +64,24 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     Route::get('sitemap/tags/{model}/{type}', [SitemapController::class, 'tags'])->name('sitemaps.tags');
 
     // user pages
+    Route::prefix('user')->controller(UserController::class)->group(function () {
+        Route::get('/login', 'show_login')->name('users.login');
+        Route::post('/login/submit', 'login')->name('users.login.submit');
+        Route::post('/login/ajax', 'login_ajax')->name('users.login.ajax');
+        Route::get('/register', 'show_register')->name('users.register');
+        Route::post('/register/submit', 'register')->name('users.register.submit');
+        Route::get('/password/forgot', 'show_password_forgot')->name('users.password.forgot');
+        Route::post('/password/forgot/submit', 'handle_password_forgot')->name('users.password.forgot.submit');
+        Route::get('/password/forgot/sent', 'show_password_forgot_sent')->name('users.password.forgot.sent');
+        Route::get('/password/reset', 'show_password_reset')->name('users.password.reset');
+        Route::post('/password/reset/submit', 'handle_password_reset')->name('users.password.reset.submit');
+
+        Route::get('/oauth/{provider?}', 'oauth')->name('users.oauth');
+        Route::get('/oauth/callback/{provider?}/{code?}', 'oauth_callback')->name('users.oauth.callback');
+
+        Route::get('/regcheck', 'validateRegistration')->name('users.regcheck');
+    });
+
     Route::prefix('user')->middleware(['auth'])->controller(UserController::class)->group(function () {
         Route::get('/', 'dashboard')->name('users.dashboard');
         Route::get('/logout', 'logout')->name('users.logout');
@@ -89,26 +107,10 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
             Route::post('/use', 'use')->name('users.card.use');
         });
 
-        Route::get('/{page}', 'page')->name('users.page');
+        Route::get('user/{page}', 'page')->name('users.page');
     });
 
-    Route::prefix('user')->controller(UserController::class)->group(function () {
-        Route::get('/login', 'show_login')->name('users.login');
-        Route::post('/login/submit', 'login')->name('users.login.submit');
-        Route::post('/login/ajax', 'login_ajax')->name('users.login.ajax');
-        Route::get('/register', 'show_register')->name('users.register');
-        Route::post('/register/submit', 'register')->name('users.register.submit');
-        Route::get('/password/forgot', 'show_password_forgot')->name('users.password.forgot');
-        Route::post('/password/forgot/submit', 'handle_password_forgot')->name('users.password.forgot.submit');
-        Route::get('/password/forgot/sent', 'show_password_forgot_sent')->name('users.password.forgot.sent');
-        Route::get('/password/reset', 'show_password_reset')->name('users.password.reset');
-        Route::post('/password/reset/submit', 'handle_password_reset')->name('users.password.reset.submit');
 
-        Route::get('/oauth/{provider?}', 'oauth')->name('users.oauth');
-        Route::get('/oauth/callback/{provider?}/{code?}', 'oauth_callback')->name('users.oauth.callback');
-
-        Route::get('/regcheck', 'validateRegistration')->name('users.regcheck');
-    });
 
     Route::prefix('comment')->controller(CommentController::class)->group(function () {
         Route::post('store', 'store')->name('comments.store');

@@ -44,7 +44,7 @@ class UserController extends FrontendController
         if (auth()->check()) {
             return redirect()->route('frontend.pages.home');
         }
-
+        
         return Wncms::view(
             name: "frontend.theme.{$this->theme}.users.login",
             params: [],
