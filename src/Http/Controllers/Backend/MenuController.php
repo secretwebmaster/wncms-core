@@ -2,14 +2,13 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
 use Wncms\Models\Menu;
 use Wncms\Models\Website;
 use Wncms\Models\MenuItem;
 use Illuminate\Http\Request;
 use Wncms\Models\Tag;
 
-class MenuController extends Controller
+class MenuController extends BackendController
 {
     /**
      * Display a listing of the resource.
@@ -114,19 +113,17 @@ class MenuController extends Controller
      */
     public function update(Request $request, Menu $menu)
     {
-        // dd(
-        //     $request->all(),
-        //     $request->new_menu,
-        //     json_decode($request->new_menu,true)
-        // );
-
         //更新菜單 (非菜單項目)
         $menu->update([
             'name' => $request->name
         ]);
 
         //刪除菜單項目
-        $menu->menu_items()->whereIn('id', $request->removes ?? [])->delete();
+        // $menu->menu_items()->whereIn('id', $request->removes ?? [])->delete();
+        $removingMenuItems = $menu->menu_items()->whereIn('id', $request->removes ?? [])->get();
+        foreach($removingMenuItems as $removingMenuItems){
+            $removingMenuItems->delete();
+        }
 
         //更新菜單項目
         // dd(json_decode($request->new_menu, true));
@@ -146,6 +143,7 @@ class MenuController extends Controller
     {
         // dd($menu_item);
         $existing_item = $menu->menu_items()->find($menu_item['id']);
+
         if($existing_item){
             $existing_item->update([
                 'parent_id' => $parent_id,
@@ -177,6 +175,10 @@ class MenuController extends Controller
             ]);
         }
 
+        if(!empty($menu_item['name'])){
+            $new_item->setTranslation('name', app()->getLocale(), $menu_item['name']);
+        }
+
         if(!empty($menu_item['children'])){
             foreach($menu_item['children'] as $sub_menu_item){
                 // info($sub_menu_item);
@@ -201,6 +203,7 @@ class MenuController extends Controller
 
     public function edit_menu_item(Request $request)
     {
+        // dd($request->all());
         // info($request->all());
 
         $menu_item = MenuItem::find($request->menu_item_id);
@@ -230,10 +233,13 @@ class MenuController extends Controller
 
         // info(wncms_get_fontawesome_class($request->menu_item_icon));
 
-        //% TODO: Rewrtie this part to add translation function
-        // $menu_item->setTranslations('name',$request->menu_item_name);
         $menu_item->save();
-        // info($menu_item);
+
+        foreach($request->menu_item_name as $locale => $name){
+            $menu_item->setTranslation('name', $locale, $name);
+        }
+
+        $menu_item->refresh();
 
         if($success){
             wncms()->cache()->tags('menus')->flush();

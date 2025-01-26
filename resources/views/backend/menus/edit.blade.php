@@ -397,6 +397,8 @@
             $("#modal_submit_form_edit_menu_item").click(function(e) {
                 e.preventDefault()
                 var btn = $(this);
+                var menuItemId = $('#modal_edit_menu_item_id').val();
+
 
                 //獲取表單數據
                 // var form_data = $('#form_edit_menu_item').serialize();
@@ -412,7 +414,7 @@
                     contentType: false,
                     data: form_data,
                     success: function(data) {
-                        console.log(data);
+                        // console.log(data);
                         // console.log(data.menu_item);
                         if(data.status == 'success'){
 
@@ -426,6 +428,19 @@
                                 //A. 最好的方法是，ajax 保存菜單一次，重新獲取最新狀態
                                 //B. Ajax保存一次，直接刷新
                             // fill_menu(data.menu);
+
+                            // render new value to the form
+                            console.log("render new value to the form");
+                            console.log(menuItemId);
+                            console.log(data.menu_item.name);
+
+                            // Update the custom data attribute
+                            $(`.dd-item[data-id="${menuItemId}"]`).data('name', data.menu_item.name).attr('data-name', data.menu_item.name);
+
+                            // Update the value of the input/element
+                            $(`.dd-item[data-id="${menuItemId}"] .dd-handle-name`).text(data.menu_item.name);
+
+
 
                             form.reset();
                             btn.prop('disabled', false);
@@ -456,12 +471,12 @@
 
         //填充menu
         function fill_menu(data, parent) {
-            console.log(data);
+            // console.log(data);
 
             var html = '';
             $.each(data, function (index, item) {
                 // console.log('============')
-                console.log(item);
+                // console.log(item);
                 // console.log('============')
                 var item_name = item.name.{{ wncms()->locale()->getCurrentLocale() }} != undefined ? item.name.{{ wncms()->locale()->getCurrentLocale() }}
                                 : (item.name.{{ wncms()->locale()->getDefaultLocale() }} != undefined 
@@ -667,17 +682,28 @@
                     },
                     type:"POST",
                     success:function(data){
-                        // console.log(data);
+                        console.log("debugging get_menu_item api")
+                        console.log(data);
                         // console.log(data.name)
-                        $('#modal_edit_menu_item .modal_edit_menu_item_name').val('')
-                        Object.keys(data.name).forEach(function(locale_key){
-                            // console.log(data)
-                            // 在这里使用 data.name[locale_key] 来访问每个语言的菜单项名称
-                            $('#modal_edit_menu_item input[name="menu_item_name['+locale_key+']"]').val(data.name[locale_key])
-                            $('#form_edit_menu_item input[name="menu_item_icon').val(data.icon)
-                        })
+                        // $('#modal_edit_menu_item .modal_edit_menu_item_name').val('')
+                        // Object.keys(data.name).forEach(function(locale_key){
+                        //     // console.log(data)
+                        //     console.log(locale_key)
+                        //     // 在这里使用 data.name[locale_key] 来访问每个语言的菜单项名称
+                        //     $('#modal_edit_menu_item input[name="menu_item_name['+locale_key+']"]').val(data.translations[locale_key])
+                        //     $('#form_edit_menu_item input[name="menu_item_icon').val(data.icon)
+                        // })
         
-    
+
+                        // Handle translations
+                        data.translations.forEach(function(translation) {
+                            const locale = translation.locale;
+                            const value = translation.value;
+                            
+                            // Find the corresponding input field for this locale and set the value
+                            $(`#modal_edit_menu_item input[name="menu_item_name[${locale}]"]`).val(value);
+                        });
+                    
                     }
                 });
 
@@ -686,8 +712,6 @@
 
 
             });
-
-        
         }
 
         function generateRandomId(length = 16) {
