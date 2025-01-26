@@ -99,7 +99,8 @@ class FaqManager
         $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()), $cacheKeyDomain);
         $cacheTags = ['faqs'];
         $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
-        wncms()->cache()->clear($cacheKey, $cacheTags);
+        
+        // wncms()->cache()->clear($cacheKey, $cacheTags);
         // dd($cacheKey);
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tags, $tagType, $keywords, $count, $pageSize, $order, $sequence, $status, $wheres, $websiteId, $excludedFaqIds, $excludedTagIds, $ids, $select, $withs, $offset, $excludedChildrenTags) {
