@@ -114,6 +114,11 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         return $this->credits->where('type', 'balance')->first()->amount ?? 0;
     }
 
+    public function getCredit($type)
+    {
+        return $this->credits->where('type', $type)->first()->amount ?? 0;
+    }
+
     public function getPlans()
     {
         // get an collections of unique plans
