@@ -2,6 +2,7 @@
 
 namespace Wncms\Http\Controllers\Frontend;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Wncms\Facades\Wncms;
@@ -227,5 +228,323 @@ class PostController extends FrontendController
             'posts' => $posts,
             'show_post_filter' => true,
         ]);
+    }
+
+
+    //! CURD
+    /**
+     * Get the model class that this controller works with.
+     * Uses a setting from config/wncms.php and falls back to Post model if not set.
+     */
+    protected function getModelClass()
+    {
+        // Fetch the model class from the config file, or fall back to Post model
+        return config('wncms.default_post_model', \Wncms\Models\Post::class);
+    }
+
+    public function create()
+    {
+        //TODO check permission here
+        $modelClass = $this->getModelClass();
+
+        if(gto('user_allowed_post_category')){
+            $categories = wncms()->tag()->getList(tagType: "post_category", tagIds: gto('user_allowed_post_category'));
+        }else{
+            $categories = wncms()->tag()->getList(tagType: "post_category");
+        }
+
+        return wncms()->view(
+            "frontend.theme.{$this->theme}.posts.create",
+            [
+                'page_title' => __('wncms::word.post_management'),
+                'statuses' => $modelClass::STATUSES,
+                'visibilities' => $modelClass::VISIBILITIES,
+                'categories' => $categories,
+                'post' => new $modelClass,
+            ]
+        );
+    }
+
+    public function store(Request $request)
+    {
+        // dd($request->all());
+        $modelClass = $this->getModelClass();
+
+        if(!auth()->check()){
+            return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.please_login_first')]);
+        }
+
+        if (!isAdmin()) {
+            $credistRequitedToPost = gto('credits_required_to_post', 0);
+            $creditType = gto('credit_type_required_to_post', 'points');
+            if ($credistRequitedToPost > 0) {
+                if (auth()->user()->getCredit($creditType) < $credistRequitedToPost) {
+                    return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.insufficient_credit_to_post_with_requirement', ['requirement_amount' => $credistRequitedToPost, 'requirement_type' => __('wncms::word.' . $creditType)])]);
+                }
+            }
+        }
+
+        $request->validate(
+            [
+                'title' => 'required|max:255',
+                'price' => 'sometimes|nullable|numeric'
+            ],
+            [
+                'title.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.title')]),
+                'price.numeric' => __('wncms::word.field_should_be_numeric', ['field_name' => __('wncms::word.price')]),
+            ]
+        );
+
+        // check slug
+        if(!empty($request->slug)){
+            $duplicate_slug = $modelClass::where('slug', $request->slug)->first();
+            if ($duplicate_slug) {
+                return back()->withInput()->withErros(['message' => __('wncms::word.duplicated_slug')]);
+            }
+        }
+
+        $status = gto('default_post_status', 'draft');
+        $visibility = gto('default_post_visibility', 'public');
+        $slug = $request->slug ?? wncms()->getUniqueSlug('posts', 'slug', 8, 'lower');
+        $title = $request->title; // TODO: check for forbidden words
+        $label = $request->label; // TODO: check for forbidden words
+        $excerpt = $request->excerpt; // TODO: check for forbidden words
+        $content = $request->content; // TODO: check for forbidden words
+        
+        $remark = $request->remark; // TODO: check for forbidden words
+        $order = $request->order;
+        $password = $request->password;
+        $price = $request->price;
+
+        $is_pinned = false; // TODO: check for permission to set this
+        $is_recommended = false; // TODO: check for permission to set this
+        $is_dmca = false; // TODO: check for permission to set this
+        $published_at = $request->published_at ? Carbon::parse($request->published_at) : Carbon::now(); // TODO: check for permission to set this
+        $expired_at =$request->expired_at ? Carbon::parse($request->expired_at) : null; // TODO: check for permission to set this
+
+        // categories
+        // check if category is in allowed list
+        $userAllowedPostCategories = $this->getUserAllowedTags('post_category');
+        $categories =  $userAllowedPostCategories->whereIn('id', explode("," , $request->categories));
+
+        $post = $modelClass::create([
+            'user_id' => auth()->id(),
+            'status' => $status,
+            'visibility' => $visibility,
+            'external_thumbnail' => $request->external_thumbnail,
+            'slug' => $slug,
+            'title' => $title,
+            'label' => $label,
+            'excerpt' => $excerpt,
+            'content' => $content,
+            'remark' => $remark,
+            'order' => $order,
+            'password' => $password,
+            'price' => $price,
+            'is_pinned' => $is_pinned,
+            'is_recommended' => $is_recommended,
+            'is_dmca' => $is_dmca,
+            'published_at' => $published_at,
+            'expired_at' => $expired_at,
+        ]);
+
+        //handle content
+        $post->localizeImages();
+        $post->wrapTables();
+
+        //attach to website models
+        $post->websites()->sync([$this->website->id]);
+
+        //thumbnail
+        if (!empty($request->post_thumbnail_remove)) {
+            $post->clearMediaCollection('post_thumbnail');
+        }
+
+        if (!empty($request->post_thumbnail_clone_id)) {
+            $mediaToClone = Media::find($request->post_thumbnail_clone_id);
+            if ($mediaToClone) {
+                $mediaToClone->copy($post, 'post_thumbnail');
+            }
+        }
+
+        if (!empty($request->post_thumbnail)) {
+            $post->addMediaFromRequest('post_thumbnail')->toMediaCollection('post_thumbnail');
+        }
+
+        // update categories
+        $post->syncTagsWithType($categories, 'post_category');
+
+        // update tags
+        $tags = array_filter(explode(",", $request->tags));
+        $post->syncTagsWithType($tags, 'post_tag');
+
+        //clear cache
+        wncms()->cache()->tags('posts')->flush();
+        return redirect()->route('frontend.posts.edit', [
+            'post' => $post->id,
+        ]);
+    }
+
+    public function edit($post)
+    {
+        $modelClass = $this->getModelClass();
+        $post = $modelClass::withTrashed()->find($post);
+        if (!$post) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.post_not_found')]);
+
+        if (isAdmin()) {
+            // allow edit others
+        } else {
+            // check if user is allowed to edit this post
+            if ($post->user_id != auth()->id()) {
+                return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.invalid_request')]);
+            }
+        }
+
+        if(gto('user_allowed_post_category')){
+            $categories = wncms()->tag()->getList(tagType: "post_category", tagIds: gto('user_allowed_post_category'));
+        }else{
+            $categories = wncms()->tag()->getList(tagType: "post_category");
+        }
+        
+        return wncms()->view(
+            "frontend.theme.{$this->theme}.posts.edit",
+            [
+                'page_title' => __('wncms::word.post_management'),
+                'statuses' => $modelClass::STATUSES,
+                'visibilities' => $modelClass::VISIBILITIES,
+                'categories' => $categories,
+                'post' => $post,
+            ]
+        );
+    }
+
+    public function update(Request $request, $post)
+    {
+        // dd($request->all());
+        $modelClass = $this->getModelClass();
+        $post = $modelClass::withTrashed()->find($post);
+        if (!$post) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.post_not_found')]);
+
+        if(!auth()->check()){
+            return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.please_login_first')]);
+        }
+
+        if (isAdmin()) {
+            // allow edit others
+        } else {
+            // check if user is allowed to edit this post
+            if ($post->user_id != auth()->id()) {
+                return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.invalid_request')]);
+            }
+        }
+
+        $request->validate(
+            [
+                'title' => 'required|max:255',
+                'price' => 'sometimes|nullable|numeric'
+            ],
+            [
+                'title.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.title')]),
+                'price.numeric' => __('wncms::word.field_should_be_numeric', ['field_name' => __('wncms::word.price')]),
+            ]
+        );
+
+        // check slug
+        if(!empty($request->slug)){
+            $duplicate_slug = $modelClass::where('slug', $request->slug)->where('id', '<>', $post->id)->first();
+            if ($duplicate_slug) {
+                return back()->withInput()->withErros(['message' => __('wncms::word.duplicated_slug')]);
+            }
+        }
+
+        $status = $request->status ?? $post->status;
+        $visibility = $request->visibility ?? $post->visibility;
+        $slug =  $request->slug ?? wncms()->getUniqueSlug('posts', 'slug', 8, 'lower');
+        $title = $request->title; // TODO: check for forbidden words
+        $label = $request->label; // TODO: check for forbidden words
+        $excerpt = $request->excerpt; // TODO: check for forbidden words
+        $content = $request->content; // TODO: check for forbidden words
+        
+        $remark = $request->remark; // TODO: check for forbidden words
+        $order = $request->order;
+        $password = $request->password;
+        $price = $request->price;
+
+        $is_pinned = false; // TODO: check for permission to set this
+        $is_recommended = false; // TODO: check for permission to set this
+        $is_dmca = false; // TODO: check for permission to set this
+        $published_at = $request->published_at ? Carbon::parse($request->published_at) : $post->published_at; // TODO: check for permission to set this
+        $expired_at =$request->expired_at ? Carbon::parse($request->expired_at) : $post->expired_at; // TODO: check for permission to set this
+
+        // validate categories
+        // check if category is in allowed list
+        $userAllowedPostCategories = $this->getUserAllowedTags('post_category');
+        $categories =  $userAllowedPostCategories->whereIn('id', explode("," , $request->categories));
+
+
+
+        // update post
+        $post->update([
+            'status' => $status,
+            'visibility' => $visibility,
+            'external_thumbnail' => $request->external_thumbnail,
+            'slug' => $slug,
+            'title' => $title,
+            'label' => $label,
+            'excerpt' => $excerpt,
+            'content' => $content,
+            'remark' => $remark,
+            'order' => $order,
+            'password' => $password,
+            'price' => $price,
+            'is_pinned' => $is_pinned,
+            'is_recommended' => $is_recommended,
+            'is_dmca' => $is_dmca,
+            'published_at' => $published_at,
+            'expired_at' => $expired_at,
+        ]);
+
+        //handle content
+        $post->localizeImages();
+        $post->wrapTables();
+
+        // remove thumbnail
+        if (!empty($request->post_thumbnail_remove)) {
+            $post->clearMediaCollection('post_thumbnail');
+        }
+
+        // update thumbnail
+        if (!empty($request->post_thumbnail)) {
+            $post->addMediaFromRequest('post_thumbnail')->toMediaCollection('post_thumbnail');
+        }
+
+        // update categories
+        $post->syncTagsWithType($categories, 'post_category');
+
+        // update tags
+        $tags = array_filter(explode(",", $request->tags));
+        $post->syncTagsWithType($tags, 'post_tag');
+
+        //clear cache
+        wncms()->cache()->tags('posts')->flush();
+        return redirect()->route('frontend.posts.edit', [
+            'post' => $post->id,
+        ]);
+    }
+
+
+    public function getUserAllowedTags($type = 'post_category', $idOnly = false)
+    {
+        if(gto('user_allowed_' . $type)){
+            $categories = wncms()->tag()->getList(tagType: $type, tagIds: gto('user_allowed_' . $type));
+        }else{
+            $categories = wncms()->tag()->getList(tagType: $type);
+        }
+
+        if($idOnly){
+            return $categories->pluck('id')->toArray();
+        }
+
+        return $categories;
     }
 }

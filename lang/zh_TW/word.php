@@ -2068,6 +2068,12 @@ $words = [
     'hit_at' => '點擊日期',
     'slogan' => '標語',
     'link_tag' => '連結標籤',
+
+    //! 0.5.0
+    'invalid_credentials' => '無效帳號或密碼',
+    'insufficient_credit_to_post' => '未達發佈文章積分要求',
+    'insufficient_credit_to_post_with_requirement' => '未達發佈文章積分要求，需要 :requirement_amount :requirement_type',
+    'anonymous' => '匿名',
 ];
 
 $locale = basename(__DIR__);

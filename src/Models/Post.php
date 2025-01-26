@@ -141,7 +141,8 @@ class Post extends WncmsModel implements HasMedia
 
     public function getFakeViewTotalAttribute()
     {
-        if(empty(gto('fake_views'))) return $this->view_total;
+        if(empty(gto('fake_views'))) return $this->view_total ?? 0;
+
         // Define some variables to make the formula more complex
         $fake_view_factor_view_total = gto('fake_view_factor_view_total', 37);
         $fake_view_factor_id = gto('fake_view_factor_id', 77);
@@ -152,7 +153,7 @@ class Post extends WncmsModel implements HasMedia
         
         // Ensure the generated value is always positive or zero
         $fakeViewTotal = ceil(max(0, $fakeViewTotal));
-
+        
         return $fakeViewTotal;
     }
 

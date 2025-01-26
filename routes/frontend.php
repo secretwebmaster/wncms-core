@@ -33,15 +33,26 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     // Route::get('usecase', [PageController::class, 'show_usecase'])->name('pages.usecase');
 
     //post
-    Route::get('post/rank', [PostController::class, 'rank'])->name('posts.rank');
-    Route::get('post/rank/{period}', [PostController::class, 'rank'])->name('posts.rank.period');
-    Route::get('post/{slug}', [PostController::class, 'single'])->name('posts.single');
-    Route::get('post/search/{keyword}', [PostController::class, 'search_result'])->name('posts.search_result');
-    Route::post('post/search', [PostController::class, 'search'])->name('posts.search');
-    Route::get('post/category/{tagName?}', [PostController::class, 'category'])->name('posts.category');
-    Route::get('post/tag/{tagName?}', [PostController::class, 'tag'])->name('posts.tag');
-    Route::get('post/list/{name?}/{period?}', [PostController::class, 'post_list'])->where('name', 'hot|new|like|fav')->where('period', 'today|yesterday|week|month')->name('posts.list');
-    Route::get('post/{tagType}/{tagName?}', [PostController::class, 'archive'])->name('posts.archive');
+    Route::prefix('post')->controller(PostController::class)->group(function () {
+        Route::get('rank', 'rank')->name('posts.rank');
+        Route::get('rank/{period}', 'rank')->name('posts.rank.period');
+        Route::get('search/{keyword}', 'search_result')->name('posts.search_result');
+        Route::post('search', 'search')->name('posts.search');
+        Route::get('category/{tagName?}', 'category')->name('posts.category');
+        Route::get('tag/{tagName?}', 'tag')->name('posts.tag');
+        Route::get('list/{name?}/{period?}', 'post_list')->where('name', 'hot|new|like|fav')->where('period', 'today|yesterday|week|month')->name('posts.list');
+
+        Route::middleware(['auth'])->group(function () {
+            Route::get('create', 'create')->name('posts.create');
+            Route::post('store', 'store')->name('posts.store');
+            Route::get('edit/{post}', 'edit')->name('posts.edit');
+            Route::post('update/{post}', 'update')->name('posts.update');
+        });
+
+        Route::get('{slug}', 'single')->name('posts.single');
+
+        Route::get('{tagType}/{tagName?}', 'archive')->name('posts.archive');
+    });
 
     //faq
     Route::get('faq/{slug}', [FaqController::class, 'single'])->name('faqs.single');
@@ -49,8 +60,6 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     Route::post('faq/search', [FaqController::class, 'search'])->name('faqs.search');
     Route::get('faq/tag/{tagName?}', [FaqController::class, 'tag'])->name('faqs.tag');
     Route::get('faq/{tagType}/{tagName?}', [FaqController::class, 'archive'])->name('faqs.archive');
-
-
 
     //plan
     Route::get('plans', [PlanController::class, 'index'])->name('plans.index');
@@ -80,44 +89,39 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::get('/oauth/callback/{provider?}/{code?}', 'oauth_callback')->name('users.oauth.callback');
 
         Route::get('/regcheck', 'validateRegistration')->name('users.regcheck');
-    });
 
-    Route::prefix('user')->middleware(['auth'])->controller(UserController::class)->group(function () {
-        Route::get('/', 'dashboard')->name('users.dashboard');
-        Route::get('/logout', 'logout')->name('users.logout');
-        Route::get('/profile', 'show_profile')->name('users.profile');
-        Route::get('/profile/edit', 'edit_profile')->name('users.profile.edit');
-        Route::post('/profile/update', 'update_profile')->name('users.profile.update');
-        Route::get('/subscription', 'show_subscription')->name('users.subscription');
-
-        Route::get('/bindmsg', 'sendBindMessage')->name('users.bindmsg');
-        Route::post('/bind', 'bindAccount')->name('users.bind');
-        Route::post('/unbind', 'unbindAccount')->name('users.unbind');
-
-        // orders
-        Route::prefix('orders')->controller(OrderController::class)->group(function () {
-            Route::get('/', 'index')->name('orders.index');
-            Route::get('/{order}', 'show')->name('orders.show');
-            Route::post('/{order}/pay', 'pay')->name('orders.pay');
-            Route::get('/{order}/success', 'success')->name('orders.success');
+        Route::middleware(['auth'])->group(function () {
+            Route::get('/', 'dashboard')->name('users.dashboard');
+            Route::get('/logout', 'logout')->name('users.logout');
+            Route::get('/profile', 'show_profile')->name('users.profile');
+            Route::get('/profile/edit', 'edit_profile')->name('users.profile.edit');
+            Route::post('/profile/update', 'update_profile')->name('users.profile.update');
+            Route::get('/subscription', 'show_subscription')->name('users.subscription');
+    
+            Route::get('/bindmsg', 'sendBindMessage')->name('users.bindmsg');
+            Route::post('/bind', 'bindAccount')->name('users.bind');
+            Route::post('/unbind', 'unbindAccount')->name('users.unbind');
+    
+            // orders
+            Route::prefix('orders')->controller(OrderController::class)->group(function () {
+                Route::get('/', 'index')->name('orders.index');
+                Route::get('/{order}', 'show')->name('orders.show');
+                Route::post('/{order}/pay', 'pay')->name('orders.pay');
+                Route::get('/{order}/success', 'success')->name('orders.success');
+            });
+    
+            Route::prefix('card')->controller(CardController::class)->group(function () {
+                Route::get('/', 'show')->name('users.card');
+                Route::post('/use', 'use')->name('users.card.use');
+            });
+    
+            Route::get('{page}', 'page')->name('users.page');
         });
-
-        Route::prefix('card')->controller(CardController::class)->group(function () {
-            Route::get('/', 'show')->name('users.card');
-            Route::post('/use', 'use')->name('users.card.use');
-        });
-
-        Route::get('user/{page}', 'page')->name('users.page');
     });
-
-
 
     Route::prefix('comment')->controller(CommentController::class)->group(function () {
         Route::post('store', 'store')->name('comments.store');
     });
-
-
-
 
     //custom frontend route
     if (file_exists(base_path('routes/custom_frontend.php'))) {
