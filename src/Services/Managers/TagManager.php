@@ -107,7 +107,7 @@ class TagManager
         }else{
             $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
         }
-        wncms()->cache()->clear($cacheKey, $cacheTags);
+        // wncms()->cache()->clear($cacheKey, $cacheTags);
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tagType, $count, $pageSize, $tagIds, $withs, $hasModels, $modelType, $onlyCurrentWebsite, $websiteId, $locale, $isRandom, $parentOnly, $order, $sequence) {
             // info('no cache from TagManager getList()');
