@@ -1,6 +1,6 @@
 <script>
     var options = {
-        selector: "#{{ $editorSelector ?? 'kt_docs_tinymce_basic' }}", 
+        selector: "{{ $editorSelector ?? '#kt_docs_tinymce_basic' }}", 
         height:1000,
         menubar: true,
         promotion: false,
@@ -28,24 +28,20 @@
 
         ],
         plugins : "lists advlist code image table wordcount link emoticons fullscreen insertdatetime searchreplace accordion anchor",
-        images_file_types: 'jpg,svg,webp,png',
+        images_file_types: 'jpg,svg,webp,png,gif',
         images_upload_url: '{{ route("uploads.image") }}',
         // images_upload_base_path: '/some/basepath',
         image_class_list: [
             { title: 'img-fluid', value: 'img-fluid' },
-
-
         ],
         image_title: true,
         automatic_uploads: true,
         toolbar_sticky: true,
         toolbar_sticky_offset: 0,
-        content_style: 'img { max-width: 100%; height: auto; }' ,
-
-
+        content_style: 'img { max-width: 100%; height: auto; }',
     }
 
-    if ( KTThemeMode.getMode() === "dark" ) {
+    if (typeof KTThemeMode !== "undefined" && KTThemeMode.getMode() === "dark" ) {
         options["skin"] = "oxide-dark";
         options["content_css"] = "dark";
     }
