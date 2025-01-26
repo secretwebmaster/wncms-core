@@ -35,4 +35,27 @@ class Credit extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public static function add($user, $amount, $type = 'points')
+    {
+        $credit = $user->credits()->where('type', $type)->first();
+
+        if (!$credit) {
+            $credit = $user->credits()->create([
+                'type' => $type,
+                'amount' => 0,
+            ]);
+        }
+
+        $credit->increment('amount', $amount);
+
+        // record the transaction
+
+        return $credit->amount;
+    }
+    
+    public static function get($user, $type = 'points')
+    {
+        return $user->credits()->where('type', $type)->first()?->amount ?? 0;
+    }
 }
