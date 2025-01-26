@@ -193,20 +193,47 @@ class PostManager
                 $q->whereNotIn('posts.id', (array)$excludedPostIds);
             }
 
+            // if (!empty($tags)) {
+            //     if(!$excludedChildrenTags){
+            //         $_tags = wncms()->tag()->getList(tagType:$tagType,tagIds:$tags,count:999,withs:[]);
+            //         $tagNames = [];
+            //         foreach($_tags as $_tag){
+            //             $tagNames = array_merge($tagNames, $_tag->getAllDescendantsAndSelf()->pluck('name')->toArray() ?? [], );
+            //         }
+            //         $q->withAnyTags($tagNames, $tagType);
+            //     }else{
+            //         $q->where(function($subq)use($tagIds, $tagType){
+            //             $subq->withAnyTags($tagIds, $tagType)->orWhereIn('tags.id', $tagIds);
+            //         });
+            //     }
+            // }
+
             if (!empty($tags)) {
-                if(!$excludedChildrenTags){
-                    $_tags = wncms()->tag()->getList(tagType:$tagType,tagIds:$tags,count:999,withs:[]);
-                    $tagNames = [];
-                    foreach($_tags as $_tag){
-                        $tagNames = array_merge($tagNames, $_tag->getAllDescendantsAndSelf()->pluck('name')->toArray() ?? [], );
+                $tagNames = [];
+                
+                foreach ($tags as $tag) {
+                    if ($tag instanceof \Wncms\Models\Tag) {
+                        $tagNames[] = $tag->name;
+                    } elseif (is_numeric($tag)) {
+                        $tagModel = \Wncms\Models\Tag::where('id', $tag)->where('type', $tagType)->first();
+                        if ($tagModel) {
+                            $tagNames[] = $tagModel->name;
+                        }
+                    } elseif (is_string($tag)) {
+                        $tagModel = \Wncms\Models\Tag::where('name', $tag)->where('type', $tagType)->first();
+                        if ($tagModel) {
+                            $tagNames[] = $tagModel->name;
+                        }
                     }
-                    $q->withAnyTags($tagNames, $tagType);
-                }else{
-                    $q->where(function($subq)use($tagIds, $tagType){
-                        $subq->withAnyTags($tagIds, $tagType)->orWhereIn('tags.id', $tagIds);
+                }
+
+                if (!empty($tagNames)) {
+                    $q->where(function($subq) use ($tagNames, $tagType) {
+                        $subq->withAnyTags($tagNames, $tagType);
                     });
                 }
             }
+
 
             if(!empty($ids)){
                 if(is_string($ids)){
