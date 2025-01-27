@@ -143,7 +143,6 @@ class MenuController extends BackendController
     {
         // dd($menu_item);
         $existing_item = $menu->menu_items()->find($menu_item['id']);
-
         if($existing_item){
             $existing_item->update([
                 'parent_id' => $parent_id,
@@ -154,7 +153,7 @@ class MenuController extends BackendController
                 'name' => $menu_item['name'] ?? __('wncms::word.untitled'),
                 'description' => $menu_item['description'] ?? null,
                 'url' => $menu_item['url'] ?? $existing_item->url,
-                'is_new_window' => $menu_item['newWindow'] === 1 ? true : false,
+                'is_new_window' => $menu_item['is_new_window'] === 1 ? true : false,
                 'is_mega_menu' => $menu_item['is_mega_menu'] ?? false,
                 'order' => $order,
             ]);
@@ -169,7 +168,7 @@ class MenuController extends BackendController
                 'name' => $menu_item['name'] ?? __('wncms::word.untitled'),
                 'description' => $menu_item['description'] ?? null,
                 'url' => $menu_item['url'] ?? null,
-                'is_new_window' => $menu_item['newWindow'] === 1 ? true : false,
+                'is_new_window' => $menu_item['is_new_window'] === 1 ? true : false,
                 'is_mega_menu' => $menu_item['is_mega_menu'] ?? false,
                 'order' => $order,
             ]);

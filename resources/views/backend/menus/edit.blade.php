@@ -250,7 +250,7 @@
                         <div class="col-6">
                             <div class="mb-5">
                                 <label for="menu_item_order" class="form-label">@lang('wncms::word.order')</label>
-                                <input type="text" class="form-control form-control-sm" id="modal_edit_menu_item_order" name="menu_item_order">
+                                <input type="text" class="form-control form-control-sm" id="modal_edit_menu_item_order" name="menu_item_order" disabled>
                             </div>
                         </div>
                     </div>
@@ -283,7 +283,7 @@
                     </div>
 
                     <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="modal_edit_menu_item_is_new_window" name="menu_item_new_window">
+                        <input class="form-check-input" type="checkbox" id="modal_edit_menu_item_is_new_window" name="menu_item_new_window" value="1">
                         <label class="form-check-label" for="modal_edit_menu_item_is_new_window">@lang('wncms::word.new_window')</label>
                     </div>
 
@@ -405,6 +405,10 @@
                 var form = $('#form_edit_menu_item')[0];
                 var form_data = new FormData(form)
                 // console.log(form_data)
+                // console.log('Listing form item values');
+                // for (var pair of form_data.entries()) {
+                //     console.log(pair[0] + ': ' + pair[1]);
+                // }
 
                 //通過 AJAX 請求將表單數據發送到服務器端
                 $.ajax({
@@ -430,17 +434,22 @@
                             // fill_menu(data.menu);
 
                             // render new value to the form
-                            console.log("render new value to the form");
-                            console.log(menuItemId);
-                            console.log(data.menu_item.name);
+                            // console.log("render new value to the form");
+                            // console.log(menuItemId);
+                            // console.log(data.menu_item.name);
 
                             // Update the custom data attribute
                             $(`.dd-item[data-id="${menuItemId}"]`).data('name', data.menu_item.name).attr('data-name', data.menu_item.name);
+                            $(`.dd-item[data-id="${menuItemId}"]`).data('url', data.menu_item.url).attr('data-url', data.menu_item.url);
+                            $(`.dd-item[data-id="${menuItemId}"]`).data('description', data.menu_item.description).attr('data-description', data.menu_item.description);
+                            $(`.dd-item[data-id="${menuItemId}"]`).data('icon', data.menu_item.icon).attr('data-icon', data.menu_item.icon);
+                            $(`.dd-item[data-id="${menuItemId}"]`).data('is_new_window', data.menu_item.is_new_window).attr('data-is_new_window', data.menu_item.is_new_window);
 
                             // Update the value of the input/element
                             $(`.dd-item[data-id="${menuItemId}"] .dd-handle-name`).text(data.menu_item.name);
-
-
+                            $(`.dd-item[data-id="${menuItemId}"] input.menu_item_url`).val(data.menu_item.url).attr('value', data.menu_item.url);
+                            $(`.dd-item[data-id="${menuItemId}"] input.menu_item_is_new_window`).prop('checked', data.menu_item.is_new_window);
+    
 
                             form.reset();
                             btn.prop('disabled', false);
@@ -513,8 +522,9 @@
                     + '" data-url="' + item.url 
                     + '" data-description="' + item_description 
                     + '" data-type="' + item.type 
+                    + '" data-icon="' + item.icon 
                     + '" data-thumbnail="' + item.thumbnail 
-                    + '" data-new-window="'+ item.is_new_window +'">';
+                    + '" data-is_new_window="'+ item.is_new_window +'">';
                     //collapse/expand
                     html += '<button class="dd-collapse" data-action="collapse" type="button">Collapse</button><button class="dd-expand" data-action="expand" type="button">Expand</button>';
                     //title
@@ -534,7 +544,7 @@
                         //new window
                         html += '<div class="form-check form-check-sm form-check-custom form-check-solid mb-0 float-end dd-nodrag d-inline check_new_window">';
                             html += '<span class="me-2 text-gray-400 d-none d-sm-inline">' + item.type + '</span>'
-                            html += '<input class="form-check-input" type="checkbox" title="{{ __("wncms::word.new_window") }}"'+ ((item.is_new_window || item.newWindow) && item.newWindow != 'undefined' ? 'checked' : '') +'>';
+                            html += '<input class="form-check-input menu_item_is_new_window" type="checkbox" title="{{ __("wncms::word.new_window") }}"'+ ((item.is_new_window || item.newWindow) && item.newWindow != 'undefined' ? 'checked' : '') +'>';
                             html += '<label class="form-check-label small d-none d-inline">{{ __("wncms::word.new_window") }}</label>';
                         html += '</div>';
                     html += '</div>';
@@ -607,10 +617,10 @@
             //勾選在新視窗打開
             $('.check_new_window input[type="checkbox"]').on('change', function() {
                 var new_window = $(this).closest('.dd-item');
-                if(new_window.attr('data-new-window') == 1){
-                    new_window.attr('data-new-window', 0);
+                if(new_window.attr('data-is_new_window') == 1){
+                    new_window.attr('data-is_new_window', 0);
                 }else{
-                    new_window.attr('data-new-window', 1);
+                    new_window.attr('data-is_new_window', 1);
                 }
             });
 
@@ -628,9 +638,9 @@
                 var thumbnail = dd_item.data('thumbnail');
                 var type = dd_item.data('type');
                 var model_type = dd_item.data('model-type');
-
                 var model_id = dd_item.data('model-id');
                 var is_new_window = dd_item.data('new-window');
+                var icon = dd_item.data('icon');
 
                 //Populate the form fields
                 $('#modal_edit_menu_item_id').val(id);
@@ -642,6 +652,7 @@
                 if(model_type != "undefined")$('#modal_edit_menu_item_model_type').val(model_type);
                 if(model_id != "undefined")$('#modal_edit_menu_item_model_id').val(model_id);
                 $('#modal_edit_menu_item_is_new_window').prop('checked', is_new_window);
+                $('#modal_edit_menu_item_icon').val(icon);
 
                 //Activate try to load lang button
                 if(model_type == 'Tag'){
@@ -682,18 +693,9 @@
                     },
                     type:"POST",
                     success:function(data){
-                        console.log("debugging get_menu_item api")
-                        console.log(data);
-                        // console.log(data.name)
-                        // $('#modal_edit_menu_item .modal_edit_menu_item_name').val('')
-                        // Object.keys(data.name).forEach(function(locale_key){
-                        //     // console.log(data)
-                        //     console.log(locale_key)
-                        //     // 在这里使用 data.name[locale_key] 来访问每个语言的菜单项名称
-                        //     $('#modal_edit_menu_item input[name="menu_item_name['+locale_key+']"]').val(data.translations[locale_key])
-                        //     $('#form_edit_menu_item input[name="menu_item_icon').val(data.icon)
-                        // })
-        
+
+                        // console.log("debugging get_menu_item api")
+                        // console.log(data);
 
                         // Handle translations
                         data.translations.forEach(function(translation) {
@@ -703,17 +705,21 @@
                             // Find the corresponding input field for this locale and set the value
                             $(`#modal_edit_menu_item input[name="menu_item_name[${locale}]"]`).val(value);
                         });
-                    
+
+                        $(`#modal_edit_menu_item input[name="menu_item_url"]`).val(data.url);
+                        $(`#modal_edit_menu_item input[name="menu_item_description"]`).val(data.description);
+                        $(`#modal_edit_menu_item input[name="menu_item_order"]`).val(data.order);
+                        $(`#modal_edit_menu_item input[name="menu_item_icon"]`).val(data.icon);
+                        $(`#modal_edit_menu_item input[name="menu_item_new_window"]`).prop('checked', data.is_new_window);
                     }
                 });
 
                 //show modal
                 $("#modal_edit_menu_item").modal("show");
-
-
             });
         }
 
+        //Generate random ID
         function generateRandomId(length = 16) {
             const characters = '0123456789';
             let randomString = '';
@@ -727,8 +733,7 @@
         }
 
         //check if tag still exists
-        function checkTagIds()
-        {
+        function checkTagIds(){
             var tagIds = [];
             $("#nestable-json li[data-model-type='Tag'][data-model-id!='']").each(function () {
                 tagIds.push($(this).data('model-id'));
