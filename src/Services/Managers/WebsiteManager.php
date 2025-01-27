@@ -68,7 +68,7 @@ class WebsiteManager
       
                 $q = Website::query();
     
-                $q->with('media');
+                $q->with(['media', 'translations']);
     
                 $q->with($withs);
     
