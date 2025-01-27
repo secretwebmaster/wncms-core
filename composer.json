@@ -49,7 +49,8 @@
                 "Wncms\\Providers\\ObserverServiceProvider",
                 "Wncms\\Providers\\PluginServiceProvider",
                 "Wncms\\Providers\\RouteServiceProvider",
-                "Wncms\\Providers\\SettingsServiceProvider"
+                "Wncms\\Providers\\SettingsServiceProvider",
+                "Wncms\\Providers\\ThemeServiceProvider"
             ]
         }
     },
