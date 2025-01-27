@@ -29,11 +29,11 @@ if (!function_exists('wncms_get_version')) {
     function wncms_get_version($debug_type = null)
     {
         if(!empty($debug_type)){
-            if($debug_type == 'js') return gss('version') . env('APP_VERSION') . (env('JS_DEBUG') ? time() : '');
-            if($debug_type == 'css') return gss('version') . env('APP_VERSION') . (env('CSS_DEBUG') ? time() : '');
+            if($debug_type == 'js') return gss('core_version') . env('APP_VERSION') . (env('JS_DEBUG') ? time() : '');
+            if($debug_type == 'css') return gss('core_version') . env('APP_VERSION') . (env('CSS_DEBUG') ? time() : '');
         }
         $app_debug =  env('APP_DEBUG') ? time() : '';
-        return gss('version') . $app_debug;
+        return gss('core_version') . $app_debug;
     }
 }
 

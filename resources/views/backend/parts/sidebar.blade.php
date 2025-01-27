@@ -14,7 +14,7 @@
 				</svg>
 			</span>
 		</div>
-		<span class="badge bg-info fw-bold">v {{ gss('version', null, false)}}</span>
+		<span class="badge bg-info fw-bold">v {{ gss('core_version', null, false)}}</span>
 	</div>
 
 	{{-- Menu --}}

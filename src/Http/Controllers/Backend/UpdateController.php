@@ -26,7 +26,7 @@ class UpdateController extends Controller
     {
         $response = Http::get("https://api.wncms.cc/api/v1/update/latest");
 
-        $currentVersion = gss('version');
+        $currentVersion = gss('core_version', '1.0.0');
 
         $latestVersion = $response->json()['data']['version'];
 
@@ -60,7 +60,7 @@ class UpdateController extends Controller
     {
         try{
             $coreResponse = Http::post("https://api.wncms.cc/api/v1/update/check", [
-                'current_version' => gss('version'),
+                'current_version' => gss('core_version'),
                 'domain' => request()->getHost(),
                 'products' => ['core', 'theme1', 'theme2', 'plugin1', 'plugin2'],
             ]);
