@@ -121,13 +121,13 @@
 
                 {{-- excerpt --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.excerpt')</label>
+                    <label class="form-label fw-bold fs-6">@lang('wncms::word.excerpt')</label>
                     <textarea type="text" name="excerpt" class="form-control form-control-sm" rows="4">{{ old('excerpt', $post->excerpt) }}</textarea>
                 </div>
 
                 {{-- remark --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.remark')</label>
+                    <label class="form-label fw-bold fs-6">@lang('wncms::word.remark')</label>
                     <input type="text" name="remark" class="form-control form-control-sm" value="{{ old('remark', $post->remark) }}" />
                 </div>
 
@@ -135,7 +135,7 @@
                     <div class="col-12 col-md-4">
                         {{-- order --}}
                         <div class="form-item mb-3">
-                            <label class="form-label required fw-bold fs-6">@lang('wncms::word.order')</label>
+                            <label class="form-label fw-bold fs-6">@lang('wncms::word.order')</label>
                             <input type="number" name="order" class="form-control form-control-sm" value="{{ old('order', $post->order) }}" />
                         </div>
 
@@ -143,14 +143,14 @@
                     <div class="col-12 col-md-4">
                         {{-- password --}}
                         <div class="form-item mb-3">
-                            <label class="form-label required fw-bold fs-6">@lang('wncms::word.password')</label>
+                            <label class="form-label fw-bold fs-6">@lang('wncms::word.password')</label>
                             <input type="text" name="password" class="form-control form-control-sm" value="{{ old('password', $post->password) }}" />
                         </div>
                     </div>
                     <div class="col-12 col-md-4">
                         {{-- price --}}
                         <div class="form-item mb-3">
-                            <label class="form-label required fw-bold fs-6">@lang('wncms::word.price')</label>
+                            <label class="form-label fw-bold fs-6">@lang('wncms::word.price')</label>
                             <input type="text" name="price" class="form-control form-control-sm" value="{{ old('price', $post->price) }}" />
                         </div>
                     </div>
@@ -236,7 +236,7 @@
 
                 {{-- expired_at --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.expired_at')</label>
+                    <label class="form-label fw-bold fs-6">@lang('wncms::word.expired_at')</label>
                     <input type="text" name="expired_at" value="{{ old('expired_at', $post->expired_at?->format('m/d/Y H:i:s'), now()->format('m/d/Y H:i:s'))  }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_leave_blank')" id="picker_expired_at" />
                     <script>
                         window.addEventListener('DOMContentLoaded', (event) => {
@@ -325,7 +325,7 @@
 
                 {{--thumbnail --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.thumbnail')</label>
+                    <label class="form-label fw-bold fs-6">@lang('wncms::word.thumbnail')</label>
 
                     <div class="image-input image-input-outline w-100 {{ !empty($post->getFirstMediaUrl('post_thumbnail')) ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ !empty($post->getFirstMediaUrl('post_thumbnail')) ?: asset('wncms/images/placeholders/upload.png') }});background-position:center;">
                         <div class="image-input-wrapper w-100 h-100" style="background-image:{{ !empty($post->getFirstMediaUrl('post_thumbnail')) ? 'url('. $post->getFirstMediaUrl('post_thumbnail') .')' : 'none' }};aspect-ratio:16/10"></div>
@@ -351,11 +351,9 @@
                     <div class="form-text">@lang('wncms::word.allow_image_type')</div>
                 </div>
 
-
-
                 {{-- external_thumbnail --}}
                 <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.external_thumbnail')</label>
+                    <label class="form-label fw-bold fs-6">@lang('wncms::word.external_thumbnail')</label>
                     <input type="text" name="external_thumbnail" class="form-control form-control-sm" value="{{ old('external_thumbnail', $post->external_thumbnail) }}" />
                 </div>
 
