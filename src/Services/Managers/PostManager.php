@@ -292,7 +292,7 @@ class PostManager
                 $subq->where('collection_name', 'post_thumbnail');
             });
             
-            $q->with(['comments', 'tags']);
+            $q->with(['comments', 'tags', 'translations']);
 
             $q->withCount('comments');
 
@@ -308,9 +308,14 @@ class PostManager
             }
             
             //ordering
-            $q->orderBy('is_pinned', 'desc');
-            $q->orderBy($order, in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc');
-            $q->orderBy('id', 'desc');
+            if($order == 'random'){
+                $q->inRandomOrder();
+            }else{
+                $q->orderBy('is_pinned', 'desc');
+                $q->orderBy($order, in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc');
+                $q->orderBy('id', 'desc');
+            }
+
 
             $q->distinct();
 
@@ -326,7 +331,7 @@ class PostManager
             if($offset){
                 $q->offset($offset);
             }
-    
+
             if($pageSize){
                 $posts = $q->paginate(perPage: $pageSize, columns: ['*'], pageName: $pageName);
 
