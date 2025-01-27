@@ -7,14 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 use Wncms\Tags\HasTags;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Wncms\Translatable\Traits\HasTranslations;
 
 class Link extends Model implements HasMedia
 {
     use HasFactory;
     use HasTags;
     use InteractsWithMedia;
+    use HasTranslations;
 
     protected $guarded = [];
+
+    protected $translatable = ['name', 'description', 'slogan'];
 
     protected $casts = [
         'expired_at' => 'datetime',
