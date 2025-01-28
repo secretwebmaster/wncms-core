@@ -75,6 +75,7 @@ class SettingController extends Controller
         $quickLinkData = [
             'route' => $request->route,
             'name' => $request->name,
+            'url' => $request->url,
         ];
 
         // append new quick link
@@ -90,6 +91,7 @@ class SettingController extends Controller
 
     public function remove_quick_link(Request $request)
     {
+        // dd($request->all());
         // get current quick links
         $quickLinkStr = gss('quick_links');
         $quickLinks = json_decode($quickLinkStr, true) ?? [];
@@ -97,12 +99,13 @@ class SettingController extends Controller
         // prepare new quick link data
         $quickLinkData = [
             'route' => $request->route,
-            'name' => $request->name,
+            // 'name' => $request->name,
+            'url' => $request->url,
         ];
 
-        // remove quick link
-        $quickLinks = array_filter($quickLinks, function($quickLink) use ($quickLinkData){
-            return $quickLink != $quickLinkData;
+        // Remove quick link if route or url exists
+        $quickLinks = array_filter($quickLinks, function ($quickLink) use ($quickLinkData) {
+            return $quickLink['route'] !== $quickLinkData['route'] && $quickLink['url'] !== $quickLinkData['url'];
         });
 
         // save quick links

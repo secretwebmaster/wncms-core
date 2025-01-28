@@ -8,11 +8,11 @@
 
                 @role(['super-admin', 'admin'])
                     @if(!empty($quickLinks = collect(json_decode(gss('quick_links'), true))) && !$quickLinks->where('route', request()->route()->getName())->count())
-
                         <form class="ms-1 small" action="{{ route('settings.quick.add') }}" method="POST">
                             @csrf
-                            <input type="hidden" name="route" value="{{ request()->route()->getName() }}">
                             <input type="hidden" name="name" value="{{ $page_title ?? '' }}">
+                            <input type="hidden" name="route" value="{{ request()->route()->getName() }}">
+                            <input type="hidden" name="url" value="{{ request()->getPathInfo() }}">
                             <button type="submit" class="btn btn-link d-flex align-items-center" title="@lang('wncms::word.add_to_quick_link')">
                                 <i class="fs-6 text-warning fa-regular fa-star"></i>
                             </button>
@@ -22,6 +22,7 @@
                             @csrf
                             <input type="hidden" name="route" value="{{ request()->route()->getName() }}">
                             <input type="hidden" name="name" value="{{ $page_title ?? '' }}">
+                            <input type="hidden" name="url" value="{{ request()->getPathInfo() }}">
                             <button type="submit" class="btn btn-link d-flex align-items-center" title="@lang('wncms::word.remove_from_quick_link')">
                                 <i class="fs-6 text-warning fas fa-star"></i>
                             </button>

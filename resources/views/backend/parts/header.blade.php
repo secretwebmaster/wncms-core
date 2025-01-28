@@ -49,7 +49,7 @@
                     @if(!empty($quickLinks = json_decode(gss('quick_links'), true)))
                         @foreach($quickLinks as $quickLink)
                             <div class="menu-item me-lg-1">
-                                <a class="menu-link p-2" href="{{ route($quickLink['route']) }}">
+                                <a class="menu-link p-2" href="{{ $quickLink['url'] ?? route($quickLink['route']) }}" title="{{ $quickLink['url'] ?? route($quickLink['route']) }}">
                                     <span class="menu-title text-gray-700">{{ $quickLink['name'] }}</span>
                                 </a>
                             </div>
