@@ -329,7 +329,7 @@ class WebsiteController extends Controller
         ]);
 
         return view('wncms::backend.websites.theme_options' , [
-            'page_title' => __('wncms::word.website_management'),
+            'page_title' => __('wncms::word.theme_options') . " #" . $website->id,
             '_website' => $website,
             'websites' => $websites,
             'option_tabs' => $option_tabs,
