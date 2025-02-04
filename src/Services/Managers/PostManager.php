@@ -45,7 +45,7 @@ class PostManager
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($postId) {
 
             $website = wncms()->website()->getCurrent();
-            if(!$website) return null;
+            if (!$website) return null;
 
             $q = Post::query();
 
@@ -61,7 +61,6 @@ class PostManager
 
             return $post;
         });
-
     }
 
     /**
@@ -144,8 +143,7 @@ class PostManager
         bool $excludedChildrenTags = false,
         bool $isRandom = false,
         string $pageName = 'page'
-    )
-    {
+    ) {
         //handle categpry
         if (empty($tags)) $tags = [];
         if (is_string($tags)) $tags = explode(',', $tags);
@@ -159,9 +157,9 @@ class PostManager
         $cacheKeyDomain = empty($websiteId) ? wncms()->getDomain() : '';
         $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()), $cacheKeyDomain);
         $cacheTags = ['posts'];
-        if($isRandom){
+        if ($isRandom) {
             $cacheTime = 0;
-        }else{
+        } else {
             $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
         }
 
@@ -169,24 +167,24 @@ class PostManager
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tags, $tagType, $keywords, $count, $pageSize, $order, $sequence, $status, $wheres, $websiteId, $excludedPostIds, $excludedTagIds, $ids, $select, $withs, $offset, $excludedChildrenTags, $isRandom, $pageName) {
 
-            $website = wncms()->website()->get($websiteId, false);
-            if(empty($website)){
-                if($pageSize){
+            // $website = wncms()->website()->get($websiteId, false);
+            $website = wncms()->website()->get($websiteId);
+            if (empty($website)) {
+                if ($pageSize) {
                     // return empty LengthAwarePaginator
                     return new LengthAwarePaginator([], 0, $pageSize, 0, [
                         'path' => request()->url(),
                         'pageName' => $pageName,
                     ]);
-
-                }else{
+                } else {
                     return collect([]);
                 }
             }
 
             $q = $website->posts();
 
-            if(!empty($excludedPostIds)){
-                if(is_string($excludedPostIds)){
+            if (!empty($excludedPostIds)) {
+                if (is_string($excludedPostIds)) {
                     $excludedPostIds = explode(',', $excludedPostIds);
                 }
 
@@ -210,7 +208,7 @@ class PostManager
 
             if (!empty($tags)) {
                 $tagNames = [];
-                
+
                 foreach ($tags as $tag) {
                     if ($tag instanceof \Wncms\Models\Tag) {
                         $tagNames[] = $tag->name;
@@ -228,46 +226,45 @@ class PostManager
                 }
 
                 if (!empty($tagNames)) {
-                    $q->where(function($subq) use ($tagNames, $tagType) {
+                    $q->where(function ($subq) use ($tagNames, $tagType) {
                         $subq->withAnyTags($tagNames, $tagType);
                     });
                 }
             }
 
 
-            if(!empty($ids)){
-                if(is_string($ids)){
+            if (!empty($ids)) {
+                if (is_string($ids)) {
                     $ids = explode(',', $ids);
                 }
                 $q->whereIn('posts.id', $ids);
             }
 
-            if(!empty($excludedTagIds)){
+            if (!empty($excludedTagIds)) {
 
-                if(is_string($excludedTagIds)){
+                if (is_string($excludedTagIds)) {
                     $excludedTagIds = explode(',', $excludedTagIds);
                 }
 
-                $q->where(function($subq) use($excludedTagIds){
-                    $subq->whereHas("tags", function($subsubq) use($excludedTagIds){
+                $q->where(function ($subq) use ($excludedTagIds) {
+                    $subq->whereHas("tags", function ($subsubq) use ($excludedTagIds) {
                         $subsubq->whereNotIn('tags.id', (array)$excludedTagIds);
                     })
-                    ->orWhereDoesntHave('tags');
+                        ->orWhereDoesntHave('tags');
                 });
-
             }
 
-            if(!empty($keywords)){
+            if (!empty($keywords)) {
                 //search title
                 //TODO set searchable item in system setting and allow override in theme option
-                $q->where(function($subq) use($keywords){
+                $q->where(function ($subq) use ($keywords) {
                     foreach ($keywords as $keyword) {
-                        $subq->orWhere('title','like',"%$keyword%");
+                        $subq->orWhere('title', 'like', "%$keyword%");
                         // $subq->orWhereRaw("JSON_EXTRACT(title, '$.*') LIKE '%$keyword%'");
-                        
+
                         // TODO: optimzie performance
-                        if(gto('search_post_content')){
-                            $subq->orWhere('content','like',"%$keyword%");
+                        if (gto('search_post_content')) {
+                            $subq->orWhere('content', 'like', "%$keyword%");
                             // $subq->orWhereRaw("JSON_EXTRACT(content, '$.*') LIKE '%$keyword%'");
                         }
                     }
@@ -275,13 +272,13 @@ class PostManager
             }
 
             //custom where query
-            if(!empty($wheres)){
-                foreach($wheres as $where){
-                    if(!empty($where[0]) && !empty($where[1]) && !empty($where[2])){
-                        $q->where($where[0],$where[1],$where[2]);
-                    }elseif(!empty($where[0]) && !empty($where[1]) && empty($where[2])){
-                        $q->where($where[0],$where[1]);
-                    }else{
+            if (!empty($wheres)) {
+                foreach ($wheres as $where) {
+                    if (!empty($where[0]) && !empty($where[1]) && !empty($where[2])) {
+                        $q->where($where[0], $where[1], $where[2]);
+                    } elseif (!empty($where[0]) && !empty($where[1]) && empty($where[2])) {
+                        $q->where($where[0], $where[1]);
+                    } else {
                         info('condition error in posts query. $wheres = ' . json_encode($wheres));
                     }
                 }
@@ -291,59 +288,54 @@ class PostManager
             $q->with('media', function ($subq) {
                 $subq->where('collection_name', 'post_thumbnail');
             });
-            
+
             $q->with(['comments', 'tags', 'translations']);
 
             $q->withCount('comments');
 
-            if(!empty($withs)){
+            if (!empty($withs)) {
                 $q->with($withs);
             }
 
             //status
             $q->where('status', $status);
 
-            if($isRandom){
+            if ($isRandom) {
                 $q->inRandomOrder();
-            }
-            
-            //ordering
-            if($order == 'random'){
-                $q->inRandomOrder();
-            }else{
-                $q->orderBy('is_pinned', 'desc');
-                $q->orderBy($order, in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc');
-                $q->orderBy('id', 'desc');
             }
 
+            //ordering
+            $q->orderBy('is_pinned', 'desc');
+            $q->orderBy($order, in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc');
+            $q->orderBy('id', 'desc');
 
             $q->distinct();
 
-            if($count){
+            if ($count) {
                 $q->limit($count);
             }
- 
-            if(is_string($select)){
+
+            if (is_string($select)) {
                 $select = explode(",", $select);
             }
             $q->select($select);
 
-            if($offset){
+            if ($offset) {
                 $q->offset($offset);
             }
 
-            if($pageSize){
+            if ($pageSize) {
                 $posts = $q->paginate(perPage: $pageSize, columns: ['*'], pageName: $pageName);
 
-                if($count){
+                if ($count) {
                     $posts = wncms()->paginateWithLimit(
-                        collection:  $posts,
-                        pageSize: $pageSize, 
+                        collection: $posts,
+                        pageSize: $pageSize,
                         limit: $count,
                         pageName: $pageName,
                     );
                 }
-            }else{
+            } else {
                 $posts = $q->get();
             }
 
@@ -355,9 +347,9 @@ class PostManager
     {
         return $this->getList(
             wheres: [
-                ['slug',$slug],
+                ['slug', $slug],
             ],
-            websiteId:$websiteId
+            websiteId: $websiteId
         )?->first();
     }
 
@@ -426,22 +418,21 @@ class PostManager
         ?string $sequence = 'desc',
         ?string $status = 'published',
         ?int $websiteId = null,
-    )
-    {
+    ) {
         return $this->getList(
             keywords: $keywords,
-            count:$count,
-            pageSize:$pageSize,
-            order:$order,
-            sequence:$sequence,
-            status:$status,
-            websiteId:$websiteId,
+            count: $count,
+            pageSize: $pageSize,
+            order: $order,
+            sequence: $sequence,
+            status: $status,
+            websiteId: $websiteId,
         );
     }
 
     public function getByTag(Tag|int $tag, $count = 0, $pageSize = 0, $order = 'id', $sequence = 'desc', $status = 'published', $wheres = [], $websiteId = null)
     {
-        if(is_int($tag)) $tag = wncms()->tag()->get($tag);
+        if (is_int($tag)) $tag = wncms()->tag()->get($tag);
         if (empty($tag)) return;
 
         return $this->getList(
@@ -465,9 +456,8 @@ class PostManager
         $order = 'id',
         $sequence = 'desc',
         $status = 'published',
-    )
-    {
-        if(is_int($post)) $post = wncms()->post()->get($post);
+    ) {
+        if (is_int($post)) $post = wncms()->post()->get($post);
         if (!$post) return collect([]);
 
         return $this->getList(
@@ -481,18 +471,16 @@ class PostManager
             status: $status,
             websiteId: $post->website?->id,
         );
-
-
     }
 
     public function search(string $keyword, ?int $websiteId = null, $count = 0, $pageSize = 0, $page = 1)
     {
         return $this->getList(
-            keywords:$keyword,
-            websiteId:$websiteId,
-            count:$count,
+            keywords: $keyword,
+            websiteId: $websiteId,
+            count: $count,
             pageSize: $pageSize,
-            page:$page,
+            page: $page,
         );
     }
 
