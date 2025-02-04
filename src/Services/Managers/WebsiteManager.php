@@ -121,7 +121,7 @@ class WebsiteManager
                 $q = Website::query();
                 $q->where('domain', $domain);
                 $q->orWhereRelation('domain_aliases', 'domain', $domain);
-                $q->with('media');
+                $q->with(['media', 'translations']);
 
                 // return null placeholder to avoid null value not being cached
                 return $q->first() ?? false;
@@ -198,6 +198,8 @@ class WebsiteManager
                     }
                 }
             }
+
+            $q->with(['media', 'translations']);
 
             $q->orderBy($order, in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc');
 
