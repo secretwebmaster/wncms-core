@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Wncms\Facades\Wncms;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Password;
+use Spatie\Permission\Models\Role;
 
 class UserController extends FrontendController
 {
@@ -201,6 +202,13 @@ class UserController extends FrontendController
         // set credits to 0
         $user->credits()->create(['type' => 'balance', 'amount' => 0]);
         $user->credits()->create(['type' => 'points', 'amount' => 0]);
+
+        $defaultUserRoleOption = gto('default_user_roles', 'member');
+        $defaultUserRoles = Role::whereIn('name', explode(',', $defaultUserRoleOption))->get();
+        if($defaultUserRoles->isEmpty()){
+            $defaultUserRoles = Role::where('name', 'member')->get();
+        }
+        $user->assignRole($defaultUserRoles);
 
         Event::dispatch('wncms.frontend.users.registered', $user);
 
