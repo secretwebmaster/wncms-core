@@ -2074,6 +2074,9 @@ $words = [
     'insufficient_credit_to_post' => '未達發佈文章積分要求',
     'insufficient_credit_to_post_with_requirement' => '未達發佈文章積分要求，需要 :requirement_amount :requirement_type',
     'anonymous' => '匿名',
+
+    // 5.1.3
+    'user_already_exists' => '用戶已存在',
 ];
 
 $locale = basename(__DIR__);

@@ -2074,6 +2074,9 @@ $words = [
     'insufficient_credit_to_post' => 'Not enough credits to post an article',
     'insufficient_credit_to_post_with_requirement' => 'Not enough credits to post an article, requires :requirement_amount :requirement_type',
     'anonymous' => 'Anonymous',
+
+    // 5.1.3
+    'user_already_exists' => 'User already exists',
 ];
 
 $locale = basename(__DIR__);

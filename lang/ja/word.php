@@ -2074,6 +2074,9 @@ $words = [
     'insufficient_credit_to_post' => '記事を投稿するためのクレジットが不足しています',
     'insufficient_credit_to_post_with_requirement' => '記事を投稿するためのクレジットが不足しています。必要：:requirement_amount :requirement_type',
     'anonymous' => '匿名',
+
+    // 5.1.3
+    'user_already_exists' => 'ユーザーは既に存在しています',
 ];
 
 $locale = basename(__DIR__);
