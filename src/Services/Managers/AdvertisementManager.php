@@ -92,11 +92,7 @@ class AdvertisementManager
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($count, $pageSize, $order, $sequence, $status, $wheres, $websiteId, $includeExpired, $positions, $excludeExpired) {
 
-            if($websiteId){
-                $website = wncms()->website()->get($websiteId, false);
-            }else{
-                $website = wncms()->website()->getCurrent();
-            }
+            $website = wncms()->website()->get($websiteId);
 
             if (!$website) return collect([]);
 
