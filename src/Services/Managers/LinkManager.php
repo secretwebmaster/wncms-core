@@ -32,12 +32,11 @@ class LinkManager
         // dd($cacheKey);
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($linkId) {
-
+            info("no cache");
             $website = wncms()->website()->getCurrent();
             if (!$website) return null;
 
             $q = $website->links();
-            $q->with(['media', 'translations']);
             $q->where('id', $linkId);
             $link = $q->first();
 
@@ -94,9 +93,15 @@ class LinkManager
         $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()), $cacheKeyDomain);
         $cacheTags = ['links'];
         $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
+
         // wncms()->cache()->clear($cacheKey, $cacheTags);
+        // dd($cacheKey);
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tags, $tagType, $keywords, $count, $pageSize, $order, $sequence, $status, $wheres, $websiteId, $excludedLinkIds, $excludedTagIds, $ids, $select, $withs, $offset, $excludedChildrenTags) {
+
+            // $website = wncms()->website()->get($websiteId, false);
+            // if(empty($website)) return collect([]);
+            // $q = $website->links();
 
             $q = Link::query();
 
@@ -141,6 +146,7 @@ class LinkManager
                 }
             }
 
+
             if(!empty($excludedTagIds)){
 
                 if(is_string($excludedTagIds)){
@@ -156,6 +162,7 @@ class LinkManager
 
             }
             
+
             if(!empty($keywords)){
                 //search title
                 //TODO set searchable item in system setting and allow override in theme option
@@ -186,10 +193,7 @@ class LinkManager
 
             if(!empty($withs)){
                 $q->with($withs);
-            }else{
-                $q->with(['media']);
             }
-            $q->with(['translations']);
 
             //status
             $q->where('status', $status);
