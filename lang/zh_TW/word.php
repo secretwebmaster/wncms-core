@@ -1424,7 +1424,7 @@ $words = [
     'deleting' => "刪除中",
     'successfully_dispatched_delete_job' => "成功新增排程任務",
 
-    // v 1.1.3
+    //  1.1.3
     'links_will_be_import_to_destination_and_marked_as_demo' => '此功能會匯入隨機連結到你的網站，並會於「備註」中標記為演示連結。連結在前台顯示無異於一般連結，作用為在網站初期填充空間用，待你的真實連結達到一定數量後，你可以將這些連結批量下架。',
     'please_select_website' => '請選擇網站',
     'please_select_count' => '請選擇數量',
@@ -1432,7 +1432,7 @@ $words = [
     'bulk_clone' => '批量複製',
     'banners_will_be_cloned' => '橫幅會被複製至目標網站',
 
-    // v1.1.6
+    // 1.1.6
     'bulk_edit_link' => '批量更新連結',
     'links_not_found' => '找不到連結',
     'please_edit_link_content' => '請填寫需要更新項目',
@@ -1443,11 +1443,11 @@ $words = [
     'demo_links_will_be_moved' => '刪除連結會按照連結的備註進行刪除，如連結經由系統一鍵匯入，預設備註為「這是演示連結」，此操作將會刪除所有備註為「這是演示連結」的項目',
     'enter_demo_remark' => '如果你的備註為其他文字，可於下方修改',
 
-    // v1.1.7
+    // 1.1.7
     'show_traffic' => '顯示流量',
     'found_error_when_scraping_target_site' => '爬取對方網站資料時，返回錯誤代碼 :status_code，可能有防爬機制防止機器人訪問，請手動添加資料。',
 
-    // v1.1.8
+    // 1.1.8
     'your_version' => '你的版本',
 
     // 1.1.9
@@ -1494,7 +1494,7 @@ $words = [
     'cache_cleared' => '成功清理緩存',
     'cache_not_cleared' => '清理緩存失敗，可能是並未找到緩存key',
 
-    // wncms 2.0
+    // 2.0.0
     'tag_type' => '分類法類型',
     'post_category' => '文章分類',
     'post_tag' => '文章標籤',
@@ -1572,7 +1572,7 @@ $words = [
     'loaded_templtes' => '加載了 :count 個模版',
     'hover_to_view' => '懸停查看',
 
-    // wncms 3.0
+    // 3.0.0
     'latest_version' => '最新版本',
     'wn_official_website' => '文尼先生官網',
     'wncms_official_website' => 'WNCMS官網',
@@ -1586,12 +1586,12 @@ $words = [
     'system_meta' => '系統META',
     'view_is_not_found' => '模版不存在',
 
-    // wncms 3.0.6
+    // 3.0.6
     'join' => '加入',
     'enter' => '進入',
     'logged_in' => '已登入',
 
-    // wncms 3.0.7
+    // 3.0.7
     'start' => '開始',
     'stop' => '停止',
     'model_ids_are_not_found' => '找不到模組ID，請確定模組紀錄是否存在，或有否發送',
@@ -1621,13 +1621,13 @@ $words = [
     'website_is_undergoing_maintainacne' => "網站維護中",
     'default_maintenance_text' => "我們的網站正在進行升級和優化，以呈現全新的外觀和內容。在此期間，暫時無法訪問，但我們將為您帶來更好的瀏覽體驗。謝謝您的耐心等待！",
 
-    // wncms 3.0.8
+    // 3.0.8
     'start_to_install' => "開始安裝",
     'installing' => "安裝中",
     'successfully_installed' => "成功安裝",
     'install_again' => "重新安裝",
 
-    // wncms 3.1.1
+    // 3.1.1
     'use_custom_admin_dashbaord' => "使用自訂管理員控制台",
     'use_custom_user_dashbaord' => "使用自訂會員控制台",
     'hide_default_admin_dashboard_items' => "隱藏預設管理員控制台項目",
@@ -1638,13 +1638,13 @@ $words = [
     'enabled_page_cache' => "啟用頁面緩存",
     'enabled_data_cache' => "啟用數據緩存",
 
-    // wncms 3.1.2
+    // 3.1.2
     'thunbnail_of' => ":name的封面圖片",
     'localize_post_image' => "本地化內文圖片",
     'post_info' => "文章資訊",
     'cache_flushed' => "已清理緩存，如果緩存較大，可能需要幾分鐘才生效",
 
-    // wncms 3.1.3
+    // 3.1.3
     'updating' => "更新中",
     'theme_page' => "主題頁面",
     'custom_page' => "自訂頁面",
@@ -1662,12 +1662,12 @@ $words = [
     'fetch_tag_languages' => '獲取Tag多國語言',
     'api_type' => 'API類型',
 
-    // wncms 3.1.4
+    // 3.1.4
     'show_hidden' => '顯示隱藏',
     'successfully_record' => '成功紀錄',
     'successfully_fetch' => '成功獲取',
 
-    // wncms 3.1.5
+    // 3.1.5
     'theme_template_options' => '主題模版選項',
     'available_theme_template' => '可供使用的主題模版',
     'not_using_theme_template' => '不使用',
@@ -1818,19 +1818,19 @@ $words = [
     'clear_all' => '清理全部',
     'test' => '測試',
 
-    // ! 4.0.0
+    // 4.0.0
     'website_is_already_exist' => '網站已存在',
     'login_successed_redirecting' => '成功登入，正在跳轉',
     'maintenance' => '維護',
     'invalid_password' => '無效密碼',
     'disable_registration' => '關閉註冊',
 
-    //! 4.2.0
+    // 4.2.0
     'install_failed_retry' => '安裝失敗，請重試',
     'tell_us_about_your_first_website' => '告訴我們你的第一個網站',
     'force_https' => '強制HTTPS',
 
-    //! 4.3.0
+    // 4.3.0
     'new_version_available' => '有新版本可用',
     'new_version_available_with_versions' => '有新版本可用! 由 :current 升級到 :latest',
     'already_the_latest_vcersion' => '已經是最新版本',
@@ -1839,7 +1839,7 @@ $words = [
     'disable_core_update' => '禁用核心更新',
     'core_update_disabled' => '核心更新已禁用',
 
-    //! 4.4.0
+    // 4.4.0
     'error_405_message' => '請求的 URL 不允許使用此方法。',
     'error_404_message' => '找不到頁面',
     'error_419_message' => '頁面已過期，請刷新頁面',
@@ -1859,22 +1859,22 @@ $words = [
     'are_you_sure_to_deactivate_theme' => '確定停用主題 :theme_name?',
     'theme_deactivated_successfully' => '主題停用成功',
 
-    //! 4.5.0
+    // 4.5.0
     'model_upload' => '上傳:model_name',
     'field_required' => ':field 為必填項目',
     'field_max' => ':field 長度最大爲 :max 個字元',
     'site_seo_description' => '網站SEO描述',
 
-    // ! 5.0.0
+    // 0.0.0
     'cannot_delete_default_themes' => '不能刪除默認主題',
     'add_to_quick_link' => '添加到快捷鏈接',
     'remove_from_quick_link' => '從快捷鏈接中移除',
     'setup' => '設定',
 
-    //! 5.1.1
+    // 0.1.1
     'force_https' => '強制HTTPS',
 
-    //! 5.2.0
+    // 0.2.0
     'package_added_or_updated_successfully' => '已更新/添加成功',
     'package_updated_successfully' => '已更新成功',
     'package_add_successfully' => '已添加成功',
@@ -1892,17 +1892,17 @@ $words = [
     'removing_item' => '移除項目 :name',
     'forbidden_package' => '禁用Package',
 
-    //! 0.3.7
+    // 0.3.7
     'multi_website' => '站群',
 
-    //! 0.3.8
+    // 0.3.8
     'registerd_redirecting' => '註冊成功，正在跳轉',
     'confirm_password' => '確認密碼',
     'enter_name' => '輸入名稱',
     'enter_username' => '輸入用戶名',
     'enter_nickname' => '輸入暱稱',
 
-    //! 0.3.9
+    // 0.3.9
     'reset_password_notification' => '密碼重置通知',
     'hello' => '您好！',
     'reset_password_intro' => '您收到此郵件是因為我們收到您帳戶的密碼重置請求。',
@@ -1934,7 +1934,7 @@ $words = [
     'reset_email_sent_message' => '密碼重置電子郵件已發送至 :email。請檢查您的收件箱並按照指示重置密碼。',
     'back_to_login' => '返回登錄',
 
-    //! 0.4.1
+    // 0.4.1
     'product' => '產品',
     'redeemed_at' => '兌換日期',
     'redeemed' => '已兌換',
@@ -2056,20 +2056,20 @@ $words = [
     'not_specified' => '未指定',
     'add_price' => '新增價格',
 
-    //! 0.4.6
+    // 0.4.6
     'profile_updated_successfully' => '個人資料更新成功',
 
-    //! 0.4.8
+    // 0.4.8
     'insufficient_credits' => '積分不足',
 
-    //! 0.4.9
+    // 0.4.9
     'link_icon' => '連結圖標',
     'link_thumbnail' => '連結縮略圖',
     'hit_at' => '點擊日期',
     'slogan' => '標語',
     'link_tag' => '連結標籤',
 
-    //! 0.5.0
+    // 0.5.0
     'invalid_credentials' => '無效帳號或密碼',
     'insufficient_credit_to_post' => '未達發佈文章積分要求',
     'insufficient_credit_to_post_with_requirement' => '未達發佈文章積分要求，需要 :requirement_amount :requirement_type',

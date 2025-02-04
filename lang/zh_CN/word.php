@@ -1424,7 +1424,7 @@ $words = [
     'deleting' => "删除中",
     'successfully_dispatched_delete_job' => "成功新增排程任务",
 
-    // v 1.1.3
+    // 1.1.3
     'links_will_be_import_to_destination_and_marked_as_demo' => '此功能会汇入随机连结到你的网站，并会于「备注」中标记为演示连结。连结在前台显示无异于一般连结，作用为在网站初期填充空间用，待你的真实连结达到一定数量后，你可以将这些连结批量下架。',
     'please_select_website' => '请选择网站',
     'please_select_count' => '请选择数量',
@@ -1432,7 +1432,7 @@ $words = [
     'bulk_clone' => '批量複製',
     'banners_will_be_cloned' => '横幅会被複製至目标网站',
 
-    // v1.1.6
+    // 1.1.6
     'bulk_edit_link' => '批量更新连结',
     'links_not_found' => '找不到连结',
     'please_edit_link_content' => '请填写需要更新项目',
@@ -1443,11 +1443,11 @@ $words = [
     'demo_links_will_be_moved' => '删除连结会按照连结的备注进行删除，如连结经由系统一键汇入，预设备注为「这是演示连结」，此操作将会删除所有备注为「这是演示连结」的项目',
     'enter_demo_remark' => '如果你的备注为其他文字，可于下方修改',
 
-    // v1.1.7
+    // 1.1.7
     'show_traffic' => '显示流量',
     'found_error_when_scraping_target_site' => '爬取对方网站资料时，返回错误代码 :status_code，可能有防爬机制防止机器人访问，请手动添加资料。',
 
-    // v1.1.8
+    // 1.1.8
     'your_version' => '你的版本',
 
     // 1.1.9
@@ -1494,7 +1494,7 @@ $words = [
     'cache_cleared' => '成功清理缓存',
     'cache_not_cleared' => '清理缓存失败，可能是并未找到缓存key',
 
-    // wncms 2.0
+    // 2.0.0
     'tag_type' => '分类法类型',
     'post_category' => '文章分类',
     'post_tag' => '文章标籤',
@@ -1572,7 +1572,7 @@ $words = [
     'loaded_templtes' => '加载了 :count 个模版',
     'hover_to_view' => '悬停查看',
 
-    // wncms 3.0
+    // 3.0.0
     'latest_version' => '最新版本',
     'wn_official_website' => '文尼先生官网',
     'wncms_official_website' => 'WNCMS官网',
@@ -1586,12 +1586,12 @@ $words = [
     'system_meta' => '系统META',
     'view_is_not_found' => '模版不存在',
 
-    // wncms 3.0.6
+    // 3.0.6
     'join' => '加入',
     'enter' => '进入',
     'logged_in' => '已登入',
 
-    // wncms 3.0.7
+    // 3.0.7
     'start' => '开始',
     'stop' => '停止',
     'model_ids_are_not_found' => '找不到模组ID，请确定模组纪录是否存在，或有否发送',
@@ -1621,13 +1621,13 @@ $words = [
     'website_is_undergoing_maintainacne' => "网站维护中",
     'default_maintenance_text' => "我们的网站正在进行升级和优化，以呈现全新的外观和内容。在此期间，暂时无法访问，但我们将为您带来更好的浏览体验。谢谢您的耐心等待！",
 
-    // wncms 3.0.8
+    // 3.0.8
     'start_to_install' => "开始安装",
     'installing' => "安装中",
     'successfully_installed' => "成功安装",
     'install_again' => "重新安装",
 
-    // wncms 3.1.1
+    // 3.1.1
     'use_custom_admin_dashbaord' => "使用自订管理员控制台",
     'use_custom_user_dashbaord' => "使用自订会员控制台",
     'hide_default_admin_dashboard_items' => "隐藏预设管理员控制台项目",
@@ -1638,13 +1638,13 @@ $words = [
     'enabled_page_cache' => "启用页面缓存",
     'enabled_data_cache' => "启用数据缓存",
 
-    // wncms 3.1.2
+    // 3.1.2
     'thunbnail_of' => ":name的封面图片",
     'localize_post_image' => "本地化内文图片",
     'post_info' => "文章资讯",
     'cache_flushed' => "已清理缓存，如果缓存较大，可能需要几分钟才生效",
 
-    // wncms 3.1.3
+    // 3.1.3
     'updating' => "更新中",
     'theme_page' => "主题页面",
     'custom_page' => "自订页面",
@@ -1662,12 +1662,12 @@ $words = [
     'fetch_tag_languages' => '获取Tag多国语言',
     'api_type' => 'API类型',
 
-    // wncms 3.1.4
+    // 3.1.4
     'show_hidden' => '显示隐藏',
     'successfully_record' => '成功纪录',
     'successfully_fetch' => '成功获取',
 
-    // wncms 3.1.5
+    // 3.1.5
     'theme_template_options' => '主题模版选项',
     'available_theme_template' => '可供使用的主题模版',
     'not_using_theme_template' => '不使用',
@@ -1818,19 +1818,19 @@ $words = [
     'clear_all' => '清理全部',
     'test' => '测试',
 
-    // ! 4.0.0
+    // 4.0.0
     'website_is_already_exist' => '网站已存在',
     'login_successed_redirecting' => '成功登入，正在跳转',
     'maintenance' => '维护',
     'invalid_password' => '无效密码',
     'disable_registration' => '关闭注册',
 
-    //! 4.2.0
+    // 4.2.0
     'install_failed_retry' => '安装失败，请重试',
     'tell_us_about_your_first_website' => '告诉我们你的第一个网站',
     'force_https' => '强制HTTPS',
 
-    //! 4.3.0
+    // 4.3.0
     'new_version_available' => '有新版本可用',
     'new_version_available_with_versions' => '有新版本可用! 由 :current 升级到 :latest',
     'already_the_latest_version' => '已经是最新版本',
@@ -1839,7 +1839,7 @@ $words = [
     'disable_core_update' => '禁用核心更新',
     'core_update_disabled' => '核心更新已禁用',
 
-    //! 4.4.0
+    // 4.4.0
     'error_405_message' => '请求的 URL 不允许使用此方法。',
     'error_404_message' => '找不到页面',
     'error_419_message' => '页面已过期，请刷新页面',
@@ -1859,22 +1859,22 @@ $words = [
     'are_you_sure_to_deactivate_theme' => '确定停用主题 :theme_name?',
     'theme_deactivated_successfully' => '主题停用成功',
 
-    //! 4.5.0
+    // 4.5.0
     'model_upload' => '上传:model_name',
     'field_required' => ':field为必填项',
     'field_max' => ':field最大长度为:max个字符',
     'site_seo_description' => '网站SEO描述',
 
-    // ! 5.0.0
+    // 5.0.0
     'cannot_delete_default_themes' => '不能删除默认主题',
     'add_to_quick_link' => '添加到快捷链接',
     'remove_from_quick_link' => '从快捷链接中移除',
     'setup' => '設定',
 
-    //! 5.1.1
+    // 5.1.1
     'force_https' => '强制HTTPS',
 
-    //! 5.2.0
+    // 5.2.0
     'package_added_or_updated_successfully' => '已更新/添加成功',
     'package_updated_successfully' => '已更新成功',
     'package_add_successfully' => '已添加成功',
@@ -1892,17 +1892,17 @@ $words = [
     'removing_item' => '移除项目 :name',
     'forbidden_package' => '禁用套件',
 
-    //! 0.3.7
+    // 0.3.7
     'multi_website' => '站群',
 
-    //! 0.3.8
+    // 0.3.8
     'registerd_redirecting' => '注册成功，正在跳转',
     'confirm_password' => '确认密码',
     'enter_name' => '输入名称',
     'enter_username' => '输入用户名',
     'enter_nickname' => '输入暱称',
 
-    //! 0.3.9
+    // 0.3.9
     'reset_password_notification' => '密码重置通知',
     'hello' => '您好！',
     'reset_password_intro' => '您收到此邮件是因为我们收到您账户的密码重置请求。',
@@ -1934,7 +1934,7 @@ $words = [
     'reset_email_sent_message' => '密码重置邮件已发送至 :email。请检查您的收件箱并按照指示重置密码。',
     'back_to_login' => '返回登录',
 
-    //! 0.4.1
+    // 0.4.1
     'product' => '产品',
     'redeemed_at' => '兑换日期',
     'redeemed' => '已兑换',
@@ -2055,6 +2055,25 @@ $words = [
     'telephone' => '电话',
     'not_specified' => '未指定',
     'add_price' => '添加价格',
+
+    // 0.4.6
+    'profile_updated_successfully' => '个人资料更新成功',
+
+    // 0.4.8
+    'insufficient_credits' => '积分不足',
+
+    // 0.4.9
+    'link_icon' => '连结图标',
+    'link_thumbnail' => '连结缩略图',
+    'hit_at' => '点击日期',
+    'slogan' => '标语',
+    'link_tag' => '连结标籤',
+
+    // 0.5.0
+    'invalid_credentials' => '无效帐号或密码',
+    'insufficient_credit_to_post' => '未达发佈文章积分要求',
+    'insufficient_credit_to_post_with_requirement' => '未达发佈文章积分要求，需要 :requirement_amount :requirement_type',
+    'anonymous' => '匿名',
 ];
 
 $locale = basename(__DIR__);

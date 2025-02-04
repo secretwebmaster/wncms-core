@@ -1424,7 +1424,7 @@ $words = [
     'deleting' => "削除中",
     'successfully_dispatched_delete_job' => "削除ジョブが正常にスケジュールされました",
 
-    // v 1.1.3
+    // 1.1.3
     'links_will_be_import_to_destination_and_marked_as_demo' => 'この機能はランダムなリンクをあなたのウェブサイトにインポートし、「備考」セクションでデモリンクとしてマークします。リンクはフロントエンドで通常のリンクとして表示され、サイトの初期設定のために空間を埋める役割を果たします。実際のリンクが一定数に達すると、これらのデモリンクを一括で削除できます。',
     'please_select_website' => 'ウェブサイトを選択してください',
     'please_select_count' => '数量を選択してください',
@@ -1432,7 +1432,7 @@ $words = [
     'bulk_clone' => '一括コピー',
     'banners_will_be_cloned' => 'バナーはターゲットサイトにコピーされます',
 
-    // v1.1.6
+    // 1.1.6
     'bulk_edit_link' => 'リンクを一括編集',
     'links_not_found' => 'リンクが見つかりません',
     'please_edit_link_content' => '更新が必要な項目を入力してください',
@@ -1443,11 +1443,11 @@ $words = [
     'demo_links_will_be_moved' => 'リンクの削除はリンクの備考に基づいて行われます。リンクがシステムによって「これはデモリンクです」としてインポートされた場合、この操作は「これはデモリンクです」として備考が付けられたすべての項目を削除します',
     'enter_demo_remark' => '備考が異なる場合は、下に修正してください',
 
-    // v1.1.7
+    // 1.1.7
     'show_traffic' => 'トラフィックを表示',
     'found_error_when_scraping_target_site' => 'ターゲットサイトをスクレイピング中にエラーコード :status_code が返されました。ボットのアクセスを防ぐための対策が施されている可能性がありますので、データを手動で追加してください。',
 
-    // v1.1.8
+    // 1.1.8
     'your_version' => 'あなたのバージョン',
 
     // 1.1.9
@@ -1494,7 +1494,7 @@ $words = [
     'cache_cleared' => 'キャッシュが正常にクリアされました',
     'cache_not_cleared' => 'キャッシュのクリアに失敗しました。キャッシュキーが見つからない可能性があります',
 
-    // wncms 2.0
+    // 2.0.0
     'tag_type' => 'カテゴリタイプ',
     'post_category' => '投稿カテゴリ',
     'post_tag' => '投稿タグ',
@@ -1572,7 +1572,7 @@ $words = [
     'loaded_templtes' => ':count 個のテンプレートが読み込まれました',
     'hover_to_view' => 'ホバーして表示',
 
-    // wncms 3.0
+    // 3.0.0
     'latest_version' => '最新バージョン',
     'wn_official_website' => 'Wn公式ウェブサイト',
     'wncms_official_website' => 'WNCMS公式ウェブサイト',
@@ -1586,12 +1586,12 @@ $words = [
     'system_meta' => 'システムメタ',
     'view_is_not_found' => 'テンプレートが見つかりません',
 
-    // wncms 3.0.6
+    // 3.0.6
     'join' => '参加',
     'enter' => '入る',
     'logged_in' => 'ログイン済み',
 
-    // wncms 3.0.7
+    // 3.0.7
     'start' => '開始',
     'stop' => '停止',
     'model_ids_are_not_found' => 'モデルIDが見つかりません。モデルレコードが存在するか、送信されたか確認してください',
@@ -1621,13 +1621,13 @@ $words = [
     'website_is_undergoing_maintainacne' => 'ウェブサイトメンテナンス中',
     'default_maintenance_text' => 'ウェブサイトはアップグレードと最適化を行っており、新しい外観とコンテンツを提供します。この間、アクセスは一時的に不可ですが、より良い閲覧体験を提供します。ご理解のほどよろしくお願い申し上げます。',
 
-    // wncms 3.0.8
+    // 3.0.8
     'start_to_install' => 'インストール開始',
     'installing' => 'インストール中',
     'successfully_installed' => 'インストール成功',
     'install_again' => '再インストール',
 
-    // wncms 3.1.1
+    // 3.1.1
     'use_custom_admin_dashbaord' => 'カスタム管理ダッシュボードを使用',
     'use_custom_user_dashbaord' => 'カスタムユーザーダッシュボードを使用',
     'hide_default_admin_dashboard_items' => 'デフォルト管理ダッシュボード項目を非表示',
@@ -1638,13 +1638,13 @@ $words = [
     'enabled_page_cache' => 'ページキャッシュを有効にする',
     'enabled_data_cache' => 'データキャッシュを有効にする',
 
-    // wncms 3.1.2
+    // 3.1.2
     'thunbnail_of' => ':nameのサムネイル画像',
     'localize_post_image' => '投稿画像のローカライズ',
     'post_info' => '投稿情報',
     'cache_flushed' => 'キャッシュがクリアされました。キャッシュが大きい場合は、効果が現れるまで数分かかることがあります',
 
-    // wncms 3.1.3
+    // 3.1.3
     'updating' => '更新中',
     'theme_page' => 'テーマページ',
     'custom_page' => 'カスタムページ',
@@ -1662,12 +1662,12 @@ $words = [
     'fetch_tag_languages' => 'タグの多言語を取得',
     'api_type' => 'APIタイプ',
 
-    // wncms 3.1.4
+    // 3.1.4
     'show_hidden' => '非表示を表示',
     'successfully_record' => '成功裏に記録されました',
     'successfully_fetch' => '成功裏に取得しました',
 
-    // wncms 3.1.5
+    // 3.1.5
     'theme_template_options' => 'テーマテンプレートオプション',
     'available_theme_template' => '利用可能なテーマテンプレート',
     'not_using_theme_template' => '使用しない',
@@ -1818,19 +1818,19 @@ $words = [
     'clear_all' => 'すべてクリア',
     'test' => 'テスト',
 
-    // ! 4.0.0
+    // 4.0.0
     'website_is_already_exist' => 'ウェブサイトは既に存在します',
     'login_successed_redirecting' => 'ログイン成功、リダイレクト中',
     'maintenance' => 'メンテナンス',
     'invalid_password' => '無効なパスワード',
     'disable_registration' => '登録を無効にする',
 
-    //! 4.2.0
+    // 4.2.0
     'install_failed_retry' => 'インストール失敗、再試行',
     'tell_us_about_your_first_website' => '最初のウェブサイトについて教えてください',
     'force_https' => 'HTTPSを強制',
 
-    //! 4.3.0
+    // 4.3.0
     'new_version_available' => '新しいバージョンが利用可能です',
     'new_version_available_with_versions' => '新しいバージョンが利用可能です！ :current から :latest にアップグレードします',
     'already_the_latest_version' => 'すでに最新バージョンです',
@@ -1839,7 +1839,7 @@ $words = [
     'disable_core_update' => 'コアの更新を無効化',
     'core_update_disabled' => 'コアの更新が無効化されています',
 
-    //! 4.4.0
+    // 4.4.0
     'error_405_message' => '要求されたURLはこの方法を許可していません。',
     'error_404_message' => 'ページが見つかりません',
     'error_419_message' => 'ページの有効期限が切れました。再読み込みしてください',
@@ -1859,22 +1859,22 @@ $words = [
     'are_you_sure_to_deactivate_theme' => 'テーマ :theme_name を無効化しますか？',
     'theme_deactivated_successfully' => 'テーマが正常に無効化されました',
 
-    //! 4.5.0
+    // 4.5.0
     'model_upload' => ':model_nameをアップロード',
     'field_required' => ':fieldは必須項目です',
     'field_max' => ':fieldの最大長は:max文字です',
     'site_seo_description' => 'ウェブサイトSEO説明',
 
-    // ! 5.0.0
+    // 5.0.0
     'cannot_delete_default_themes' => 'デフォルトのテーマを削除できません',
     'add_to_quick_link' => 'クイックリンクに追加',
     'remove_from_quick_link' => 'クイックリンクから削除',
     'setup' => '設定',
 
-    //! 5.1.1
+    // 5.1.1
     'force_https' => 'HTTPSを強制',
 
-    //! 5.2.0
+    // 5.2.0
     'package_added_or_updated_successfully' => '更新/追加が成功しました。',
     'package_updated_successfully' => '更新が成功しました。',
     'package_add_successfully' => '追加が成功しました。',
@@ -1892,17 +1892,17 @@ $words = [
     'removing_item' => '項目 :name を削除中',
     'forbidden_package' => '禁止されたパッケージ',
 
-    //! 0.3.7
+    // 0.3.7
     'multi_website' => 'マルチウェブサイト',
 
-    //! 0.3.8
+    // 0.3.8
     'registerd_redirecting' => '登録成功、リダイレクト中...',
     'confirm_password' => 'パスワード確認',
     'enter_name' => '名前を入力',
     'enter_username' => 'ユーザー名を入力',
     'enter_nickname' => 'ニックネームを入力',
 
-    //! 0.3.9
+    // 0.3.9
     'reset_password_notification' => 'パスワードリセット通知',
     'hello' => 'こんにちは！',
     'reset_password_intro' => 'このメールは、お客様のアカウントのパスワードリセット要求を受け取ったために送信されています。',
@@ -1934,7 +1934,7 @@ $words = [
     'reset_email_sent_message' => 'パスワードリセットメールが :email に送信されました。メールを確認し、指示に従ってパスワードをリセットしてください。',
     'back_to_login' => 'ログインに戻る',
 
-    //! 0.4.1
+    // 0.4.1
     'product' => '製品',
     'redeemed_at' => '引き換え日時',
     'redeemed' => '引き換え済み',
@@ -2055,6 +2055,25 @@ $words = [
     'telephone' => '電話番号',
     'not_specified' => '指定なし',
     'add_price' => '価格を追加',
+
+    // 0.4.6
+    'profile_updated_successfully' => 'プロフィールが正常に更新されました',
+
+    // 0.4.8
+    'insufficient_credits' => 'クレジットが不足しています',
+
+    // 0.4.9
+    'link_icon' => 'リンクアイコン',
+    'link_thumbnail' => 'リンクサムネイル',
+    'hit_at' => 'クリック日',
+    'slogan' => 'スローガン',
+    'link_tag' => 'リンクタグ',
+
+    // 0.5.0
+    'invalid_credentials' => '無効なアカウントまたはパスワード',
+    'insufficient_credit_to_post' => '記事を投稿するためのクレジットが不足しています',
+    'insufficient_credit_to_post_with_requirement' => '記事を投稿するためのクレジットが不足しています。必要：:requirement_amount :requirement_type',
+    'anonymous' => '匿名',
 ];
 
 $locale = basename(__DIR__);

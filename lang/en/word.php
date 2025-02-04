@@ -1424,7 +1424,7 @@ $words = [
     'deleting' => "Deleting",
     'successfully_dispatched_delete_job' => "Delete job successfully scheduled",
 
-    // v 1.1.3
+    // 1.1.3
     'links_will_be_import_to_destination_and_marked_as_demo' => 'This feature will import random links to your website and mark them as demo links in the "Remarks" section. The links will appear as regular links on the frontend, and are intended to fill space on your site initially. Once you have a sufficient number of real links, you can batch remove these demo links.',
     'please_select_website' => 'Please select a website',
     'please_select_count' => 'Please select a quantity',
@@ -1432,7 +1432,7 @@ $words = [
     'bulk_clone' => 'Bulk Clone',
     'banners_will_be_cloned' => 'Banners will be cloned to the target website',
 
-    // v1.1.6
+    // 1.1.6
     'bulk_edit_link' => 'Bulk Edit Links',
     'links_not_found' => 'Links not found',
     'please_edit_link_content' => 'Please fill in the items that need updating',
@@ -1443,11 +1443,11 @@ $words = [
     'demo_links_will_be_moved' => 'Deleting links will be based on the remarks of the links. If the links were imported by the system with the remark "This is a demo link", this operation will delete all items with the remark "This is a demo link"',
     'enter_demo_remark' => 'If your remark is different, you can modify it below',
 
-    // v1.1.7
+    // 1.1.7
     'show_traffic' => 'Show Traffic',
     'found_error_when_scraping_target_site' => 'Error code :status_code returned when scraping the target site. There may be anti-scraping mechanisms preventing bots from accessing, please manually add the data.',
 
-    // v1.1.8
+    // 1.1.8
     'your_version' => 'Your Version',
 
     // 1.1.9
@@ -1494,7 +1494,7 @@ $words = [
     'cache_cleared' => 'Cache Cleared Successfully',
     'cache_not_cleared' => 'Failed to clear cache, cache key may not be found',
 
-    // wncms 2.0
+    // 2.0.0
     'tag_type' => 'Category Type',
     'post_category' => 'Post Category',
     'post_tag' => 'Post Tag',
@@ -1572,7 +1572,7 @@ $words = [
     'loaded_templtes' => ':count templates loaded',
     'hover_to_view' => 'Hover to View',
 
-    // wncms 3.0
+    // 3.0.0
     'latest_version' => 'Latest Version',
     'wn_official_website' => 'Wn Official Website',
     'wncms_official_website' => 'WNCMS Official Website',
@@ -1586,12 +1586,12 @@ $words = [
     'system_meta' => 'System Meta',
     'view_is_not_found' => 'Template Not Found',
 
-    // wncms 3.0.6
+    // 3.0.6
     'join' => 'Join',
     'enter' => 'Enter',
     'logged_in' => 'Logged In',
 
-    // wncms 3.0.7
+    // 3.0.7
     'start' => 'Start',
     'stop' => 'Stop',
     'model_ids_are_not_found' => 'Model IDs Not Found, Please Check if Model Records Exist or Have Been Sent',
@@ -1621,13 +1621,13 @@ $words = [
     'website_is_undergoing_maintainacne' => 'Website Undergoing Maintenance',
     'default_maintenance_text' => 'Our Website is Undergoing Upgrades and Optimization to Present a Fresh New Look and Content. Access is Temporarily Unavailable, but We Will Provide a Better Browsing Experience. Thank You for Your Patience!',
 
-    // wncms 3.0.8
+    // 3.0.8
     'start_to_install' => 'Start Installation',
     'installing' => 'Installing',
     'successfully_installed' => 'Successfully Installed',
     'install_again' => 'Reinstall',
 
-    // wncms 3.1.1
+    // 3.1.1
     'use_custom_admin_dashbaord' => 'Use Custom Admin Dashboard',
     'use_custom_user_dashbaord' => 'Use Custom User Dashboard',
     'hide_default_admin_dashboard_items' => 'Hide Default Admin Dashboard Items',
@@ -1638,13 +1638,13 @@ $words = [
     'enabled_page_cache' => 'Enable Page Cache',
     'enabled_data_cache' => 'Enable Data Cache',
 
-    // wncms 3.1.2
+    // 3.1.2
     'thunbnail_of' => 'Thumbnail of :name',
     'localize_post_image' => 'Localize Post Image',
     'post_info' => 'Post Information',
     'cache_flushed' => 'Cache Cleared, May Take a Few Minutes to Take Effect if Cache is Large',
 
-    // wncms 3.1.3
+    // 3.1.3
     'updating' => 'Updating',
     'theme_page' => 'Theme Page',
     'custom_page' => 'Custom Page',
@@ -1662,12 +1662,12 @@ $words = [
     'fetch_tag_languages' => 'Fetch Tag Languages',
     'api_type' => 'API Type',
 
-    // wncms 3.1.4
+    // 3.1.4
     'show_hidden' => 'Show Hidden',
     'successfully_record' => 'Successfully Recorded',
     'successfully_fetch' => 'Successfully Fetched',
 
-    // wncms 3.1.5
+    // 3.1.5
     'theme_template_options' => 'Theme Template Options',
     'available_theme_template' => 'Available Theme Templates',
     'not_using_theme_template' => 'Not Using',
@@ -1818,19 +1818,19 @@ $words = [
     'clear_all' => 'Clear All',
     'test' => 'Test',
 
-    // ! 4.0.0
+    // 4.0.0
     'website_is_already_exist' => 'Website already exists',
     'login_successed_redirecting' => 'Login successful, redirecting',
     'maintenance' => 'Maintenance',
     'invalid_password' => 'Invalid Password',
     'disable_registration' => 'Disable Registration',
 
-    //! 4.2.0
+    // 4.2.0
     'install_failed_retry' => 'Installation failed, Try again',
     'tell_us_about_your_first_website' => 'Tell us about your first website',
     'force_https' => 'Force HTTPS',
 
-    //! 4.3.0
+    // 4.3.0
     'new_version_available' => 'New version available',
     'new_version_available_with_versions' => 'New version available! Upgrading from :current to :latest',
     'already_the_latest_version' => 'Already the latest version',
@@ -1839,7 +1839,7 @@ $words = [
     'disable_core_update' => 'Disable core update',
     'core_update_disabled' => 'Core update disabled',
 
-    //! 4.4.0
+    // 4.4.0
     'error_405_message' => 'The requested URL does not allow this method.',
     'error_404_message' => 'Page not found',
     'error_419_message' => 'Page expired, please refresh',
@@ -1859,22 +1859,22 @@ $words = [
     'are_you_sure_to_deactivate_theme' => 'Are you sure to deactivate theme :theme_name?',
     'theme_deactivated_successfully' => 'Theme deactivated successfully',
 
-    //! 4.5.0
+    // 4.5.0
     'model_upload' => 'Upload :model_name',
     'field_required' => ':field is a required field',
     'field_max' => ':field maximum length is :max characters',
     'site_seo_description' => 'Website SEO description',
 
-    // ! 5.0.0
+    // 5.0.0
     'cannot_delete_default_themes' => 'Cannot delete default themes',
     'add_to_quick_link' => 'Add to Quick Link',
     'remove_from_quick_link' => 'Remove from Quick Link',
     'setup' => 'Setup',
 
-    //! 5.1.1
+    // 5.1.1
     'force_https' => 'Force HTTPS',
 
-    //! 5.2.0
+    // 5.2.0
     'package_added_or_updated_successfully' => 'Successfully updated or added.',
     'package_updated_successfully' => 'Successfully updated.',
     'package_add_successfully' => 'Successfully added.',
@@ -1892,17 +1892,17 @@ $words = [
     'removing_item' => 'Removing item :name',
     'forbidden_package' => 'Forbidden package',
 
-    //! 0.3.7
+    // 0.3.7
     'multi_website' => 'Multi-Website',
 
-    //! 0.3.8
+    // 0.3.8
     'registerd_redirecting' => 'Registration successful, redirecting...',
     'confirm_password' => 'Confirm Password',
     'enter_name' => 'Enter Name',
     'enter_username' => 'Enter Username',
     'enter_nickname' => 'Enter Nickname',
 
-    //! 0.3.9
+    // 0.3.9
     'reset_password_notification' => 'Password Reset Notification',
     'hello' => 'Hello!',
     'reset_password_intro' => 'You are receiving this email because we received a password reset request for your account.',
@@ -1934,7 +1934,7 @@ $words = [
     'reset_email_sent_message' => 'A password reset email has been sent to :email. Please check your inbox and follow the instructions to reset your password.',
     'back_to_login' => 'Back to Login',
 
-    //! 0.4.1
+    // 0.4.1
     'product' => 'Product',
     'redeemed_at' => 'Redeemed Date',
     'redeemed' => 'Redeemed',
@@ -2055,6 +2055,25 @@ $words = [
     'telephone' => 'Telephone',
     'not_specified' => 'Not Specified',
     'add_price' => 'Add Price',
+
+    // 0.4.6
+    'profile_updated_successfully' => 'Profile updated successfully',
+
+    // 0.4.8
+    'insufficient_credits' => 'Insufficient credits',
+
+    // 0.4.9
+    'link_icon' => 'Link icon',
+    'link_thumbnail' => 'Link thumbnail',
+    'hit_at' => 'Click date',
+    'slogan' => 'Slogan',
+    'link_tag' => 'Link tag',
+
+    // 0.5.0
+    'invalid_credentials' => 'Invalid account or password',
+    'insufficient_credit_to_post' => 'Not enough credits to post an article',
+    'insufficient_credit_to_post_with_requirement' => 'Not enough credits to post an article, requires :requirement_amount :requirement_type',
+    'anonymous' => 'Anonymous',
 ];
 
 $locale = basename(__DIR__);
