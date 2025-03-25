@@ -24,7 +24,7 @@
         <div class="menu-item">
             <a class="menu-link py-2 @if(request()->routeIs('themes.index')) active @endif" href="{{ route('themes.index') }}">
                 <span class="menu-icon">
-                    <i class="fa-lg @if(request()->routeIs('themes.index')) fa-beat @endif fa-solid fa-gear"></i>
+                    <i class="fa-lg @if(request()->routeIs('themes.index')) fa-beat @endif fa-solid fa-brush"></i>
                 </span>
                 <span class="menu-title fw-bold">@lang('wncms::word.theme_list')</span>
             </a>
@@ -158,7 +158,7 @@
             <span class="menu-arrow">
                 </span>
         </span>
-
+vendor/secretwebmaster/wncms-core/src/Services/Managers/AdvertisementManager.php
         <div class="menu-sub menu-sub-accordion">
             <div class="menu-item">
                 <a class="menu-link py-2" href="https://adsgroup.top/account/overview">
