@@ -39,11 +39,24 @@
                     </div>
                  
                     @can('website_index')
-                    <div class="menu-item me-lg-1">
-                        <a class="menu-link p-2" href="{{ route('websites.index') }}">
-                            <span class="menu-title text-dark fw-bold">{{ wncms_model_word('website', 'index') }}</span>
-                        </a>
-                    </div>
+                        @if(gss('multi_website'))
+                        <div class="menu-item me-lg-1">
+                            <a class="menu-link p-2" href="{{ route('websites.index') }}">
+                                <span class="menu-title text-dark fw-bold">{{ wncms_model_word('website', 'index') }}</span>
+                            </a>
+                        </div>
+                        @else
+                        <div class="menu-item me-lg-1">
+                            <a class="menu-link p-2" href="{{ route('websites.edit' , $website) }}">
+                                <span class="menu-title text-dark fw-bold">@lang('wncms::word.website_options')</span>
+                            </a>
+                        </div>
+                        <div class="menu-item me-lg-1">
+                            <a class="menu-link p-2" href="{{ route('websites.theme.options' , $website) }}">
+                                <span class="menu-title text-dark fw-bold">@lang('wncms::word.theme_options')</span>
+                            </a>
+                        </div>
+                        @endif
                     @endcan
 
                     @if(!empty($quickLinks = json_decode(gss('quick_links'), true)))
@@ -54,7 +67,6 @@
                                 </a>
                             </div>
                         @endforeach
-
                     @endif
 
                 </div>
