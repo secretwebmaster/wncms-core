@@ -23,6 +23,13 @@ class ThemeController extends Controller
                 if (file_exists($themePath)) {
 
                     $config = include $themePath;
+                    if(empty($config['info']) || empty($config['info']['id'])){
+                        return [
+                            'id' => $themeId,
+                            'name' => $themeId,
+                            'isValid' => false,
+                        ];
+                    }
                     $info = $config['info'];
 
                     // foreach info item, if is array, get the value for the current locale
@@ -63,11 +70,17 @@ class ThemeController extends Controller
         if($validationResult != 'passed'){
             return response()->json([
                 'status' => 'error',
-                'message' => 'The theme does not have the required file structure'
+                'message' => 'The theme does not have the required theme file structure'
             ]);
         }
 
         $themeId = $this->getThemeIdFromConfig($themePath);
+        if(!$themeId){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The theme does not have the required config file structure'
+            ]);
+        }
 
         // copy content of resources/views/frontend/theme/{$themeId}/system/config.php to config/theme/{$themeId}.php
         $sourceConfigPath = $themePath . "/system/" . "config.php";
@@ -279,7 +292,6 @@ class ThemeController extends Controller
         }
 
         //scan for malwares
-        $configPath = $rootThemePath . '/system/config.php';
         $config = file_get_contents($configPath);
         $foundMalwares = preg_match('/system\(|exec\(|shell_exec\(|eval\(/', $config);
         if($foundMalwares){
@@ -297,7 +309,7 @@ class ThemeController extends Controller
         $configPath = $path . "/system/" . "config.php";
         if (file_exists($configPath)) {
             $config = include $configPath;
-            return $config['info']['id'] ?? back()->with('error_message', 'config info does not contain the theme id');
+            return $config['info']['id'] ?? false;
         }
 
         return false;
