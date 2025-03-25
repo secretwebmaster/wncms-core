@@ -12,8 +12,9 @@ class TagManager
     //Cache key prefix that prepend all cache key in this page
     protected $cacheKeyPrefix = "wncms_tag";
 
-    public function get(int $tagId)
+    public function get(?int $tagId)
     {
+        if(empty($tagId)) return;
         //prepare cache key and tag
         $method = "get";
         $shouldAuth = false;
