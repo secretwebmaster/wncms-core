@@ -301,7 +301,7 @@ class Wncms
                 $slug = $prefix . strtoupper($slug);
             } elseif ($case == 'lower') {
                 $slug = $prefix . strtolower($slug);
-            }else{
+            } else {
                 $slug = $prefix . $slug;
             }
 
@@ -453,11 +453,11 @@ class Wncms
      */
     public function view($name, $params, $fallback = null)
     {
-        if(view()->exists($name)){
+        if (view()->exists($name)) {
             return view($name, $params);
-        }elseif(view()->exists($fallback)){
+        } elseif (view()->exists($fallback)) {
             return view($fallback, $params);
-        }else{
+        } else {
             dd('both theme and default view not found');
         }
     }
@@ -483,8 +483,13 @@ class Wncms
             return $this->helpers[$helper];
         }
 
-        $class = 'Wncms\Services\Managers\\' . ucfirst(str($helper)->camel()) . "Manager";
+        // load custom manager
+        $class = 'App\Services\Managers\\' . ucfirst(str($helper)->camel()) . "Manager";
+        if (class_exists($class)) {
+            return new $class($this, ...$args);
+        }
 
+        $class = 'Wncms\Services\Managers\\' . ucfirst(str($helper)->camel()) . "Manager";
         if (class_exists($class)) {
             return new $class($this, ...$args);
 
