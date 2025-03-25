@@ -8,6 +8,7 @@ return [
             ['type' => 'switch', 'name' => 'disable_core_update'],
             ['type' => 'switch', 'name' => 'check_beta_functions', 'badge'=>'Beta'],
             ['type' => 'switch', 'name' => 'show_developer_hints', 'badge'=>'Dev'],
+            ['type' => 'switch', 'name' => 'superadmin_mode'],
             ['type' => 'switch', 'name' => 'force_https'],
             ['type' => 'switch', 'name' => 'multi_website'],
             ['type' => 'text', 'name' => 'system_logo'],
