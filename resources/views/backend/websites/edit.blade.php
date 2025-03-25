@@ -45,7 +45,7 @@
                 <div class="row mb-1">
                     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.domain')</label>
                     <div class="col-lg-9 fv-row">
-                        <input type="text" class="form-control form-control-sm" value="{{ $website->domain }}" disabled/>
+                        <input type="text" name="domain" class="form-control form-control-sm" value="{{ $website->domain }}"/>
                     </div>
                 </div>
 

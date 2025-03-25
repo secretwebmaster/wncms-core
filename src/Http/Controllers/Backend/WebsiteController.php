@@ -261,6 +261,7 @@ class WebsiteController extends Controller
             'enabled_page_cache' => $request->enabled_page_cache ? true : false,
             'enabled_data_cache' => $request->enabled_data_cache ? true : false,
             'remark' => $request->remark,
+            'domain' => $request->domain,
         ]);
 
         $domainAliasIds = [];
