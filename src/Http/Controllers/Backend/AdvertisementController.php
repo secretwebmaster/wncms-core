@@ -111,6 +111,7 @@ class AdvertisementController extends Controller
             'background_color' => $request->background_color,
             'code' => $request->code,
             'style' => $request->style,
+            'order' => $request->order,
         ]);
 
          //thumbnail
