@@ -16,7 +16,7 @@
 
     {{-- link_category --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('wncms::word.link_category')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.link_category')</label>
         <div class="col-lg-9 fv-row">
             <input id="link_categories" class="form-control form-control-sm p-0"  name="link_categories" value="{{ $link->tagsWithType('link_category')->implode('name', ',') }}"/>
         </div>
@@ -47,11 +47,10 @@
             });
         </script>
     </div>
-
     
     {{-- link_tag --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('wncms::word.link_tag')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.link_tag')</label>
         <div class="col-lg-9 fv-row">
             <input id="link_tags" class="form-control form-control-sm p-0"  name="link_tags" value="{{ $link->tagsWithType('link_tag')->implode('name', ',') }}"/>
         </div>
@@ -85,9 +84,20 @@
 
     @foreach([
         'name',
+        'url',
+    ] as $field)
+        {{-- text_example --}}
+        <div class="row mb-3">
+            <label class="col-lg-3 col-form-label required fw-bold fs-6" for="{{ $field }}">@lang('wncms::word.' . $field)</label>
+            <div class="col-lg-9 fv-row">
+                <input id="{{ $field }}" type="text" name="{{ $field }}" class="form-control form-control-sm" value="{{ old($field, $link->{$field} ?? null) }}" required/>
+            </div>
+        </div>
+    @endforeach
+
+    @foreach([
         'tracking_code',
         'slug',
-        'url',
         'description',
         'slogan',
         'external_thumbnail',
@@ -322,7 +332,7 @@
     <div class="row mb-3">
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="clicks">@lang('wncms::word.clicks')</label>
         <div class="col-lg-9 fv-row">
-            <input id="clicks" type="number" name="clicks" class="form-control form-control-sm" value="{{ old('clicks', $link->clicks ?? 0) }}" disabled/>
+            <input id="clicks" type="number" name="clicks" class="form-control form-control-sm" value="{{ old('clicks', $link->clicks ?? 0) }}"/>
         </div>
     </div>
 </div>

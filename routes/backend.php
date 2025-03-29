@@ -156,6 +156,14 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::patch('/{link}', 'update')->middleware('can:link_edit')->name('links.update');
         Route::delete('/{link}', 'destroy')->middleware('can:link_delete')->name('links.destroy');
         Route::post('/bulk_delete', 'bulk_delete')->middleware('can:link_bulk_delete')->name('links.bulk_delete');
+        Route::post('/bulk_update_order', 'bulk_update_order')->middleware('can:link_edit')->name('links.bulk_update_order');
+
+        //TODO: use bulk model updater?
+        // Route::post('/bulk_update_order', [LinkController::class, 'bulk_update_order'])->middleware('can:link_edit')->name('links.bulk_update_order');
+        // Route::post('/update_status', [LinkController::class, 'update_status'])->middleware('can:link_edit')->name('links.update_status');
+        // Route::post('/bulk_update_status', [LinkController::class, 'bulk_update_status'])->middleware('can:link_edit')->name('links.bulk_update_status');
+        // Route::post('/update_is_recommended', [LinkController::class, 'update_is_recommended'])->middleware('can:link_edit')->name('links.update_is_recommended');
+        // Route::post('/bulk_update_is_recommended', [LinkController::class, 'bulk_update_is_recommended'])->middleware('can:link_edit')->name('links.bulk_update_is_recommended');
     });
 
     //menu

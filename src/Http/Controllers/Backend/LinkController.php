@@ -12,24 +12,24 @@ class LinkController extends BackendController
     {
         $q = Link::query();
 
-        if($request->keyword){
-            $q->where(function($subq) use ($request){
-                $subq->where('name', 'like', '%'.$request->keyword.'%')
-                ->orWhere('url', 'like', '%'.$request->keyword.'%')
-                ->orWhere('remark', 'like', '%'.$request->keyword.'%')
-                ->orWhere('description', 'like', '%'.$request->keyword.'%');
+        if ($request->keyword) {
+            $q->where(function ($subq) use ($request) {
+                $subq->where('name', 'like', '%' . $request->keyword . '%')
+                    ->orWhere('url', 'like', '%' . $request->keyword . '%')
+                    ->orWhere('remark', 'like', '%' . $request->keyword . '%')
+                    ->orWhere('description', 'like', '%' . $request->keyword . '%');
             });
         }
 
-        if($request->link_category_id){
-            $q->whereHas('tags', function($q) use ($request){
-                $q->where('type', 'link_category')->where(function($q) use ($request){
+        if ($request->link_category_id) {
+            $q->whereHas('tags', function ($q) use ($request) {
+                $q->where('type', 'link_category')->where(function ($q) use ($request) {
                     $q->where('tags.id', $request->link_category_id)->orWhere('tags.name', $request->link_category_id);
                 });
             });
         }
 
-        if($request->status){
+        if ($request->status) {
             $q->where('status', $request->status);
         }
 
@@ -47,10 +47,11 @@ class LinkController extends BackendController
             'links' => $links,
             'statuses' => Link::STATUSES,
             'parentLinkCategories' => $parentLinkCategories,
+            'clickModel' => null,
         ]);
     }
 
-    public function create(Link $link = null)
+    public function create(?Link $link)
     {
         $link ??= new Link;
 
@@ -200,5 +201,28 @@ class LinkController extends BackendController
         }
 
         return redirect()->route('links.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
+    }
+
+    public function bulk_update_order(Request $request)
+    {
+        info($request->all());
+        $count = 0;
+        foreach ($request->data as $linkData) {
+            $link = Link::find($linkData['id']);
+            if ($link && $link->order != $linkData['order']) {
+                $link->update(['order' => $linkData['order']]);
+                $count++;
+            } else {
+                info("link not found");
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => __('wncms::word.successfully_updated_count', ['count' => $count]),
+            'data' => [
+                'count' => $count
+            ]
+        ]);
     }
 }

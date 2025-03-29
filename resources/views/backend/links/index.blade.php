@@ -50,9 +50,44 @@
     {{-- WNCMS toolbar buttons --}}
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
+
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
             @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'links',
+            ])
+
+            <button id="btn-update-order" class="btn btn-sm btn-dark fw-bold mb-1">@lang('wncms::word.bulk_edit_order')</button>
+
+            @include('wncms::backend.common.btn_bulk_update_model', [
+                'model' => 'Link',
+                'btnText' => __('wncms::word.set_active'),
+                'swal' => true,
+                'fieldColumn' => 'status',
+                'fieldValue' => 'active',
+            ])
+
+            @include('wncms::backend.common.btn_bulk_update_model', [
+                'model' => 'Link',
+                'btnText' => __('wncms::word.set_inactive'),
+                'swal' => true,
+                'fieldColumn' => 'status',
+                'fieldValue' => 'inactive',
+            ])
+
+            @include('wncms::backend.common.btn_bulk_update_model', [
+                'model' => 'Link',
+                'btnText' => __('wncms::word.set_is_recommended'),
+                'swal' => true,
+                'fieldColumn' => 'is_recommended',
+                'fieldValue' => '1',
+            ])
+
+            @include('wncms::backend.common.btn_bulk_update_model', [
+                'model' => 'Link',
+                'btnText' => __('wncms::word.set_is_not_recommended'),
+                'swal' => true,
+                'fieldColumn' => 'is_recommended',
+                'fieldValue' => '0',
             ])
         </div>
     </div>
@@ -64,7 +99,7 @@
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-nowrap mb-0">
+                <table class="table table-xs table-hover table-bordered align-middle text-nowrap mb-0">
 
                     {{-- thead --}}
                     <thead class="table-dark">
@@ -78,13 +113,15 @@
                             <th>@lang('wncms::word.action')</th>
                             <th>@lang('wncms::word.id')</th>
                             <th>@lang('wncms::word.status')</th>
+                            <th>@lang('wncms::word.is_recommended')</th>
+                            <th>@lang('wncms::word.icon')</th>
                             <th>@lang('wncms::word.thumbnail')</th>
                             <th>@lang('wncms::word.name')</th>
                             <th>@lang('wncms::word.category')</th>
-                            <th>@lang('wncms::word.url')</th>
                             <th>@lang('wncms::word.clicks')</th>
                             <th>@lang('wncms::word.order')</th>
                             <th>@lang('wncms::word.remark')</th>
+                            <th>@lang('wncms::word.url')</th>
                             <th>@lang('wncms::word.expired_at')</th>
                             <th>@lang('wncms::word.created_at')</th>
                             
@@ -97,7 +134,6 @@
                             <th>@lang('wncms::word.background')</th>
                             <th>@lang('wncms::word.contact')</th>
                             <th>@lang('wncms::word.is_pinned')</th>
-                            <th>@lang('wncms::word.is_recommended')</th>
                             <th>@lang('wncms::word.hit_at')</th>
                             <th>@lang('wncms::word.updated_at')</th>
                             @endif
@@ -108,7 +144,7 @@
                     {{-- tbody --}}
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">
                         @foreach($links as $link)
-                            <tr>
+                            <tr data-link-id="{{ $link->id }}">
                                 {{-- Checkboxes --}}
                                 <td>
                                     <div class="form-check form-check-sm form-check-custom form-check-solid">
@@ -125,18 +161,28 @@
                                 {{-- Data --}}
                                 <td>{{ $link->id }}</td>
                                 <td>@include('wncms::common.table_status', ['model' => $link])</td>
+                                <td>@include('wncms::common.table_is_active', ['model' => $link, 'active_column' => 'is_recommended'])</td>
                                 <td>
-                                    <img class="w-20px h-20px" src="{{ $link->thumbnail ?: asset('wncms/images/placeholders/upload.png') }}" alt="">
+                                    <img class="w-20px h-20px" src="{{ $link->icon ?: asset('wncms/images/placeholders/upload.png') }}" alt="">
+                                </td>
+                                <td>
+                                    <img class="h-20px" src="{{ $link->thumbnail ?: asset('wncms/images/placeholders/upload.png') }}" alt="">
                                 </td>
                                 <td>{{ $link->name }}</td>
                                 <td>{{ $link->tagsWithType('link_category')->implode('name', ',') }}</td>
-                                <td>{{ $link->url }}</td>
-                                <td>{{ $link->clicks }}</td>
-                                <td>{{ $link->order }}</td>
+                                <td>
+                                    @if(!empty($clickModel))
+                                        <a href="{{ route('clicks.index', ['link_id' => $link->id]) }}">{{ $link->clicks_count }}</a>
+                                        <span>({{ $link->clicks ?? 0 }})</span>
+                                    @else
+                                    <span>{{ $link->clicks ?? 0 }}</span>
+                                    @endif
+                                </td>
+                                <td><input type="text" class="link-order-input" value="{{ $link->order }}"></td>
                                 <td>{{ $link->remark }}</td>
+                                <td class="mw-200px text-truncate" title="{{ $link->url }}">{{ $link->url }}</td>
                                 <td>{{ $link->expired_at }}</td>
                                 <td>{{ $link->created_at }}</td>
-                                
                                 @if(request()->show_detail)
                                 <td>{{ $link->slug }}</td>
                                 <td>{{ $link->tracking_code }}</td>
@@ -146,11 +192,9 @@
                                 <td><span style="color:{{ $link->background }};">{{ $link->background }}</span></td>
                                 <td>{{ $link->contact }}</td>
                                 <td>@include('wncms::common.table_is_active', ['model'=>$link, 'active_column' => 'is_pinned'])</td>
-                                <td>@include('wncms::common.table_is_active', ['model'=>$link, 'active_column' => 'is_recommended'])</td>
                                 <td>{{ $link->hit_at }}</td>
                                 <td>{{ $link->updated_at }}</td>
                                 @endif
-                                
                             <tr>
                         @endforeach
                     </tbody>
@@ -181,5 +225,39 @@
             }
             $(this).closest('form').submit();
         })
+    </script>
+
+    <script>
+        $('#btn-update-order').click(function() {
+            let linkOrders = []; 
+
+            $('tr[data-link-id]').each(function() {
+                let linkId = $(this).data('link-id');
+                let orderValue = $(this).find('.link-order-input').val();
+
+                if (linkId && orderValue !== undefined) {
+                    linkOrders.push({ id: linkId, order: orderValue });
+                }
+            });
+
+            // console.log(linkOrders);
+
+            $.ajax({
+                url: "{{ route('links.bulk_update_order') }}",
+                method: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    data: linkOrders
+                },
+                success: function(response) {
+                    console.log(response);
+                    alert(response.message);
+                    location.reload();
+                },
+                error: function(xhr) {
+                    console.log(response);
+                }
+            });
+        });
     </script>
 @endpush
