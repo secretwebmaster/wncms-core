@@ -2077,6 +2077,15 @@ $words = [
 
     // 5.1.3
     'user_already_exists' => '用戶已存在',
+    
+    // 5.3.0
+    'superadmin_mode' => '超級管理員模式',
+    'set_active' => '設爲啟用',
+    'set_inactive' => '設爲停用',
+    'set_is_recommended' => '設爲推薦',
+    'set_is_not_recommended' => '取消推薦',
+    'bulk_edit' => '批量編輯',
+    'bulk_edit_order' => '批量編輯排序',
 ];
 
 $locale = basename(__DIR__);

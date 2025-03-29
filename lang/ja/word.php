@@ -2077,6 +2077,15 @@ $words = [
 
     // 5.1.3
     'user_already_exists' => 'ユーザーは既に存在しています',
+
+    // 5.3.0
+    'superadmin_mode' => 'スーパー管理者モード',
+    'set_active' => '有効に設定',
+    'set_inactive' => '無効に設定',
+    'set_is_recommended' => 'おすすめに設定',
+    'set_is_not_recommended' => 'おすすめを解除',
+    'bulk_edit' => '一括編集',
+    'bulk_edit_order' => '並び順を一括編集',
 ];
 
 $locale = basename(__DIR__);

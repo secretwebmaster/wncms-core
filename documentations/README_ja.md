@@ -1,371 +1,531 @@
-# Wncms 紹介
+# Wncms プロジェクト紹介
+
 デモ: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## 更新履歴
 
-### v4.5.0 (開発中)
+### v5.3.0 2025-03-30
+
+-   管理画面のヘッダーリンクがマルチサイト設定に応じて表示されるように。マルチサイトではサイト一覧、シングルサイトではサイト設定とテーマ設定を表示
+-   広告モデルで並び順フィールドが更新されない不具合を修正
+-   サイトモデルのドメイン名を更新可能に
+-   スーパ管理者用のシステム設定を追加。あまり使われないオプションを非表示にする準備
+-   管理画面サイドバーのテーマ一覧アイコンを更新
+-   テーマのファイル構造チェック機能を追加
+-   カスタムの ModelManager をパッケージ内の ModelManager よりも優先して読み込むように
+-   TagManager の get() 関数に null を渡せるようにし、テーマオプションから null が取得されたときのエラーを防止
+-   管理画面リストページのステータスおよびブール型の表示を更新。バッジまたはテキスト表示を選択可能
+-   getList() 関数のデフォルトページサイズを 0 に設定し、デフォルトでページネーションを無効化
+-   管理画面のリストページに含められる一括モデル更新ボタンの Blade を追加
+-   Link モデルの管理画面を更新。一括でステータスと並び順を更新できるように
+
+### v5.2.0 2025-02-04
+
+-   多言語翻訳を追加
+-   コードを整理
+-   フロントエンドの新規登録ユーザーにデフォルトで member ロールを付与。テーマオプションで変更可能
+-   現在のドメインでサイトモデルが見つからない場合、最初のサイトの広告を取得
+-   リンクの翻訳を事前読み込み
+-   ドメインからサイトモデルが見つからない場合、最初のサイトの投稿を取得。ランダム順にすることも可能
+-   サイトモデルの翻訳を事前読み込み
+
+### v5.1.3 2025-02-04
+
+-   多言語翻訳を追加
+
+### v5.1.2 2025-02-04
+
+-   管理画面のクイックリンク保存ロジックを改善。ルート名ではなく URL を保存し、パラメータ欠落を防止
+-   管理画面のテーマ設定ページのタイトルにサイト ID を追加表示
+
+### v5.1.1 2025-01-28
+
+-   すべての gss バージョンを core_version に更新
+
+### v5.1.0 2025-01-28
+
+-   一部のメニュー項目が保存できない不具合を修正
+-   必須ではないフィールドから required クラスを削除
+-   Website モデルとその翻訳を事前読み込み
+-   ThemeServiceProvider を追加
+-   website モデルからではなく、現在のドメインからページ URL を表示
+-   Post モデルの翻訳を事前読み込み、order 変数でランダム指定が可能に
+-   Link モデルを翻訳可能に
+
+### v5.0.0 2025-01-27
+
+-   ユーザーページのルート順序の不具合を修正
+-   Credit モデルにクレジットを追加または取得する関数を追加
+-   User モデルにクレジット残高を直接確認できる関数を追加
+-   TinyMCE のセレクターにクラスを使用可能にし、GIF を許可画像形式に追加
+-   フロントエンドのログインページから管理画面にログインできる機能を再有効化
+-   実行時に CSRF ルールを動的に変更可能に
+-   `wncms-translatable` の依存関係を更新
+-   アップデート後にメニュー項目の翻訳が消える問題を修正
+-   `gto()` で値が空のときにフォールバックするかどうかの設定を可能に
+-   フロントエンド投稿の CRUD（作成・読み取り・更新・削除）機能を追加
+
+### v4.5.0 2024-09-30
+
+-   ページネーションの URL がキャッシュされる際に言語情報が含まれてしまう問題を修正
+-   プラグインシステムを追加
+-   `PostHelper` のパフォーマンスを向上
+-   テストを更新
+-   `LOCALIZATION_HIDE_DEFAULT_LOCALE` 環境変数を追加
 
 ### v4.4.0 2024-09-18
-- バックエンドに更新通知機能を追加しました。
-- モデル作成関数を更新し、カスタムモデルおよびコントローラーとの互換性を確保しました。
-- モデルのページネーションを修正し、最後のページのアイテム数を正確に表示するようにしました。
-- コアアップデートを無効にするオプションを設定に追加しました。
-- `README.md` にデモURLを追加しました。
-- エラーページを更新しました。
-- 翻訳を追加しました。
-- 設定を更新するコマンドを導入しました。
-- テーマコントローラーを追加しました。
+
+-   管理画面に更新通知機能を追加
+-   モデル作成関数を更新し、カスタムモデルやコントローラーとの互換性を確保
+-   ページネーションで最後のページの項目数が正確に表示されるよう修正
+-   設定にコアアップデートを無効にするオプションを追加
+-   `README.md` にデモ URL を追加
+-   エラーページを更新
+-   翻訳を追加
+-   アップデート設定用のコマンドを導入
+-   テーマコントローラーを追加
 
 ### v4.3.0 2024-09-14
-- Tested new installation process
-- Stopped tracking the vendor directory
-- Updated the backend footer year to be dynamically updated
-- Set default cache driver to null before installation
-- Updated README.md
-- Improved default template
-- Updated installer icon. Added forced HTTPS setting automatically during installation
-- Added error messages to the installer
-- Added options to select Redis, Memcache, or file as cache drivers during installation
-- Set default DB_CONNECTION to in-memory fake SQLite. Set default SESSION driver to file
-- Disabled trait file generation during installation
-- Added forced HTTPS option in system settings
-- Added default env file
-- Updated .gitignore
-- Updated composer dependencies
-- Updated theme options panel
-- Improved first-time site creation process
-- Removed debug messages
-- Fixed backend styles
-- Renamed Traits. Fixed installation errors. Added forced HTTPS compatibility
-- Checked for the existence of custom language files before requirements
+
+-   新しいインストールプロセスをテスト
+-   `vendor` ディレクトリの追跡を停止
+-   管理画面のフッターの年を動的に更新
+-   インストール前にデフォルトのキャッシュドライバーを `null` に設定
+-   `README.md` を更新
+-   デフォルトテンプレートを改善
+-   インストーラーのアイコンを更新。インストール時に HTTPS 強制設定を自動追加
+-   インストーラーにエラーメッセージを追加
+-   Redis、Memcache、ファイルからキャッシュドライバーを選択するオプションをインストーラーに追加
+-   デフォルトの `DB_CONNECTION` をインメモリの SQLite に、`SESSION` ドライバーをファイルに設定
+-   インストール時に trait ファイルの生成を無効化
+-   システム設定に HTTPS 強制オプションを追加
+-   デフォルトの `.env` ファイルを追加
+-   `.gitignore` を更新
+-   composer 依存パッケージを更新
+-   テーマオプションパネルを更新
+-   最初のサイト作成プロセスを改善
+-   デバッグメッセージを削除
+-   管理画面のスタイルを修正
+-   Trait 名を変更、インストールエラーを修正、HTTPS 強制対応を追加
+-   要求前にカスタム言語ファイルの存在を確認するよう修正
 
 ### v4.2.0 2024-09-13
-- Removed WnTagTraits.php
-- Added translations when generating demo post content
-- Improved default homepage template. Added post archive URL
-- Added more translations
-- Fixed error when adding a second site
+
+-   `WnTagTraits.php` を削除
+-   サンプル記事の生成時に翻訳を追加
+-   デフォルトのトップページテンプレートを改善。記事アーカイブの URL を追加
+-   翻訳をさらに追加
+-   2 つ目のサイトを追加する際のエラーを修正
 
 ### v4.1.0 2024-09-07
-- Added forced HTTPS option
-- Minor fixes
-- Updated default env file to hide debug messages
-- Cleared cache after installation and site creation
-- Added PHP function requirement checks
-- Added database.sqlite to .gitignore
-- Fixed create theme command. Updated lang directory according to Laravel 11 structure
-- Fixed issue where ad expiration date could not be empty
-- Removed unused UpdateLog model
-- Updated default model settings
-- Updated installer
-- Added disable user registration feature
-- Set theme to null instead of default on site edit page
+
+-   HTTPS 強制オプションを追加
+-   細かな修正
+-   デフォルトの `.env` ファイルを更新し、デバッグメッセージを非表示に
+-   インストールおよびサイト作成後にキャッシュをクリア
+-   PHP 関数の要件チェックを追加
+-   `database.sqlite` を `.gitignore` に追加
+-   テーマ作成コマンドを修正。Laravel 11 の構成に従って lang ディレクトリを更新
+-   広告の有効期限が空欄不可のバグを修正
+-   不要な `UpdateLog` モデルを削除
+-   デフォルトモデル設定を更新
+-   インストーラーを更新
+-   ユーザー登録を無効化する機能を追加
+-   サイト編集ページでテーマを null に設定するよう修正
 
 ### v4.0.0 2024-08-03
-#### New
-- PHP requirement upgraded from 7.2+ to 8.2+
-- Laravel 10 -> 11
-- jQuery 3.2.1 -> 3.7.1
-- Updated all composer dependencies
-- Added database prefix to avoid table name conflicts with MySQL reserved keywords
-#### Fixes
-- Fixed error on navigation panel/xxxx page when CMS is not installed
-- Fixed php artisan migrate:fresh not working
-- Fixed page controller error when $request-input is null
-#### Optimizations
-- Merged old migrations and renamed migration files
-- Renamed database column external_image -> external_thumbnail
-- Updated default env file generator
-- Set default length of wncms_get_unique_slug() to 8
-- Added space after all // comments. For example // Good and //Bad
-- Rewrote login logic in wncms.js and AuthenticatedSessionController
-#### Removed
-- Removed vendor directory to reduce package size. Packages will be downloaded during installation
-- Removed global function wn(), replaced with wncms()
-- Removed global variable $wn, replaced with $wncms
-- Removed analysis helper to avoid performance issues. Replaced with third-party analysis tools
-- Removed wncms_get_theme_options() helper function. Use $website->get_options() in models
+
+#### 新機能
+
+-   PHP の必須バージョンを 7.2+ から 8.2+ にアップグレード
+-   Laravel 10 → 11 にアップグレード
+-   jQuery 3.2.1 → 3.7.1 にアップグレード
+-   すべての composer 依存パッケージを更新
+-   MySQL の予約語との衝突を避けるためにデータベースプレフィックスを追加
+
+#### 修正
+
+-   CMS が未インストール時に `panel/xxxx` ページがエラーになる問題を修正
+-   `php artisan migrate:fresh` が動作しない問題を修正
+-   `$request->input` が null の場合にページコントローラーがエラーになる問題を修正
+
+#### 最適化
+
+-   古いマイグレーションを統合し、ファイル名をリネーム
+-   データベースカラム `external_image` → `external_thumbnail` に変更
+-   デフォルト `.env` ファイルジェネレーターを更新
+-   `wncms_get_unique_slug()` のデフォルト長を 8 に設定
+-   `//` コメントの後にはスペースを入れるよう統一（例：`// Good`、`//Bad` は不可）
+-   `wncms.js` と `AuthenticatedSessionController` のログインロジックを再実装
+
+#### 削除
+
+-   パッケージサイズ削減のため `vendor` ディレクトリを削除。インストール時に自動ダウンロード
+-   グローバル関数 `wn()` を削除し、すべて `wncms()` に置き換え
+-   グローバル変数 `$wn` を削除し、すべて `$wncms` に置き換え
+-   パフォーマンス問題を避けるため、解析ヘルパーを削除。代わりにサードパーティ製解析ツールを使用
+-   ヘルパー関数 `wncms_get_theme_options()` を削除。モデル内で `$website->get_options()` を使用
 
 ### v3.2.1 2024-05-19
-#### New
-- Added several flag SVGs
-- Added more translation fields
-- Added permission checks to data lists in backend modules
-- Added menu checks for non-admin permissions in backend
-- Reserved 1 proxy Dashboard for future development
-#### Fixes
-- Fixed some case errors
-#### Optimizations
-- common.table_status.blade.php can now determine more statuses, added custom features
+
+#### 新機能
+
+-   複数のフラグ SVG を追加
+-   より多くの翻訳フィールドを追加
+-   管理画面の各モジュールのデータリストに権限判定を追加
+-   管理画面のメニュー追加時に管理者以外を判定
+-   今後の開発用に、代理ダッシュボードを 1 つ予約
+
+#### 修正
+
+-   一部の大文字小文字ミスを修正
+
+#### 最適化
+
+-   `common.table_status.blade.php` にてより多くのステータスを判定可能に。カスタム機能を追加
 
 ### v3.2.0 2024-03-14
-#### Fixes
-- Fixed site_name null error during new version installation
-#### Optimizations
-- Updated installation process
-- Treated api_token requests as logged in
+
+#### 修正
+
+-   新バージョンインストール時に `site_name` が null でエラーになる問題を修正
+
+#### 最適化
+
+-   インストール手順を更新
+-   `api_token` によるリクエスト時、ログイン状態とみなすよう対応
 
 ### v3.1.15 2024-03-12
-#### New
-- Added API for Page module
-- Added API for Menu module
-- PostHelper getList() supports $isRandom parameter to retrieve random posts
-- Added getTags to Post module to retrieve Tag list with $type parameter
-- Added sorting feature to WebsiteHelper
-- Optimized theme settings to differentiate between 0 and unset
-- Added one-click complex menu feature
-#### Fixes
-- Fixed current_url item cache issue in contact form
-- Fixed button text not displaying on form submission failure
-#### Optimizations
-- Planning to remove getFirstCategory() from Post module, use getFirstTag('post_category') instead
-- Optimized mobile backend UI
-- When generating theme files, automatically replace starter string with theme name without manual modification
-- Theme names sorted alphabetically
-- Before article search, check if keyword is included
-- Optimized theme setting checks to differentiate between 0 and unset
-- Display related module counts in backend Tags
-- All Helpers default to no pagination $pageSize = 0
 
-___
+#### 新機能
+
+-   Page モジュールの API を追加
+-   メニューモジュールの API を追加
+-   `PostHelper::getList()` が `$isRandom` パラメータに対応し、ランダムな記事取得が可能に
+-   Post モジュールに `getTags` を追加。タグ一覧を取得でき、`$type` パラメータも指定可能
+-   `WebsiteHelper` に並び替え機能を追加
+-   テーマ設定で `0` と未設定を区別できるよう改善
+-   ワンクリックで複雑なメニューを生成する機能を追加
+
+#### 修正
+
+-   お問い合わせフォームの `current_url` 項目がキャッシュされる不具合を修正
+-   フォーム送信失敗時にボタンのテキストが表示されない問題を修正
+
+#### 最適化
+
+-   Post モジュールの `getFirstCategory()` を廃止予定。今後は `getFirstTag('post_category')` を使用
+-   管理画面（モバイル版）UI を最適化
+-   テーマファイル生成時、`starter` 文字列を自動でテーマ名に置き換えるよう改善
+-   テーマ名をアルファベット順に並べ替え
+-   記事検索前にキーワードが含まれているか確認
+-   テーマ設定の 0/未設定の判別を強化
+-   管理画面でタグに関連モジュール数を表示
+-   すべての Helper でページネーション無効（`$pageSize = 0`）をデフォルトに
+
 ### v3.1.14 2023-12-17
-#### New
-- Added bulk copy post functionality
 
-___
+#### 新機能
+
+-   記事の一括複製機能を追加
+
 ### v3.1.13 2023-12-12
-#### New
-- Added toolbar to module list to hide certain default buttons, e.g., 'hideToolbarStatusFiller' => true to hide status filter dropdown
-- Added js event for contact form submissions, configurable for success and failure
-- Added filter function to backend contact form
-- Added export functionality to backend contact form (XLSX/CSV)
-- Added translation fields
-#### Fixes
-- Fixed issue with decimal numbers in fake views
-#### Optimizations
-- Adjusted some backend UI elements
 
-___
+#### 新機能
+
+-   モジュール一覧のツールバーに一部のデフォルトボタンを非表示にする設定を追加（例: `'hideToolbarStatusFiller' => true`）
+-   お問い合わせフォームに送信後の JavaScript イベントを追加し、成功・失敗時にそれぞれ処理可能
+-   管理画面のお問い合わせフォームにフィルター機能を追加
+-   お問い合わせデータを XLXS / CSV でエクスポート可能に
+-   翻訳フィールドを追加
+
+#### 修正
+
+-   フェイク閲覧数が小数になる問題を修正
+
+#### 最適化
+
+-   一部の管理画面 UI を調整
+
 ### v3.1.12 2023-12-11
-#### New
-- Added automatic conversion to webp when uploading cover images in system settings
-- Added ExtraAttribute feature to modules, use getExtraAttribute() and saveExtraAttribute()
-#### Fixes
-- Fixed occasional duplicate display of switch descriptions in theme settings
 
-___
+#### 新機能
+
+-   システム設定でカバー画像アップロード時、自動的に WebP に変換
+-   モジュールに追加属性機能（`ExtraAttribute`）を追加。`getExtraAttribute()` と `saveExtraAttribute()` を使用可能
+
+#### 修正
+
+-   テーマ設定のスイッチの説明が重複して表示される場合がある不具合を修正
+
 ### v3.1.11 2023-12-08
-#### New
-- Added more translation fields
-#### Fixes
-- Fixed issue with theme setting images not displaying if they have parentheses ()
-#### Optimizations
-- Added support for utm parameters to pages other than landing pages
 
-___
+#### 新機能
+
+-   翻訳フィールドをさらに追加
+
+#### 修正
+
+-   テーマ設定の画像に括弧 () が含まれていると表示されない問題を修正
+
+#### 最適化
+
+-   `utm` パラメータをランディングページ以外にも引き継げるよう改善
+
 ### v3.1.10 2023-12-08
-#### New
-- Contact form supports adjusting field order
-- Added several system settings, including super admin recipient email address
-- Added SMTP test email feature
-- Updated some translation fields
-- Contact form now supports single and multiple selections
-- Contact form now checks if all required fields are filled
-#### Fixes
-- Fixed mobile theme setting layout issues with long site names
-- Fixed bulk delete issue in some modules
-- Fixed article trash not updating status
-#### Optimizations
-- Updated default email template to support HTML
 
-___
+#### 新機能
+
+-   お問い合わせフォームでフィールド順を変更可能に
+-   システム設定にスーパー管理者の通知先メールアドレスを設定する項目を追加
+-   SMTP のテスト送信機能を追加
+-   一部の翻訳フィールドを更新
+-   お問い合わせフォームで単一選択・複数選択に対応
+-   必須入力項目がすべて入力されているかをチェックする機能を追加
+
+#### 修正
+
+-   スマホ版のテーマ設定でサイト名が長すぎるとレイアウトが崩れる不具合を修正
+-   一部モジュールが一括削除できない不具合を修正
+-   記事をゴミ箱に移動してもステータスが更新されない問題を修正
+
+#### 最適化
+
+-   デフォルトの HTML メールテンプレートを更新
+
 ### v3.1.9 2023-12-06
-#### New
-- Added style.css and main.js for Starter theme
-#### Fixes
-- Fixed issue with some theme page components not loading
-#### Optimizations
-- When fetching posts, if excluded category IDs are specified, include posts without categories
-- Updated form system to use new template calling method $wncms->contact_form()->render(), directly generating form structure
-- Updated FAQ module to include more fields and sorting options
 
-___
+#### 新機能
+
+-   Starter テーマ用の `style.css` と `main.js` を追加
+
+#### 修正
+
+-   一部のテーマページコンポーネントが読み込まれない不具合を修正
+
+#### 最適化
+
+-   記事取得時、除外カテゴリ ID を指定した場合でもカテゴリ未設定の記事を含むよう改善
+-   フォームシステムを更新し、新しいテンプレート呼び出し方法（`$wncms->contact_form()->render()`）に対応
+-   FAQ モジュールを更新。項目を追加し、並び順を設定可能に
+
 ### v3.1.8 2023-11-29
-#### New
-- Added json-id structure
 
-___
+#### 新機能
+
+-   `json-id` 構造を追加
+
 ### v3.1.7 2023-11-21
-#### New
-- Optimized mobile UI for backend
-- Uploaded image modules now support more image types
-- Added one-click import of default theme settings
-#### Fixes
-- Fixed issue where article limit was less than pagination number, causing possible display issues
-#### Optimizations
-- Upgraded text editor in theme settings
-- Updated translation fields
 
-___
+#### 新機能
+
+-   管理画面（スマホ版）UI の改善
+-   すべての画像アップロードモジュールでより多くの画像形式に対応
+-   デフォルトのテーマ設定をワンクリックでインポートできる機能を追加
+
+#### 修正
+
+-   記事上限がページ数より少ない場合に表示されない不具合を修正
+
+#### 最適化
+
+-   テーマ設定内のテキストエディタをアップグレード
+-   翻訳フィールドを更新
+
 ### v3.1.6 2023-11-17
-#### New
-- Bulk assign articles to sites feature
-- Added click event logging with [wncms-click] attribute
-- Added global site view count (distinct from article view count, where site view count is global and counts as 1 no matter how many articles are viewed)
-- Added more translation fields
-- Added system setting for view count and visit cooldown interval, configurable to 60 minutes or 1440 minutes, or custom minute input
-- Added multiple filter conditions to ad positions
 
-___
+#### 新機能
+
+-   記事を複数のサイトに一括で割り当てる機能を追加
+-   `[wncms-click]` 属性によるクリックイベント記録機能を追加
+-   サイト閲覧数の表示を追加（記事閲覧数とは異なり、複数記事を閲覧しても 1 回としてカウント）
+-   より多くの翻訳フィールドを追加
+-   システム設定に閲覧数・訪問数のクールダウン時間を追加（例：60 分、1440 分など分単位で設定）
+-   広告枠に複数フィルター条件を追加
+
 ### v3.1.5 2023-11-16
-#### New
-- Menu items can now have descriptions
-- [Developer] Added Widget system for creating Page templates, increasing reusability
-- [Developer] Introduced Sortable JS plugin
-- [Developer] Added stackable CSS position to backend backend.blade.php using @push('foot_css')
-- Added more translation fields
-- Added one-click demo post generation feature for development convenience
-- [Developer] Added fourth common abbreviation function gpto (getPageTemplateOption) for retrieving individual page parameters
-#### Fixes
-- Fixed Ajax contact form return message, changed "Successfully created" to "Successfully submitted"
-#### Optimizations
-- Changed page group option field from json type to text type to prevent auto-sorting
-- Modified single-page load order to template > plain > static, redirect to homepage if none exist
-- Fixed menu links starting with # not properly jumping to anchors
-- Fixed mobile backend theme settings styles
-- [Developer] Significantly revised backend input.blade.php logic in preparation for visual editor
 
-___
+#### 新機能
+
+-   メニュー項目に説明文を追加可能に
+-   【開発者向け】再利用可能なページテンプレートを構築する Wiget システムを追加
+-   【開発者向け】Sortable JS プラグインを導入
+-   【開発者向け】`backend.blade.php` に CSS スタック領域を追加（`@push('foot_css')`）
+-   翻訳フィールドをさらに追加
+-   開発用のデモ記事をワンクリックで生成する機能を追加
+-   【開発者向け】ページごとの設定取得用関数 `gpto`（`getPageTemplateOption`）を追加
+
+#### 修正
+
+-   Ajax 問い合わせフォームで「成功建立」と表示されるメッセージを「成功提交」に修正
+
+#### 最適化
+
+-   ページカテゴリの option カラムを `json` から `text` に変更し、自動並び替えを防止
+-   単一ページの読み込み順を `template > plain > static` に変更。すべてなければトップページへリダイレクト
+-   `#` で始まるメニューリンクがアンカーへ正しく移動しない問題を修正
+-   スマホ版の管理画面テーマ設定スタイルを改善
+-   【開発者向け】`input.blade.php` の条件ロジックを大幅に書き換え、ビジュアルエディタ対応準備完了
+
 ### v3.1.4 2023-11-04
-#### Added
-- [Developer] Added $wncms parameter in templates, equivalent to $wn
-- [Developer] Added wncms()->paginateWithLimit() method to solve the issue of paginate not working with limit
-- More translation strings
-- Cache likes count, updated daily via scheduled task to the module like field, can speed up modules that do not need real-time likes count
-- Updated RecordViews scheduled task to record any collection, such as visit, like, dislike
-- [Developer] Added $wn->addVersion(), no need to add '?v=' . $wn->getVersion() in templates, new feature output already includes ?v=
-- Introduced applicaion/ld+json option, can be pushed to <head>
-#### Fixed
-- Fixed issue where some pages did not load content after the 3.1.3 update
 
-#### Optimized
-- Default theme `<title>` changed from `<Home>` to website name
-- Optimized prompt for adding same-name permissions, no longer an error but a notification of existing duplicate items
-- [Developer] Renamed statistics section in front-end views: get_view -> get, record_like -> like, record_view -> record
+#### 新機能
 
-___
+-   【開発者】テンプレートに `$wncms` パラメータを追加。`$wn` と同等
+-   【開発者】`wncms()->paginateWithLimit()` メソッドを追加。`paginate` が `limit` と併用できない問題を解決
+-   より多くの翻訳文字を追加
+-   「いいね」数をキャッシュし、毎日スケジュールタスクでモジュールの `like` フィールドに更新。リアルタイムでの「いいね」数が不要なモジュールを高速化
+-   `RecordViews` のスケジュールタスクを更新。`visit`, `like`, `dislike` など任意のコレクションを記録可能
+-   【開発者】`$wn->addVersion()` を追加。テンプレートで `'?v=' . $wn->getVersion()` を手動で追加せずにバージョン付きで出力可能
+-   `application/ld+json` オプションを導入し、`<head>` に push 可能
+
+#### 修正
+
+-   v3.1.3 アップデート後、一部のページで内容が読み込まれない問題を修正
+
+#### 最適化
+
+-   デフォルトテーマの `<title>` を「ホーム」からサイト名に変更
+-   同じ名前の権限を追加する際、エラー表示ではなく「既に存在しています」と通知表示に変更
+-   【開発者】フロントビューの統計関数をリネーム：`get_view` → `get`, `record_like` → `like`, `record_view` → `record`
+
 ### v3.1.3 2023-10-31
-#### Added
-- Updated backend menu module icons
-- Added domain extraction from text
-- Ads replaced with permanent ad setting
-- [Developer] Added page template functionality, allowing developers to create Blade files for page management with one-click page generation
-- Fixed color table options not displaying current values
-- Added menu Tag item with one-click multi-language functionality, customizable display text for each language after retrieval
-- Added more default ad positions
-- [Developer] Added date marking module resources/views/common/table_date.blade.php, marked with different colors based on the distance from the current date and time
-- [Developer] New function to check if a link is the same as the current page link, wncms()->isActiveUrl()
-- Added more translation strings
-- Added article ranking feature /posts/rank, /post/rank/{$period}, sortable by day, week, month, year
-- [Developer] Added WnMediaTraits with one function $this->addThumbnailFromRequest(), allows direct image upload from request
-- [Developer] Added getFirstTag() function in WnTgTraits to get the first Tag of any Model
-- [Developer] CacheHelper new get() and put() functions
-- [Developer] MenuHelper added theme_page link output, similar to external_link
-- Added one-click ad copy function
-#### Fixed
-- [Developer] Fixed issue with overwritten Stub files after updating Laravel version, causing module generator templates to revert
-- Fixed backend member page errors
-- Fixed tag pagination displaying only the first page when cache is enabled
-- Fixed issues with some modules not having initial permissions for administrators
-- Fixed potential sorting issues after updating menu items
-#### Optimized
-- [Developer] Optimized link extraction from fields, optional to retain www, wncms()->getDomainFromString($string, $includePort = true, $preserveWWW = false)
 
-___
+#### 新機能
+
+-   管理画面メニューアイコンを更新
+-   テキストからドメインを抽出する機能を追加
+-   広告に「永久広告」設定を追加
+-   【開発者】ページテンプレート機能を追加。Blade ファイルを作成し、ページ管理からワンクリックで生成可能
+-   カラーピッカーで現在値が表示されない不具合を修正
+-   メニュータグ項目に多言語自動取得機能を追加。取得後は各言語の表示文をカスタマイズ可能
+-   さらに多くのデフォルト広告枠を追加
+-   【開発者】日付表示モジュール `resources/views/common/table_date.blade.php` を追加。現在時刻との距離で色分け表示
+-   【開発者】現在のページとリンクが一致するかを判定する `wncms()->isActiveUrl()` を追加
+-   より多くの翻訳項目を追加
+-   記事ランキング機能を追加 `/posts/rank`, `/post/rank/{$period}`（日・週・月・年・全体で並び替え可能）
+-   【開発者】`WnMediaTraits` を追加。`$this->addThumbnailFromRequest()` でリクエストから直接画像をアップロード可能
+-   【開発者】`WnTgTraits` に `getFirstTag()` を追加。任意のモデルから最初のタグを取得
+-   【開発者】`CacheHelper` に `get()` と `put()` を追加
+-   【開発者】`MenuHelper` に `theme_page` 用リンク出力を追加。`external_link` とほぼ同じ挙動
+-   広告のワンクリックコピー機能を追加
+
+#### 修正
+
+-   【開発者】Laravel バージョンアップ後、Stub ファイルが上書きされてしまう問題を修正。モジュールテンプレートが初期化されてしまう不具合
+-   会員ページの管理画面でのエラーを修正
+-   キャッシュ有効時、タグのページネーションが 1 ページ目のみ表示される不具合を修正
+-   一部モジュールで、管理者に初期権限がない問題を修正
+-   メニュー項目を更新すると並び順が崩れる問題を修正
+
+#### 最適化
+
+-   【開発者】文字列からドメインを取得する機能を改良。`www` を保持するかどうかを指定可能：`wncms()->getDomainFromString($string, $includePort = true, $preserveWWW = false)`
+
 ### v3.1.2 2023-10-28
-#### Added
-- Used new Redis cache library, allowing individual tag clearing
-- Added one-click cache clearing feature in the backend
-- [Developer] Added method to get domain+port from String, wncms()->getDomainFromString()
-#### Optimized
-- [Developer] Refactored code
-- [Developer] Updated Theme helper to not be affected by cache settings, still applies data cache time even if cache is disabled, default 3600 seconds, to prevent multiple database requests for theme settings after cache is disabled
-- [Developer] Updated CSRF paths
-- Fixed TinyMCE editor issue in theme settings
-- [Developer] Added option in TagHelper to get only parent tags with getList()
-- Updated article API
-- Updated WNCMS installer, simplified process
 
-___
+#### 新機能
+
+-   新しい Redis キャッシュライブラリを導入し、個別のタグ削除に対応
+-   管理画面にワンクリックでキャッシュを削除する機能を追加
+-   【開発者】文字列からドメイン＋ポートを取得する `wncms()->getDomainFromString()` を追加
+
+#### 最適化
+
+-   【開発者】コード整理
+-   【開発者】Theme Helper がキャッシュ設定に影響されないよう修正。キャッシュを無効にしてもデフォルトで 3600 秒のキャッシュ時間を適用（DB 負荷軽減）
+-   【開発者】CSRF パスを更新
+-   テーマ設定で TinyMCE エディタが無効になる問題を修正
+-   【開発者】`TagHelper::getList()` に親タグのみを取得するオプションを追加
+-   記事の API を更新
+-   WNCMS のインストールプロセスを簡略化
+
 ### v3.1.1 2023-10-20
-#### Added
-- Redesigned installation process, simpler and faster
-- [Developer] Updated tagify field in Starter to allow toggling switch search
-- [Developer] Developers can customize admin control panel items
-- [Developer] Developers can customize member homepage items
-- Added more translation fields
-#### Fixed
-- Fixed issue with some modules not clearing tags
-#### Optimized
-- [Developer] Refactored backend Sidebar Model, developers can customize backend Model menu order by modifying $menuPriority property in Model
-- [Developer] Updated controller.model.stub
-- Rewritten member registration logic
 
-___
+#### 新機能
+
+-   インストールプロセスを全面刷新。より簡単で高速に
+-   【開発者】Starter の `tagify` フィールドをキーワード検索入力に変更
+-   【開発者】管理者ダッシュボード項目をカスタマイズ可能に
+-   【開発者】会員マイページ項目をカスタマイズ可能に
+-   より多くの翻訳項目を追加
+
+#### 修正
+
+-   一部モジュールでタグが削除されない不具合を修正
+
+#### 最適化
+
+-   【開発者】管理画面サイドバーの Model 項目をリファクタリング。`$menuPriority` プロパティで順序を制御可能に
+-   【開発者】`controller.model.stub` を更新
+-   会員登録ロジックを再構築
+
 ### v3.0.8 2023-10-18
-#### Added
-- [Developer] Updated Wncms core class to allow arbitrary parameter setting $wn->anything = 'something';
-- [Developer] Updated Wncms core class for more efficient reuse of Helper Classes
 
-___
+#### 新機能
+
+-   【開発者】Wncms コアクラスを更新し、任意のプロパティを `$wn->anything = 'something';` の形式で追加可能に
+-   【開発者】Wncms コアクラスを更新し、Helper クラスの再利用性を向上
+
 ### v3.0.7 2023-10-17
-#### Added
-- Added bulk processing functionality to contact form, allowing batch marking as read, unread, or replied
-- Added site-wide caching
-- Added backup domain system
-- Started adding data quantity information to some backend pages, such as total number and currently displayed data
-- Added ad module
-#### Optimized
-- Updated Ajax button data submission mode
-- Optimized system settings cache
-- Upgraded TinyMCE editor, using Cloudflare CDN
 
-___
+#### 新機能
+
+-   お問い合わせフォームに一括処理機能を追加（既読、未読、返信済みを一括で設定可能）
+-   サイト単位のキャッシュ機能を追加
+-   予備ドメインシステムを追加
+-   一部の管理画面にデータ件数情報を追加（例：総数、現在表示中の件数）
+-   広告モジュールを新規追加
+
+#### 最適化
+
+-   Ajax ボタンのデータ送信形式を更新
+-   システム設定のキャッシュ処理を最適化
+-   TinyMCE エディタを Cloudflare CDN でアップグレード
+
 ### v3.0.6 2023-10-09
-#### Added
-- Added more translation fields
-- [Developer] Added table_url Blade view
-- [Developer] Added demonstration module to web.php route
-- [Developer] Added re-manufacture button to starter/index.blade.php view
-- [Developer] Added WnTagTraits feature to Tag module with getAvailableTypes() to retrieve taxonomy list ['post_tag', 'video_category', etc]
 
-___
+#### 新機能
+
+-   より多くの翻訳フィールドを追加
+-   【開発者】`table_url` Blade ビューを追加
+-   【開発者】`web.php` ルーティングにデモ用モジュールを追加
+-   【開発者】`starter/index.blade.php` に複製ボタンを追加
+-   【開発者】Tag モジュールに `WnTagTraits` トレイトを追加し、`getAvailableTypes()` で分類法の一覧（例：`post_tag`, `video_category`）を取得可能に
+
 ### v3.0.5 2023-10-07
-#### Added
-- Checked if custom modules exist (Custom{Model}Traits.php)
 
-___
+#### 新機能
+
+-   カスタムモジュールの存在チェック機能を追加（`Custom{Model}Traits.php`）
+
 ### v3.0.4 2023-10-07
-#### Fixed
-- Fixed minor issues with some modules
-#### Optimized
-- Optimized backend UI
 
-___
+#### 修正
+
+-   一部モジュールの小さな不具合を修正
+
+#### 最適化
+
+-   管理画面の UI を改善
+
 ### v3.0.3 2023-10-06
-#### Optimized
-- Updated article module, fixed member permission issues
-- Moved Trait directory to Ap directory
 
-___
+#### 最適化
+
+-   記事モジュールを更新し、会員の権限に関する問題を修正
+-   `Trait` ディレクトリを `App` ディレクトリ下へ移動
+
 ### v3.0.2 2023-09-30
-#### Added
-- Added Page type (Plain text type, template created by editor, template provided by theme)
 
-___
+#### 新機能
+
+-   新しい Page タイプを追加（プレーンテキスト型、エディターで作成されたテンプレート、テーマ提供のテンプレート）
+
 ### 2.0.0 2021-07-28
-- New version release! (Related update logs are archived)
 
-___
+-   メジャーバージョンアップ！（詳細な更新履歴は非公開）
+
 ### 1.0.0 2019-03-01
-- Initial version release (Related update logs are archived)
+
+-   初回リリース（詳細な更新履歴は非公開）
