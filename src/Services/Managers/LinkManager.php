@@ -9,7 +9,6 @@ class LinkManager
     //Cache key prefix that prepend all cache key in this page
     protected $cacheKeyPrefix = "wncms_link";
 
-
     /**
      * ----------------------------------------------------------------------------------------------------
      * Get single link by id
@@ -63,10 +62,10 @@ class LinkManager
         ?string $tagType = 'link_category',
         array|string|null $keywords = [],
         ?int $count = 0,
-        ?int $pageSize = 20,
+        ?int $pageSize = 0,
         ?int $page = 0,
         ?int $offset = 0,
-        string $order = 'id',
+        ?string $order = null,
         string $sequence = 'desc',
         string $status = 'active',
         ?array $wheres = [],
@@ -203,9 +202,10 @@ class LinkManager
 
             if($order == 'random'){
                 $q->inRandomOrder();
-            }else{
+            }elseif($order){
                 $q->orderBy($order, in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc');
             }
+
             $q->orderBy('id', 'desc');
 
             $q->distinct();

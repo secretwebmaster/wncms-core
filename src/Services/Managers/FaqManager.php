@@ -69,7 +69,7 @@ class FaqManager
         ?string $tagType = 'faq_tag',
         array|string|null $keywords = [],
         ?int $count = 0,
-        ?int $pageSize = 20,
+        ?int $pageSize = 0,
         ?int $page = 0,
         ?int $offset = 0,
         string $order = 'id',
