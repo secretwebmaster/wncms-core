@@ -40,8 +40,7 @@ use Wncms\Http\Controllers\Backend\LinkController;
 use Wncms\Http\Controllers\Backend\PaymentGatewayController;
 use Wncms\Http\Controllers\Backend\ProductController;
 use Wncms\Http\Controllers\Backend\PlanController;
-
-
+use Wncms\Http\Controllers\Backend\PriceController;
 
 Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->group(function () {
 
@@ -214,7 +213,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::post('/remove', 'remove')->middleware('can:package_edit')->name('packages.remove');
     });
 
-    
+
     //payment_gateway
     Route::get('payment_gateways', [PaymentGatewayController::class, 'index'])->middleware('can:payment_gateway_index')->name('payment_gateways.index');
     Route::get('payment_gateways/create', [PaymentGatewayController::class, 'create'])->middleware('can:payment_gateway_create')->name('payment_gateways.create');
@@ -236,6 +235,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::delete('/{permission}', 'destroy')->middleware('can:permission_delete')->name('permissions.destroy');
         Route::post('/bulk_assign_roles', 'bulk_assign_roles')->middleware('can:permission_edit')->name('permissions.bulk_assign_roles');
         Route::post('/bulk_remove_roles', 'bulk_remove_roles')->middleware('can:permission_edit')->name('permissions.bulk_remove_roles');
+        Route::post('/bulk_delete', 'bulk_delete')->middleware('can:permission_bulk_delete')->name('permissions.bulk_delete');
     });
 
     //plugin
@@ -391,14 +391,14 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     Route::post('plans/bulk_delete', [PlanController::class, 'bulk_delete'])->middleware('can:plan_bulk_delete')->name('plans.bulk_delete');
 
     // price for model Price
-    Route::get('prices', [PriceController::class, 'index'])->middleware('can:price_index')->name('prices.index');
-    Route::get('prices/create', [PriceController::class, 'create'])->middleware('can:price_create')->name('prices.create');
-    Route::get('prices/create/{Price}', [PriceController::class, 'create'])->middleware('can:price_clone')->name('prices.clone');
-    Route::get('prices/{Price}/edit', [PriceController::class, 'edit'])->middleware('can:price_edit')->name('prices.edit');
-    Route::post('prices/store', [PriceController::class, 'store'])->middleware('can:price_create')->name('prices.store');
-    Route::patch('prices/{Price}', [PriceController::class, 'update'])->middleware('can:price_edit')->name('prices.update');
-    Route::delete('prices/{Price}', [PriceController::class, 'destroy'])->middleware('can:price_delete')->name('prices.destroy');
-    Route::post('prices/bulk_delete', [PriceController::class, 'bulk_delete'])->middleware('can:price_bulk_delete')->name('prices.bulk_delete');
+    // Route::get('prices', [PriceController::class, 'index'])->middleware('can:price_index')->name('prices.index');
+    // Route::get('prices/create', [PriceController::class, 'create'])->middleware('can:price_create')->name('prices.create');
+    // Route::get('prices/create/{Price}', [PriceController::class, 'create'])->middleware('can:price_clone')->name('prices.clone');
+    // Route::get('prices/{Price}/edit', [PriceController::class, 'edit'])->middleware('can:price_edit')->name('prices.edit');
+    // Route::post('prices/store', [PriceController::class, 'store'])->middleware('can:price_create')->name('prices.store');
+    // Route::patch('prices/{Price}', [PriceController::class, 'update'])->middleware('can:price_edit')->name('prices.update');
+    // Route::delete('prices/{Price}', [PriceController::class, 'destroy'])->middleware('can:price_delete')->name('prices.destroy');
+    // Route::post('prices/bulk_delete', [PriceController::class, 'bulk_delete'])->middleware('can:price_bulk_delete')->name('prices.bulk_delete');
 
     // product for model Product
     Route::get('products', [ProductController::class, 'index'])->middleware('can:product_index')->name('products.index');

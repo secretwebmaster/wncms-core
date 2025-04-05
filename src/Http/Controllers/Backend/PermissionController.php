@@ -22,22 +22,21 @@ class PermissionController extends Controller
         'bulk_delete',
     ];
 
-
     public function index(Request $request)
     {
         $roles = Role::all();
         $q = Permission::query();
-        
-        if($request->keyword){
+
+        if ($request->keyword) {
             $q->where('name', 'like', "%$request->keyword%");
         }
-        
-        if($request->role){
-            $q->whereRelation('roles','name', $request->role);
+
+        if ($request->role) {
+            $q->whereRelation('roles', 'name', $request->role);
         }
 
         $q->orderBy('name', 'asc');
-        
+
         $permissions = $q->paginate($request->page_size ?? 50);
 
         return view('wncms::backend.permissions.index', [
@@ -73,42 +72,36 @@ class PermissionController extends Controller
 
         $role_names = Role::whereIn('id', $request->roless)->pluck('name')->toArray();
 
-        if(!empty($request->common_suffixess)){
+        if (!empty($request->common_suffixess)) {
 
-            foreach($request->common_suffixess as $common_suffix){
+            foreach ($request->common_suffixess as $common_suffix) {
                 $existing_permission = Permission::where('name', $request->name)->first();
-                if($existing_permission){
-                    return back()->withInput()->withErrors(['message' => __('wncms::word.permission_already_exists')]);
+                if ($existing_permission) {
+                    // return back()->withInput()->withErrors(['message' => __('wncms::word.permission_already_exists')]);
+                    continue;
+                } else {
+                    $permission = Permission::firstOrCreate([
+                        'name' => (str($request->name)->endsWith('_') ? $request->name : $request->name . "_") . $common_suffix,
+                    ]);
+
+                    $permission->syncRoles($role_names);
                 }
             }
-
-            foreach($request->common_suffixess as $common_suffix){
-                $permission = Permission::firstOrCreate([
-                    'name' => (str($request->name)->endsWith('_') ? $request->name : $request->name . "_") . $common_suffix,
-                ]);
-    
-                $permission->syncRoles($role_names);
-            }
-
-        }else{
+        } else {
 
             $existing_permission = Permission::where('name', $request->name)->first();
 
-            if($existing_permission){
+            if ($existing_permission) {
                 return back()->withInput()->withErrors(['message' => __('wncms::word.permission_already_exists')]);
             }
 
             $permission = Permission::firstOrCreate(['name' => $request->name]);
 
             $permission->syncRoles($role_names);
-
         }
 
         wncms()->cache()->tags(['permissions'])->flush();
         return redirect()->route('permissions.index');
-        // return redirect()->route('permissions.edit', [
-        //     'permission' => $permission,
-        // ])->withMessage(__('wncms::word.successfully_created'));
     }
 
     public function edit(Permission $permission)
@@ -132,7 +125,7 @@ class PermissionController extends Controller
         $permission->syncRoles($role_names);
 
         wncms()->cache()->tags(['permissions'])->flush();
-        
+
         return redirect()->route('permissions.edit', [
             'permission' => $permission,
         ])->withMessage(__('wncms::word.successfully_updated'));
@@ -147,36 +140,54 @@ class PermissionController extends Controller
     public function bulk_assign_roles(Request $request)
     {
         // dd($request->all());
-        if(empty($request->permission_ids) || empty($request->role_ids)) return back()->withErrors(['message' => __('wncms::word.empty_inputs')]);
+        if (empty($request->permission_ids) || empty($request->role_ids)) return back()->withErrors(['message' => __('wncms::word.empty_inputs')]);
 
         $role_ids = [];
-        foreach($request->role_ids as $role_id => $value){
+        foreach ($request->role_ids as $role_id => $value) {
             $role_ids[] = $role_id;
         }
         $roles = Role::whereIn('id', $role_ids)->get();
-        foreach($roles as $role){
+        foreach ($roles as $role) {
             $role->permissions()->syncWithoutDetaching(explode(",", $request->permission_ids));
         }
 
         return back()->withMessage(__('wncms::word.successfully_updated'));
-
     }
 
     public function bulk_remove_roles(Request $request)
     {
         // dd($request->all());
-        if(empty($request->permission_ids) || empty($request->role_ids)) return back()->withErrors(['message' => __('wncms::word.empty_inputs')]);
+        if (empty($request->permission_ids) || empty($request->role_ids)) return back()->withErrors(['message' => __('wncms::word.empty_inputs')]);
 
         $role_ids = [];
-        foreach($request->role_ids as $role_id => $value){
+        foreach ($request->role_ids as $role_id => $value) {
             $role_ids[] = $role_id;
         }
         $roles = Role::whereIn('id', $role_ids)->get();
-        foreach($roles as $role){
+        foreach ($roles as $role) {
             $role->permissions()->detach(explode(",", $request->permission_ids));
         }
 
         return back()->withMessage(__('wncms::word.successfully_updated'));
+    }
 
+    public function bulk_delete(Request $request)
+    {
+        if(!is_array($request->model_ids)){
+            $modelIds = explode(",", $request->model_ids);
+        }else{
+            $modelIds = $request->model_ids;
+        }
+
+        $count = Permission::whereIn('id', $modelIds)->delete();
+
+        if($request->ajax()){
+            return response()->json([
+                'status' => 'success',
+                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
+            ]);
+        }
+
+        return redirect()->route('clicks.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
     }
 }

@@ -97,7 +97,7 @@
             </div>
 
             {{-- remvoe role --}}
-            <button type="button" class="btn btn-sm btn-danger fw-bold" data-bs-toggle="modal" data-bs-target="#modal_bulk_remove_roles_form">@lang('wncms::word.bulk_remove_roles')</button>
+            <button type="button" class="btn btn-sm btn-danger fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_bulk_remove_roles_form">@lang('wncms::word.bulk_remove_roles')</button>
             <div class="modal fade" tabindex="-1" id="modal_bulk_remove_roles_form">
                 <div class="modal-dialog">
                     <div class="modal-content">
