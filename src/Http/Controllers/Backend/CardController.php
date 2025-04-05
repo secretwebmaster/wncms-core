@@ -27,11 +27,11 @@ class CardController extends Controller
         return view('wncms::backend.cards.index', [
             'page_title' => wncms_model_word('card', 'management'),
             'cards' => $cards,
-            'statuses' => CardStatus::values(), // Passing statuses from the enum
+            'statuses' => Card::STATUSES, // Passing statuses from the enum
         ]);
     }
 
-    public function create(Card $card = null)
+    public function create(?Card $card = null)
     {
         $card ??= new Card;
         $userModal = Wncms::getUserModelClass();
