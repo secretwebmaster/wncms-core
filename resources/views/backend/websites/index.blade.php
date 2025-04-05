@@ -51,6 +51,7 @@
                             <td>
                                 <a class="btn btn-sm btn-dark px-2 py-1 fw-bold" href="{{ route('websites.edit' , $website) }}">@lang('wncms::word.website_options')</a>
                                 <a class="btn btn-sm btn-dark px-2 py-1 fw-bold" href="{{ route('websites.theme.options' , $website) }}">@lang('wncms::word.theme_options')</a>
+                                @include('wncms::backend.parts.modal_delete', ['model' => $website, 'route' => route('websites.destroy', $website), 'btn_class' => 'px-2 py-1'])
                             </td>
                             <td>{{ $website->id }}</td>
                             <td><span class="px-2 py-1 rounded fw-bold">{{ $website->site_name }}</span></td>

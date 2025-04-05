@@ -296,7 +296,15 @@ class WebsiteController extends Controller
 
     public function destroy(Website $website)
     {
-        return redirect()->back()->withErrors(['message'=>__('wncms::word.function_not_release_yet')]);
+        // check if this is the only website
+        if(Website::count() == 1){
+            return back()->withErrors(['message' => __('wncms::word.cannot_delete_last_website')]);
+        }
+        dd(1);
+        $website->delete();
+
+
+        return redirect()->route('websites.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function editThemeOptions(Website $website)
