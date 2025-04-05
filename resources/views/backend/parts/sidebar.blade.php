@@ -22,7 +22,7 @@
 		<div id="wncms_app_sidebar_menu_wrapper" class="app-sidebar-wrapper hover-scroll-overlay-y" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_app_sidebar_logo, #kt_app_sidebar_footer" data-kt-scroll-wrappers="#kt_app_sidebar_menu" data-kt-scroll-offset="5px" data-kt-scroll-save-state="true">
 			<div class="menu menu-column menu-rounded menu-sub-indention px-3" id="#kt_app_sidebar_menu" data-kt-menu="true" data-kt-menu-expand="false">
 
-				@if(gss('check_beta_functions'))
+				@if(gss('multi_website'))
 					<div class="menu-item">
 						<div class="menu-content px-2">
 							<select name="change_website_id" id="" class="form-select form-select-sm wncms-change-website">
