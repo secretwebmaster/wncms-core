@@ -66,7 +66,7 @@ if (!function_exists('wncms_get_model_names')) {
                 $model = new $modelName;
 
                 return [
-                    'model_name' => class_basename($modelName),
+                    'model_name' => defined(get_class($model) . '::NAME_KEY') ? $model::NAME_KEY : class_basename($modelName),
                     'model_name_with_namespace' => $modelName,
                     // Handle menuPriority and ROUTES if they exist
                     'priority' => property_exists($model, 'menuPriority') ? $model->menuPriority : 0,
