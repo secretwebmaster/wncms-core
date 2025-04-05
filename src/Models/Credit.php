@@ -16,7 +16,7 @@ class Credit extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-cube'
+        'fontaweseom' => 'fa-solid fa-coins'
     ];
 
     public const ROUTES = [

@@ -18,7 +18,7 @@ class Card extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-cube'
+        'fontaweseom' => 'fa-solid fa-credit-card',
     ];
 
     public const ROUTES = [

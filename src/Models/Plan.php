@@ -12,7 +12,7 @@ class Plan extends Model
     protected $guarded = [];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-cube'
+        'fontaweseom' => 'fa-solid fa-money-check'
     ];
 
     public const ROUTES = [

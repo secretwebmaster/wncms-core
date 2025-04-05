@@ -15,7 +15,7 @@ class Plugin extends Model implements HasMedia
     protected $guarded = [];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-cube'
+        'fontaweseom' => 'fa-solid fa-plug'
     ];
 
     public const ROUTES = [

@@ -9,6 +9,10 @@ class Coupon extends Model
 {
     protected $guarded = [];
 
+    public const ICONS = [
+        'fontaweseom' => 'fa-solid fa-ticket'
+    ];
+
     public function isAvailable()
     {
         dd('isAvailable logic');
