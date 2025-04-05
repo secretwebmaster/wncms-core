@@ -23,6 +23,8 @@
                 'routes' => array_map(fn($route) => $snake_name . '_' . $route, $model::ROUTES),
                 'table_name' => $table_name,
                 'snake_name' => $snake_name,
+                'name_key' => $modelData['name_key'],
+                'display_name' => $display_name,
                 'icon' => defined(get_class($model) . "::ICONS") && !empty($model::ICONS['fontaweseom']) ? $model::ICONS['fontaweseom'] : 'fa-solid fa-cube',
                 'sub_routes' => [],
             ];
@@ -60,7 +62,7 @@
                 <span class="menu-icon">
                     <i class="fa-lg {{ $menuItem['icon'] }} @if(request()->routeIs(array_map(fn($route) => $menuItem['table_name'] . '.' . $route, array_merge($menuItem['model']::ROUTES, ['edit'])))) fa-beat @endif"></i>
                 </span>
-                <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => __('wncms::word.' . $menuItem['snake_name'])])</span>
+                <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => $menuItem['name_key'] ? __('wncms::word.' . $menuItem['name_key']) : __('wncms::word.' . $menuItem['snake_name'])])</span>
                 <span class="menu-arrow"></span>
             </span>
 
