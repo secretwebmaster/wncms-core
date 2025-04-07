@@ -40,7 +40,7 @@
                                             data-package="{{ $itemData['package'] ?? '' }}"
                                             data-original-text="@lang('wncms::word.update')"
                                             data-loading-text="@lang('wncms::word.updating').."
-                                            data-success-text="@ang('wncms::word.updated')"
+                                            data-success-text="@lang('wncms::word.updated')"
                                             data-fail-text="@lang('wncms::word.retry')"
                                         >@lang('wncms::word.update')</button>
                                     </td>
