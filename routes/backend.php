@@ -33,6 +33,8 @@ use Wncms\Http\Controllers\Backend\TransactionController;
 use Wncms\Http\Controllers\Backend\OrderItemController;
 use Wncms\Http\Controllers\Backend\OrderController;
 use Wncms\Http\Controllers\Backend\CardController;
+use Wncms\Http\Controllers\Backend\ChannelController;
+use Wncms\Http\Controllers\Backend\ClickController;
 use Wncms\Http\Controllers\Backend\CreditTransactionController;
 use Wncms\Http\Controllers\Backend\CreditController;
 use Wncms\Http\Controllers\Backend\DiscountController;
@@ -41,6 +43,7 @@ use Wncms\Http\Controllers\Backend\PaymentGatewayController;
 use Wncms\Http\Controllers\Backend\ProductController;
 use Wncms\Http\Controllers\Backend\PlanController;
 use Wncms\Http\Controllers\Backend\PriceController;
+use Wncms\Http\Controllers\Backend\ParameterController;
 
 Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->group(function () {
 
@@ -94,6 +97,30 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::post('/flush/{tag}', 'flush')->middleware('can:cache_flush')->name('cache.flush.tag');
         Route::post('/clear/{key}', 'clear')->middleware('can:cache_clear')->name('cache.clear');
         Route::post('/clear/{tag}/{key}', 'clear')->middleware('can:cache_clear')->name('cache.clear.tag');
+    });
+
+    //channel
+    Route::prefix('channels')->controller(ChannelController::class)->group(function () {
+        Route::get('', 'index')->middleware('can:channel_index')->name('channels.index');
+        Route::get('/create', 'create')->middleware('can:channel_create')->name('channels.create');
+        Route::get('/create/{channel}', 'create')->middleware('can:channel_clone')->name('channels.clone');
+        Route::get('/{channel}/edit', 'edit')->middleware('can:channel_edit')->name('channels.edit');
+        Route::post('/store', 'store')->middleware('can:channel_create')->name('channels.store');
+        Route::patch('/{channel}', 'update')->middleware('can:channel_edit')->name('channels.update');
+        Route::delete('/{channel}', 'destroy')->middleware('can:channel_delete')->name('channels.destroy');
+        Route::post('/bulk_delete', 'bulk_delete')->middleware('can:channel_bulk_delete')->name('channels.bulk_delete');
+    });
+
+    //click
+    Route::prefix('clicks')->controller(ClickController::class)->group(function () {
+        Route::get('', 'index')->middleware('can:click_index')->name('clicks.index');
+        Route::get('/create', 'create')->middleware('can:click_create')->name('clicks.create');
+        Route::get('/create/{click}', 'create')->middleware('can:click_clone')->name('clicks.clone');
+        Route::get('/{click}/edit', 'edit')->middleware('can:click_edit')->name('clicks.edit');
+        Route::post('/store', 'store')->middleware('can:click_create')->name('clicks.store');
+        Route::patch('/{click}', 'update')->middleware('can:click_edit')->name('clicks.update');
+        Route::delete('/{click}', 'destroy')->middleware('can:click_delete')->name('clicks.destroy');
+        Route::post('/bulk_delete', 'bulk_delete')->middleware('can:click_bulk_delete')->name('clicks.bulk_delete');
     });
 
     //contact_form
@@ -156,13 +183,6 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::delete('/{link}', 'destroy')->middleware('can:link_delete')->name('links.destroy');
         Route::post('/bulk_delete', 'bulk_delete')->middleware('can:link_bulk_delete')->name('links.bulk_delete');
         Route::post('/bulk_update_order', 'bulk_update_order')->middleware('can:link_edit')->name('links.bulk_update_order');
-
-        //TODO: use bulk model updater?
-        // Route::post('/bulk_update_order', [LinkController::class, 'bulk_update_order'])->middleware('can:link_edit')->name('links.bulk_update_order');
-        // Route::post('/update_status', [LinkController::class, 'update_status'])->middleware('can:link_edit')->name('links.update_status');
-        // Route::post('/bulk_update_status', [LinkController::class, 'bulk_update_status'])->middleware('can:link_edit')->name('links.bulk_update_status');
-        // Route::post('/update_is_recommended', [LinkController::class, 'update_is_recommended'])->middleware('can:link_edit')->name('links.update_is_recommended');
-        // Route::post('/bulk_update_is_recommended', [LinkController::class, 'bulk_update_is_recommended'])->middleware('can:link_edit')->name('links.bulk_update_is_recommended');
     });
 
     //menu
@@ -178,7 +198,6 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::delete('/{menu}', 'destroy')->middleware('can:menu_delete')->name('menus.destroy');
         Route::post('/clone', 'clone')->middleware('can:menu_create')->name('menus.clone');
     });
-
 
     //model
     Route::prefix('models')->controller(ModelController::class)->group(function () {
@@ -213,6 +232,17 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::post('/remove', 'remove')->middleware('can:package_edit')->name('packages.remove');
     });
 
+    //parameter
+    Route::prefix('parameters')->controller(ParameterController::class)->group(function () {
+        Route::get('', 'index')->middleware('can:parameter_index')->name('parameters.index');
+        Route::get('/create', 'create')->middleware('can:parameter_create')->name('parameters.create');
+        Route::get('/create/{parameter}', 'create')->middleware('can:parameter_clone')->name('parameters.clone');
+        Route::get('/{parameter}/edit', 'edit')->middleware('can:parameter_edit')->name('parameters.edit');
+        Route::post('/store', 'store')->middleware('can:parameter_create')->name('parameters.store');
+        Route::patch('/{parameter}', 'update')->middleware('can:parameter_edit')->name('parameters.update');
+        Route::delete('/{parameter}', 'destroy')->middleware('can:parameter_delete')->name('parameters.destroy');
+        Route::post('/bulk_delete', 'bulk_delete')->middleware('can:parameter_bulk_delete')->name('parameters.bulk_delete');
+    });
 
     //payment_gateway
     Route::get('payment_gateways', [PaymentGatewayController::class, 'index'])->middleware('can:payment_gateway_index')->name('payment_gateways.index');

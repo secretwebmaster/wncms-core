@@ -1,6 +1,7 @@
 <?php
 
 use Wncms\Http\Controllers\Frontend\CardController;
+use Wncms\Http\Controllers\Frontend\ClickController;
 use Wncms\Http\Controllers\Frontend\PlanController;
 use Wncms\Http\Controllers\Frontend\CommentController;
 use Wncms\Http\Controllers\Frontend\ContactFormSubmissionController;
@@ -31,6 +32,10 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     // Route::get('templates', [PageController::class, 'show_templates'])->name('pages.templates');
     // Route::get('terms-and-conditions', [PageController::class, 'show_terms'])->name('pages.terms');
     // Route::get('usecase', [PageController::class, 'show_usecase'])->name('pages.usecase');
+
+    Route::prefix('clicks')->controller(ClickController::class)->group(function () {
+        Route::post('record', 'record')->name('clicks.record');
+    });
 
     //post
     Route::prefix('post')->controller(PostController::class)->group(function () {
