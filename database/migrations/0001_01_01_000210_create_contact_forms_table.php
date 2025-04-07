@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contact_forms', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('title')->nullable();
-            $table->string('description')->nullable();
-            $table->string('remark')->nullable();
+        if (!Schema::hasTable('contact_forms')) {
+            Schema::create('contact_forms', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('title')->nullable();
+                $table->string('description')->nullable();
+                $table->string('remark')->nullable();
 
-            $table->text('success_action')->nullable(); //3.1.13
-            $table->text('fail_action')->nullable(); //3.1.13
+                $table->text('success_action')->nullable(); //3.1.13
+                $table->text('fail_action')->nullable(); //3.1.13
 
-            $table->timestamps();
-        });
+                $table->timestamps();
+            });
+        }
     }
 
     /**

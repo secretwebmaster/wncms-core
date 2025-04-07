@@ -13,15 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('theme_options', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('website_id')->constrained()->cascadeOnDelete();
-            $table->string('theme');
-            $table->string('key');
-            $table->text('value')->nullable();
-            $table->unique(['website_id','theme','key']);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('theme_options')) {
+            Schema::create('theme_options', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('website_id')->constrained()->cascadeOnDelete();
+                $table->string('theme');
+                $table->string('key');
+                $table->text('value')->nullable();
+                $table->unique(['website_id', 'theme', 'key']);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

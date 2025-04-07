@@ -13,15 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('records', function (Blueprint $table) {
-            $table->id();
-            $table->string('type'); // modele | post, page, trasaction, etc
-            $table->string('sub_type')->nullable(); //model function name | create, puchase, store, etc
-            $table->string('status')->nullable(); // success | fail
-            $table->text('message'); // one sentence
-            $table->text('detail')->nullable(); // long sentence
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('records')) {
+            Schema::create('records', function (Blueprint $table) {
+                $table->id();
+                $table->string('type'); // modele | post, page, trasaction, etc
+                $table->string('sub_type')->nullable(); //model function name | create, puchase, store, etc
+                $table->string('status')->nullable(); // success | fail
+                $table->text('message'); // one sentence
+                $table->text('detail')->nullable(); // long sentence
+                $table->timestamps();
+            });
+        }
     }
 
     /**

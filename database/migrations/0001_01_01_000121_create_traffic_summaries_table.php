@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('traffic_summaries', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('website_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('model_type'); //post | video | page, etc
-            $table->string('model_id');
-            $table->string('period')->nullable();
-            $table->integer('count')->nullable();
-            $table->boolean('is_recorded')->default(false)->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('traffic_summaries')) {
+            Schema::create('traffic_summaries', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('website_id')->nullable()->constrained()->nullOnDelete();
+                $table->string('model_type'); //post | video | page, etc
+                $table->string('model_id');
+                $table->string('period')->nullable();
+                $table->integer('count')->nullable();
+                $table->boolean('is_recorded')->default(false)->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

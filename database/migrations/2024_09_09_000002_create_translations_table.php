@@ -8,17 +8,19 @@ class CreateTranslationsTable extends Migration
 {
     public function up()
     {
-        Schema::create('translations', function (Blueprint $table) {
-            $table->id();
-            $table->string('translatable_type');
-            $table->unsignedBigInteger('translatable_id');
-            $table->string('field'); // The field being translated (e.g., title, description)
-            $table->string('locale'); // Language locale (e.g., en, fr)
-            $table->text('value'); // The translated string
-            $table->timestamps();
+        if (!Schema::hasTable('translations')) {
+            Schema::create('translations', function (Blueprint $table) {
+                $table->id();
+                $table->string('translatable_type');
+                $table->unsignedBigInteger('translatable_id');
+                $table->string('field'); // The field being translated (e.g., title, description)
+                $table->string('locale'); // Language locale (e.g., en, fr)
+                $table->text('value'); // The translated string
+                $table->timestamps();
 
-            $table->index(['translatable_type', 'translatable_id']);
-        });
+                $table->index(['translatable_type', 'translatable_id']);
+            });
+        }
     }
 
     public function down()

@@ -13,17 +13,19 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('traffics', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('website_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('model_type'); //post | video | page, etc
-            $table->string('model_id');
-            $table->string('url')->nullable();
-            $table->string('ip')->nullable();
-            $table->string('geo')->nullable();
-            $table->string('referrer')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('traffics')) {
+            Schema::create('traffics', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('website_id')->nullable()->constrained()->nullOnDelete();
+                $table->string('model_type'); //post | video | page, etc
+                $table->string('model_id');
+                $table->string('url')->nullable();
+                $table->string('ip')->nullable();
+                $table->string('geo')->nullable();
+                $table->string('referrer')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

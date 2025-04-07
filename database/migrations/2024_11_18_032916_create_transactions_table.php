@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('transactions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
-            $table->string('status');
-            $table->decimal('amount', 10, 2);
-            $table->string('payment_method')->nullable();
-            $table->string('ref_id')->nullable();
-            $table->boolean('is_fraud')->default(false);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('transactions')) {
+            Schema::create('transactions', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('order_id')->constrained()->cascadeOnDelete();
+                $table->string('status');
+                $table->decimal('amount', 10, 2);
+                $table->string('payment_method')->nullable();
+                $table->string('ref_id')->nullable();
+                $table->boolean('is_fraud')->default(false);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

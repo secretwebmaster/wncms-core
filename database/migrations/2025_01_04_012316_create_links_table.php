@@ -11,31 +11,33 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('links', function (Blueprint $table) {
-            $table->id();
-            $table->string('status')->default('active');
-            $table->string('slug');
-            $table->string('name');
-            $table->string('url');
-            $table->string('description')->nullable();
-            $table->string('external_thumbnail')->nullable();
-            $table->integer('clicks')->nullable()->default(0);
-            $table->string('remark')->nullable();
+        if (!Schema::hasTable('links')) {
+            Schema::create('links', function (Blueprint $table) {
+                $table->id();
+                $table->string('status')->default('active');
+                $table->string('slug');
+                $table->string('name');
+                $table->string('url');
+                $table->string('description')->nullable();
+                $table->string('external_thumbnail')->nullable();
+                $table->integer('clicks')->nullable()->default(0);
+                $table->string('remark')->nullable();
 
-            $table->integer('order')->nullable();
-            $table->string('color')->nullable();
-            $table->boolean('is_pinned')->nullable()->default(false);
-            $table->datetime('expired_at')->nullable();
-            
-            $table->string('tracking_code')->nullable()->index();
-            $table->string('slogan')->nullable();
-            $table->string('background')->nullable();
-            $table->string('contact')->nullable();
-            $table->boolean('is_recommended')->nullable()->default(false);
-            $table->datetime('hit_at')->nullable();
+                $table->integer('order')->nullable();
+                $table->string('color')->nullable();
+                $table->boolean('is_pinned')->nullable()->default(false);
+                $table->datetime('expired_at')->nullable();
 
-            $table->timestamps();
-        });
+                $table->string('tracking_code')->nullable()->index();
+                $table->string('slogan')->nullable();
+                $table->string('background')->nullable();
+                $table->string('contact')->nullable();
+                $table->boolean('is_recommended')->nullable()->default(false);
+                $table->datetime('hit_at')->nullable();
+
+                $table->timestamps();
+            });
+        }
     }
 
     /**

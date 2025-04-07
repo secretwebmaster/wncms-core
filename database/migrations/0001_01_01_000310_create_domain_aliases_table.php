@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('domain_aliases', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('website_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->string('domain');
-            $table->string('remark')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('domain_aliases')) {
+            Schema::create('domain_aliases', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('website_id')->nullable()->constrained()->cascadeOnDelete();
+                $table->string('domain');
+                $table->string('remark')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

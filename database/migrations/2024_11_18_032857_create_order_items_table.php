@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('order_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
-            $table->morphs('order_itemable');
-            $table->integer('quantity')->default(1);
-            $table->decimal('amount', 10, 2);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('order_items')) {
+            Schema::create('order_items', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('order_id')->constrained()->cascadeOnDelete();
+                $table->morphs('order_itemable');
+                $table->integer('quantity')->default(1);
+                $table->decimal('amount', 10, 2);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

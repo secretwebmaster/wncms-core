@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('page_templates', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('page_id')->constrained()->cascadeOnDelete();
+        if (!Schema::hasTable('page_templates')) {
+            Schema::create('page_templates', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('page_id')->constrained()->cascadeOnDelete();
 
-            //use to locate template path /view("frontend.theme.{$theme_id}.templates.{$template_id}")
-            $table->string('theme_id');
-            $table->string('template_id');
+                //use to locate template path /view("frontend.theme.{$theme_id}.templates.{$template_id}")
+                $table->string('theme_id');
+                $table->string('template_id');
 
-            $table->json('value');
-            $table->integer('order')->default(0);
-            $table->timestamps();
-        });
+                $table->json('value');
+                $table->integer('order')->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

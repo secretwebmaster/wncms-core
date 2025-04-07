@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contact_form_option_relationship', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('form_id');
-            $table->foreign('form_id')->references('id')->on('contact_forms')->cascadeOnDelete();
-            $table->unsignedBigInteger('option_id');
-            $table->foreign('option_id')->references('id')->on('contact_form_options')->cascadeOnDelete();
+        if (!Schema::hasTable('contact_form_option_relationship')) {
+            Schema::create('contact_form_option_relationship', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('form_id');
+                $table->foreign('form_id')->references('id')->on('contact_forms')->cascadeOnDelete();
+                $table->unsignedBigInteger('option_id');
+                $table->foreign('option_id')->references('id')->on('contact_form_options')->cascadeOnDelete();
 
-            $table->integer('order'); // 3.1.10
-            $table->boolean('is_required'); // 3.1.10
+                $table->integer('order'); // 3.1.10
+                $table->boolean('is_required'); // 3.1.10
 
-            $table->timestamps();
-        });
+                $table->timestamps();
+            });
+        }
     }
 
     /**

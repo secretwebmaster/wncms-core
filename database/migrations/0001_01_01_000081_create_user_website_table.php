@@ -13,12 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('user_website', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('website_id')->constrained()->cascadeOnDelete();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('user_website')) {
+            Schema::create('user_website', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('website_id')->constrained()->cascadeOnDelete();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

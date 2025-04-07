@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //3.1.12
-        Schema::create('extra_attributes', function (Blueprint $table) {
-            $table->id();
-            $table->string('model_type');
-            $table->unsignedBigInteger('model_id');
-            $table->string('model_attributes')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('extra_attributes')) {
+            Schema::create('extra_attributes', function (Blueprint $table) {
+                $table->id();
+                $table->string('model_type');
+                $table->unsignedBigInteger('model_id');
+                $table->string('model_attributes')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

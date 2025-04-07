@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('discounts', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->enum('type', ['percentage', 'fixed']);
-            $table->decimal('value', 10, 2);
-            $table->timestamp('started_at')->nullable();
-            $table->timestamp('ended_at')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('discounts')) {
+            Schema::create('discounts', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->enum('type', ['percentage', 'fixed']);
+                $table->decimal('value', 10, 2);
+                $table->timestamp('started_at')->nullable();
+                $table->timestamp('ended_at')->nullable();
+                $table->enum('status', ['active', 'inactive'])->default('active');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

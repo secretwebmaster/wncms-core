@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('credit_transactions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('credit_type');
-            $table->decimal('amount', 10, 2);
-            $table->string('transaction_type');
-            $table->string('remark')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('credit_transactions')) {
+            Schema::create('credit_transactions', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->string('credit_type');
+                $table->decimal('amount', 10, 2);
+                $table->string('transaction_type');
+                $table->string('remark')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

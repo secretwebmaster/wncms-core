@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('menus', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('website_id')->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('menus')) {
+            Schema::create('menus', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('website_id')->constrained()->cascadeOnDelete();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

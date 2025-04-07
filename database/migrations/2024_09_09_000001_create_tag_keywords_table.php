@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tag_keywords', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('tag_keywords')) {
+            Schema::create('tag_keywords', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

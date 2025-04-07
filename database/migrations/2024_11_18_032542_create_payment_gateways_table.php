@@ -11,22 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payment_gateways', function (Blueprint $table) {
-            $table->id();
-            $table->string('status')->default('active');
-            $table->string('name');
-            $table->string('slug')->unique();
-            $table->string('type'); // redirect, inline
+        if (!Schema::hasTable('payment_gateways')) {
+            Schema::create('payment_gateways', function (Blueprint $table) {
+                $table->id();
+                $table->string('status')->default('active');
+                $table->string('name');
+                $table->string('slug')->unique();
+                $table->string('type'); // redirect, inline
 
-            $table->string('account_id')->nullable();
-            $table->string('client_id')->nullable();
-            $table->string('client_secret')->nullable();
-            $table->string('endpoint')->nullable();
-            $table->json('attributes')->nullable();
+                $table->string('account_id')->nullable();
+                $table->string('client_id')->nullable();
+                $table->string('client_secret')->nullable();
+                $table->string('endpoint')->nullable();
+                $table->json('attributes')->nullable();
 
-            $table->text('description')->nullable();
-            $table->timestamps();
-        });
+                $table->text('description')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

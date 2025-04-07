@@ -13,14 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('search_keywords', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('website_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->string('keyword');
-            $table->string('locale')->nullable();
-            $table->string('count')->default(0);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('search_keywords')) {
+            Schema::create('search_keywords', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('website_id')->nullable()->constrained()->cascadeOnDelete();
+                $table->string('keyword');
+                $table->string('locale')->nullable();
+                $table->string('count')->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

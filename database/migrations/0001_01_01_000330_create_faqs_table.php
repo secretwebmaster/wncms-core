@@ -11,19 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('faqs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('website_id')->constrained()->cascadeOnDelete();
-            $table->string('status')->default('published'); // published | drafted 
-            $table->string('slug');
-            $table->string('question');
-            $table->string('answer')->nullable();
-            $table->string('label')->nullable();
-            $table->string('remark')->nullable();
-            $table->integer('order')->nullable();
-            $table->boolean('is_pinned')->default(false);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('faqs')) {
+            Schema::create('faqs', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('website_id')->constrained()->cascadeOnDelete();
+                $table->string('status')->default('published'); // published | drafted 
+                $table->string('slug');
+                $table->string('question');
+                $table->string('answer')->nullable();
+                $table->string('label')->nullable();
+                $table->string('remark')->nullable();
+                $table->integer('order')->nullable();
+                $table->boolean('is_pinned')->default(false);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

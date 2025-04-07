@@ -11,19 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('plugins', function (Blueprint $table) {
-            $table->id();
-            $table->string('plugin_id')->unique();
-            $table->string('name');
-            $table->string('description')->nullable();
-            $table->string('url')->nullable();
-            $table->string('author')->nullable();
-            $table->string('version')->default('1.0.0');
-            $table->string('status')->default('inactive');
-            $table->string('path');
-            $table->string('remark')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('plugins')) {
+            Schema::create('plugins', function (Blueprint $table) {
+                $table->id();
+                $table->string('plugin_id')->unique();
+                $table->string('name');
+                $table->string('description')->nullable();
+                $table->string('url')->nullable();
+                $table->string('author')->nullable();
+                $table->string('version')->default('1.0.0');
+                $table->string('status')->default('inactive');
+                $table->string('path');
+                $table->string('remark')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

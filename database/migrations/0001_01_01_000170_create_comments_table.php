@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('comments', function (Blueprint $table) {
-            $table->id();
-            $table->morphs('commentable');
-            $table->string('status')->default('visible'); // approved | pending | rejected
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
-            $table->foreignId('parent_id')->nullable()->constrained('comments')->onDelete('cascade');
-            $table->string('content');
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (!Schema::hasTable('comments')) {
+            Schema::create('comments', function (Blueprint $table) {
+                $table->id();
+                $table->morphs('commentable');
+                $table->string('status')->default('visible'); // approved | pending | rejected
+                $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
+                $table->foreignId('parent_id')->nullable()->constrained('comments')->onDelete('cascade');
+                $table->string('content');
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**
