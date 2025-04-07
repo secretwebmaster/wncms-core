@@ -27,10 +27,10 @@ class Price extends Model
         'fontaweseom' => 'fa-solid fa-cube'
     ];
 
-    public const ROUTES = [
-        'index',
-        'create',
-    ];
+    // public const ROUTES = [
+    //     'index',
+    //     'create',
+    // ];
 
     public function priceable()
     {

@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Backend;
+namespace Wncms\Http\Controllers\Backend;
 
-use App\Http\Controllers\Controller;
-use App\Models\Price;
+use Wncms\Models\Price;
 use Illuminate\Http\Request;
 
-class PriceController extends Controller
+class PriceController extends BackendController
 {
     public function index(Request $request)
     {
