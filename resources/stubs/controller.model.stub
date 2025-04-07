@@ -20,7 +20,7 @@ class {{ class }} extends Controller
         ]);
     }
 
-    public function create({{ model }} ${{ modelVariable }} = null)
+    public function create(?{{ model }} ${{ modelVariable }})
     {
         ${{ modelVariable }} ??= new {{ model }};
 
