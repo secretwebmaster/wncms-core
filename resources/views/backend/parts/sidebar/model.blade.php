@@ -24,7 +24,6 @@
                 'table_name' => $table_name,
                 'snake_name' => $snake_name,
                 'name_key' => $modelData['name_key'],
-                'display_name' => $display_name,
                 'icon' => defined(get_class($model) . "::ICONS") && !empty($model::ICONS['fontaweseom']) ? $model::ICONS['fontaweseom'] : 'fa-solid fa-cube',
                 'sub_routes' => [],
             ];
