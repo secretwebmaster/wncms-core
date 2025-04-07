@@ -11,8 +11,8 @@ use Wncms\Http\Controllers\Api\V1\PaymentGatewayController;
 
 Route::prefix('v1')->name('api.v1.')->group(function(){
 
-    Route::post('analytics/record', [AnalyticsController::class, 'record'])->name('analytics.record');
-    Route::post('analytics/get', [AnalyticsController::class, 'get'])->name('analytics.get');
+    // Route::post('analytics/record', [AnalyticsController::class, 'record'])->name('analytics.record');
+    // Route::post('analytics/get', [AnalyticsController::class, 'get'])->name('analytics.get');
     
     Route::post('menus/index', [MenuController::class, 'index'])->name('menus.index');
     Route::post('menus/store', [MenuController::class, 'store'])->name('menus.store');
