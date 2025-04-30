@@ -5,7 +5,6 @@ namespace Wncms\Http\Controllers\Frontend;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
-use Wncms\Facades\Wncms;
 use Wncms\Models\Post;
 
 
@@ -19,7 +18,7 @@ class PostController extends FrontendController
      */
     public function single($slug)
     {
-        $post = Wncms::post()->getBySlug($slug);
+        $post = wncms()->post()->get(['slug' => $slug]);
         if (!$post) return redirect()->route('frontend.pages.blog');
 
         Event::dispatch('wncms.posts.single', $post);
@@ -68,7 +67,7 @@ class PostController extends FrontendController
             return route('frontend.pages.home');
         }
 
-        $tag = Wncms::tag()->getByName(
+        $tag = wncms()->tag()->getByName(
             tagName:$tagName,
             tagType:$tagType,
             withs: ['posts', 'posts.media', 'children'],
@@ -84,7 +83,12 @@ class PostController extends FrontendController
         $count = gto('post_limit', 0);
         $page = request()->page ?? 0;
         $pageSize = gto('post_page_size', 10);
-        $posts = $tag->getPostList(count:$count,page:$page,pageSize:$pageSize);
+        $posts = $tag->getPostList([
+            'count' => $count,
+            'page' => $page,
+            'page_size' => $pageSize,
+            'cache' => false,
+        ]);
 
         return wncms_view('frontend.theme.' . $this->theme . '.posts.archive', [
             'pageTitle' => __('wncms::word.latest_tag_models', ['tagName' => $tagName, 'modelName' => __('wncms::word.' . $modelName)]),
@@ -124,7 +128,7 @@ class PostController extends FrontendController
     {
         // TODO: add to gss or gto
         $pageSize = gto('archive_post_count', 10);
-        $posts = Wncms::post()->search(
+        $posts = wncms()->post()->search(
             keyword: $keyword,
             pageSize: $pageSize,
             page:$request->page,
@@ -183,7 +187,7 @@ class PostController extends FrontendController
     public function post_list(Request $request, $name, $period = 'total')
     {
 
-        $website = Wncms::website()->get();
+        $website = wncms()->website()->get();
         if (!$website) return redirect()->route('websites.create');
         
         $theme = $website->theme ?? 'default';
@@ -203,25 +207,46 @@ class PostController extends FrontendController
         $page = request()->page ?? 0;
         $pageSize = gto('post_page_size', 12);
 
-        if($name == 'hot'){
+        if ($name == 'hot') {
             $page_title = $period_text . __('wncms::word.hot_posts');
-            $posts = Wncms::post()->getList(order:'view_month',count:$count,page:$page,pageSize:$pageSize);
+            $posts = wncms()->post()->getList([
+                'order' => 'view_month',
+                'count' => $count,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]);
         }
-
-        if($name == 'like'){
+        
+        if ($name == 'like') {
             $page_title = $period_text . __('wncms::word.most_liked_posts');
-            $posts = Wncms::post()->getList(order:'like',count:$count,page:$page,pageSize:$pageSize);
+            $posts = wncms()->post()->getList([
+                'order' => 'like',
+                'count' => $count,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]);
         }
         
-        if($name == 'fav'){
+        if ($name == 'fav') {
             $page_title = $period_text . __('wncms::word.most_fav_posts');
-            $posts = Wncms::post()->getList(order:'view_month',count:$count,page:$page,pageSize:$pageSize);
+            $posts = wncms()->post()->getList([
+                'order' => 'view_month',
+                'count' => $count,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]);
         }
         
-        if($name == 'new'){
+        if ($name == 'new') {
             $page_title = $period_text . __('wncms::word.latest_posts');
-            $posts = Wncms::post()->getList(order:'created_at',count:$count,page:$page,pageSize:$pageSize);
+            $posts = wncms()->post()->getList([
+                'order' => 'created_at',
+                'count' => $count,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]);
         }
+        
 
         return view("wncms::frontend.theme.$theme.posts.archive", [
             'page_title' => $page_title ?? '',
@@ -247,12 +272,16 @@ class PostController extends FrontendController
         //TODO check permission here
         $modelClass = $this->getModelClass();
 
-        if(gto('user_allowed_post_category')){
-            $categories = wncms()->tag()->getList(tagType: "post_category", tagIds: gto('user_allowed_post_category'));
-        }else{
-            $categories = wncms()->tag()->getList(tagType: "post_category");
+        $tagOptions = [
+            'tag_type' => 'post_category',
+        ];
+        
+        if (gto('user_allowed_post_category')) {
+            $tagOptions['tag_ids'] = gto('user_allowed_post_category');
         }
-
+        
+        $categories = wncms()->tag()->getList($tagOptions);
+        
         return wncms()->view(
             "frontend.theme.{$this->theme}.posts.create",
             [
@@ -400,11 +429,11 @@ class PostController extends FrontendController
             }
         }
 
-        if(gto('user_allowed_post_category')){
-            $categories = wncms()->tag()->getList(tagType: "post_category", tagIds: gto('user_allowed_post_category'));
-        }else{
-            $categories = wncms()->tag()->getList(tagType: "post_category");
-        }
+        $categories = wncms()->tag()->getList([
+            'tag_type' => 'post_category',
+            'tag_ids' => gto('user_allowed_post_category') ?: null,
+        ]);
+        
         
         return wncms()->view(
             "frontend.theme.{$this->theme}.posts.edit",
@@ -535,12 +564,11 @@ class PostController extends FrontendController
 
     public function getUserAllowedTags($type = 'post_category', $idOnly = false)
     {
-        if(gto('user_allowed_' . $type)){
-            $categories = wncms()->tag()->getList(tagType: $type, tagIds: gto('user_allowed_' . $type));
-        }else{
-            $categories = wncms()->tag()->getList(tagType: $type);
-        }
-
+        $categories = wncms()->tag()->getList([
+            'tag_type' => $type,
+            'tag_ids' => gto('user_allowed_' . $type) ?: null,
+        ]);
+        
         if($idOnly){
             return $categories->pluck('id')->toArray();
         }

@@ -38,10 +38,10 @@ class PageController extends FrontendController
      */
     public function blog($posts = null)
     {
-        $posts ??= Wncms::post()->getList(
-            count: 100,
-            pageSize: gto('default_page_size', 10),
-        );
+        $posts ??= Wncms::post()->getList([
+            'count' => 100,
+            'page_size' => gto('default_page_size', 10),
+        ]);
 
         return $this->getFrontendPageView(
             pageNmae: 'blog', 

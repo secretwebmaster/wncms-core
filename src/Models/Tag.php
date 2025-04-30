@@ -14,7 +14,7 @@ class Tag extends WncmsTag implements HasMedia
     use WnModelTrait;
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-tag'
+        'fontawesome' => 'fa-solid fa-tag'
     ];
 
     public const SUBTYPES = [
@@ -52,12 +52,34 @@ class Tag extends WncmsTag implements HasMedia
     {
         return $this->hasMany(TagKeyword::class);
     }
+    
 
     /**
      * ----------------------------------------------------------------------------------------------------
      * ! Attributes Accessor
      * ----------------------------------------------------------------------------------------------------
      */
+    public function getUrlAttribute(): ?string
+    {
+        try {
+            $parts = explode('_', $this->type);
+            if (count($parts) !== 2) return null;
+
+            [$model, $subType] = $parts;
+
+            $model = str()->plural($model);
+
+            $routeName = "frontend.{$model}.{$subType}";
+
+            if (!\Illuminate\Support\Facades\Route::has($routeName)) return null;
+
+            return route($routeName, ['tagName' => $this->name]);
+        } catch (\Throwable $e) {
+            report($e);
+            return null;
+        }
+    }
+
     public function getPostCategoryUrlAttribute()
     {
         return route('frontend.posts.category', ['tagName' => $this->name ]);
@@ -116,12 +138,14 @@ class Tag extends WncmsTag implements HasMedia
      * !Query
      * ----------------------------------------------------------------------------------------------------
      */
-    public function getPostList(...$args)
+    public function getPostList(array $options = [])
     {
-        $args['tags'] = $this->name;
-        $args['tagType'] = $this->type;
-        return wncms()->post()->getList(...$args);
+        $options['tags'] = $this->name;
+        $options['tag_type'] = $this->type;
+    
+        return wncms()->post()->getList($options);
     }
+    
 
     
 

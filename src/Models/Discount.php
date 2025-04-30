@@ -18,7 +18,7 @@ class Discount extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-comments-dollar'
+        'fontawesome' => 'fa-solid fa-comments-dollar'
     ];
 
     public const ROUTES = [

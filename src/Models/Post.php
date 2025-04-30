@@ -33,7 +33,7 @@ class Post extends WncmsModel implements HasMedia
     protected $translatable = ['title','excerpt','keywords','content','label'];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-pencil'
+        'fontawesome' => 'fa-solid fa-pencil'
     ];
 
     public const IGNORED_LOCALIZED_PATH_KEYWORDS = [

@@ -20,7 +20,7 @@ class Comment extends Model
     protected $translatable = ['content'];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-comments'
+        'fontawesome' => 'fa-solid fa-comments'
     ];
 
     // 定義 Comment 所屬的用戶

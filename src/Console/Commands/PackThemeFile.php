@@ -13,7 +13,7 @@ class PackThemeFile extends Command
      *
      * @var string
      */
-    protected $signature = 'wncms:pack-theme-file {themeName}';
+    protected $signature = 'wncms:pack-theme-file {themeName} {--output=}';
 
     /**
      * The console command description.
@@ -28,29 +28,41 @@ class PackThemeFile extends Command
     public function handle()
     {
         $themeName = $this->argument('themeName');
-        
+
         if (empty($themeName)) {
             $this->error('Theme name is not set.');
             return;
         }
 
-        $themeFiles = [
-            config_path("theme/{$themeName}.php"),
-            public_path("theme/{$themeName}"),
-            resource_path("views/frontend/theme/{$themeName}"),
-            resource_path("lang/zh_TW/{$themeName}.php"),
-        ];
-
+        $outputDir = $this->option('output') ?: storage_path("app/backups/{$themeName}");
         $uuid = date("YmdHis");
         $zipFileName = "{$themeName}_{$uuid}.zip";
-        $zipFilePath = storage_path("app/backups/{$themeName}/{$zipFileName}");
-        $zip = new ZipArchive();
-        $zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        $zipFilePath = "{$outputDir}/{$zipFileName}";
 
-        // Create the output directory if it doesn't exist
         if (!is_dir(dirname($zipFilePath))) {
             File::makeDirectory(dirname($zipFilePath), 0755, true, true);
         }
+
+        // Collect lang files from all locales
+        $themeLangFiles = collect(File::directories(lang_path()))
+            ->map(function ($localePath) use ($themeName) {
+                $locale = basename($localePath);
+                $file = "{$localePath}/{$themeName}.php";
+                return File::exists($file) ? $file : null;
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        // Collect files/folders to be packed
+        $themeFiles = array_merge([
+            config_path("theme/{$themeName}.php"),
+            public_path("theme/{$themeName}"),
+            resource_path("views/frontend/theme/{$themeName}"),
+        ], $themeLangFiles);
+
+        $zip = new ZipArchive();
+        $zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
         foreach ($themeFiles as $entry) {
             if (is_dir($entry)) {
@@ -60,10 +72,12 @@ class PackThemeFile extends Command
             }
         }
 
-        // Close the zip archive
         $zip->close();
 
-        $this->info("Theme files for '{$themeName}' packed successfully. Storing at /storage/app/backups/{$themeName} .");
+        $this->info("✅ Theme '{$themeName}' packed successfully!");
+        $this->info("📁 Output: {$zipFilePath}");
+        $this->info("📦 Size: " . number_format(filesize($zipFilePath) / 1024, 2) . ' KB');
+        $this->info("📄 Files: " . $zip->numFiles);
     }
 
     protected function addFileToZip($zip, $file)
@@ -74,17 +88,18 @@ class PackThemeFile extends Command
 
     protected function addDirectoryToZip($zip, $directory)
     {
+        $excludedFiles = ['.DS_Store'];
+
         $files = File::allFiles($directory);
         $relativePath = str_replace(base_path() . DIRECTORY_SEPARATOR, '', $directory);
 
         foreach ($files as $file) {
+            if (in_array($file->getFilename(), $excludedFiles)) {
+                continue;
+            }
 
-            // Specify the list of filenames you want to exclude
             $relativeFilePath = str_replace($directory . DIRECTORY_SEPARATOR, '', $file->getPathname());
-            
-            // Check if the current file should be excluded
             $zip->addFile($file->getPathname(), "{$relativePath}/{$relativeFilePath}");
-
         }
     }
 }

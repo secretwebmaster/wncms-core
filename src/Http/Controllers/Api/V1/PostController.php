@@ -2,90 +2,98 @@
 
 namespace Wncms\Http\Controllers\Api\V1;
 
-use Wncms\Http\Controllers\Controller;
-use Wncms\Models\Post;
-use Wncms\Models\User;
-use Wncms\Models\Website;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Wncms\Http\Controllers\Api\V1\ApiController;
+use Wncms\Models\User;
+use Wncms\Models\Website;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Wncms\Http\Resources\PostResource;
 
-class PostController extends Controller
+class PostController extends ApiController
 {
     public function index(Request $request)
     {
-        // TODO: Check auth and website config
-        // $posts = Post::limit(5)->get();
-        $posts = collect([]);
-        return response()->json([
-            'status' => 200,
-            'message' => 'success',
-            'data' => $posts,
-        ])->setEncodingOptions(JSON_UNESCAPED_UNICODE);
-    }
+        if (!gss('enable_api_post_index')) {
+            return response()->json([
+                'status' => 403,
+                'message' => 'API access is disabled',
+            ], 403);
+        }
 
+        try {
+            $options = [
+                'tags' => $request->input('tags'),
+                'tag_type' => $request->input('tag_type', 'post_category'),
+                'excluded_post_ids' => $request->input('excluded_post_ids'),
+                'excluded_tag_ids' => $request->input('excluded_tag_ids'),
+                'keywords' => $request->input('keyword') ?? $request->input('keywords'),
+                'order' => $request->input('order_by', 'published_at'),
+                'sequence' => $request->input('sort', 'desc'),
+                'select' => $request->input('select'),
+                'page_size' => $request->input('page_size', 20),
+                'page' => $request->input('page', 1),
+                'is_random' => $request->boolean('is_random', false),
+                'withs' => ['media', 'comments', 'tags', 'translations', 'websites', 'user'],
+                'count' => $request->count,
+            ];
+    
+            $posts = wncms()->post()->getList($options);
+    
+            return response()->json([
+                'status' => 200,
+                'message' => 'success',
+                'data' => PostResource::collection($posts),
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+    
+        } catch (\Throwable $e) {
+            logger()->error('API PostController@index error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+    
+            return response()->json([
+                'status' => 500,
+                'message' => 'Server Error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+    
     public function store(Request $request)
     {
-        // info($request->all());
-
-        //find user
-        $user = User::whereNotNull('api_token')->where('api_token',$request->api_token)->first();
-
-        if($user){
-            auth()->login($user);
-        }else{
+        if (!gss('enable_api_post_store')) {
             return response()->json([
-                'status' => 'fail',
-                'message' => 'invalid token',
-            ]);
+                'status' => 403,
+                'message' => 'API access is disabled',
+            ], 403);
         }
 
-        // info("user #{$user->id} is found");
+        // Validate and authenticate
+        $user = User::where('api_token', $request->api_token)->first();
+        if (!$user) {
+            return response()->json(['status' => 'fail', 'message' => 'Invalid token']);
+        }
+        auth()->login($user);
 
-        if(!is_array($request->website_id)){
-            $requestWebsiteIds = explode(",", $request->website_id);
+        // Handle website IDs (comma or array)
+        $websiteIds = is_array($request->website_id)
+            ? $request->website_id
+            : explode(',', $request->website_id);
+
+        $websiteIds = isAdmin()
+            ? Website::query()->whereIn('id', $websiteIds)->orWhereIn('domain', $websiteIds)->pluck('id')->toArray()
+            : auth()->user()->websites()->whereIn('id', $websiteIds)->orWhereIn('domain', $websiteIds)->pluck('id')->toArray();
+
+        if (!$user) {
+            return response()->json(['status' => 'fail', 'message' => 'User is not found']);
         }
 
-        if(isAdmin()){
-            // info('is admin');
-            $user = User::find($request->user_id) ?? auth()->user();
-            $websiteIds = Website::query()
-                ->whereIn("id", $requestWebsiteIds)
-                ->orWhereIn('domain', $requestWebsiteIds)
-                ->pluck('id')
-                ->toArray();
-        }else{
-            // info('is not admin');
-            $user = auth()->user();
-            $websiteIds = auth()->user()->websites()
-                ->whereIn("id", $requestWebsiteIds)
-                ->orWhereIn('domain', $requestWebsiteIds)
-                ->pluck('id')
-                ->toArray();
-        }
-
-        if(!$user){
-            return response()->json([
-                'status' => 'fail',
-                'message' => 'user is not found',
-            ]);
-        }
-
-        // TODO: allow import with no website
-        // if(!$website){
-        //     return response()->json([
-        //         'status' => 'fail',
-        //         'message' => 'website is not found',
-        //     ]);
-        // } 
-
-        // TODO: check model table update for wncms 3.0.0+
         $data = [
             'user_id' => $user->id,
             'status' => $request->status ?? 'published',
             'visibility' => $request->visibility ?? 'public',
             'external_thumbnail' => $request->external_thumbnail,
-            'slug'=> $request->slug ?? wncms_get_unique_slug('posts','slug',6),
+            'slug' => $request->slug ?? wncms_get_unique_slug('posts', 'slug', 6),
             'title' => $request->title,
             'label' => $request->label,
             'excerpt' => $request->excerpt,
@@ -97,94 +105,77 @@ class PostController extends Controller
             'is_pinned' => $request->is_pinned ?? 0,
             'is_recommended' => $request->is_recommended ?? 0,
             'is_dmca' => $request->is_dmca ?? 0,
-            'published_at' => $request->published_at ? Carbon::parse($request->published_at) : Carbon::now(),
+            'published_at' => $request->published_at ? Carbon::parse($request->published_at) : now(),
             'expired_at' => $request->expired_at ? Carbon::parse($request->expired_at) : null,
             'source' => $request->source,
             'ref_id' => $request->ref_id,
         ];
 
-        //check_title
-        if(!empty($request->check_title)){
+        $postModel = wncms()->getModel('post');
 
-            $existing_post = Post::where(function($q) use($request){
-                foreach(LaravelLocalization::getSupportedLanguagesKeys() as $lang_key){
-                    $q->orWhere("title->{$lang_key}", $request->title);
-                }
-            })->first();
+        // Check for duplicated title if enabled
+        if ($request->check_title) {
+            $existing = $postModel::query()
+                ->where(function ($q) use ($request) {
+                    foreach (LaravelLocalization::getSupportedLanguagesKeys() as $locale) {
+                        $q->orWhere("title", $request->title);
+                    }
+                })->first();
 
-            //update_content_when_duplicated
-            if($existing_post && empty($request->update_content_when_duplicated)){
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'duplicated post is found',
-                ]);
-
-            }elseif($existing_post){
-
-                $existing_post->update($data);
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'updated existing post',
-                ]);
-
+            if ($existing && !$request->update_content_when_duplicated) {
+                return response()->json(['status' => 'success', 'message' => 'Skipped. Duplicated post is found']);
             }
 
+            if ($existing && $request->update_content_when_duplicated) {
+                $existing->update($data);
+                return response()->json(['status' => 'success', 'message' => 'Existing post updated']);
+            }
         }
 
-        $post = $user->posts()->create($data);
+        $post = $postModel::create($data);
 
-        if(!empty($websiteIds)){
+        // Sync website relations
+        if (!empty($websiteIds)) {
             $post->websites()->sync($websiteIds);
         }
 
-        //Thumbnail
-        // TODO: Read website config and check if need to convert to webp
-        if(!empty($request->thumbnail)){
+        // Handle thumbnail
+        if ($request->hasFile('thumbnail')) {
             $post->addMediaFromRequest('thumbnail')->toMediaCollection('post_thumbnail');
         }
 
-        //localize content images
-        info("localize_post_image = " . gss('localize_post_image'));
-        if(gss('localize_post_image')){
+        // Optional: localize images
+        if (gss('localize_post_image')) {
             $post->localizeImages();
-            info('localize image completed');
         }
 
-        //post_category
-        if (!empty($request->categories)) {
-
-            $categories = explode(",", $request->categories);
-            $new_cateogories = [];
-            foreach ($categories as $category) {
-                $new_cateogories[] = $category;
-            }
-            $post->syncTagsWithType($new_cateogories, 'post_category');
-
+        // Tags
+        if ($request->filled('categories')) {
+            $post->syncTagsWithType(explode(',', $request->categories), 'post_category');
         }
 
-        //post_tag
-        if (!empty($request->tags)) {
-            $tags = explode(",", $request->tags);
-            $new_tags = [];
-            foreach ($tags as $tag) {
-                $new_tags[] = $tag;
-            }
-            $post->syncTagsWithType($new_tags, 'post_tag');
+        if ($request->filled('tags')) {
+            $post->syncTagsWithType(explode(',', $request->tags), 'post_tag');
         }
 
         wncms()->cache()->tags(['posts'])->flush();
 
         return response()->json([
-            'status' => "success",
-            'message' => "post #{$post->id} is created",
+            'status' => 'success',
+            'message' => "post #{$post->id} created",
             'data' => $post,
-        ])->setEncodingOptions(JSON_UNESCAPED_UNICODE);
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function show(Request $request, $id)
     {
-        $post = wncms()->post()->get($id);
-        return $post;
+        if (!gss('enable_api_post_show')) {
+            return response()->json([
+                'status' => 403,
+                'message' => 'API access is disabled',
+            ], 403);
+        }
+
+        return wncms()->post()->get($id);
     }
 }

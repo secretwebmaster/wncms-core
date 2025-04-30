@@ -109,26 +109,36 @@
                                 </div>
                             </td>
                             <td>
-                                @if(!in_array($theme['id'], $activatedThemeIds))
-                                    <button class="btn btn-sm btn-success fw-bold px-2 py-1"
-                                        wncms-btn-ajax
-                                        wncms-btn-swal
-                                        data-success-text="@lang('wncms::word.deactivated')"
-                                        data-fail-text="@lang('wncms::word.retry')"
-                                        data-route="{{ route('themes.activate' , ['themeId' => $theme['id']]) }}"
-                                        data-method="POST" >@lang('wncms::word.activate')</button>
-                                    <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('themes.preview' , ['themeId' => $theme['id']]) }}">@lang('wncms::word.preview')</a>
-                                @else
-                                    <button class="btn btn-sm btn-danger fw-bold px-2 py-1"
-                                        wncms-btn-ajax
-                                        wncms-btn-swal
-                                        data-confirm-text="@lang('wncms::word.are_you_sure_to_deactivate_theme', ['theme_name' => $theme['name']])"
-                                        data-success-text="@lang('wncms::word.activated')"
-                                        data-fail-text="@lang('wncms::word.retry')"
-                                        data-route="{{ route('themes.deactivate' , ['themeId' => $theme['id']]) }}"
-                                        data-method="POST" >@lang('wncms::word.deactivate')</button>
+                                <!-- Delete Button triggers modal -->
+                                <button type="button" class="btn btn-sm btn-danger fw-bold px-2 py-1"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modal_confirm_delete_theme_{{ $theme['id'] }}">
+                                    @lang('wncms::word.delete')
+                                </button>
 
-                                @endif
+                                <!-- Confirm Delete Modal -->
+                                <div class="modal fade" id="modal_confirm_delete_theme_{{ $theme['id'] }}" tabindex="-1" aria-labelledby="label_confirm_delete_theme_{{ $theme['id'] }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <form action="{{ route('themes.delete', ['themeId' => $theme['id']]) }}" method="POST">
+                                            @csrf
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="label_confirm_delete_theme_{{ $theme['id'] }}">
+                                                        @lang('wncms::word.confirm_delete_theme')
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@lang('wncms::word.close')"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    @lang('wncms::word.are_you_sure_to_delete_theme', ['theme_name' => $theme['name']])
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('wncms::word.cancel')</button>
+                                                    <button type="submit" class="btn btn-danger">@lang('wncms::word.confirm_delete')</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </td>
                             <td>{{ $theme['id'] }}</td>
                             <td>@include('wncms::common.table_is_active', ['model' => $theme, 'active_column' => 'isValid'])</td>

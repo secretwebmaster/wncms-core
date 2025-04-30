@@ -14,7 +14,7 @@
                     <th>@lang('wncms::word.name')</th>
                 </thead>
                 <tbody>
-                    @foreach($wncms->tag()->getList(tagType:$type,pageSize:10) as $tag)
+                    @foreach($wncms->tag()->getList(['tag_type' => $type, 'page_size' => 10]) as $tag)
                         <tr>
                             <td>{{ $tag->id }}</td>
                             <td><a href="{{ $tag->postCategoryUrl }}">{{ $tag->name }}</a></td>

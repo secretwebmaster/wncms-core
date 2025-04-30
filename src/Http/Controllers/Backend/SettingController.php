@@ -36,7 +36,7 @@ class SettingController extends Controller
         }
 
         wncms()->cache()->flush(['settings']);
-        return redirect()->route('settings.index');
+        return redirect()->back();
     }
 
     public function smtp_test(Request $request)
@@ -91,26 +91,24 @@ class SettingController extends Controller
 
     public function remove_quick_link(Request $request)
     {
-        // dd($request->all());
-        // get current quick links
         $quickLinkStr = gss('quick_links');
         $quickLinks = json_decode($quickLinkStr, true) ?? [];
-
-        // prepare new quick link data
+    
         $quickLinkData = [
             'route' => $request->route,
-            // 'name' => $request->name,
             'url' => $request->url,
         ];
-
-        // Remove quick link if route or url exists
+    
         $quickLinks = array_filter($quickLinks, function ($quickLink) use ($quickLinkData) {
-            return $quickLink['route'] !== $quickLinkData['route'] && $quickLink['url'] !== $quickLinkData['url'];
+            return !(
+                ($quickLink['route'] ?? null) === $quickLinkData['route'] ||
+                ($quickLink['url'] ?? null) === $quickLinkData['url']
+            );
         });
-
-        // save quick links
-        uss('quick_links', json_encode($quickLinks));
-        
+    
+        uss('quick_links', json_encode(array_values($quickLinks)));
+    
         return back()->withMessage(__('wncms::word.successfully_updated'));
     }
+    
 }

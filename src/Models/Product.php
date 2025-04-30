@@ -18,7 +18,7 @@ class Product extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-cube'
+        'fontawesome' => 'fa-solid fa-cube'
     ];
 
     public const ROUTES = [

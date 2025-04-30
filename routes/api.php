@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Wncms\Http\Controllers\Api\V1\AnalyticsController;
+// use Wncms\Http\Controllers\Api\V1\AnalyticsController;
 use Wncms\Http\Controllers\Api\V1\MenuController;
 use Wncms\Http\Controllers\Api\V1\PageController;
 use Wncms\Http\Controllers\Api\V1\PostController;
@@ -9,35 +9,55 @@ use Wncms\Http\Controllers\Api\V1\TagController;
 use Wncms\Http\Controllers\Api\V1\UpdateController;
 use Wncms\Http\Controllers\Api\V1\PaymentGatewayController;
 
-Route::prefix('v1')->name('api.v1.')->group(function(){
+Route::prefix('v1')->name('api.v1.')->group(function () {
 
-    // Route::post('analytics/record', [AnalyticsController::class, 'record'])->name('analytics.record');
-    // Route::post('analytics/get', [AnalyticsController::class, 'get'])->name('analytics.get');
-    
-    Route::post('menus/index', [MenuController::class, 'index'])->name('menus.index');
-    Route::post('menus/store', [MenuController::class, 'store'])->name('menus.store');
-    Route::post('menus/sync', [MenuController::class, 'sync'])->name('menus.sync');
-    Route::post('menus/{id}', [MenuController::class, 'show'])->name('menus.show');
-    
-    Route::post('pages/index', [PageController::class, 'index'])->name('pages.index');
-    Route::post('pages/store', [PageController::class, 'store'])->name('pages.store');
-    Route::post('pages/{id}', [PageController::class, 'show'])->name('pages.show');
+    // Menus
+    Route::prefix('menus')->name('menus.')->controller(MenuController::class)->group(function () {
+        Route::post('index', 'index')->name('index');
+        Route::post('store', 'store')->name('store');
+        Route::post('sync', 'sync')->name('sync');
+        Route::post('{id}', 'show')->name('show');
+    });
 
-    Route::post('posts/index', [PostController::class, 'index'])->name('posts.index');
-    Route::post('posts/store', [PostController::class, 'store'])->name('posts.store');
-    Route::post('posts/{id}', [PostController::class, 'show'])->name('posts.show');
+    // Pages
+    Route::prefix('pages')->name('pages.')->controller(PageController::class)->group(function () {
+        Route::post('index', 'index')->name('index');
+        Route::post('store', 'store')->name('store');
+        Route::post('{id}', 'show')->name('show');
+    });
 
-    Route::post('tags/index', [TagController::class, 'index'])->name('tags.index');
-    Route::post('tags/exist', [TagController::class, 'exist'])->name('tags.exist');
+    // Posts
+    Route::prefix('posts')->name('posts.')->controller(PostController::class)->group(function () {
+        Route::post('index', 'index')->name('index');
+        Route::post('store', 'store')->name('store');
+        Route::post('{id}', 'show')->name('show');
+    });
 
-    Route::post('update', [UpdateController::class, 'update'])->name('update');
-    Route::post('update/progress', [UpdateController::class, 'progress'])->name('update.progress');
-    
-    Route::post('payment/notify', [PaymentGatewayController::class, 'notify'])->name('payment.notify');
+    // Tags
+    Route::prefix('tags')->name('tags.')->controller(TagController::class)->group(function () {
+        Route::post('index', 'index')->name('index');
+        Route::post('exist', 'exist')->name('exist');
+    });
+
+    // Update
+    Route::prefix('update')->name('update.')->controller(UpdateController::class)->group(function () {
+        Route::post('/', 'update')->name('run');
+        Route::post('progress', 'progress')->name('progress');
+    });
+
+    // Payment
+    Route::prefix('payment')->name('payment.')->controller(PaymentGatewayController::class)->group(function () {
+        Route::post('notify', 'notify')->name('notify');
+    });
+
+    // Analytics (commented out for now)
+    // Route::prefix('analytics')->name('analytics.')->controller(AnalyticsController::class)->group(function () {
+    //     Route::post('record', 'record')->name('record');
+    //     Route::post('get', 'get')->name('get');
+    // });
 });
 
-//custom api route
+// Custom user-defined API routes
 if (file_exists(base_path('routes/custom_api.php'))) {
     include base_path('routes/custom_api.php');
 }
- 

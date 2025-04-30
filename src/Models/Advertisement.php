@@ -27,7 +27,7 @@ class Advertisement extends Model implements HasMedia
     protected $translatable = ['name','description','cta_text','cta_text_2'];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-rectangle-ad'
+        'fontawesome' => 'fa-solid fa-rectangle-ad'
     ];
 
     public const ORDERS = [

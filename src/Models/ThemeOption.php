@@ -15,7 +15,7 @@ class ThemeOption extends Model
     protected $translatable = ['value'];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-brush'
+        'fontawesome' => 'fa-solid fa-brush'
     ];
 
     public function website()

@@ -26,7 +26,7 @@ class Link extends Model implements HasMedia
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-link'
+        'fontawesome' => 'fa-solid fa-link'
     ];
 
     public const ROUTES = [

@@ -12,6 +12,7 @@ use Wncms\Facades\Wncms;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class WncmsServiceProvider extends ServiceProvider
 {
@@ -54,7 +55,7 @@ class WncmsServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-system-settings.php', 'wncms-system-settings');
         $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-tags.php', 'wncms-tags');
         $this->mergeConfigFrom(__DIR__ . '/../../config/wncms.php', 'wncms');
-
+        
         // Load the theme configurations
         $this->mergeConfigFrom(__DIR__ . '/../../config/theme/default.php', 'theme.default');
         $this->mergeConfigFrom(__DIR__ . '/../../config/theme/starter.php', 'theme.starter');
@@ -119,7 +120,7 @@ class WncmsServiceProvider extends ServiceProvider
                 // override the config with the settings from the database
                 config([
                     'multi_website' => gss('multi_website', config('wncms.multi_website', false)),
-                    'filesystems.disks.public.url' => url('/storage')
+                    'filesystems.disks.public.url' => url('/storage'),
                 ]);
 
                 View::share('website', Wncms::website()->get());
@@ -132,6 +133,8 @@ class WncmsServiceProvider extends ServiceProvider
             } else {
                 // redirect to installation guide
             }
+
+            // dd(config('app.locale'));
 
             // TODO: Allow to use theme paginator
             Paginator::useBootstrap();
@@ -184,7 +187,7 @@ class WncmsServiceProvider extends ServiceProvider
             __DIR__ . '/../../config/services.php' => config_path('services.php'),
             __DIR__ . '/../../config/session.php' => config_path('session.php'),
             __DIR__ . '/../../config/translatable.php' => config_path('translatable.php'),
-            __DIR__ . '/../../config/wncms-system-settings.php' => config_path('wncms-system-settings.php'),
+            // __DIR__ . '/../../config/wncms-system-settings.php' => config_path('wncms-system-settings.php'),
             __DIR__ . '/../../config/wncms-tags.php' => config_path('wncms-tags.php'),
         ], 'wncms-system-config');
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace("_", "-", \wncms()->locale()->getCurrentLocale()) }}" dir="ltr">
+<html lang="{{ str_replace("_", "-", wncms()->locale()->getCurrentLocale()) }}" dir="ltr">
 
     <head>
         {{-- Meta --}}

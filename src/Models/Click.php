@@ -15,7 +15,7 @@ class Click extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-computer-mouse'
+        'fontawesome' => 'fa-solid fa-computer-mouse'
     ];
 
     public const ROUTES = [

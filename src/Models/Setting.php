@@ -16,6 +16,6 @@ class Setting extends Model
     protected $guarded = [];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-gear'
+        'fontawesome' => 'fa-solid fa-gear'
     ];
 }

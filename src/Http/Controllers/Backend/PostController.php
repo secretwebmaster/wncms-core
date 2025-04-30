@@ -3,7 +3,6 @@
 namespace Wncms\Http\Controllers\Backend;
 
 use Wncms\Http\Controllers\Controller;
-use Wncms\Models\Post;
 use Wncms\Models\User;
 use Wncms\Models\Website;
 use Carbon\Carbon;
@@ -41,7 +40,7 @@ class PostController extends Controller
     protected function getModelClass()
     {
         // Fetch the model class from the config file, or fall back to Post model
-        return config('wncms.default_post_model', \Wncms\Models\Post::class);
+        return config('wncms.models.post', \Wncms\Models\Post::class);
     }
 
     protected function getModelTable()
@@ -593,8 +592,8 @@ class PostController extends Controller
             $fakers[$localeCode] = Faker::create($localeCode);
         }
 
-        $categories = wncms()->tag()->getList(tagType: 'post_category', count: 3, isRandom: true);
-        $tags = wncms()->tag()->getList(tagType: 'post_tag', count: 3, isRandom: true);
+        $categories = Tag::query()->where('type', 'post_category')->inRandomOrder()->limit(3)->get();
+        $tags = Tag::query()->where('type', 'post_tag')->inRandomOrder()->limit(3)->get();
 
         for ($i = 0; $i < $count; $i++) {
             // Choose a random image filename

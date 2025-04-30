@@ -15,16 +15,23 @@ class UserController extends BackendController
         $q = User::query();
 
         if($request->keyword){
-            $q->where('email','like',"%$request->keyword%")
-            ->orWhereHas('roles',function($subq) use($request){
-                $subq->where('name','like',"%$request->keywords%");
+            $q->where(function($query) use ($request){
+                $query->where('username', 'like', '%'.$request->keyword.'%')
+                    ->orWhere('email', 'like', '%'.$request->keyword.'%');
             });
+        }
+
+        if($request->role){
+            $q->role($request->role);
         }
 
         $users = $q->paginate(20);
 
+        $roles = Role::all();
+
         return view('wncms::backend.users.index', [
             'users' => $users,
+            'roles' => $roles,
             'page_title' => __('wncms::word.user_management')
         ]);
     }

@@ -16,7 +16,7 @@ class OrderItem extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-boxes-stacked'
+        'fontawesome' => 'fa-solid fa-boxes-stacked'
     ];
 
     public const ROUTES = [

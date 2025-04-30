@@ -23,7 +23,7 @@ class Faq extends Model
     protected $translatable = ['question','answer','label'];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-circle-question'
+        'fontawesome' => 'fa-solid fa-circle-question'
     ];
 
     public const ORDERS = [

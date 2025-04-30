@@ -24,7 +24,7 @@ class Page extends Model implements HasMedia
     protected $translatable = ['title','options', 'content'];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-file-lines'
+        'fontawesome' => 'fa-solid fa-file-lines'
     ];
 
     public const OPTIONS = [

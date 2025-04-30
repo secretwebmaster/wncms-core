@@ -16,7 +16,7 @@ class PaymentGateway extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-hand-holding-dollar'
+        'fontawesome' => 'fa-solid fa-hand-holding-dollar'
     ];
 
     public const ROUTES = [

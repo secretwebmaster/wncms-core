@@ -11,7 +11,7 @@
             <th>@lang('wncms::word.tag')</th>
         </thead>
         <tbody>
-            @foreach($wncms->post()->getList(pageSize:10) as $post)
+            @foreach($posts = $wncms->post()->getList(['page_size' => 10]) as $post)
                 <tr>
                     <td>{{ $post->id }}</td>
                     <td><a href="{{ $post->singleUrl }}">{{ $post->title }}</a></td>
@@ -32,5 +32,5 @@
         </tbody>
     </table>
 
-    {!! $wncms->post()->getList(pageSize:10)->links() !!}
+    {!! $posts->links() !!}
 @endsection

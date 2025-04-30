@@ -86,7 +86,6 @@
         'name',
         'url',
     ] as $field)
-        {{-- text_example --}}
         <div class="row mb-3">
             <label class="col-lg-3 col-form-label required fw-bold fs-6" for="{{ $field }}">@lang('wncms::word.' . $field)</label>
             <div class="col-lg-9 fv-row">
@@ -335,4 +334,5 @@
             <input id="clicks" type="number" name="clicks" class="form-control form-control-sm" value="{{ old('clicks', $link->clicks ?? 0) }}"/>
         </div>
     </div>
+
 </div>

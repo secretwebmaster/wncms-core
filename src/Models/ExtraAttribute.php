@@ -16,7 +16,7 @@ class ExtraAttribute extends Model
     protected $translatable = ['model_attributes'];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-cube'
+        'fontawesome' => 'fa-solid fa-cube'
     ];
 
     // public const ROUTES = [

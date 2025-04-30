@@ -24,7 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     protected $guarded = [];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-user'
+        'fontawesome' => 'fa-solid fa-user'
     ];
 
     public const ROUTES = [

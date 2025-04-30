@@ -34,12 +34,12 @@ class CardController extends Controller
     public function create(?Card $card = null)
     {
         $card ??= new Card;
-        $userModal = Wncms::getUserModelClass();
-
+        $users = wncms()->getModel('user')->orderBy('username','asc')->get();
+        
         return view('wncms::backend.cards.create', [
             'page_title' => wncms_model_word('card', 'create'),
             'card' => $card,
-            'users' => $userModal::all(),
+            'users' => $users,
             'plans' => Plan::all(),
         ]);
     }

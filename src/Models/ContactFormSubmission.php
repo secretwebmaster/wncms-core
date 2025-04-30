@@ -18,7 +18,7 @@ class ContactFormSubmission extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-envelope-open-text'
+        'fontawesome' => 'fa-solid fa-envelope-open-text'
     ];
 
     public const ORDERS = [

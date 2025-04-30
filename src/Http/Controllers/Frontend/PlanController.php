@@ -17,10 +17,7 @@ class PlanController extends FrontendController
 
         return Wncms::view(
             name: "frontend.theme.{$this->theme}.plans.index",
-            params: [
-                'plans' => $plans,
-            ],
-            fallback: 'wncms::frontend.theme.default.plans.index',
+            params: ['plans' => $plans],
         );
     }
 

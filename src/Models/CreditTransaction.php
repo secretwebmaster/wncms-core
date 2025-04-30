@@ -16,7 +16,7 @@ class CreditTransaction extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-money-bill-transfer'
+        'fontawesome' => 'fa-solid fa-money-bill-transfer'
     ];
 
     public const ROUTES = [

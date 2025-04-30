@@ -6,6 +6,8 @@
             <th>@lang('wncms::word.value')</th>
         </thead>
         <tbody>
+            {{-- use gto if you want to cache --}}
+            @dd(gto())
             @foreach($website->get_options() as $key => $value)
             <tr>
                 <td>{{ $key }}</td>

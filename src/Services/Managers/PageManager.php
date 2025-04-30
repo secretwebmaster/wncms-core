@@ -102,7 +102,7 @@ class PageManager
      * @param string $order                     - The order the record
      * @param string $sequence                  - The sequence used when ordering by $order
      * @param string $status                    - Supported statuses: publish, draft, trash
-     * @param ?array $wheres                    - Custom condition to query to pages. ['column1', 'operator', 'value1'] or ['column2', 'value2']. Pass only 2 parameter when using the like operater
+     * @param ?array $wheres                    - Custom condition to query to pages. ['column1', 'operator', 'value1'] or ['column2', 'value2']. Pass only 2 parameter when using the like operator
      * @param integer|null $websiteId           - By default, null is passed and will only get pages of current domain 
      * @return Illuminate\Database\Eloquent\Collection
      * TODO: 加入where條件，加入whereIn，加入page count
@@ -128,6 +128,7 @@ class PageManager
         $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
         // wncms()->cache()->clear($cacheKey, $cacheTags);
         // dd($cacheKey);
+        
 
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($count, $pageSize, $order, $sequence, $status, $wheres, $websiteId, $excludedPageIds, $ids, $select) {
             $website = wncms()->website()->get($websiteId, false);

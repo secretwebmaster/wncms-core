@@ -53,19 +53,7 @@ class AdvertisementController extends Controller
 
         $q->with(['media', 'website']);
 
-        if($request->show_click){
-            $q->withCount(['views as click_count' => function($subq){
-                $subq->where('collection', 'click');
-            }]);
-        }
-        
-        if($request->show_view){
-            $q->withCount(['views as view_count' => function($subq){
-                $subq->where('collection', 'view');
-            }]);
-        }
-        
-        $advertisements = $q->paginate();
+        $advertisements = $q->paginate($request->page_size ?? 20);
         $websites = wncms()->website()->getList();
         return view('wncms::backend.advertisements.index', [
             'page_title' => wncms_model_word('advertisement', 'management'),
@@ -102,6 +90,7 @@ class AdvertisementController extends Controller
             'name' => $request->name,
             'type' => $request->type,
             'position' => $request->position,
+            'order' => $request->position,
             'cta_text' => $request->cta_text,
             'url' => $request->url,
             'cta_text_2' => $request->cta_text_2,
@@ -164,6 +153,7 @@ class AdvertisementController extends Controller
             'name' => $request->name,
             'type' => $request->type,
             'position' => $request->position,
+            'order' => $request->order,
             'cta_text' => $request->cta_text,
             'url' => $request->url,
             'cta_text_2' => $request->cta_text_2,

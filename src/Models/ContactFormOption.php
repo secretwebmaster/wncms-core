@@ -16,7 +16,7 @@ class ContactFormOption extends Model
     protected $guarded = [];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-square-envelope'
+        'fontawesome' => 'fa-solid fa-square-envelope'
     ];
 
     public const ROUTES = [

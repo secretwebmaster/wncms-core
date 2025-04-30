@@ -71,11 +71,11 @@ class RolesSeeder extends Seeder
             'role',
             'tag',
             'tag_keyword',
-            'theme',
             'user',
             'website',
             'faq',
             'package',
+            'link',
 
             //TODO: add new models
             'card',
@@ -130,11 +130,9 @@ class RolesSeeder extends Seeder
             'user_record_show',
             'user_security_show',
 
-            'theme_apply',
+            'theme_index',
             'theme_upload',
-            'theme_activate',
-            'theme_deactivate',
-            'theme_preview',
+            'theme_delete',
 
             'plugin_index',
             'plugin_upload',

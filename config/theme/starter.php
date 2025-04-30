@@ -146,8 +146,8 @@ return [
         'id' => 'starter',
         'type' => 'blog',
         'name' => [
-            'zh_TW' => 'Starer主題',
-            'zh_CN' => 'Starer主题',
+            'zh_TW' => 'Starter主題',
+            'zh_CN' => 'Starter主题',
             'en' => 'Start Theme',
         ],
         'description' => [

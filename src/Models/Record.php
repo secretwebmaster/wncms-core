@@ -18,7 +18,7 @@ class Record extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-clipboard'
+        'fontawesome' => 'fa-solid fa-clipboard'
     ];
 
 

@@ -2,340 +2,246 @@
 
 namespace Wncms\Services\Managers;
 
-use Wncms\Models\Tag;
 use Illuminate\Support\Facades\File;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Str;
 
-class TagManager
+class TagManager extends ModelManager
 {
-    //Cache key prefix that prepend all cache key in this page
-    protected $cacheKeyPrefix = "wncms_tag";
+    protected string $cacheKeyPrefix = 'wncms_tag';
+    protected bool $shouldAuth = false;
+    protected string|array $cacheTags = ['tags'];
 
-    public function get(?int $tagId)
+    public function getModelClass(): string
     {
-        if(empty($tagId)) return;
-        //prepare cache key and tag
-        $method = "get";
-        $shouldAuth = false;
-        $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()));
-        $cacheTags = ['tags'];
-        $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
-        // wncms()->cache()->clear($cacheKey, $cacheTags);
-
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tagId) {
-            // info('no cache from TagManager get()');
-            return Tag::find($tagId);
-        });
+        return config('wncms.models.tag', \Wncms\Models\Tag::class);
     }
 
-    public function getByName(string $tagName, string $tagType = null, string $locale = null, $withs = [], int $websiteId = null)
+    public function getByName(string $tagName, ?string $tagType = null, array $withs = [], ?string $locale = null, bool $cache = true)
     {
-        $method = "getByName";
-        $shouldAuth = false;
-        $cacheKeyDomain = empty($websiteId) ? wncms()->getDomain() : '';
-        $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()), $cacheKeyDomain);
-        $cacheTags = ['tags'];
-        $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
-        // wncms()->cache()->clear($cacheKey, $cacheTags);
-
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tagName, $tagType, $locale, $withs, $websiteId) {
-            // info('no cache from TagManager getByName()');
-
-            $locale ??= LaravelLocalization::getCurrentLocale();
-            $website = wncms()->website()->get($websiteId);
-
-            $q = Tag::query();
-
-            $q->where('type', $tagType);
-
-            $q->where(function($subq) use ($tagName, $locale) {
-                $subq->where("name", $tagName)
-                    ->orWhere("slug", $tagName)
-                    ->orWhereHas('translations', function($subsubq) use ($tagName, $locale){
-                        $subsubq->where('field', 'name')->where('value', $tagName)->where('locale', $locale);
-                    });
-            });
-
-            if(!empty($withs)){
-                $q->with($withs);
-
-                if(!in_array("psots", $withs)){
-                    $q->with(['posts' => function($subq) use($website){
-                        $subq->whereHas('websites', function($subsubq) use($website){
-                            $subsubq->where('websites.id', $website->id);
-                        });
-                    }]);
-                }
-
-                // If 'children' is included in 'withs', also eager load posts for child tags
-                if (in_array('children', $withs)) {
-                    $q->with(['children' => function ($subq) {
-                        $subq->with(['posts']);
-                    }]);
-                }
-            }
-
-            return $q->first();
-        });
-    }
-
-    public function getList(
-        string $tagType = 'post_category',
-        ?int $count = 0,
-        ?int $pageSize = 0,
-        ?int $page = 0,
-        array|string|null $tagIds = null,
-        array $withs = [],
-        bool $hasModels = false,
-        string $modelType = 'posts',
-        bool $onlyCurrentWebsite = false,
-        string|null $locale = null,
-        bool $isRandom = false,
-        bool $parentOnly = false,
-        string $order = 'order_column',
-        string $sequence = 'desc',
-    )
-    {
-        $method = "getList";
-        $shouldAuth = false;
-        $websiteId = wncms()->website()->getCurrent()?->id;
-        $page = request()->page;
-        $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()), $websiteId);
-        $cacheTags = ['tags'];
-        if($isRandom){
-            $cacheTime = 0;
-        }else{
-            $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
-        }
-        // wncms()->cache()->clear($cacheKey, $cacheTags);
-
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tagType, $count, $pageSize, $tagIds, $withs, $hasModels, $modelType, $onlyCurrentWebsite, $websiteId, $locale, $isRandom, $parentOnly, $order, $sequence) {
-            // info('no cache from TagManager getList()');
+        $locale ??= LaravelLocalization::getCurrentLocale();
     
-            $q = Tag::query();
-
-            if(strpos($tagType, ',') !== false){
-                $tagTypes = explode(",", $tagType);
-                $q->whereIn('type', $tagTypes);
-            }else{
-                $q->where('type', $tagType);
-            }
-
-            $locale ??= LaravelLocalization::getCurrentLocale();
-
-            if (!empty($tagIds)) {
-
-                if (is_string($tagIds)) {
-                    $tagIds = explode(",", $tagIds);
+        $wheres = [
+            ['type', '=', $tagType],
+            [
+                function ($q) use ($tagName, $locale) {
+                    $q->where("name", $tagName)
+                      ->orWhere("slug", $tagName)
+                      ->orWhereHas('translations', function ($subq) use ($tagName, $locale) {
+                          $subq->where('field', 'name')->where('value', $tagName)->where('locale', $locale);
+                      });
                 }
-
-                $q->where(function ($subq) use ($tagIds, $locale) {
-                    // $subq->orWhereIn('tags.id', $tagIds);
-                    $subq->orWhere(function ($subsubq) use ($locale, $tagIds) {
-                        $subsubq->whereIn("tags.name", $tagIds)
-                            ->orWhereIn("tags.slug", $tagIds)
-                            ->orWhereHas('translations', function($subsubsubq) use ($locale, $tagIds){
-                                $subsubsubq->where('field', 'name')->where('locale', $locale)->whereIn('value', $tagIds);
-                            })
-                            ->orWhereIn('tags.id', $tagIds);
-                    });
-                });
-            }
-
-            if($hasModels && !empty($modelType)){
-                if($onlyCurrentWebsite){
-                   $q->whereHas($modelType, function($subq) use($websiteId){
-                    $subq->whereRelation('websites','websites.id',$websiteId);
-                   });
-                }else{
-                    $q->whereHas($modelTypes);
-                }
-            }
-
-            foreach ($withs as $with) {
-                $q->with($with);
-            }
-
-            if($isRandom){
-                $q->inRandomOrder();
-            }
-
-            if($parentOnly){
-                $q->whereNull('parent_id');
-            }
-
-            if ($count) {
-                $q->limit($count);
-            }
-
-            if(in_array($order, Tag::ORDERS) && in_array($sequence, ['asc', 'desc'])){
-                $q->orderBy($order, $sequence);
-            }
-
-            if($pageSize){
-                $tags = $q->paginate($pageSize);
-            }else{
-                $tags = $q->get();
-            }
-            
-            return $tags;
-        });
+            ]
+        ];
+    
+        return $this->get([
+            'withs'   => $withs,
+            'wheres' => $wheres,
+            'cache'  => $cache,
+        ]);
+    }
+    
+    
+    /**
+     * Retrieve a list of tags using unified options array.
+     *
+     * Supported $options:
+     * - tag_type (string): Tag type(s), e.g. 'post_category', or comma-separated types.
+     * - tag_ids (array|string|null): Tag IDs, names, or slugs to match.
+     * - with (array): Eager-loaded relationships.
+     * - has_models (bool): Whether to require tags having related models.
+     * - model_type (string): Related model name, e.g. 'posts'.
+     * - only_current_website (bool): Restrict to current website only.
+     * - locale (string|null): Fallback to current locale if null.
+     * - parent_only (bool): Only top-level tags if true.
+     * - order (string): Field to order by.
+     * - sequence (string): 'asc' or 'desc'.
+     * - count (int): Limit number of results.
+     * - page_size (int): Results per page.
+     * - page (int): Page number.
+     * - is_random (bool): Randomize results, disables cache.
+     * - cache (bool): Whether to use cache (default true).
+     *
+     * @param array $options
+     * @return Collection|LengthAwarePaginator
+     */
+    public function getList(array $options = []): mixed
+    {
+        return parent::getList($options);
     }
 
-    public function getArray(string $tagType = 'post_category', int $count = 0, string $columnName = 'name', string $keyName = null, array|string|null $tagIds = null)
+    protected function buildListQuery(array $options): mixed
     {
-        //prepare cache key and tag
-        $method = "getArray";
-        $shouldAuth = false;
-        $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()));
-        $cacheTags = ['tags'];
-        $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
-        //wncms()->cache()->clear($cacheKey, $cacheTags);
-
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tagType, $count, $columnName, $keyName, $tagIds) {
-            // info('no cache from TagManager getArray()');
-            $q = Tag::query();
+        $q = $this->query();
+    
+        $tagType = $options['tag_type'] ?? 'post_category';
+        $tagIds = $options['tag_ids'] ?? null;
+        $withs = $options['with'] ?? [];
+        $hasModels = $options['has_models'] ?? false;
+        $modelType = $options['model_type'] ?? 'posts';
+        $onlyCurrentWebsite = $options['only_current_website'] ?? false;
+        $locale = $options['locale'] ?? app()->getLocale();
+        $parentOnly = $options['parent_only'] ?? false;
+        $isRandom = $options['is_random'] ?? false;
+        $order = $options['order'] ?? 'order_column';
+        $sequence = $options['sequence'] ?? 'desc';
+    
+        // Filter by tag type(s)
+        if (str_contains($tagType, ',')) {
+            $q->whereIn('type', explode(',', $tagType));
+        } else {
             $q->where('type', $tagType);
-
-            if ($count) {
-                $q->limit($count);
-            }
-
-            if (!empty($tagIds)) {
-                if (is_string($tagIds)) {
-                    $tagIds = explode(',', $tagIds);
-                }
-                $q->whereIn('id', $tagIds);
-            }
-
-            $array = [];
-
-            $q->get()->map(function($tag) use($columnName, $keyName, &$array) {
-                // If $keyName is null, use the array's current count as the index
-                if ($keyName) {
-                    $array[$tag->{$keyName}] = $tag->{$columnName};
-                } else {
-                    $array[] = $tag->{$columnName}; // Automatically assigns an integer index
-                }
+        }
+    
+        // Filter by tag ID, slug, or translated name
+        if (!empty($tagIds)) {
+            $tagIds = is_array($tagIds) ? $tagIds : explode(',', $tagIds);
+            $q->where(function ($subq) use ($tagIds, $locale) {
+                $subq->orWhereIn('tags.id', $tagIds)
+                    ->orWhereIn('tags.name', $tagIds)
+                    ->orWhereIn('tags.slug', $tagIds)
+                    ->orWhereHas('translations', function ($q) use ($tagIds, $locale) {
+                        $q->where('field', 'name')->where('locale', $locale)->whereIn('value', $tagIds);
+                    });
             });
-            
-            return $array;
-
-            // return $q->get()->map(function($tag) use($columnName, $keyName){
-            //     return [$keyName => $tag->{$columnName}];
-            // });
-
-            // $tagArray = $q->pluck($columnName, $keyName)->toArray();
-            // return $tagArray;
-        });
-    }
-
-    public function getTypes(array|string|null $tagIds = null)
-    {
-        //prepare cache key and tag
-        $method = "getTypes";
-        $shouldAuth = false;
-        $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()));
-        $cacheTags = ['tags'];
-        $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
-        //wncms()->cache()->clear($cacheKey, $cacheTags);
-
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($tagIds) {
-
-            // info('no cache from TagManager getTypes()');
-            $q = Tag::query();
-
-            if (!empty($tagIds)) {
-                $q->whereIn('id', $tagIds);
+        }
+    
+        // Ensure tags are related to given model (e.g., posts)
+        if ($hasModels && $modelType) {
+            if ($onlyCurrentWebsite) {
+                $websiteId = wncms()->website()->getCurrent()?->id;
+                $q->whereHas($modelType, fn($q) => $q->whereRelation('websites', 'websites.id', $websiteId));
+            } else {
+                $q->whereHas($modelType);
             }
-
-            $tagTypes = $q->distinct()->pluck('type')->toArray();
-
-            return $tagTypes;
-        });
+        }
+    
+        // Eager load relationships
+        $this->applyWiths($q, $withs);
+    
+        // Only top-level tags
+        if ($parentOnly) {
+            $q->whereNull('parent_id');
+        }
+    
+        // Apply sorting (random disables ordering)
+        $this->applyOrdering($q, $order, $sequence, $isRandom);
+    
+        return $this->finalizeResult($q, $options);
     }
+    
 
-    public function getTagKeywordList(string $tagType = 'post_category', $column = 'id')
+    public function getArray(string $tagType = 'post_category', int $count = 0, string $columnName = 'name', string $keyName = null, array|string|null $tagIds = null): array
     {
-        //get all tags and keywords into array
-        $tags = $this->getList(
-            tagType: $tagType,
-            withs: ['keywords'],
-        );
+        $tags = $this->getList([
+            'tag_type' => $tagType,
+            'count' => $count,
+            'tag_ids' => $tagIds,
+            'cache' => true,
+        ]);
+    
+        $array = [];
+    
+        foreach ($tags as $tag) {
+            if ($keyName) {
+                $array[$tag->{$keyName}] = $tag->{$columnName};
+            } else {
+                $array[] = $tag->{$columnName};
+            }
+        }
+    
+        return $array;
+    }
+    
 
+    public function getTypes(array|string|null $tagIds = null): array
+    {
+        $q = $this->query()->select('type');
+    
+        if (!empty($tagIds)) {
+            $tagIds = is_array($tagIds) ? $tagIds : explode(',', $tagIds);
+            $q->whereIn('id', $tagIds);
+        }
+    
+        return $q->distinct()->pluck('type')->toArray();
+    }
+    
+    public function getTagKeywordList(string $tagType = 'post_category', $column = 'id'): array
+    {
+        $tags = $this->getList([
+            'tag_type' => $tagType,
+            'withs' => ['keywords'],
+            'cache' => true,
+        ]);
+    
         $availableTagKeywords = [];
+    
         foreach ($tags as $tag) {
             foreach ($tag->keywords as $keyword) {
                 $availableTagKeywords[$tag->{$column}][] = $keyword->name;
             }
         }
-
+    
         return $availableTagKeywords;
     }
-
-    public function getTagsToBind(string $tagType = 'post_category', array $contents = [], $column = 'id')
+    
+    public function getTagsToBind(string $tagType = 'post_category', array $contents = [], $column = 'id'): array
     {
         $availableTagKeywords = $this->getTagKeywordList($tagType, $column);
-
-        //prepare ids array
         $tagKeysToBind = [];
-
-        //foreach data
+    
         foreach ($availableTagKeywords as $tagKey => $keywords) {
             foreach ($contents as $content) {
-
-                // Check if any of the keywords in $keywords are present in $content
                 foreach ($keywords as $keyword) {
                     if (stripos($content, $keyword) !== false) {
-                        // If a keyword is found in $content, add the $tagKey to $tagKeys
                         $tagKeysToBind[] = $tagKey;
                     }
                 }
             }
         }
-
-        $tagKeysToBind = array_unique($tagKeysToBind);
-
-        return $tagKeysToBind;
+    
+        return array_unique($tagKeysToBind);
     }
+    
 
     public function getModelsWithHasTagsTraits()
     {
         // dd($request->all());
         $appModelsWithHasTagsTraits = collect(File::allFiles(app_path('Models')))
-        ->map(function ($file) {
-            $relativePath = Str::replaceFirst(app_path('Models') . DIRECTORY_SEPARATOR, '', $file->getPathname());
-            $class = 'App\\Models\\' . Str::replace('.php', '', str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath));
-            return class_exists($class) ? app($class) : null;
-
-        })
-        ->filter(function ($model) {
-            $reflection = new \ReflectionClass($model);
-            return in_array("Wncms\Tags\HasTags", $reflection->getTraitNames());
-        });
+            ->map(function ($file) {
+                $relativePath = Str::replaceFirst(app_path('Models') . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                $class = 'App\\Models\\' . Str::replace('.php', '', str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath));
+                return class_exists($class) ? app($class) : null;
+            })
+            ->filter(function ($model) {
+                $reflection = new \ReflectionClass($model);
+                return in_array("Wncms\Tags\HasTags", $reflection->getTraitNames());
+            });
 
         $packageModelsWithHasTagsTraits = collect(File::allFiles(wncms()->getPackagePath('Models')))
-        ->map(function ($file) {
+            ->map(function ($file) {
 
-            $relativePath = Str::replaceFirst(wncms()->getPackagePath('Models') . DIRECTORY_SEPARATOR, '', $file->getPathname());
-            $class = 'Wncms\\Models\\' . Str::replace('.php', '', str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath));
-            return class_exists($class) ? app($class) : null;
-        })
-        ->filter(function ($model) {
-            $reflection = new \ReflectionClass($model);
-            return in_array("Wncms\Tags\HasTags", $reflection->getTraitNames());
-        });
+                $relativePath = Str::replaceFirst(wncms()->getPackagePath('Models') . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                $class = 'Wncms\\Models\\' . Str::replace('.php', '', str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath));
+                return class_exists($class) ? app($class) : null;
+            })
+            ->filter(function ($model) {
+                $reflection = new \ReflectionClass($model);
+                return in_array("Wncms\Tags\HasTags", $reflection->getTraitNames());
+            });
 
         $modelsWithHasTagsTraits = $appModelsWithHasTagsTraits->merge($packageModelsWithHasTagsTraits);
 
         $tagTypes = [];
         $index = 0;
-        foreach($modelsWithHasTagsTraits as $modelsWithHasTagsTrait){
-            foreach(Tag::SUBTYPES as $subType){
-            $tagTypes[$index]['slug'] = str()->singular($modelsWithHasTagsTrait->getTable()) . "_" . $subType;
-            $tagTypes[$index]['name'] = $this->getWord(str()->singular($modelsWithHasTagsTrait->getTable()), $subType);
-            $index++;
+        foreach ($modelsWithHasTagsTraits as $modelsWithHasTagsTrait) {
+            foreach (\Wncms\Models\Tag::SUBTYPES as $subType) {
+                $tagTypes[$index]['slug'] = str()->singular($modelsWithHasTagsTrait->getTable()) . "_" . $subType;
+                $tagTypes[$index]['name'] = $this->getWord(str()->singular($modelsWithHasTagsTrait->getTable()), $subType);
+                $index++;
             }
         }
         return $tagTypes;
@@ -343,19 +249,26 @@ class TagManager
 
     public function getWord(string $modelName = 'post', $subType = 'category')
     {
-        if(strpos($subType, $modelName . "_") !== false){
-            $subType = str_replace($modelName . "_", "",$subType);
+        if (strpos($subType, $modelName . "_") !== false) {
+            $subType = str_replace($modelName . "_", "", $subType);
         }
-        return __('wncms::word.'.$modelName) . __('wncms::word.word_separator') . __('wncms::word.' . $subType);
+        return __('wncms::word.' . $modelName) . __('wncms::word.word_separator') . __('wncms::word.' . $subType);
     }
 
-    public function getTagifyDropdownItems($type, $nameColumn = 'name', $valueColumn = null)
+    public function getTagifyDropdownItems($type, $nameColumn = 'name', $valueColumn = null): array
     {
-        return Tag::where('type', $type)->get()->map(function($tag) use($nameColumn, $valueColumn){
+        $tags = $this->getList([
+            'tag_type' => $type,
+            'select' => [$nameColumn, $valueColumn ?? $nameColumn],
+            'cache' => true,
+        ]);
+    
+        return collect($tags)->map(function ($tag) use ($nameColumn, $valueColumn) {
             return [
                 'name' => $tag->{$nameColumn},
                 'value' => $tag->{$valueColumn ?? $nameColumn}
             ];
         })->toArray();
     }
+    
 }

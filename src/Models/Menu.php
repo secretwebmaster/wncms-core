@@ -20,7 +20,7 @@ class Menu extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-bars'
+        'fontawesome' => 'fa-solid fa-bars'
     ];
 
     public const ROUTES = [

@@ -269,7 +269,10 @@
 
                 @if($option['options'] == 'tags')
                     @php
-                        $tags = wncms()->tag()->getList(tagType: $option['tag_type'] ?? null)->map(function ($tag) {
+                        $tags = wncms()->tag()->getList([
+                            'tag_type' => $option['tag_type'] ?? null,
+                            'cache' => false,
+                        ])->map(function ($tag) {
                             return ['value' => $tag->id, 'name' => $tag->name];
                         })->toArray();
                     @endphp
@@ -396,20 +399,25 @@
 
                 @elseif($option['options'] == 'posts')
                     @php
-                        $posts = wncms()->post()->getList(websiteId:$website->id)->map(function ($post) {
+                        $posts = wncms()->post()->getList([
+                            'website_id' => $website->id,
+                            'cache' => false,
+                        ])->map(function ($post) {
                             return ['value' => $post->id, 'name' => $post->title];
                         })->toArray();
-
-                        $currentPosts =  wncms()->post()->getList(ids: explode("," , $currentValue), websiteId:$website->id)
-                            ->pluck('title','id')
-                            ->toArray();
-
+                    
+                        $currentPosts = wncms()->post()->getList([
+                            'ids' => explode(",", $currentValue),
+                            'website_id' => $website->id,
+                            'cache' => false,
+                        ])->pluck('title', 'id')->toArray();
+                    
                         $current_options[$option['name']] = implode(",", $currentPosts);
-
                     @endphp
+            
 
                     <input id="tagify_{{ $option_index }}" 
-                        class="form-control form-control-lg p-0" 
+                        class="form-control form-control-sm p-0" 
                         name="{{ $inputName }}"
                         value="{{ $currentValue }}"
                         @if(!empty($option['required'])) required @endif

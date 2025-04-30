@@ -8,152 +8,135 @@ use Illuminate\Database\Eloquent\Model;
 class CacheManager
 {
     /**
-     * ----------------------------------------------------------------------------------------------------
-     * Get cache by key
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.1.3
-     * 
-     * @param string|null $cacheKey Name of key
-     * ----------------------------------------------------------------------------------------------------
+     * Get a value from cache by key.
+     *
+     * @param string $key
+     * @return mixed
      */
-    public function get(string $cacheKey)
+    public function get(string $key): mixed
     {
-        return cache()->get($cacheKey);
+        return cache()->get($key);
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
-     * Put cache by key
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.1.3
-     * 
-     * @param string|null $cacheKey Name of key
-     * ----------------------------------------------------------------------------------------------------
+     * Put a value into the cache with optional tags.
+     *
+     * @param string $key
+     * @param mixed $value
+     * @param int $seconds
+     * @param array|string|null $tags
+     * @return bool
      */
-    public function put(string $cacheKey, $cacheValue = null, $cacheTime = 0, array|string|null $cacheTags = null)
+    public function put(string $key, mixed $value, int $seconds = 0, array|string|null $tags = null): bool
     {
-        if(!empty($cacheTags)){
-            if(is_string($cacheTags)){
-                $cacheTags = explode(",", $cacheTags);
+        return $this->tags($tags)->put($key, $value, $seconds);
+    }
+
+    /**
+     * Forget a cache entry, optionally within tags.
+     *
+     * @param string|null $key
+     * @param array|string|null $tags
+     * @return bool
+     */
+    public function forget(?string $key = null, array|string|null $tags = null): bool
+    {
+        if (empty($tags)) {
+            return $key ? cache()->forget($key) : cache()->flush();
+        }
+
+        return $key
+            ? $this->tags($tags)->forget($key)
+            : $this->tags($tags)->flush();
+    }
+
+    /**
+     * Flush all cache or only those with specific tags.
+     *
+     * @param array|string|null $tags
+     * @return bool
+     */
+    public function flush(array|string|null $tags = null): bool
+    {
+        return $this->tags($tags)->flush();
+    }
+
+    /**
+     * Generate a unique cache key based on model, method, auth, args, domain, and request page.
+     *
+     * @param string $prefix
+     * @param string $method
+     * @param string|int|bool|null $auth
+     * @param array $args
+     * @param string|null $domain
+     * @return string
+     */
+    public function createKey(
+        string $prefix,
+        string $method,
+        string|int|bool|null $auth = null,
+        array $args = [],
+        ?string $domain = null
+    ): string {
+        $keyParts = [
+            'prefix' => $prefix,
+            'method' => $method,
+            'auth' => $auth === false || $auth === null ? 'public' : 'user_' . $auth,
+            'domain' => $domain ?? 'global',
+        ];
+
+        // Normalize and flatten args
+        $argStrings = array_map(function ($arg) {
+            if (empty($arg)) {
+                return '0';
+            } elseif (is_scalar($arg)) {
+                return (string) $arg;
+            } elseif (is_array($arg)) {
+                ksort($arg);
+                return json_encode($arg);
+            } elseif ($arg instanceof Model) {
+                return $arg->getKey();
+            } else {
+                return 'unknown';
             }
-            return $this->tags($cacheTags)->put($cacheKey, $cacheValue, $cacheTime);
+        }, $args);
+
+        $keyParts['args'] = implode('_', $argStrings);
+
+        // Optional: page number from request
+        if (request()->has('page')) {
+            $keyParts['page'] = 'page_' . request()->get('page');
         }
-       return wncms()->put($cacheKey, $cacheValue, $cacheTime);
+
+        return md5(implode('_', $keyParts));
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
-     * Clear cache by key
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.0.0
-     * 
-     * @param string|null $cacheKey Name of key
-     * @param array|string|null $cacheTags
-     * @return boolean  success = true, fail = false
-     * TODO: Check if needed to clear cloudflare cache
-     * ----------------------------------------------------------------------------------------------------
+     * Use remember pattern with optional cache tags.
+     *
+     * @param string $key
+     * @param int $seconds
+     * @param \Closure $callback
+     * @param array|string|null $tags
+     * @return mixed
      */
-    public function clear(string $cacheKey, array|string|null $cacheTags = null)
+    public function remember(string $key, int $seconds, \Closure $callback, array|string|null $tags = null): mixed
     {
-        //沒有使用tag
-        if (empty($cacheTags)) {
-            if (empty($cacheKey)) return cache()->flush();
-            return cache()->forget($cacheKey);
-        }
-
-        //有Tag
-        $cacheTags = is_array($cacheTags) ? $cacheTags : [$cacheTags];
-
-        if (empty($cacheKey)) return $this->tags($cacheTags)->flush();
-
-        return $this->tags($cacheTags)->forget($cacheKey);
+        return $this->tags($tags)->remember($key, $seconds, $callback);
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
-     * Flush all cache
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.0.0
-     * 
-     * @param array|string|null $cacheTags
-     * @return boolean  success = true, fail = false
-     * TODO: Check if needed to clear cloudflare cache
-     * ----------------------------------------------------------------------------------------------------
+     * Get a tag-aware cache repository.
+     *
+     * @param array|string|null $tags
+     * @return \Illuminate\Contracts\Cache\Repository|\Illuminate\Cache\TaggedCache
      */
-    public function flush(array|string|null $cacheTags = null)
+    public function tags(array|string|null $tags = null)
     {
-        //flush all if $cacheTags is not passed
-        if (empty($cacheTags)) {
-            return cache()->flush();
-        }
-        
-        $cacheTags = is_array($cacheTags) ? $cacheTags : explode(",", $cacheTags);
-
-        return $this->tags($cacheTags)->flush();
-    }
-
-    /**
-     * ----------------------------------------------------------------------------------------------------
-     * Flush all cache
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.1.4
-     * 
-     * @param mixed $args
-     *      $args[0] = $class->cacheKeyPrefix
-     *      $args[1] = __FUNCTION__
-     *      $args[2] = $shouldAuth, 0 = no need to auth, pass user id if should cache data for logged user
-     *      $args[0] = $cacheKeyPrefix
-     * ----------------------------------------------------------------------------------------------------
-     */
-    public function createKey(...$args)
-    {
-        //base key
-        $cacheKey = '';
-        $cacheKey .= (!empty($args[0]) ? $args[0] : 'noPrefix') . '_';
-        $cacheKey .= (!empty($args[1]) ? $args[1] : 'noMethod') . '_';
-        $cacheKey .= (!empty($args[2]) ? $args[2] : 'noAuth') . ''; // $args[3] will add "_"
-        
-        //method parameters
-        if(!empty($args[3])){
-            foreach($args[3] as $arg){
-                $cacheKey .= "_";
-                if(empty($arg)){
-                    $cacheKey .= '0';
-                }elseif(is_array($arg)){
-                    $cacheKey .=  json_encode($arg);
-                }elseif(is_string($arg) || is_int($arg)){
-                    $cacheKey .= $arg;
-                }elseif($arg instanceof Model ){
-                    $cacheKey .= $arg->getKey();
-                }
-            }
+        if (Cache::getStore() instanceof \Illuminate\Cache\TaggableStore && !empty($tags)) {
+            return cache()->tags(is_array($tags) ? $tags : explode(',', $tags));
         }
 
-        //domain specific
-        if(!empty($args[4])){
-            $cacheKey .= "_" . $args[4];
-        }
-
-        //pages
-        // $cacheKey .= request()->page;
-        $cacheKey .= json_encode(request()->all());
-
-        return md5($cacheKey);
-    }
-
-    public function tags(array|string $cacheTags = 'wncms')
-    {
-        if (Cache::getStore() instanceof \Illuminate\Cache\TaggableStore) {
-            return cache()->tags($cacheTags);
-        } else {
-            return cache();
-        }
-
-        
+        return cache();
     }
 }

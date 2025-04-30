@@ -312,13 +312,8 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     //theme
     Route::prefix('themes')->controller(ThemeController::class)->group(function () {
         Route::get('/', 'index')->middleware('can:theme_index')->name('themes.index');
-        Route::post('/activate/{themeId}', 'activate')->middleware('can:theme_activate')->name('themes.activate');
-        Route::post('/deactivate/{themeId}', 'deactivate')->middleware('can:theme_deactivate')->name('themes.deactivate');
         Route::post('/upload', 'upload')->middleware('can:theme_upload')->name('themes.upload');
         Route::post('/delete/{themeId}', 'delete')->middleware('can:theme_delete')->name('themes.delete');
-        Route::post('/preview/{themeId}', 'preview')->middleware('can:theme_preview')->name('themes.preview');
-        Route::get('/settings', 'settings')->middleware('can:theme_settings')->name('themes.settings');
-        Route::post('/update_setting', 'updateSetting')->middleware('can:theme_settings')->name('themes.update_setting');
     });
 
     //record

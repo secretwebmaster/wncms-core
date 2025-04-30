@@ -117,8 +117,8 @@
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="color_example">@lang('wncms::word.color_example')</label>
         <div class="col-lg-3 fv-row">
             <div class="input-group mb-5">
-                <input id="color_example" type="text" name="color_example" {{ old('text_color', $starter->color_example ?? '') }} class="form-control form-control-sm"/>
-                <div class="colorpicker-input" data-input="color_example" data-current="{{ old('text_color', $starter->color_example ?? '') }}"></div>
+                <input id="color_example" type="text" name="color_example" value="{{ old('color_example', $starter->color_example ?? '') }}" class="form-control form-control-sm"/>
+                <div class="colorpicker-input" data-input="color_example" data-current="{{ old('color_example', $starter->color_example ?? '') }}"></div>
             </div>
         </div>
     </div>
@@ -242,4 +242,43 @@
         </script>
     </div> --}}
 
+    {{-- repeater_example --}}
+    <div class="row mb-3 repeater-group">
+        <label class="col-lg-3 col-form-label fw-bold fs-6">
+            @lang('wncms::word.repeater_example')
+            @if(gss('show_developer_hints'))<span class="fs-xs text-muted">repeater_example</span>@endif
+        </label>
+        <div class="col-lg-9">
+            <div data-repeater-list="repeater_example" class="repeater_example_wrapper">
+                @foreach(old('repeater_example', json_decode($starter->repeater_example ?? '[]', true)) as $index => $item)
+                    <div data-repeater-item class="d-flex align-items-center mb-2">
+                        <input type="text" name="text" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.text')" value="{{ $item['text'] ?? '' }}">
+                        <input type="number" name="number" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.number')" value="{{ $item['number'] ?? '' }}">
+                        <button data-repeater-delete type="button" class="btn btn-sm btn-danger">X</button>
+                    </div>
+                @endforeach
+            </div>
+            <button type="button" class="btn btn-sm btn-primary mt-2 repeater_example_create" data-repeater-create>@lang('wncms::word.add_item')</button>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            $('.repeater_example_wrapper').repeater({
+                initEmpty: {{ empty($starter->repeater_example) ? 'true' : 'false' }},
+                defaultValues: { text: '', number: '' },
+                show: function () {
+                    $(this).slideDown();
+                },
+                hide: function (deleteElement) {
+                    if (confirm("@lang('wncms::word.confirm_delete_item')")) {
+                        $(this).slideUp(deleteElement);
+                    }
+                }
+            });
+        });
+    </script>
+
 </div>
+
+@include('wncms::backend.common.developer-hints')

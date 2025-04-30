@@ -2,7 +2,7 @@
 
 //Theme
 if (!function_exists('wncms_get_theme_option')) {
-    function wncms_get_theme_option($key, $fallback = '', $locale = null, $fallbackWhenEmpty = true)
+    function wncms_get_theme_option($key = null, $fallback = '', $locale = null, $fallbackWhenEmpty = true)
     {
         $locale ??= app()->getLocale();
         $cacheKey = "theme_options_{$locale}_" . wncms()->getDomain();
@@ -15,6 +15,10 @@ if (!function_exists('wncms_get_theme_option')) {
             if (!$website) return;
             return  $website->get_options($locale);
         });
+
+        if(empty($key)){
+            return $theme_options;
+        }
         
         if($fallbackWhenEmpty && array_key_exists($key, $theme_options) && empty($theme_options[$key])){
             return $fallback;

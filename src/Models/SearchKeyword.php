@@ -14,7 +14,7 @@ class SearchKeyword extends Model
     protected $guarded = [];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-magnifying-glass'
+        'fontawesome' => 'fa-solid fa-magnifying-glass'
     ];
 
     public const ROUTES = [

@@ -17,7 +17,7 @@ class Subscription extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-arrows-spin'
+        'fontawesome' => 'fa-solid fa-arrows-spin'
     ];
 
     public const ROUTES = [

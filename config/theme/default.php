@@ -181,6 +181,13 @@ return [
                 'type'=>'text',
                 'description'=>'搜索框沒有內容時的替代內容'
             ],
+            [
+                'label' => '選擇文章',
+                'name' => 'featured_posts',
+                'type' => 'tagify',
+                'options' => 'posts',
+                'description' => '選擇一篇或多篇要在頁面上顯示的文章',
+            ],
         ],
 
         //! 頁首

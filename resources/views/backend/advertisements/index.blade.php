@@ -32,7 +32,7 @@
 
             {{-- Checkboxes --}}
             <div class="d-flex flex-wrap">
-                @foreach(['show_detail', 'show_view', 'show_click'] as $show)
+                @foreach(['show_detail'] as $show)
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
@@ -61,7 +61,7 @@
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-nowrap mb-0">
+                <table class="table table-sm table-hover table-bordered align-middle text-nowrap mb-0">
                     <thead class="table-dark">
                         <tr class="text-start fw-bold gs-0">
                             <th class="w-10px pe-2">
@@ -125,7 +125,7 @@
                             {{-- Data --}}
                             <td>{{ $advertisement->id }}</td>
                             <td> <a href="({{ $advertisement->website?->id }})" target="_blank">#{{ $advertisement->website?->id }}</a> </td>
-                            <td>{{ $advertisement->status }}</td>
+                            <td>@include('wncms::common.table_status', ['model' => $advertisement, 'status' => $advertisement->status])</td>
                             <td>@include('wncms::common.table_date', ['model' => $advertisement, 'column' => 'expired_at'])</td>
                             <td>@include('wncms::common.table_image', ['model' => $advertisement, 'attribute' => 'thumbnail'])</td>
                             <td>{{ $advertisement->name }}</td>
@@ -168,9 +168,9 @@
     @include('wncms::backend.common.showing_item_of_total', ['models' => $advertisements])
 
     {{-- Pagination --}}
-    {{-- <div class="mt-5">
+    <div class="mt-5">
         {{ $advertisements->withQueryString()->links() }}
-    </div> --}}
+    </div>
 
 @endsection
 

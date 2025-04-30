@@ -4,6 +4,43 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## 更新日誌
 
+### v5.4.0 2025-04-05
+
+- 修正 Card 模型找不到狀態的問題
+- 當啟用 `multi_website` 時，新增下拉選單可選擇網站模型
+- 支援模型使用常數 `NAME_KEY` 自定名稱，避免如 `order` 混淆排序與訂單
+- 更新後台側邊欄選單中的模型圖示
+- 允許刪除網站模型（但至少保留一個）
+- 權限支援批次刪除功能
+- 新增 Channel、Click、Parameter 模型
+- 暫時隱藏 Price 模型，每個價格應設定於對應的上層模型中
+- 修正未定義的 `$display_name` 變數
+- 移除未使用的 analytics API 路由
+- 在大多數 migration 中新增資料表是否存在檢查
+- LinkManager 預載 media 資料
+- 重構 CacheManager：現代語法並統一支援 tag 的 get/put/forget
+- 重構 ModelManager：建立抽象基底類別以重用邏輯
+- PostManager 與 LinkManager 改為繼承 ModelManager，支援標籤與關鍵字篩選
+- 支援 `wncms()->getModel('xxx')` 並可回退到 config/App/Models/Wncms/Models
+- 增加 zh_TW 語系翻譯鍵（如 `bulk_create`, `channel`, `parameters`, `clickable_type` 等）
+- CardController 改用 `wncms()->getModel('user')` 動態取得使用者模型
+- `gto()` 可在不傳入 key 時回傳所有選項
+- 新增多語言翻譯
+- 修正錯字：`fontaweseom` → `fontawesome`，`operater` → `operator`，`Starer` → `Starter`
+- Tag 模型新增 `$tag->url` 存取器
+- 更新後台使用者搜尋邏輯
+- 廣告列表新增分頁與樣式優化
+- 修正打包主題檔案時未包含語系檔案問題
+- 新增 `wncms()->log($message, $level)` 可隨處呼叫的除錯函式
+- 【重要】LinkManager 升級為繼承 ModelManager
+- 修正後台快速連結刪除錯誤
+- `starter/form-items.blade.php` 新增 `repeater` 欄位
+- 修正 `starter/form-items.blade.php` 中的 color 欄位錯誤
+- `form-items.blade.php` 新增開發者提示
+- 修正廣告排序未更新問題
+- 使用者登入與管理員登入頁面分離
+- 更新 Post API
+
 ### v5.3.0 2025-03-30
 
 -   後台頂部連結根據站群設定顯示，站群顯示網站列表，單站顯示網站設定和主題設定

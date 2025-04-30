@@ -4,6 +4,43 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## Changelog
 
+### v5.4.0 2025-05-01
+
+-   Fix issue where Card model status was not found
+-   Add dropdown list to select website model when `multi_website` is enabled
+-   Support model-level constant `NAME_KEY` to define display name (avoids translation conflicts like "order")
+-   Update model icons on backend sidebar menu
+-   Allow deletion of website models except the last one
+-   Add bulk delete support for permissions
+-   Add Channel, Click, and Parameter models
+-   Temporarily hide the Price model; prices should be defined in the parent model
+-   Fix undefined `$display_name` variable
+-   Remove unused analytics API route
+-   Add table existence check before running most migrations
+-   Eager load media in LinkManager
+-   Refactor CacheManager with modern syntax and support for tag-based get/put/forget
+-   Refactor ModelManager as base class for shared model logic
+-   Refactor PostManager and LinkManager to extend ModelManager and support tag/keyword filters
+-   Support `wncms()->getModel('xxx')` with fallback to config/App/Models/Wncms/Models
+-   Improve translation keys (`bulk_create`, `channel`, `parameters`, `clickable_type`, etc.) in `zh_TW`
+-   Update CardController to use dynamic user model from `wncms()->getModel('user')`
+-   Allow `gto()` to return all options when key is empty
+-   Add translations
+-   Fix typos: `fontaweseom` → `fontawesome`, `operater` → `operator`, `Starer` → `Starter`
+-   Add `$tag->url` accessor to Tag model
+-   Update backend user search logic
+-   Improve backend advertisement index with pagination
+-   Fix `pack theme file` command to include language files
+-   Add debug function `wncms()->log($message, $level)`
+-   [Important] Upgrade LinkManager to extend ModelManager
+-   Fix quick link removal in backend header
+-   Add `repeater` input to `starter/form-items.blade.php`
+-   Fix color input error in `starter/form-items.blade.php`
+-   Add developer tips to `form-items.blade.php`
+-   Fix advertisement order not saving
+-   Separate user login and admin login pages
+-   Update Post API
+
 ### v5.3.0 2025-03-30
 
 -   Header website links display according to multisite setting

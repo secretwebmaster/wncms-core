@@ -28,7 +28,7 @@ class Website extends Model implements HasMedia
     protected $withs = ['media'];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-globe'
+        'fontawesome' => 'fa-solid fa-globe'
     ];
 
     public const ROUTES = [

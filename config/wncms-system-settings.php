@@ -12,6 +12,15 @@ return [
             ['type' => 'switch', 'name' => 'force_https'],
             ['type' => 'switch', 'name' => 'multi_website'],
             ['type' => 'text', 'name' => 'system_logo'],
+            // [
+            //     'type' => 'select',
+            //     'name' => 'locale',
+            //     'options' => collect(config('laravellocalization.supportedLocales'))
+            //         ->mapWithKeys(fn($val, $key) => [$key => $val['native']])
+            //         ->toArray(),
+            //     'translate_option' => false,
+            // ],
+            // ['type' => 'switch', 'name' => 'laravellocalization_use_accept_language_header'],
             ['type' => 'text', 'name' => 'system_name'],
             ['type' => 'text', 'name' => 'system_description'],
             ['type' => 'text', 'name' => 'system_keyword'],
@@ -40,8 +49,8 @@ return [
             ['type' => 'text', 'name' => 'smtp_from_name'],
         ]
     ],
-    'api' => [
-        'tab_name' => 'api',
+    'cloudflare' => [
+        'tab_name' => 'cloudflare',
         'tab_content' => [
             ['type' => 'text', 'name' => 'request_user_agent'],
             ['type' => 'text', 'name' => 'cloudflare_email'],
@@ -78,6 +87,15 @@ return [
         'tab_content' => [
             ['type' => 'switch', 'name' => 'auto_tag_by_keywords'],
             ['type' => 'switch', 'name' => 'localize_post_image'],
+        ]
+    ],
+    'api' => [
+        'tab_name' => 'api',
+        'tab_content' => [
+            ['type' => 'switch', 'name' => 'enable_api_access'],
+            ['type' => 'switch', 'name' => 'enable_api_post_index'],
+            ['type' => 'switch', 'name' => 'enable_api_post_store'],
+            ['type' => 'switch', 'name' => 'enable_api_post_show'],
         ]
     ],
     'content' => [

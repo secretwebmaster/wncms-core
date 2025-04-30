@@ -2077,7 +2077,7 @@ $words = [
 
     // 5.1.3
     'user_already_exists' => '用戶已存在',
-    
+
     // 5.3.0
     'superadmin_mode' => '超級管理員模式',
     'set_active' => '設爲啟用',
@@ -2086,6 +2086,34 @@ $words = [
     'set_is_not_recommended' => '取消推薦',
     'bulk_edit' => '批量編輯',
     'bulk_edit_order' => '批量編輯排序',
+
+    // 5.4.0
+    'bulk_create' => '批量創建',
+    'cannot_delete_last_website' => '無法刪除最後一個網站',
+    'parameters' => '參數',
+    'channel' => '頻道',
+    'channels' => '頻道',
+    'last_month' => '上月',
+    'this_year' => '今年',
+    'last_year' => '去年',
+    'referer' => '來源',
+    'clickable_type' => '可點擊項目類型',
+    'clickable_id' => '可點擊項目ID',
+    'clickable_name' => '可點擊項目名稱',
+    'script' => '代碼',
+    'laravellocalization_use_accept_language_header' => '自動偵測瀏覽器語言',
+    'confirm_delete_theme' => '確認刪除主題',
+    'are_you_sure_to_delete_theme' => '你確定要刪除主題「:theme_name」嗎？',
+    'unable_to_unzip_theme_file' => '無法解壓縮主題檔案',
+    'the_same_theme_with_same_or_higher_version_exists' => '已有相同或更高版本的主題存在，請先刪除或升級版本號',
+    'theme_in_use_cannot_delete' => '此主題正在使用中，無法刪除',
+    'theme_deleted_successfully' => '主題已成功刪除',
+    'confirm_delete_item' => '確定要刪除項目',
+    'cloudflare' => 'Cloudflare',
+    'cloudflare_setting' => 'Cloudflare 設定',
+    'custom_setting' => '自訂設定',
+    'enable_api_access' => '啟用 API 存取',
+
 ];
 
 $locale = basename(__DIR__);

@@ -8,6 +8,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @method \Wncms\Services\Managers\AdvertisementManager advertisement()
@@ -28,8 +30,9 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
  */
 class Wncms
 {
-    public $customProperties = [];
-    public $helpers = [];
+    public array $customProperties = [];
+    public array $helpers = [];
+    protected array $modelClassCache = [];
 
     /**
      * Get the path to the package folder
@@ -409,12 +412,56 @@ class Wncms
     }
 
     /**
-     * Get user model class
+     * Resolve and instantiate a model by key.
+     *
+     * @param string $key Logical model key (e.g., 'post', 'tag', 'link')
+     * @return \Illuminate\Database\Eloquent\Model
      */
-    public function getUserModelClass()
+    public function getModel(string $key): Model
     {
-        return config('wncms.default_user_model', config('auth.providers.users.model'));
+        $class = $this->getModelClass($key);
+        return new $class;
     }
+
+    /**
+     * Resolve the fully qualified model class name by key.
+     *
+     * Resolution priority:
+     * 1. config('wncms.models.{key}')
+     * 2. App\Models\{StudlyKey}
+     * 3. Wncms\Models\{StudlyKey}
+     *
+     * @param string $key
+     * @return string
+     *
+     * @throws \RuntimeException If no matching model class is found.
+     */
+    public function getModelClass(string $key): string
+    {
+        if (isset($this->modelClassCache[$key])) {
+            return $this->modelClassCache[$key];
+        }
+
+        $studlyKey = str($key)->studly();
+
+        $configModel = config("wncms.models.{$key}");
+        if ($configModel && class_exists($configModel)) {
+            return $this->modelClassCache[$key] = $configModel;
+        }
+
+        $appModel = "App\\Models\\{$studlyKey}";
+        if (class_exists($appModel)) {
+            return $this->modelClassCache[$key] = $appModel;
+        }
+
+        $wncmsModel = "Wncms\\Models\\{$studlyKey}";
+        if (class_exists($wncmsModel)) {
+            return $this->modelClassCache[$key] = $wncmsModel;
+        }
+
+        throw new \RuntimeException("Model class not found for key [{$key}].");
+    }
+
 
     /**
      * Check if the website is licensed
@@ -445,22 +492,32 @@ class Wncms
     }
 
     /**
-     * Check if view exists and return view
-     * @param string $view_name
+     * Return a view if it exists, or fall back to another view or route.
+     *
+     * @param string $name
      * @param array $params
-     * @param string|null $fallback_view
-     * @return View
+     * @param string|null $fallback
+     * @param string|null $fallbackRoute
      */
-    public function view($name, $params, $fallback = null)
+    public function view(string $name, array $params = [], ?string $fallback = null, ?string $fallbackRoute = null)
     {
         if (view()->exists($name)) {
             return view($name, $params);
-        } elseif (view()->exists($fallback)) {
-            return view($fallback, $params);
-        } else {
-            dd('both theme and default view not found');
         }
+
+        if ($fallback && view()->exists($fallback)) {
+            return view($fallback, $params);
+        }
+
+        if ($fallbackRoute && route($fallbackRoute, [], false)) {
+            return redirect()->route($fallbackRoute);
+        }
+
+        wncms()->log("View not found: {$name}");
+
+        return redirect()->route('frontend.pages.home');
     }
+
 
     /**
      * 調用其他Manager Class的方法
@@ -497,7 +554,7 @@ class Wncms
             // return $this->helpers[$helper];
         }
 
-        throw new \RuntimeException("Class {$class} does not exist");
+        throw new \RuntimeException("Unable to resolve class or method for \$helper {$helper}. Please check your configuration or naming.");
     }
 
     /**
@@ -524,5 +581,23 @@ class Wncms
     public function __set($name, $value)
     {
         $this->customProperties[$name] = $value;
+    }
+
+    public function log(string $message, string $level = 'debug'): void
+    {
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+
+        foreach ($trace as $frame) {
+            if (!isset($frame['file'])) continue;
+
+            if (!str_contains($frame['file'], '/vendor/')) {
+                $file = $frame['file'];
+                $line = $frame['line'] ?? '?';
+                \Log::log($level, "{$message} ({$file}:{$line})");
+                return;
+            }
+        }
+
+        \Log::log($level, "{$message} (unknown file)");
     }
 }

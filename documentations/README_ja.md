@@ -4,6 +4,43 @@
 
 ## 更新履歴
 
+### v5.4.0 2025-05-01
+
+-   Card モデルのステータスが見つからない問題を修正
+-   `multi_website` 有効時にウェブサイトモデルを選択できるドロップダウンを追加
+-   モデルで `NAME_KEY` 定数を使用して名称を定義可能に（翻訳衝突防止）
+-   バックエンドサイドバーのモデルアイコンを更新
+-   最後の 1 件を除き、ウェブサイトモデルの削除を許可
+-   権限の一括削除をサポート
+-   Channel、Click、Parameter モデルを追加
+-   Price モデルを一時的に非表示に（各親モデルで設定する必要あり）
+-   未定義の `$display_name` 変数を修正
+-   未使用の analytics API ルートを削除
+-   多くのマイグレーションでテーブル存在確認を追加
+-   LinkManager にメディアの eager load を追加
+-   CacheManager をリファクタリング：モダン構文 + タグ付き get/put/forget に統一
+-   ModelManager を基底クラスとしてリファクタリング
+-   PostManager と LinkManager を ModelManager に統合、タグとキーワード絞り込み対応
+-   `wncms()->getModel('xxx')` をサポート（設定からのフォールバックあり）
+-   `zh_TW` に翻訳キー（`bulk_create`、`channel`、`parameters`、`clickable_type` 等）を追加
+-   CardController を `wncms()->getModel('user')` を用いた動的モデル取得に更新
+-   `gto()` でキーなし呼び出し時に全オプションを返すよう対応
+-   翻訳を追加
+-   タイポ修正：`fontaweseom` → `fontawesome`、`operater` → `operator`、`Starer` → `Starter`
+-   Tag モデルに `$tag->url` アクセサを追加
+-   バックエンドユーザー検索を改善
+-   バックエンド広告一覧ページのデザインとページネーションを改善
+-   テーマパック生成時に言語ファイルが含まれない問題を修正
+-   `wncms()->log($message, $level)` のデバッグ関数を追加
+-   【重要】LinkManager を ModelManager に統合
+-   バックエンドヘッダーのクイックリンク削除時の不具合を修正
+-   `starter/form-items.blade.php` に `repeater` 入力を追加
+-   `starter/form-items.blade.php` の color 入力のエラーを修正
+-   `form-items.blade.php` に開発者向けヒントを追加
+-   広告の並び順が保存されない問題を修正
+-   ユーザーログインと管理者ログインページを分離
+-   Post API を更新
+
 ### v5.3.0 2025-03-30
 
 -   管理画面のヘッダーリンクがマルチサイト設定に応じて表示されるように。マルチサイトではサイト一覧、シングルサイトではサイト設定とテーマ設定を表示

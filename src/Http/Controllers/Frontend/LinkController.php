@@ -8,7 +8,8 @@ class LinkController extends FrontendController
 {
     public function category($slug)
     {
-        $tag = Tag::where('slug', $slug)->where('type', 'link_category')->first();
+        dd('function not ready');
+        $tag = wncms()->getModel('tag')::where('slug', $slug)->where('type', 'link_category')->first();
         if(!$tag){
             return redirect()->route('frontend.pages.home');
         }

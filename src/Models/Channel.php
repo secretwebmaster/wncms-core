@@ -12,7 +12,7 @@ class Channel extends Model
     protected $guarded = [];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-star'
+        'fontawesome' => 'fa-solid fa-star'
     ];
 
     public const ROUTES = [

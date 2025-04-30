@@ -22,7 +22,7 @@ class Banner extends Model implements HasMedia
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-images'
+        'fontawesome' => 'fa-solid fa-images'
     ];
 
     public const ORDERS = [

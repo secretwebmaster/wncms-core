@@ -17,7 +17,7 @@ class Order extends Model
     ];
 
     public const ICONS = [
-        'fontaweseom' => 'fa-solid fa-file-invoice-dollar'
+        'fontawesome' => 'fa-solid fa-file-invoice-dollar'
     ];
 
     public const NAME_KEY = 'user_order';

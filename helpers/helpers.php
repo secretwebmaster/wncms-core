@@ -36,7 +36,7 @@ if (!function_exists('uss')) {
 }
 
 if (!function_exists('gto')) {
-    function gto($key, $fallback = '', $locale = null, $fallbackWhenEmpty = true)
+    function gto($key = null, $fallback = '', $locale = null, $fallbackWhenEmpty = true)
     {
         return wncms_get_theme_option($key, $fallback, $locale, $fallbackWhenEmpty);
     }
