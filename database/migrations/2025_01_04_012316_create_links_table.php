@@ -18,7 +18,7 @@ return new class extends Migration
                 $table->string('slug');
                 $table->string('name');
                 $table->string('url');
-                $table->string('description')->nullable();
+                $table->text('description')->nullable();
                 $table->string('external_thumbnail')->nullable();
                 $table->integer('clicks')->nullable()->default(0);
                 $table->string('remark')->nullable();

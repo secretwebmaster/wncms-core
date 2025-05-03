@@ -46,16 +46,18 @@
                             </a>
                         </div>
                         @else
-                        <div class="menu-item me-lg-1">
-                            <a class="menu-link p-2" href="{{ route('websites.edit' , $website) }}">
-                                <span class="menu-title text-dark fw-bold">@lang('wncms::word.website_options')</span>
-                            </a>
-                        </div>
-                        <div class="menu-item me-lg-1">
-                            <a class="menu-link p-2" href="{{ route('websites.theme.options' , $website) }}">
-                                <span class="menu-title text-dark fw-bold">@lang('wncms::word.theme_options')</span>
-                            </a>
-                        </div>
+                        @if(!empty($website))
+                            <div class="menu-item me-lg-1">
+                                <a class="menu-link p-2" href="{{ route('websites.edit' , $website) }}">
+                                    <span class="menu-title text-dark fw-bold">@lang('wncms::word.website_options')</span>
+                                </a>
+                            </div>
+                            <div class="menu-item me-lg-1">
+                                <a class="menu-link p-2" href="{{ route('websites.theme.options' , $website) }}">
+                                    <span class="menu-title text-dark fw-bold">@lang('wncms::word.theme_options')</span>
+                                </a>
+                            </div>
+                            @endif
                         @endif
                     @endcan
 

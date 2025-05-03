@@ -45,7 +45,7 @@ class InstallController extends Controller
      */
     public function requirements()
     {
-        $phpSupportInfo = $this->requirementsChecker->checkPHPversion( config('installer.core.minPhpVersion'));
+        $phpSupportInfo = $this->requirementsChecker->checkPHPversion(config('installer.core.minPhpVersion'));
         $requirements = $this->requirementsChecker->check(config('installer.requirements'));
         return view('wncms::install.requirements', compact('requirements', 'phpSupportInfo'));
     }
@@ -111,30 +111,55 @@ class InstallController extends Controller
         $this->saveEnvFile($input);
 
         //generate key
-        Artisan::call('key:generate', ['--force'=> true]);
+        Artisan::call('key:generate', ['--force' => true]);
         info('generated key');
-        
-        $sqlPath = storage_path('app/installer/wncms.sql');
+
+        // migrate
+        $sqlPath = base_path('vendor/secretwebmaster/wncms-core/resources/installer/wncms.sql');
+
         if (file_exists($sqlPath)) {
             try {
+                info('Try to import SQL dump');
                 DB::unprepared(file_get_contents($sqlPath));
                 info('Imported SQL dump instead of running migrations.');
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'SQL dump imported successfully.',
+                ]);
             } catch (\Throwable $e) {
                 info('SQL import failed: ' . $e->getMessage());
+
+                // fallback to migrations + seeders
+                info('Fallback to migrate:fresh due to SQL import failure.');
+                Artisan::call('migrate:fresh', [
+                    '--seed' => true,
+                    '--force' => true,
+                    '--seeder' => \Database\Seeders\DatabaseSeeder::class,
+                ]);
+                info('Completed fallback migrations + seeders.');
+
                 return response()->json([
-                    'status' => 'fail',
-                    'message' => 'Failed to import SQL dump: ' . $e->getMessage(),
+                    'status' => 'success',
+                    'message' => 'Fallback: migration and seeding completed.',
                 ]);
             }
         } else {
-            // fallback to normal Laravel install if no SQL
+            // fallback to migrations + seeders
+            info('SQL dump not found, running migrations + seeders.');
             Artisan::call('migrate:fresh', [
                 '--seed' => true,
                 '--force' => true,
-                '--seeder' => DatabaseSeeder::class
+                '--seeder' => \Database\Seeders\DatabaseSeeder::class,
             ]);
-            info('migration completed');
+            info('Completed migrations + seeders.');
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Migration and seeding completed.',
+            ]);
         }
+
 
         Artisan::call('vendor:publish', ['--tag' => 'wncms-system-config']);
         Artisan::call('vendor:publish', ['--tag' => 'wncms-theme-config']);
@@ -160,7 +185,7 @@ class InstallController extends Controller
         $this->install_composer_files();
 
         //force https
-        if(!empty($input['force_https'])){
+        if (!empty($input['force_https'])) {
             uss('force_https', true);
             info("updated force_https to true");
         }
@@ -187,7 +212,8 @@ class InstallController extends Controller
         $settings = config("database.connections.$connection");
 
         config(['database.default' => $connection]);
-        config(["database.connections.{$connection}" => array_merge($settings, [
+        config([
+            "database.connections.{$connection}" => array_merge($settings, [
                 'driver' => $connection,
                 'host' => $input['database_hostname'],
                 'port' => $input['database_port'],
@@ -196,7 +222,7 @@ class InstallController extends Controller
                 'password' => $input['database_password'],
             ])
         ]);
-    
+
         DB::purge();
 
         try {
@@ -207,54 +233,55 @@ class InstallController extends Controller
         }
     }
 
-    private function saveEnvFile($input){
+    private function saveEnvFile($input)
+    {
 
         $envFileData =
-            'APP_NAME=\'' . ($input['app_name']??'') . "'\n".
-            'APP_ENV=' . ($input['environment']??'') . "\n".
-            'APP_KEY=' . 'base64:'.base64_encode(Str::random(32)) . "\n".
-            'APP_DEBUG=' . ($input['app_debug']??'') . "\n".
-            'DEBUGBAR_ENABLED='."false" . "\n".
-            'CSS_DEBUG='."false" . "\n".
-            'JS_DEBUG='."false" . "\n".
-            'APP_VERSION='.config('installer.version') . "\n".
-            'CUSTOM_VERSION='. "1" . "\n".
-            'APP_LOG_LEVEL=' . ($input['app_log_level']??'') . "\n".
-            'APP_URL=' . ($input['app_url']??'') . "\n\n".
+            'APP_NAME=\'' . ($input['app_name'] ?? '') . "'\n" .
+            'APP_ENV=' . ($input['environment'] ?? '') . "\n" .
+            'APP_KEY=' . 'base64:' . base64_encode(Str::random(32)) . "\n" .
+            'APP_DEBUG=' . ($input['app_debug'] ?? '') . "\n" .
+            'DEBUGBAR_ENABLED=' . "false" . "\n" .
+            'CSS_DEBUG=' . "false" . "\n" .
+            'JS_DEBUG=' . "false" . "\n" .
+            'APP_VERSION=' . config('installer.version') . "\n" .
+            'CUSTOM_VERSION=' . "1" . "\n" .
+            'APP_LOG_LEVEL=' . ($input['app_log_level'] ?? '') . "\n" .
+            'APP_URL=' . ($input['app_url'] ?? '') . "\n\n" .
 
-            'APP_MAINTENANCE_DRIVER=' . "file" . "\n\n".
-            'BCRYPT_ROUNDS=' . "12" . "\n\n".
+            'APP_MAINTENANCE_DRIVER=' . "file" . "\n\n" .
+            'BCRYPT_ROUNDS=' . "12" . "\n\n" .
 
-            'DB_CONNECTION=' . ($input['database_connection']??'') . "\n".
-            'DB_HOST=' . ($input['database_hostname']??'') . "\n".
-            'DB_PORT=' . ($input['database_port']??'') . "\n".
-            'DB_DATABASE=' . ($input['database_name']??'') . "\n".
-            'DB_USERNAME=' . ($input['database_username']??'') . "\n".
-            'DB_PASSWORD=' . ($input['database_password']??'') . "\n\n".
+            'DB_CONNECTION=' . ($input['database_connection'] ?? '') . "\n" .
+            'DB_HOST=' . ($input['database_hostname'] ?? '') . "\n" .
+            'DB_PORT=' . ($input['database_port'] ?? '') . "\n" .
+            'DB_DATABASE=' . ($input['database_name'] ?? '') . "\n" .
+            'DB_USERNAME=' . ($input['database_username'] ?? '') . "\n" .
+            'DB_PASSWORD=' . ($input['database_password'] ?? '') . "\n\n" .
 
-            'BROADCAST_DRIVER=' . ($input['broadcast_driver']??'') . "\n".
-            'CACHE_STORE=' . ($input['cache_store']??'') . "\n".
+            'BROADCAST_DRIVER=' . ($input['broadcast_driver'] ?? '') . "\n" .
+            'CACHE_STORE=' . ($input['cache_store'] ?? '') . "\n" .
             // 'CACHE_PREFIX=' . "" . "\n".
 
-            'SESSION_DRIVER=' . ($input['session_driver']??'') . "\n".
-            'QUEUE_DRIVER=' . ($input['queue_driver']??'') . "\n\n".
+            'SESSION_DRIVER=' . ($input['session_driver'] ?? '') . "\n" .
+            'QUEUE_DRIVER=' . ($input['queue_driver'] ?? '') . "\n\n" .
 
-            'QUEUE_CONNECTION='."redis" . "\n".
-            'REDIS_HOST=' . ($input['redis_hostname']??'') . "\n".
-            'REDIS_PASSWORD=' . ($input['redis_password']??'') . "\n".
-            'REDIS_PORT=' . ($input['redis_port']??'') . "\n\n".
+            'QUEUE_CONNECTION=' . "redis" . "\n" .
+            'REDIS_HOST=' . ($input['redis_hostname'] ?? '') . "\n" .
+            'REDIS_PASSWORD=' . ($input['redis_password'] ?? '') . "\n" .
+            'REDIS_PORT=' . ($input['redis_port'] ?? '') . "\n\n" .
 
             // 'MAIL_DRIVER=' . ($input['mail_driver']??'') . "\n".
-            'MAIL_MAILER=' . ($input['mail_driver']??'') . "\n".
-            'MAIL_HOST=' . ($input['mail_host']??'') . "\n".
-            'MAIL_PORT=' . ($input['mail_port']??'') . "\n".
-            'MAIL_USERNAME=' . ($input['mail_username']??'') . "\n".
-            'MAIL_PASSWORD=' . ($input['mail_password']??'') . "\n".
-            'MAIL_ENCRYPTION=' . ($input['mail_encryption']??'') . "\n\n".
+            'MAIL_MAILER=' . ($input['mail_driver'] ?? '') . "\n" .
+            'MAIL_HOST=' . ($input['mail_host'] ?? '') . "\n" .
+            'MAIL_PORT=' . ($input['mail_port'] ?? '') . "\n" .
+            'MAIL_USERNAME=' . ($input['mail_username'] ?? '') . "\n" .
+            'MAIL_PASSWORD=' . ($input['mail_password'] ?? '') . "\n" .
+            'MAIL_ENCRYPTION=' . ($input['mail_encryption'] ?? '') . "\n\n" .
 
-            'PUSHER_APP_ID=' . ($input['pusher_app_id']??'') . "\n".
-            'PUSHER_APP_KEY=' . ($input['pusher_app_key']??'') . "\n".
-            'PUSHER_APP_SECRET=' . ($input['pusher_app_secret']??'') ; 
+            'PUSHER_APP_ID=' . ($input['pusher_app_id'] ?? '') . "\n" .
+            'PUSHER_APP_KEY=' . ($input['pusher_app_key'] ?? '') . "\n" .
+            'PUSHER_APP_SECRET=' . ($input['pusher_app_secret'] ?? '');
 
         try {
             file_put_contents(base_path('.env'), $envFileData);
@@ -295,17 +322,17 @@ class InstallController extends Controller
         $availableLanguages = array_diff(scandir(lang_path()), ['.', '..', '.gitkeep', '.gitignore']);
         $customContent = "<?php\n\n\$custom_words = [\n\n];\n\nreturn \$custom_words;";
         info('adding custom.php to each lang dir');
-        
+
         foreach ($availableLanguages as $language) {
             $customFilePath = lang_path("{$language}/custom.php");
-            
+
             // Check if the custom.php file already exists
             if (!File::exists($customFilePath)) {
                 File::put($customFilePath, $customContent);
                 // Use system() to set permissions, ownership, and group
                 // Process::run("chmod 0664 {$customFilePath}");
                 // Process::run("chown www:www {$customFilePath}");
-                
+
                 info("created custom.php in $language");
             } else {
                 info("$language already has custom.php");
@@ -410,24 +437,24 @@ class InstallController extends Controller
     {
         return view('wncms::errors.installed');
     }
-    
-    
+
+
     /**
      * Create an installed file in storage
      * This is used to determine if WNCMS is intalled.
      */
-    private function markInstalled(){
+    private function markInstalled()
+    {
         $installedLogFile = storage_path('installed');
         $dateStamp = date('Y-m-d h:i:s');
 
         if (! file_exists($installedLogFile)) {
-            $message = __('wncms::installer.installed.success_log_message').$dateStamp."\n";
+            $message = __('wncms::installer.installed.success_log_message') . $dateStamp . "\n";
             file_put_contents($installedLogFile, $message);
         } else {
-            $message = __('wncms::installer.updater.log.success_message').$dateStamp;
-            file_put_contents($installedLogFile, $message.PHP_EOL, FILE_APPEND | LOCK_EX);
+            $message = __('wncms::installer.updater.log.success_message') . $dateStamp;
+            file_put_contents($installedLogFile, $message . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
         return $message;
     }
-
 }

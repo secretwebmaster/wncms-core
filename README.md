@@ -4,6 +4,15 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## 更新日誌
 
+### v5.4.2 2025-05-04
+- `links` 資料表中的 `description` 欄位由 `string` 改為 `text`，支援更長內容
+- 將 SQL 安裝檔移至 `wncms-core` 套件內的 `resources/installer/wncms.sql`，統一安裝來源
+- 安裝流程優化，如有 `wncms.sql` 檔，將優先匯入資料庫結構與資料，否則使用Artisan指令安裝
+- 修復在未建立首個網站且站群模式關閉時，頂部的網站設定按鈕出現錯誤的問題
+
+### v5.4.1 2025-05-03
+- 安裝流程優化，檢測是否有 `storage/app/installer/wncms.sql` ，加快首次安裝速度，避免安裝過程 Cloudflare 超時問題
+
 ### v5.4.0 2025-04-05
 
 - 修正 Card 模型找不到狀態的問題
