@@ -114,13 +114,27 @@ class InstallController extends Controller
         Artisan::call('key:generate', ['--force'=> true]);
         info('generated key');
         
-        //run migration and seeder
-        Artisan::call('migrate:fresh', [
-            '--seed' => true,
-            '--force' => true,
-            '--seeder' => DatabaseSeeder::class
-        ]);
-        info('migration completed');
+        $sqlPath = storage_path('app/installer/wncms.sql');
+        if (file_exists($sqlPath)) {
+            try {
+                DB::unprepared(file_get_contents($sqlPath));
+                info('Imported SQL dump instead of running migrations.');
+            } catch (\Throwable $e) {
+                info('SQL import failed: ' . $e->getMessage());
+                return response()->json([
+                    'status' => 'fail',
+                    'message' => 'Failed to import SQL dump: ' . $e->getMessage(),
+                ]);
+            }
+        } else {
+            // fallback to normal Laravel install if no SQL
+            Artisan::call('migrate:fresh', [
+                '--seed' => true,
+                '--force' => true,
+                '--seeder' => DatabaseSeeder::class
+            ]);
+            info('migration completed');
+        }
 
         Artisan::call('vendor:publish', ['--tag' => 'wncms-system-config']);
         Artisan::call('vendor:publish', ['--tag' => 'wncms-theme-config']);
