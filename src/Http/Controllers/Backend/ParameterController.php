@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 
 class ParameterController extends BackendController
 {
+    public function getModelClass(): string
+    {
+        return config('wncms.models.parameter', \Wncms\Models\Parameter::class);
+    }
+
     public function index(Request $request)
     {
         $q = Parameter::query();

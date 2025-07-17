@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Wncms\Http\Controllers\ThemeController;
 
 use Wncms\Http\Controllers\Backend\AdvertisementController;
-use Wncms\Http\Controllers\Backend\AnalyticsController;
 use Wncms\Http\Controllers\Backend\BannerController;
 use Wncms\Http\Controllers\Backend\ContactFormController;
 use Wncms\Http\Controllers\Backend\ContactFormOptionController;
@@ -68,13 +67,6 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::patch('/{advertisement}', 'update')->middleware('can:advertisement_edit')->name('advertisements.update');
         Route::delete('/{advertisement}', 'destroy')->middleware('can:advertisement_delete')->name('advertisements.destroy');
         Route::post('/bulk_delete', 'bulk_delete')->middleware('can:advertisement_bulk_delete')->name('advertisements.bulk_delete');
-    });
-
-    //Analytics
-    Route::prefix('analytics')->controller(AnalyticsController::class)->group(function () {
-        Route::get('/', 'index')->middleware('can:analytics_index')->name('analytics.index');
-        Route::get('/traffic', 'show_traffic')->middleware('can:analytics_index')->name('analytics.traffic');
-        Route::get('/click', 'show_click')->middleware('can:analytics_index')->name('analytics.click');
     });
 
     //banner
@@ -175,16 +167,16 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     //link
     Route::prefix('links')->controller(LinkController::class)->group(function () {
         Route::get('/', 'index')->middleware('can:link_index')->name('links.index');
-        Route::get('/create', 'create')->middleware('can:link_create')->name('links.create');
-        Route::get('/create/{link}', 'create')->middleware('can:link_clone')->name('links.clone');
-        Route::get('/{link}/edit', 'edit')->middleware('can:link_edit')->name('links.edit');
-        Route::post('/store', 'store')->middleware('can:link_create')->name('links.store');
-        Route::patch('/{link}', 'update')->middleware('can:link_edit')->name('links.update');
-        Route::delete('/{link}', 'destroy')->middleware('can:link_delete')->name('links.destroy');
-        Route::post('/bulk_delete', 'bulk_delete')->middleware('can:link_bulk_delete')->name('links.bulk_delete');
-        Route::post('/bulk_update_order', 'bulk_update_order')->middleware('can:link_edit')->name('links.bulk_update_order');
+        Route::get('create', 'create')->middleware('can:link_create')->name('links.create');
+        Route::get('create/{id}', 'create')->where('id', '[0-9]+')->middleware('can:link_clone')->name('links.clone');
+        Route::get('{id}/edit', 'edit')->where('id', '[0-9]+')->middleware('can:link_edit')->name('links.edit');
+        Route::post('store', 'store')->middleware('can:link_create')->name('links.store');
+        Route::patch('{id}', 'update')->where('id', '[0-9]+')->middleware('can:link_edit')->name('links.update');
+        Route::delete('{id}', 'destroy')->where('id', '[0-9]+')->middleware('can:link_delete')->name('links.destroy');
+        Route::post('bulk_delete', 'bulk_delete')->middleware('can:link_bulk_delete')->name('links.bulk_delete');
+        Route::post('bulk_update_order', 'bulk_update_order')->middleware('can:link_edit')->name('links.bulk_update_order');
     });
-
+    
     //menu
     Route::prefix('menus')->controller(MenuController::class)->group(function () {
         Route::post('/edit_menu_item', 'edit_menu_item')->middleware('can:menu_edit')->name('menus.edit_menu_item');

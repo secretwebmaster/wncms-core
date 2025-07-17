@@ -29,6 +29,7 @@ abstract class ModelManager
     public function get(array $options = []): ?Model
     {
         $id = $options['id'] ?? null;
+        $name = $options['name'] ?? null;
         $slug = $options['slug'] ?? null;
         $withs = $options['withs'] ?? [];
         $wheres = $options['wheres'] ?? [];
@@ -36,7 +37,7 @@ abstract class ModelManager
 
         // if (empty($id) && empty($slug)) return null;
 
-        $func = function () use ($id, $slug, $withs, $wheres) {
+        $func = function () use ($id, $name, $slug, $withs, $wheres) {
             $modelClass = $this->getModelClass();
             $q = $modelClass::query();
 
@@ -56,6 +57,10 @@ abstract class ModelManager
                 $q->where('slug', $slug);
             }
 
+            if (!empty($name)) {
+                $q->where('name', $name);
+            }
+
             return $q->first();
         };
 
@@ -67,6 +72,9 @@ abstract class ModelManager
                 'wheres' => $wheres,
             ]);
             $cacheTime = $this->getCacheTime();
+
+            // wncms()->cache()->tags($this->getCacheTag())->forget($cacheKey);
+
             return wncms()->cache()->remember($cacheKey, $cacheTime, $func, $this->getCacheTag());
         }
 
@@ -97,7 +105,7 @@ abstract class ModelManager
             'getList',
             $this->shouldAuth ? (auth()->id() ?? false) : false,
             $options,
-            wncms()->getDomain()
+            wncms()->website()->get()?->url
         );
 
         $isRandom = $options['is_random'] ?? false;
@@ -413,4 +421,23 @@ abstract class ModelManager
     {
         return gss('enable_cache') ? gss('data_cache_time', $fallback) : 0;
     }
+
+    protected function autoAddOrderByColumnsToSelect(Builder $q, array $select): array
+    {
+        $orderColumns = collect($q->getQuery()->orders ?? [])
+            ->pluck('column')
+            ->filter() // remove raw expressions
+            ->unique()
+            ->values();
+
+        foreach ($orderColumns as $column) {
+            // Skip if already selected (consider both 'col' and 'table.col')
+            if (!in_array($column, $select) && !in_array('links.' . $column, $select)) {
+                $select[] = $column;
+            }
+        }
+
+        return $select;
+    }
+
 }

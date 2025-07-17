@@ -62,7 +62,7 @@ class WebsiteManager
     
             $shouldAuth = false;
             $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, __FUNCTION__, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()));
-            // wncms()->cache()->clear($cacheKey, $this->cacheTags);
+            // wncms()->cache()->forget($cacheKey, $this->cacheTags);
     
             return wncms()->cache()->tags($this->cacheTags)->remember($cacheKey, $this->cacheTime, function () use ($websiteId, $fallbackToCurrent, $withs, $domain) {
       
@@ -84,7 +84,7 @@ class WebsiteManager
                 }
     
                 if (!$website && $fallbackToCurrent) {
-                    $website = Website::first();
+                    $website = Website::with(['media'])->first();
                 }
          
                 return $website;

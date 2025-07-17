@@ -112,7 +112,7 @@
         // Initiate the update process
         $.ajax({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-            url: "{{ route('api.v1.update') }}",
+            url: "{{ route('api.v1.update.run') }}",
             type: "POST",
             data: {
                 itemId: itemId,

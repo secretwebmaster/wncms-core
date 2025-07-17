@@ -13,6 +13,11 @@ use Wncms\Http\Requests\PlanFormRequest;
 
 class PlanController extends BackendController
 {
+    public function getModelClass(): string
+    {
+        return config('wncms.models.plan', \Wncms\Models\Plan::class);
+    }
+
     /**
      * Display a listing of the plans.
      */

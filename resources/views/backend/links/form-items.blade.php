@@ -97,7 +97,6 @@
     @foreach([
         'tracking_code',
         'slug',
-        'description',
         'slogan',
         'external_thumbnail',
         'contact',
@@ -111,6 +110,14 @@
             </div>
         </div>
     @endforeach
+
+    {{-- description --}}
+    <div class="row mb-3">
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="description">@lang('wncms::word.description')</label>
+        <div class="col-lg-9 fv-row">
+            <textarea id="kt_docs_tinymce_basic" name="description" class="tox-target">{{ old('description', $link->description ?? null) }}</textarea>
+        </div>
+    </div>
 
     {{-- order --}}
     <div class="row mb-3">

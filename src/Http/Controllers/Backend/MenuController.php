@@ -10,6 +10,12 @@ use Wncms\Models\Tag;
 
 class MenuController extends BackendController
 {
+
+    public function getModelClass(): string
+    {
+        return config('wncms.models.menu', \Wncms\Models\Menu::class);
+    }
+
     /**
      * Display a listing of the resource.
      */

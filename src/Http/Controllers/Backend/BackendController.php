@@ -5,8 +5,22 @@ namespace Wncms\Http\Controllers\Backend;
 use Wncms\Facades\Wncms;
 use Wncms\Http\Controllers\Controller;
 
-class BackendController extends Controller
+abstract class BackendController extends Controller
 {
+    protected string $modelClass;
+
+    public function __construct()
+    {
+        $this->modelClass = $this->getModelClass();
+    }
+
+    /**
+     * Child controllers must implement this to return the associated model class.
+     *
+     * @return class-string
+     */
+    abstract protected function getModelClass(): string;
+
     /**
      * Flush the cache.
      * 
@@ -15,6 +29,6 @@ class BackendController extends Controller
      */
     public function flush(string|array|null $tag = null)
     {
-       return Wncms::cache()->flush($tag);
+        return Wncms::cache()->flush($tag);
     }
 }

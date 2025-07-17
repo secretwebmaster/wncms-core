@@ -4,6 +4,21 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## 更新日誌
 
+### v5.4.3 2025-05-07
+- Backend link routes accept id instead of auto resolving model. Allow to use custom Link model. 
+- BackendController now become abstract class to maintain standard
+- Add `name` support to ModelManager get() function $option variable
+- Domain that not in the list will now share same cache will fallback website
+- Automatically add ordering column in select to avoid sql error
+- Eagar load website media on fallback website in WebsiteManager
+- Rewrite TagManager where condition logic
+- Update update log api route name to `api.v1.update.run`
+- Update Link model description input field to textarea
+- Clean up backend routes code. Remove starting slash
+- Add abstract getModelClass() method to BackendController
+- Remove AnalyticController
+
+
 ### v5.4.2 2025-05-04
 - `links` 資料表中的 `description` 欄位由 `string` 改為 `text`，支援更長內容
 - 將 SQL 安裝檔移至 `wncms-core` 套件內的 `resources/installer/wncms.sql`，統一安裝來源

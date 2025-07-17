@@ -100,8 +100,16 @@ class PageController extends FrontendController
         Event::dispatch('wncms.pages.single', $page);
 
         // page model does not exist. Load default static page
-        if (view()->exists("frontend.theme.{$this->theme}.pages." . $slug)) {
+        if (view()->exists("wncms::frontend.theme.{$this->theme}.pages." . $slug)) {
             return view("wncms::frontend.theme.{$this->theme}.pages." . $slug, [
+                'page' => $page ?? new Page,
+                'pageTitle' => $page?->title,
+            ]);
+        }
+
+        // load custom static page
+        if (view()->exists("frontend.theme.{$this->theme}.pages." . $slug)) {
+            return view("frontend.theme.{$this->theme}.pages." . $slug, [
                 'page' => $page ?? new Page,
                 'pageTitle' => $page?->title,
             ]);

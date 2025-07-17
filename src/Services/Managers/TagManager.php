@@ -23,25 +23,35 @@ class TagManager extends ModelManager
     public function getByName(string $tagName, ?string $tagType = null, array $withs = [], ?string $locale = null, bool $cache = true)
     {
         $locale ??= LaravelLocalization::getCurrentLocale();
+        $modelClass = $this->getModelClass();
     
-        $wheres = [
-            ['type', '=', $tagType],
-            [
-                function ($q) use ($tagName, $locale) {
-                    $q->where("name", $tagName)
-                      ->orWhere("slug", $tagName)
-                      ->orWhereHas('translations', function ($subq) use ($tagName, $locale) {
-                          $subq->where('field', 'name')->where('value', $tagName)->where('locale', $locale);
-                      });
-                }
-            ]
-        ];
+        $query = $modelClass::query();
     
-        return $this->get([
-            'withs'   => $withs,
-            'wheres' => $wheres,
-            'cache'  => $cache,
-        ]);
+        if (!empty($withs)) {
+            $query->with($withs);
+        }
+    
+        $query->where('type', $tagType);
+        $query->where(function ($q) use ($tagName, $locale) {
+            $q->where('name', $tagName)
+              ->orWhere('slug', $tagName)
+              ->orWhereHas('translations', function ($subq) use ($tagName, $locale) {
+                  $subq->where('field', 'name')
+                       ->where('value', $tagName)
+                       ->where('locale', $locale);
+              });
+        });
+    
+        if ($cache && gss('enable_cache')) {
+            $cacheKey = $this->getCacheKey(__METHOD__, [
+                'tagType' => $tagType,
+                'tagName' => $tagName,
+                'locale' => $locale,
+            ]);
+            return wncms()->cache()->remember($cacheKey, $this->getCacheTime(), fn() => $query->first(), $this->getCacheTag());
+        }
+    
+        return $query->first();
     }
     
     
@@ -73,6 +83,25 @@ class TagManager extends ModelManager
         return parent::getList($options);
     }
 
+    /**
+     * Build the base query for retrieving a list of tags.
+     *
+     * Supported $options keys:
+     * - tag_type: string - Filter by tag type(s). Can be a single type or comma-separated list (e.g., 'post_category,post_tag').
+     * - tag_ids: array|string - Filter tags by ID, slug, name, or translated name.
+     * - with: array - Eloquent relationships to eager load (e.g., ['translations']).
+     * - has_models: bool - If true, only include tags that have associated models.
+     * - model_type: string - The model relationship name to check (e.g., 'posts', 'videos').
+     * - only_current_website: bool - If true, restrict tags to those used by models on the current website.
+     * - locale: string - Language to use for translated name filtering (default: current app locale).
+     * - parent_only: bool - If true, only include top-level tags (i.e., where parent_id is null).
+     * - is_random: bool - If true, results will be returned in random order.
+     * - order: string - Column to sort by (default: 'order_column').
+     * - sequence: string - Sort direction ('asc' or 'desc', default: 'desc').
+     *
+     * @param array $options
+     * @return mixed
+     */
     protected function buildListQuery(array $options): mixed
     {
         $q = $this->query();
@@ -132,7 +161,6 @@ class TagManager extends ModelManager
     
         return $this->finalizeResult($q, $options);
     }
-    
 
     public function getArray(string $tagType = 'post_category', int $count = 0, string $columnName = 'name', string $keyName = null, array|string|null $tagIds = null): array
     {
@@ -155,7 +183,6 @@ class TagManager extends ModelManager
     
         return $array;
     }
-    
 
     public function getTypes(array|string|null $tagIds = null): array
     {
@@ -206,7 +233,6 @@ class TagManager extends ModelManager
         return array_unique($tagKeysToBind);
     }
     
-
     public function getModelsWithHasTagsTraits()
     {
         // dd($request->all());
@@ -264,6 +290,7 @@ class TagManager extends ModelManager
         ]);
     
         return collect($tags)->map(function ($tag) use ($nameColumn, $valueColumn) {
+            /** @var \Wncms\Models\Tag $tag */
             return [
                 'name' => $tag->{$nameColumn},
                 'value' => $tag->{$valueColumn ?? $nameColumn}

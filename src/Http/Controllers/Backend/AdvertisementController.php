@@ -2,13 +2,17 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
 use Wncms\Models\Advertisement;
 use Wncms\Models\Tag;
 use Illuminate\Http\Request;
 
-class AdvertisementController extends Controller
+class AdvertisementController extends BackendController
 {
+    public function getModelClass(): string
+    {
+        return config('wncms.models.advertisement', \Wncms\Models\Advertisement::class);
+    }
+
     public function index(Request $request)
     {
         $q = Advertisement::query();

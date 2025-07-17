@@ -2114,6 +2114,9 @@ $words = [
     'custom_setting' => '自訂設定',
     'enable_api_access' => '啟用 API 存取',
 
+    // 5.4.3
+    'model_not_found' => '找不到:model_name',
+
 ];
 
 $locale = basename(__DIR__);

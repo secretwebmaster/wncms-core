@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-// use Wncms\Http\Controllers\Api\V1\AnalyticsController;
 use Wncms\Http\Controllers\Api\V1\MenuController;
 use Wncms\Http\Controllers\Api\V1\PageController;
 use Wncms\Http\Controllers\Api\V1\PostController;
@@ -49,12 +48,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::prefix('payment')->name('payment.')->controller(PaymentGatewayController::class)->group(function () {
         Route::post('notify', 'notify')->name('notify');
     });
-
-    // Analytics (commented out for now)
-    // Route::prefix('analytics')->name('analytics.')->controller(AnalyticsController::class)->group(function () {
-    //     Route::post('record', 'record')->name('record');
-    //     Route::post('get', 'get')->name('get');
-    // });
 });
 
 // Custom user-defined API routes

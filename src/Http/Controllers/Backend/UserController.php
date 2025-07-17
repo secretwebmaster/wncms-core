@@ -9,6 +9,10 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends BackendController
 {
+    public function getModelClass(): string
+    {
+        return config('wncms.models.user', \Wncms\Models\User::class);
+    }
 
     public function index(Request $request)
     {

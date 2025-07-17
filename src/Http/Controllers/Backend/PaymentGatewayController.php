@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 
 class PaymentGatewayController extends BackendController
 {
+    public function getModelClass(): string
+    {
+        return config('wncms.models.payment_gateway', \Wncms\Models\PaymentGateway::class);
+    }
+
     public function index(Request $request)
     {
         $q = PaymentGateway::query();

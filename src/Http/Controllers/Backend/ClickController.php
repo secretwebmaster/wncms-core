@@ -11,6 +11,11 @@ use Illuminate\Http\Request;
 
 class ClickController extends BackendController
 {
+    public function getModelClass(): string
+    {
+        return config('wncms.models.click', \Wncms\Models\Click::class);
+    }
+
     public function index(Request $request)
     {
         $q = Click::query();
