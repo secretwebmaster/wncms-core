@@ -11,7 +11,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -84,7 +84,7 @@
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-nowrap mb-0">
+                <table class="table table-sm table-hover table-bordered align-middle text-nowrap mb-0">
                     <thead class="table-dark">
                         <tr class="text-start fw-bold gs-0">
                             <th class="w-10px pe-2">

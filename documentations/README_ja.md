@@ -4,6 +4,51 @@
 
 ## 更新履歴
 
+### v5.5.0 2025-07-19
+
+-   一部のバックエンド Blade ビューで `getVersion()` を `addVersion()` に置き換え
+-   `isActiveRoutes()` ヘルパーを追加
+-   データベースマイグレーション後にインストールが停止する問題を修正
+-   `Wncms\Models` を `App\Models` にオーバーライドした場合に、サイドバーにモデルが重複する問題を修正
+-   `PageController` でカスタムリソースページが見つからない問題を修正
+-   `click.js` を削除し、API に置き換え
+-   新規インストール後にバージョン番号を更新
+-   キュー接続のデフォルトを `redis` から `sync` に変更
+-   削除操作はインデックスではなく前のページにリダイレクトされるように変更
+-   `PageManager` を再構築
+-   `UserManager` を再構築
+-   データベースが大きい場合のダッシュボードのメモリ使用量を最適化
+-   バックエンドの `PostController` コードを整理
+-   WNCMS のビューにフォールバックする前にカスタム app ビューを使用可能に
+-   入力フィールドが `hidden` タイプのときに開発者向けヒントを非表示に
+-   広告の背景色が表示されない問題を修正
+-   バックエンドの問い合わせフォームで作成と編集フォームを統合
+-   `BulkDeleteTrait` を削除（`BackendController` に統合済み）
+-   `tags.index.type` ルートを削除し、`tags.index` に統合
+-   メニューからマルチサイトオプションを削除
+-   商品フィールド `attribute` を `properties` にリネーム
+-   カスタム検索キーワードの追加をサポート
+-   `traffic_log` と `click_log` の Blade ビューを削除
+-   すべてのモデルリレーションを `wncms()->getModelClass('xxx')` に置き換え、モデルのオーバーライドが可能に
+-   `CreateModel` のルート構造を `{modelName}` から `{id}` に変更
+-   コントローラーのスタブに `order by id desc` を追加
+-   バックエンドのサイト編集画面を改善し、ドメインエイリアスのソートを追加
+
+### v5.4.3 2025-07-17
+
+-   バックエンドのリンクルートは自動解決ではなく ID を受け入れるようになり、カスタム Link モデルを使用可能
+-   `BackendController` を抽象クラスに変更し、標準化
+-   `ModelManager::get()` の `$option` に `name` サポートを追加
+-   リストにないドメインはフォールバックサイトとキャッシュを共有
+-   SQL エラーを回避するために select に自動で order カラムを追加
+-   `WebsiteManager` でフォールバックサイトのメディアを事前読み込み
+-   `TagManager` の条件ロジックを再構築
+-   更新ログの API ルートを `api.v1.update.run` に変更
+-   Link モデルの説明フィールドを input から textarea に変更
+-   バックエンドのルートコードを整理し、先頭のスラッシュを削除
+-   `BackendController` に抽象メソッド `getModelClass()` を追加
+-   `AnalyticController` を削除
+
 ### v5.4.0 2025-05-01
 
 -   Card モデルのステータスが見つからない問題を修正

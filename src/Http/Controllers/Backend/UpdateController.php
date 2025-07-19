@@ -16,7 +16,7 @@ class UpdateController extends Controller
             unset($result['data']['core']);
         }
 
-        return view('wncms::backend.admin.update', [
+        return $this->view('backend.admin.update', [
             'page_title' => __('wncms::word.system_update'),
             'result' => $result,
         ]);

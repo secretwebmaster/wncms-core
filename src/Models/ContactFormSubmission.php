@@ -32,11 +32,11 @@ class ContactFormSubmission extends Model
 
     public function contact_form()
     {
-        return $this->belongsTo(ContactForm::class);
+        return $this->belongsTo(wncms()->getModelClass('contact_form'));
     }
 
     public function website()
     {
-        return $this->belongsTo(Website::class);
+        return $this->belongsTo(wncms()->getModelClass('website'));
     }
 }

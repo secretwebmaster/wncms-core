@@ -20,13 +20,13 @@
         @stack('head_seo')
         
         {{-- JS --}}
-        <script src="{{ asset('wncms/js/cookie.js?v=') . $wncms->getVersion('js') }}"></script>
+        <script src="{{ asset('wncms/js/cookie.js') . $wncms->addVersion('js') }}"></script>
         @stack('head_js')
         {!! $website->head_code !!}
 
         {{-- CSS --}}
         {{-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" referrerpolicy="no-referrer" /> --}}
-        <link rel="stylesheet" type="text/css" href="{{ asset("theme/starter/css/style.css?v=") . $wncms->getVersion('css') }}" />
+        <link rel="stylesheet" type="text/css" href="{{ asset("theme/starter/css/style.css") . $wncms->addVersion('css') }}" />
         @stack('head_css')
         <style>{!! gto('head_css') !!}</style>
     </head>
@@ -41,8 +41,8 @@
 
         @include('frontend.theme.starter.parts.footer')
 
-        <script src="{{ asset('wncms/js/jquery.min.js?v=' . $wncms->getVersion('js')) }}"></script>
-        <script src="{{ asset('wncms/js/lazysizes.min.js?v=' . $wncms->getVersion('js')) }}"></script>
+        <script src="{{ asset('wncms/js/jquery.min.js' . $wncms->addVersion('js')) }}"></script>
+        <script src="{{ asset('wncms/js/lazysizes.min.js' . $wncms->addVersion('js')) }}"></script>
         
         @stack('foot_js')
         @stack('foot_css')

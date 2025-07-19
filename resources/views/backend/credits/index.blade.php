@@ -11,6 +11,14 @@
 
                 @include('wncms::backend.common.default_toolbar_filters')
 
+                <div class="d-flex align-items-center col-12 col-md-auto mb-3 ms-0 me-1">
+                    <input type="text" name="username" value="{{ request()->username }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.username')" />
+                </div>
+
+                <div class="d-flex align-items-center col-12 col-md-auto mb-3 ms-0 me-1">
+                    <input type="text" name="amount" value="{{ request()->amount }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.amount')" />
+                </div>
+
                 {{-- Filter by Credit Type --}}
                 <div class="col-6 col-md-auto mb-3 ms-0">
                     <select name="type" class="form-select form-select-sm">
@@ -23,7 +31,7 @@
 
                 {{-- Submit --}}
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
         </form>
@@ -43,7 +51,7 @@
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-nowrap mb-0">
+                <table class="table table-xs table-hover table-bordered align-middle text-nowrap mb-0">
 
                     {{-- thead --}}
                     <thead class="table-dark">

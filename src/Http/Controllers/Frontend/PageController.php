@@ -67,7 +67,7 @@ class PageController extends FrontendController
         if (!$slug) return redirect()->route('frontend.pages.home');
 
         //get page model
-        $page = Wncms::page()->getBySlug(slug:$slug);
+        $page = Wncms::page()->get(['slug' => $slug]);
 
         //get template
         if($page){
@@ -153,6 +153,36 @@ class PageController extends FrontendController
         }
 
         //throw 404 if both pages are not exists
+        abort(404);
+    }
+
+    /**
+     * Fallback method for handling unmatched routes
+     */
+    public function fallback()
+    {
+        $segments = request()->segments();
+
+        $view = 'frontend.theme.' . $this->theme . '.' . implode('.', $segments);
+        if (view()->exists($view)) {
+            return view($view);
+        }
+
+        $notFoundView = 'frontend.theme.' . $this->theme . '.pages.404';
+        if (view()->exists($notFoundView)) {
+            return view($notFoundView);
+        }
+
+        $defaultNotFoundView = 'wncms::errors.404';
+        if (view()->exists($defaultNotFoundView)) {
+            return view($defaultNotFoundView);
+        }
+
+        $customNotFoundView = 'errors.404';
+        if (view()->exists($customNotFoundView)) {
+            return view($customNotFoundView);
+        }
+
         abort(404);
     }
 }

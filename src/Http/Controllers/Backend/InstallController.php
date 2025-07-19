@@ -123,10 +123,6 @@ class InstallController extends Controller
                 DB::unprepared(file_get_contents($sqlPath));
                 info('Imported SQL dump instead of running migrations.');
 
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'SQL dump imported successfully.',
-                ]);
             } catch (\Throwable $e) {
                 info('SQL import failed: ' . $e->getMessage());
 
@@ -138,11 +134,6 @@ class InstallController extends Controller
                     '--seeder' => \Database\Seeders\DatabaseSeeder::class,
                 ]);
                 info('Completed fallback migrations + seeders.');
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Fallback: migration and seeding completed.',
-                ]);
             }
         } else {
             // fallback to migrations + seeders
@@ -153,13 +144,7 @@ class InstallController extends Controller
                 '--seeder' => \Database\Seeders\DatabaseSeeder::class,
             ]);
             info('Completed migrations + seeders.');
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Migration and seeding completed.',
-            ]);
         }
-
 
         Artisan::call('vendor:publish', ['--tag' => 'wncms-system-config']);
         Artisan::call('vendor:publish', ['--tag' => 'wncms-theme-config']);
@@ -189,6 +174,10 @@ class InstallController extends Controller
             uss('force_https', true);
             info("updated force_https to true");
         }
+
+        // set version
+        $version = config('installer.version');
+        uss('core_version', $version);
 
         cache()->flush();
 
@@ -264,9 +253,8 @@ class InstallController extends Controller
             // 'CACHE_PREFIX=' . "" . "\n".
 
             'SESSION_DRIVER=' . ($input['session_driver'] ?? '') . "\n" .
-            'QUEUE_DRIVER=' . ($input['queue_driver'] ?? '') . "\n\n" .
+            'QUEUE_CONNECTION=' . ($input['queue_connection'] ?? '') . "\n\n" .
 
-            'QUEUE_CONNECTION=' . "redis" . "\n" .
             'REDIS_HOST=' . ($input['redis_hostname'] ?? '') . "\n" .
             'REDIS_PASSWORD=' . ($input['redis_password'] ?? '') . "\n" .
             'REDIS_PORT=' . ($input['redis_port'] ?? '') . "\n\n" .

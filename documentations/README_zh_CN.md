@@ -4,6 +4,51 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## 更新日志
 
+### v5.5.0 2025-07-19
+
+-   部分后台 Blade 视图中将 `getVersion()` 替换为 `addVersion()`
+-   新增 `isActiveRoutes()` 辅助函数
+-   修复安装程序在资料库迁移后中止的问题
+-   避免在覆盖 `Wncms\Models` 为 `App\Models` 时侧边栏重複出现模型
+-   修复 `PageController` 中自定义资源页面无法显示的问题
+-   移除 `click.js`，改用 API 取代
+-   安装后自动更新版本号
+-   预设将伫列连线从 `redis` 改为 `sync`
+-   删除动作将返回上一页而非索引页
+-   重写 `PageManager`
+-   重写 `UserManager`
+-   仪表板在资料库较大时的记忆体需求已优化
+-   清理后台 `PostController` 代码
+-   支援在 WNCMS 预设视图之前使用自定义 app 视图
+-   当输入栏位为 hidden 类型时，隐藏开发者提示
+-   修复广告背景颜色未显示的问题
+-   后台联络表单整合建立与编辑表单项目
+-   移除 `BulkDeleteTrait`，整合进 `BackendController`
+-   移除 `tags.index.type` 路由，整合进 `tags.index`
+-   移除选单中的多站台选项
+-   将产品栏位 `attribute` 改名为 `properties`
+-   支援新增自定义搜寻关键字
+-   移除 `traffic_log` 和 `click_log` 的 Blade 视图
+-   所有模型关联改为使用 `wncms()->getModelClass('xxx')`，以支援模型覆写
+-   `CreateModel` 路由更新为使用 `{id}` 取代 `{modelName}`
+-   控制器样板加入 `order by id desc`
+-   改进后台网站编辑页面，加入网域别名排序功能
+
+### v5.4.3 2025-07-17
+
+-   后台连结路由接受 id，不再自动解析模型，支援自定义 Link 模型
+-   `BackendController` 现为抽象类别以维持标准
+-   `ModelManager` 的 get() 函式新增 `$option['name']` 支援
+-   非清单中的网域将共用回退网站的快取
+-   自动在 select 中加入排序栏位避免 SQL 错误
+-   在 `WebsiteManager` 中对回退网站预先载入媒体
+-   重写 `TagManager` 的条件逻辑
+-   更新更新日志 API 路由名称为 `api.v1.update.run`
+-   将 Link 模型的描述栏位由输入框改为 textarea
+-   清理后台路由代码，移除开头斜线
+-   `BackendController` 新增抽象 `getModelClass()` 方法
+-   移除 `AnalyticController`
+
 ### v5.4.0 2025-04-05
 
 -   修正 Card 模型找不到状态的问题

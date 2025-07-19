@@ -2,35 +2,36 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Models\Channel;
 use Illuminate\Http\Request;
 
 class ChannelController extends BackendController
 {
-    public function getModelClass(): string
-    {
-        return config('wncms.models.channel', \Wncms\Models\Channel::class);
-    }
-
     public function index(Request $request)
     {
-        $q = Channel::query();
+        $q = $this->modelClass::query();
 
         $q->withCount('clicks');
-        
+
         $channels = $q->paginate($request->page_size ?? 100);
 
-        return view('wncms::backend.channels.index', [
+        return $this->view('backend.channels.index', [
             'page_title' =>  wncms_model_word('channel', 'management'),
             'channels' => $channels,
         ]);
     }
 
-    public function create(?Channel $channel)
+    public function create($id = null)
     {
-        $channel ??= new Channel;
+        if ($id) {
+            $channel = $this->modelClass::find($id);
+            if (!$channel) {
+                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+            }
+        } else {
+            $channel = new $this->modelClass;
+        }
 
-        return view('wncms::backend.channels.create', [
+        return $this->view('backend.channels.create', [
             'page_title' =>  wncms_model_word('channel', 'management'),
             'channel' => $channel,
         ]);
@@ -38,56 +39,64 @@ class ChannelController extends BackendController
 
     public function store(Request $request)
     {
-        // dd($request->all());
         // check if slug exists
-        if($request->slug){
-            $slugExists = Channel::where('slug', $request->slug)->exists();
-            if($slugExists){
+        if ($request->slug) {
+            $slugExists = $this->modelClass::where('slug', $request->slug)->exists();
+            if ($slugExists) {
                 return back()->withInput()->withErrors(['message' => __('wncms::word.channel_exists')]);
-            }else{
+            } else {
                 $slug = $request->slug;
             }
-        }else{
+        } else {
             $slug = wncms()->getUniqueSlug('channels');
         }
 
-        $channel = Channel::create([
+        $channel = $this->modelClass::create([
             'name' => $request->name,
             'slug' => $slug,
             'contact' => $request->contact,
             'remark' => $request->remark,
         ]);
 
-        wncms()->cache()->flush(['channels']);
+        $this->flush();
 
         return redirect()->route('channels.edit', [
             'channel' => $channel,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
-    public function edit(Channel $channel)
+    public function edit($id)
     {
-        return view('wncms::backend.channels.edit', [
+        $channel = $this->modelClass::find($id);
+        if (!$channel) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
+        return $this->view('backend.channels.edit', [
             'page_title' =>  wncms_model_word('channel', 'management'),
             'channel' => $channel,
         ]);
     }
 
-    public function update(Request $request, Channel $channel)
+    public function update(Request $request, $id)
     {
-        // dd($request->all());
+        $channel = $this->modelClass::find($id);
+        if (!$channel) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
         // check if slug exists
-        if($request->slug){
-            $slugExists = Channel::where('slug', $request->slug)->where('id', '!=', $channel->id)->exists();
-            if($slugExists){
+        if ($request->slug) {
+            $slugExists = $this->modelClass::where('slug', $request->slug)->where('id', '!=', $channel->id)->exists();
+            if ($slugExists) {
                 return back()->withInput()->withErrors(['message' => __('wncms::word.channel_exists')]);
-            }else{
+            } else {
                 $slug = $request->slug;
             }
-        }else{
+        } else {
             $slug = wncms()->getUniqueSlug('channels');
         }
-        
+
         $channel->update([
             'name' => $request->name,
             'slug' => $slug,
@@ -95,36 +104,10 @@ class ChannelController extends BackendController
             'remark' => $request->remark,
         ]);
 
-        wncms()->cache()->flush(['channels']);
-        
+        $this->flush();
+
         return redirect()->route('channels.edit', [
             'channel' => $channel,
         ])->withMessage(__('wncms::word.successfully_updated'));
-    }
-
-    public function destroy(Channel $channel)
-    {
-        $channel->delete();
-        return redirect()->route('channels.index')->withMessage(__('wncms::word.successfully_deleted'));
-    }
-
-    public function bulk_delete(Request $request)
-    {
-        if(!is_array($request->model_ids)){
-            $modelIds = explode(",", $request->model_ids);
-        }else{
-            $modelIds = $request->model_ids;
-        }
-
-        $count = Channel::whereIn('id', $modelIds)->delete();
-
-        if($request->ajax()){
-            return response()->json([
-                'status' => 'success',
-                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
-            ]);
-        }
-
-        return redirect()->route('channels.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
     }
 }

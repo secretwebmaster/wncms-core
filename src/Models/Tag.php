@@ -6,6 +6,7 @@ use Wncms\Traits\WnModelTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Wncms\Tags\Tag as WncmsTag;
+use Illuminate\Support\Facades\Route;
 
 //TODO: Pending merge to HasTags
 class Tag extends WncmsTag implements HasMedia
@@ -32,27 +33,17 @@ class Tag extends WncmsTag implements HasMedia
     {
         $this->addMediaCollection('tag_thumbnail')->singleFile();
     }
-    
-    public function advertisement()
-    {
-        return $this->morphedByMany(Advertisement::class, 'taggable');
-    }
-    
+
     public function posts()
     {
-        return $this->morphedByMany(Post::class, 'taggable');
-    }
-
-    public function templates()
-    {
-        return $this->morphedByMany(Template::class, 'taggable');
+        return $this->morphedByMany(wncms()->getModelClass('post'), 'taggable');
     }
 
     public function keywords()
     {
-        return $this->hasMany(TagKeyword::class);
+        return $this->hasMany(wncms()->getModelClass('tag_keyword'));
     }
-    
+
 
     /**
      * ----------------------------------------------------------------------------------------------------
@@ -71,7 +62,7 @@ class Tag extends WncmsTag implements HasMedia
 
             $routeName = "frontend.{$model}.{$subType}";
 
-            if (!\Illuminate\Support\Facades\Route::has($routeName)) return null;
+            if (!Route::has($routeName)) return null;
 
             return route($routeName, ['tagName' => $this->name]);
         } catch (\Throwable $e) {
@@ -82,11 +73,12 @@ class Tag extends WncmsTag implements HasMedia
 
     public function getPostCategoryUrlAttribute()
     {
-        return route('frontend.posts.category', ['tagName' => $this->name ]);
+        return route('frontend.posts.category', ['tagName' => $this->name]);
     }
+
     public function getPostTagUrlAttribute()
     {
-        return route('frontend.posts.tag', ['tagName' => $this->name ]);
+        return route('frontend.posts.tag', ['tagName' => $this->name]);
     }
 
     public function getThumbnailAttribute()
@@ -142,14 +134,11 @@ class Tag extends WncmsTag implements HasMedia
     {
         $options['tags'] = $this->name;
         $options['tag_type'] = $this->type;
-    
+
         return wncms()->post()->getList($options);
     }
-    
 
     
-
-
     /**
      * ----------------------------------------------------------------------------------------------------
      * ! Static functions
@@ -158,15 +147,14 @@ class Tag extends WncmsTag implements HasMedia
     public static function getAvailableTypes($model = null)
     {
         return self::select('type')
-        ->whereIn('id', function ($q) use($model){
-            $q->select('tag_id')->from('taggables');
-            if($model){
-                $q->where('taggable_type', 'Wncms\Models\\' . str()->studly($model));
-            }
-        })
-        ->distinct()
-        ->pluck('type')
-        ->toArray();
+            ->whereIn('id', function ($q) use ($model) {
+                $q->select('tag_id')->from('taggables');
+                if ($model) {
+                    $q->where('taggable_type', 'Wncms\Models\\' . str()->studly($model));
+                }
+            })
+            ->distinct()
+            ->pluck('type')
+            ->toArray();
     }
-
 }

@@ -11,20 +11,6 @@
             </select>
         </div>
     </div>
-    
-    {{-- website --}}
-    <div class="row mb-3">
-        <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('wncms::word.website')</label>
-        <div class="col-lg-9 fv-row">
-            <select id="website_id" name="website_id" class="form-select form-select-sm" required>
-                <option value="">@lang('wncms::word.please_select') @lang('wncms::word.website')</option>
-
-                @foreach($websites ?? [] as $_website)
-                    <option  value="{{ $_website->id }}" {{ $_website->id === old('website_id', $faq->website?->id ?? $website->id ?? null) ? 'selected' :'' }}>{{ $_website->domain }} #{{ $_website->id }}</option>
-                @endforeach
-            </select>
-        </div>
-    </div>
 
     {{-- slug --}}
     <div class="row mb-3">
@@ -102,5 +88,4 @@
             });
         </script>
     </div>
-
 </div>

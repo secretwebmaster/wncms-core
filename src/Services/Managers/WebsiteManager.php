@@ -2,8 +2,6 @@
 
 namespace Wncms\Services\Managers;
 
-use Wncms\Models\Website;
-
 /**
  * ----------------------------------------------------------------------------------------------------
  * Global Manager class for website models
@@ -66,7 +64,7 @@ class WebsiteManager
     
             return wncms()->cache()->tags($this->cacheTags)->remember($cacheKey, $this->cacheTime, function () use ($websiteId, $fallbackToCurrent, $withs, $domain) {
       
-                $q = Website::query();
+                $q = wncms()->getModelClass('website')::query();
     
                 $q->with(['media', 'translations']);
     
@@ -84,7 +82,7 @@ class WebsiteManager
                 }
     
                 if (!$website && $fallbackToCurrent) {
-                    $website = Website::with(['media'])->first();
+                    $website = wncms()->getModelClass('website')::with(['media'])->first();
                 }
          
                 return $website;
@@ -118,7 +116,7 @@ class WebsiteManager
     
             $website = wncms()->cache()->tags($this->cacheTags)->remember($cacheKey, $this->cacheTime, function () use ($domain) {
 
-                $q = Website::query();
+                $q = wncms()->getModelClass('website')::query();
                 $q->where('domain', $domain);
                 $q->orWhereRelation('domain_aliases', 'domain', $domain);
                 $q->with(['media', 'translations']);
@@ -180,7 +178,7 @@ class WebsiteManager
         // dd($cacheKey);
 
         return wncms()->cache()->tags($this->cacheTags)->remember($cacheKey, $this->cacheTime, function () use ($websiteIds, $count, $page_size, $wheres, $order, $sequence) {
-            $q = Website::query();
+            $q = wncms()->getModelClass('website')::query();
 
             if (!empty($websiteIds)) {
                 $q->whereIn('id', $websiteIds);
@@ -238,7 +236,7 @@ class WebsiteManager
         // dd($cacheKey);
 
         return wncms()->cache()->tags($this->cacheTags)->remember($cacheKey, $this->cacheTime, function () use ($userId) {
-            $user = wncms()->user()->get($userId);
+            $user = wncms()->user()->get(['id' => $userId]);
             if (empty($user)) return null;
             if(isAdmin()){
                 return wncms()->website()->getList();
@@ -295,7 +293,9 @@ class WebsiteManager
 
         $domains = wncms()->cache()->tags($this->cacheTags)->rememberForever($cacheKey, function () {
             $domainArray = [];
-            $websites = Website::where('enabled_page_cache', true)->get();
+            $websites = wncms()->getModelClass('website')::where('enabled_page_cache', true)
+            ->with(['media', 'translations', 'domain_aliases'])
+            ->get();
             foreach ($websites as $website) {
                 $domainArray[] = $website->domain;
                 $domainArray = array_merge($domainArray, $website->domain_aliases()->pluck('domain')->toArray());

@@ -14,9 +14,6 @@ return new class extends Migration
         if (!Schema::hasTable('contact_form_submissions')) {
             Schema::create('contact_form_submissions', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('website_id')->nullable()->constrained()->nullOnDelete(); // 3.1.10
-                $table->foreignId('contact_form_id')->nullable()->constrained()->nullOnDelete();
-
                 $table->string('status')->default('unread'); // unread | read | replied
                 $table->text('content')->nullable();
                 $table->timestamps();

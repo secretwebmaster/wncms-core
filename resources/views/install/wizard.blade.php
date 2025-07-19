@@ -107,8 +107,7 @@
                 @endif
             </div>
 
-            <input type="hidden" name="queue_driver" value="redis">
-            <input type="hidden" name="queue_connection" value="redis">
+            <input type="hidden" name="queue_connection" value="sync">
 
             <div class="form-group {{ $errors->has('redis_hostname') ? ' has-error ' : '' }}">
                 <label for="redis_hostname">@lang('wncms::installer.environment.wizard.form.app_tabs.redis_host')</label>

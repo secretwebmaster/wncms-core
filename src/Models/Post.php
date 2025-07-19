@@ -78,19 +78,14 @@ class Post extends WncmsModel implements HasMedia
 
 
     //! Relationship
-    public function websites()
-    {
-        return $this->belongsToMany(Website::class);
-    }
-
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(wncms()->getModelClass('user'));
     }
 
     public function comments()
     {
-        return $this->morphMany(Comment::class, 'commentable');
+        return $this->morphMany(wncms()->getModelClass('comment'), 'commentable');
     }
 
     /**
@@ -203,15 +198,14 @@ class Post extends WncmsModel implements HasMedia
         $status = 'published',
     )
     {
-        return wncms()->post()->getRelated(
-            post:$this,
-            tagType: $tagType,
-            count: $count,
-            pageSize: $pageSize,
-            order: $order,
-            sequence: $sequence,
-            status: $status,
-        );
+        return wncms()->post()->getRelated($this, [
+            'tag_type' => $tagType,
+            'count' => $count,
+            'pageSize' => $pageSize,
+            'order' => $order,
+            'sequence' => $sequence,
+            'status' => $status,
+        ]);
     }
     
     
@@ -332,14 +326,18 @@ class Post extends WncmsModel implements HasMedia
             $imageContents = file_get_contents($imageUrl);
 
             // Convert the image to .webp format
-            $webpImageContents = $this->convertToWebp($imageContents);
+            if(gss('convert_thumbnail_to_webp')){
+                $imageContents = $this->convertToWebp($imageContents);
+                $extension = 'webp';
+            }else{
+                $extension = pathinfo($imageUrl, PATHINFO_EXTENSION);
+            }
 
             $fileName = Str::random(16); 
-            $extension = 'webp';
 
 
             // Store the image in the media library using Spatie with the original file name
-            $media = $this->addMediaFromString($webpImageContents)
+            $media = $this->addMediaFromString($imageContents)
                 ->usingFileName("{$fileName}.{$extension}")
                 ->toMediaCollection('post_content'); // You can define your own collection name
 
@@ -445,16 +443,5 @@ class Post extends WncmsModel implements HasMedia
         }
 
         return $this;
-    }
-
-    // public function getAttribute($key)
-    // {
-    //     dd("getAttribute from Post Model");
-    // }
-    
-    //! Static
-    public static function getTagClassName(): string
-    {
-        return Tag::class;
     }
 }

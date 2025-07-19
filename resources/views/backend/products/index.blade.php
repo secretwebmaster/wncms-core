@@ -14,14 +14,14 @@
                 {{-- Filter by Type --}}
                 <div class="col-6 col-md-auto mb-3 ms-0">
                     <select name="type" class="form-select form-select-sm">
-                        <option value="">@lang('wncms::word.select_type')</option>
+                        <option value="">@lang('wncms::word.select_item', ['item_name' => __('wncms::word.type')])</option>
                         <option value="virtual" @if(request('type') == 'virtual') selected @endif>@lang('wncms::word.virtual')</option>
                         <option value="physical" @if(request('type') == 'physical') selected @endif>@lang('wncms::word.physical')</option>
                     </select>
                 </div>
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -56,7 +56,7 @@
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-nowrap mb-0">
+                <table class="table table-sm table-hover table-bordered align-middle text-nowrap mb-0">
 
                     {{-- thead --}}
                     <thead class="table-dark">

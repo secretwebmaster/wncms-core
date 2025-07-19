@@ -14,7 +14,7 @@ class Product extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'variants' => 'array',
-        'attributes' => 'array',
+        'properties' => 'array',
     ];
 
     public const ICONS = [
@@ -38,7 +38,7 @@ class Product extends Model
 
     public function orderItems()
     {
-        return $this->morphMany(OrderItem::class, 'item');
+        return $this->morphMany(wncms()->getModelClass('order_item'), 'item');
     }
 
     /**
@@ -46,6 +46,6 @@ class Product extends Model
      */
     public function prices()
     {
-        return $this->morphMany(Price::class, 'priceable');
+        return $this->morphMany(wncms()->getModelClass('price'), 'priceable');
     }
 }

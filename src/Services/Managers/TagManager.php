@@ -159,7 +159,7 @@ class TagManager extends ModelManager
         // Apply sorting (random disables ordering)
         $this->applyOrdering($q, $order, $sequence, $isRandom);
     
-        return $this->finalizeResult($q, $options);
+        return $q;
     }
 
     public function getArray(string $tagType = 'post_category', int $count = 0, string $columnName = 'name', string $keyName = null, array|string|null $tagIds = null): array
@@ -184,6 +184,7 @@ class TagManager extends ModelManager
         return $array;
     }
 
+    //TODO: Add cache support and allow to disable
     public function getTypes(array|string|null $tagIds = null): array
     {
         $q = $this->query()->select('type');

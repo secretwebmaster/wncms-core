@@ -27,7 +27,7 @@
                 <div class="col-6 col-md-auto mb-3 ms-0">
                     <select name="credit_type" class="form-select form-select-sm">
                         <option value="">@lang('wncms::word.select')@lang('wncms::word.credit_type')</option>
-                        @foreach($types as $type)
+                        @foreach($creditTypes as $type)
                             <option value="{{ $type }}" @if(request('credit_type') == $type) selected @endif>
                                 @lang('wncms::word.' . $type)
                             </option>
@@ -39,7 +39,7 @@
                 <div class="col-6 col-md-auto mb-3 ms-0">
                     <select name="transaction_type" class="form-select form-select-sm">
                         <option value="">@lang('wncms::word.select')@lang('wncms::word.transaction_type')</option>
-                        @foreach(['earn', 'spend', 'recharge', 'refund', 'adjustment'] as $type)
+                        @foreach($transactionTypes as $type)
                             <option value="{{ $type }}" @if(request('transaction_type') == $type) selected @endif>
                                 @lang('wncms::word.' . $type)
                             </option>
@@ -49,7 +49,7 @@
 
                 {{-- Submit --}}
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
         </form>
@@ -69,7 +69,7 @@
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-nowrap mb-0">
+                <table class="table table-sm table-hover table-bordered align-middle text-nowrap mb-0">
 
                     {{-- thead --}}
                     <thead class="table-dark">

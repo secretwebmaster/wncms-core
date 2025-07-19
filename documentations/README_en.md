@@ -4,6 +4,51 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## Changelog
 
+### v5.5.0 2025-07-19
+
+-   Replaced `getVersion()` with `addVersion()` in some backend Blade views
+-   Added `isActiveRoutes()` helper
+-   Fixed installation process halting after database migration
+-   Prevented duplicate models in sidebar when overriding `Wncms\Models` with `App\Models`
+-   Fixed custom resource pages not found in `PageController`
+-   Removed `click.js`; replaced with API integration
+-   Updated version number after fresh installation
+-   Queue connection is now set to `sync` by default instead of `redis`
+-   Delete actions now redirect back instead of returning the index page
+-   Rewrote `PageManager`
+-   Rewrote `UserManager`
+-   Fixed high memory usage on dashboard for large databases
+-   Cleaned up backend `PostController` code
+-   Allowed overriding backend views via app view paths before falling back to WNCMS views
+-   Developer hints are now hidden when input fields are of type `hidden`
+-   Fixed missing background color value for advertisements
+-   Merged create and edit form items in the backend contact form
+-   Removed `BulkDeleteTrait` (now integrated into `BackendController`)
+-   Removed `tags.index.type` route; integrated into `tags.index`
+-   Removed multisite option from menu
+-   Renamed product field `attribute` to `properties`
+-   Added support for custom search keywords
+-   Removed `traffic_log` and `click_log` Blade views
+-   Updated all model relationships to use `wncms()->getModelClass('xxx')`, allowing model overrides
+-   Updated `CreateModel` route structure to use `{id}` instead of `{modelName}`
+-   Updated controller stub to include `order by id desc`
+-   Improved backend website edit view; added domain alias sorting
+
+### v5.4.3 2025-07-17
+
+-   Backend link routes accept id instead of auto resolving model. Allow to use custom Link model.
+-   BackendController now become abstract class to maintain standard
+-   Add `name` support to ModelManager get() function $option variable
+-   Domain that not in the list will now share same cache will fallback website
+-   Automatically add ordering column in select to avoid sql error
+-   Eagar load website media on fallback website in WebsiteManager
+-   Rewrite TagManager where condition logic
+-   Update update log api route name to `api.v1.update.run`
+-   Update Link model description input field to textarea
+-   Clean up backend routes code. Remove starting slash
+-   Add abstract getModelClass() method to BackendController
+-   Remove AnalyticController
+
 ### v5.4.0 2025-05-01
 
 -   Fix issue where Card model status was not found

@@ -15,7 +15,6 @@ return new class extends Migration
             Schema::create('pages', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
-                $table->foreignId('website_id')->nullable()->constrained()->cascadeOnDelete();
 
                 $table->string('status')->default('published'); // published | drafted | trashed 
                 $table->string('visibility')->default('public'); // public | member | admin

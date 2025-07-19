@@ -332,11 +332,11 @@
                 @elseif($option['options'] == 'pages')
 
                     @php
-                        $pages = wncms()->page()->getList( websiteId:$website->id)->map(function ($page) {
+                        $pages = wncms()->page()->getList(['website_id' => $website->id])->map(function ($page) {
                             return ['value' => $page->id, 'name' => $page->title];
                         })->toArray();
 
-                        $currentPages =  wncms()->page()->getList(ids: explode("," , $currentValue), websiteId:$website->id)
+                        $currentPages =  wncms()->page()->getList(['ids' => explode("," , $currentValue), 'website_id' => $website->id])
                             ->pluck('title','id')
                             ->toArray();
 
@@ -345,7 +345,7 @@
                     @endphp
 
                     <input id="tagify_{{ $option_index }}" 
-                        class="form-control form-control-solid" 
+                        class="form-control form-control-sm p-0"
                         name="{{ $inputName }}"
                         value="{{ $currentValue }}"
                         @if(!empty($option['required'])) required @endif
@@ -472,7 +472,7 @@
                 @elseif($option['options'] == 'menus')
 
                     <input id="tagify_{{ $option_index }}" 
-                        class="form-control form-control-solid" 
+                        class="form-control form-control-sm p-0" 
                         name="{{ $inputName }}"
                         value="@if(!empty($current_options[$option['name']]) && $current_options[$option['name']]){{ wncms_get_menus($current_options[$option['name']], $website)->pluck('name')->implode(',') ?? '' }}@endif"
                         @if(!empty($option['required'])) required @endif

@@ -3,15 +3,9 @@
 namespace Wncms\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
-use Wncms\Models\Tag;
 
 class LinkController extends BackendController
 {
-    protected function getModelClass(): string
-    {
-        return config('wncms.models.link', \Wncms\Models\Link::class);
-    }
-
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
@@ -20,7 +14,7 @@ class LinkController extends BackendController
             $yesterday = now()->subDay()->toDateString();
             $q->leftJoin('total_views as tv_y', function ($join) use ($yesterday) {
                 $join->on('links.id', '=', 'tv_y.link_id')
-                     ->where('tv_y.date', $yesterday);
+                    ->where('tv_y.date', $yesterday);
             });
             $q->orderByDesc('tv_y.total');
         }
@@ -55,9 +49,9 @@ class LinkController extends BackendController
 
         $links = $q->paginate($request->page_size ?? 100);
 
-        $parentLinkCategories = Tag::where('type', 'link_category')->whereNull('parent_id')->get()->unique();
-        // dd($parentLinkCategories);
-        return view('wncms::backend.links.index', [
+        $parentLinkCategories = wncms()->getModelClass('tag')::where('type', 'link_category')->whereNull('parent_id')->get()->unique();
+
+        return $this->view('backend.links.index', [
             'page_title' =>  wncms_model_word('link', 'management'),
             'links' => $links,
             'statuses' => $this->modelClass::STATUSES,
@@ -66,18 +60,18 @@ class LinkController extends BackendController
         ]);
     }
 
-    public function create(?int $id = null)
+    public function create($id = null)
     {
         if ($id) {
             $link = $this->modelClass::find($id);
             if (!$link) {
-                return redirect()->route('links.index')->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.link')]));
+                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.link')]));
             }
         } else {
-            $link = new $this->modelClass();
+            $link = new $this->modelClass;
         }
 
-        return view('wncms::backend.links.create', [
+        return $this->view('backend.links.create', [
             'page_title' =>  wncms_model_word('link', 'management'),
             'link' => $link,
             'statuses' => $this->modelClass::STATUSES,
@@ -123,7 +117,7 @@ class LinkController extends BackendController
         if (!empty($request->link_icon_remove)) {
             $link->clearMediaCollection('link_icon');
         }
-    
+
         if (!empty($request->link_icon)) {
             $link->addMediaFromRequest('link_icon')->toMediaCollection('link_icon');
         }
@@ -141,9 +135,12 @@ class LinkController extends BackendController
 
     public function edit($id)
     {
-        $link = $this->modelClass::findOrFail($id);
-    
-        return view('wncms::backend.links.edit', [
+        $link = $this->modelClass::find($id);
+        if (!$link) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.link')]));
+        }
+
+        return $this->view('backend.links.edit', [
             'page_title' => wncms_model_word('link', 'management'),
             'link' => $link,
             'statuses' => $this->modelClass::STATUSES,
@@ -152,8 +149,11 @@ class LinkController extends BackendController
 
     public function update(Request $request, $id)
     {
-        $link = $this->modelClass::findOrFail($id);
-    
+        $link = $this->modelClass::find($id);
+        if (!$link) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.link')]));
+        }
+
         $link->update([
             'status' => $request->status,
             'tracking_code' => $request->tracking_code ?? $link->tracking_code,
@@ -174,75 +174,39 @@ class LinkController extends BackendController
             'clicks' => $request->clicks,
             'contact' => $request->contact,
         ]);
-    
+
         // thumbnail
         if (!empty($request->link_thumbnail_remove)) {
             $link->clearMediaCollection('link_thumbnail');
         }
-    
+
         if (!empty($request->link_thumbnail)) {
             $link->addMediaFromRequest('link_thumbnail')->toMediaCollection('link_thumbnail');
         }
-    
+
         // icon
         if (!empty($request->link_icon_remove)) {
             $link->clearMediaCollection('link_icon');
         }
-    
+
         if (!empty($request->link_icon)) {
             $link->addMediaFromRequest('link_icon')->toMediaCollection('link_icon');
         }
-    
+
         // tags
         if (method_exists($link, 'syncTagsFromTagify')) {
             $link->syncTagsFromTagify($request->link_categories, 'link_category');
             $link->syncTagsFromTagify($request->link_tags, 'link_tag');
         }
-    
+
         wncms()->cache()->flush(['links']);
-    
+
         return redirect()->route('links.edit', ['id' => $link->id])
             ->withMessage(__('wncms::word.successfully_updated'));
-    }
-    
-    public function destroy($id)
-    {
-        $link = $this->modelClass::find($id);
-    
-        if (!$link) {
-            return redirect()->route('links.index')
-                ->withMessage(__('wncms::word.model_not_found', [
-                    'model_name' => wncms_model_word('link')
-                ]));
-        }
-    
-        $link->delete();
-    
-        return redirect()->route('links.index')
-            ->withMessage(__('wncms::word.successfully_deleted'));
-    }
-    
-    public function bulk_delete(Request $request)
-    {
-        $modelIds = is_array($request->model_ids)
-            ? $request->model_ids
-            : explode(',', (string) $request->model_ids);
-
-        $count = 0;
-        if (!empty($modelIds)) {
-            $count = $this->modelClass::whereIn('id', $modelIds)->delete();
-        }
-    
-        $message = __('wncms::word.successfully_deleted_count', ['count' => $count]);
-
-        return $request->ajax()
-        ? response()->json(['status' => 'success', 'message' => $message])
-        : redirect()->route('links.index')->withMessage($message);
     }
 
     public function bulk_update_order(Request $request)
     {
-        info($request->all());
         $count = 0;
         foreach ($request->data as $linkData) {
             $link = $this->modelClass::find($linkData['id']);

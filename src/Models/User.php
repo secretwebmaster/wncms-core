@@ -44,8 +44,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()
-            ->logOnly(['username']);
+        return LogOptions::defaults()->logOnly(['username']);
         // Chain fluent methods for configuration options
     }
 
@@ -63,43 +62,42 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     //! Relationships
     public function comments()
     {
-        return $this->hasMany(Comment::class);
+        return $this->hasMany(wncms()->getModelClass('comment'));
     }
 
     public function pages()
     {
-        return $this->hasMany(Page::class);
+        return $this->hasMany(wncms()->getModelClass('page'));
     }
 
     public function posts()
     {
-        $model = config('wncms.default_post_model', Post::class);
-        return $this->hasMany($model);
+        return $this->hasMany(wncms()->getModelClass('post'));
     }
 
     public function websites()
     {
-        return $this->belongsToMany(Website::class);
+        return $this->belongsToMany(wncms()->getModelClass('website'));
     }
 
     public function emails_received()
     {
-        return $this->hasMany(Email::class, 'to_user_id', 'id');
+        return $this->hasMany(wncms()->getModelClass('email'), 'to_user_id', 'id');
     }
 
     public function credits()
     {
-        return $this->hasMany(Credit::class);
+        return $this->hasMany(wncms()->getModelClass('credit'));
     }
 
     public function subscriptions()
     {
-        return $this->hasMany(Subscription::class);
+        return $this->hasMany(wncms()->getModelClass('subscription'));
     }
 
     public function orders()
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(wncms()->getModelClass('order'));
     }
 
 

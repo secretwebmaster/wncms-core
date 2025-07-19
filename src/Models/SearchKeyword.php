@@ -19,16 +19,11 @@ class SearchKeyword extends Model
 
     public const ROUTES = [
         'index',
+        'create',
     ];
 
-    public function website()
-    {
-        return $this->belongsTo(Website::class);
-    }
-
-    public static function add($keyword, Website $website = null){
-        $website = $website ?? wn('website')->get();
-        $search_keyword = $website->search_keywords()->firstOrCreate([
+    public static function add($keyword){
+        $search_keyword = self::firstOrCreate([
             'keyword' => $keyword,
         ]);
         $search_keyword->increment('count');

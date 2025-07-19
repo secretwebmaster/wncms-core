@@ -26,7 +26,7 @@
                 </div>
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -61,7 +61,7 @@
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-nowrap mb-0">
+                <table class="table table-sm table-hover table-bordered align-middle text-nowrap mb-0">
 
                     {{-- thead --}}
                     <thead class="table-dark">
@@ -75,10 +75,11 @@
                             <th>@lang('wncms::word.action')</th>
                             <th>@lang('wncms::word.id')</th>
                             <th>@lang('wncms::word.order_id')</th>
-                            <th>@lang('wncms::word.transaction_id')</th>
-                            <th>@lang('wncms::word.amount')</th>
                             <th>@lang('wncms::word.status')</th>
+                            <th>@lang('wncms::word.amount')</th>
                             <th>@lang('wncms::word.payment_method')</th>
+                            <th>@lang('wncms::word.ref_id')</th>
+                            <th>@lang('wncms::word.is_fraud')</th>
                             <th>@lang('wncms::word.created_at')</th>
 
                             @if(request()->show_detail)
@@ -106,10 +107,11 @@
                                 {{-- Data --}}
                                 <td>{{ $transaction->id }}</td>
                                 <td>{{ $transaction->order_id }}</td>
-                                <td>{{ $transaction->transaction_id ?? '-' }}</td>
-                                <td>{{ number_format($transaction->amount, 2) }}</td>
                                 <td>@lang('wncms::word.' . $transaction->status)</td>
+                                <td>{{ number_format($transaction->amount, 2) }}</td>
                                 <td>{{ $transaction->payment_method ?? '-' }}</td>
+                                <td>{{ $transaction->ref_id ?? '-' }}</td>
+                                <td>@include('wncms::common.table_is_active', ['model' => $transaction, 'attribute' => 'is_fraud'])</td>
                                 <td>{{ $transaction->created_at }}</td>
 
                                 @if(request()->show_detail)

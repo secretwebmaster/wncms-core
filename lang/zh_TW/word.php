@@ -2117,6 +2117,37 @@ $words = [
     // 5.4.3
     'model_not_found' => '找不到:model_name',
 
+    // 5.5.0
+    'success_action' => '成功操作',
+    'fail_action' => '操作失敗',
+    'bulk_created_successfully' => '成功批量創建項目',
+    'bulk_created_successfully_count' => '成功批量創建 :count 個項目',
+    'successfully_created_or_updated' => '成功創建或更新項目',
+    'menu_create_hint' => '請輸入菜單名稱，點擊新增後，在下一步選擇要添加的項目',
+    'order_itemable_type' => '訂單項目類型',
+    'order_itemable_id' => '訂單項目ID',
+    'select_item' => '選擇:item_name',
+    'attribute' => '屬性',
+    'inline' => '內聯',
+    'add_attribute' => '新增屬性',
+    'no_attributes' => '沒有屬性',
+    'upload_plugin' => '上傳插件',
+    'field_should_not_exceed' => ':field_name 不可超過 :value。',
+    'successfully_restored' => '成功還原',
+    'is_variable' => '可變',
+    'variants' => '變體',
+    'properties' => '屬性',
+    'user_required' => '使用者為必填項目',
+    'plan_required' => '方案為必填項目',
+    'subscribed_at_required' => '訂閱時間為必填項目',
+    'expired_after_subscribed' => '到期時間必須晚於訂閱時間',
+    'status_required' => '狀態為必填項目',
+    'payment_gateway_id' => '支付網關ID',
+    'coupon_id' => '優惠券ID',
+    'is_fraud' => '是否欺詐',
+    'show_credits' => '顯示積分',
+    'field_should_be_integer' => ':field_name 必須是整數。',
+    'alphabetic' => '字母',
 ];
 
 $locale = basename(__DIR__);

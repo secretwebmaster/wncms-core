@@ -14,7 +14,6 @@ return new class extends Migration
         if (!Schema::hasTable('faqs')) {
             Schema::create('faqs', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('website_id')->constrained()->cascadeOnDelete();
                 $table->string('status')->default('published'); // published | drafted 
                 $table->string('slug');
                 $table->string('question');

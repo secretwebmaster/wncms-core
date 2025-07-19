@@ -43,7 +43,7 @@ class ContactFormOption extends Model
 
     public function contact_form()
     {
-        return $this->belongsToMany(ContactForm::class, 'contact_form_option_relationship', 'option_id', 'form_id');
+        return $this->belongsToMany(wncms()->getModelClass('contact_form'), 'contact_form_option_relationship', 'option_id', 'form_id');
     }
 
 }

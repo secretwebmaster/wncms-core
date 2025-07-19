@@ -14,10 +14,10 @@
 
         {{-- CSS --}}
         {{-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/> --}}
-        <link rel="stylesheet" href="{{ asset('wncms/plugins/global/plugins.bundle.css?v=' . $wncms->getVersion('css')) }}" type="text/css">
-        <link rel="stylesheet" href="{{ asset('wncms/css/style.bundle.css?v=' . $wncms->getVersion('css')) }}" type="text/css">
+        <link rel="stylesheet" href="{{ asset('wncms/plugins/global/plugins.bundle.css' . $wncms->addVersion('css')) }}" type="text/css">
+        <link rel="stylesheet" href="{{ asset('wncms/css/style.bundle.css' . $wncms->addVersion('css')) }}" type="text/css">
         @stack('head_css')
-        <link rel="stylesheet" href="{{ asset('wncms/css/core.css?v=' . $wncms->getVersion('css')) }}" type="text/css">
+        <link rel="stylesheet" href="{{ asset('wncms/css/core.css' . $wncms->addVersion('css')) }}" type="text/css">
 
         {{-- JS --}}
         @stack('head_js')
@@ -111,14 +111,14 @@
         {{-- JS --}}
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-        <script src="{{ asset('wncms/plugins/global/plugins.bundle.js?v=' . $wncms->getVersion('js')) }}"></script>
-        <script src="{{ asset('wncms/js/scripts.bundle.js?v=' . $wncms->getVersion('js')) }}"></script>
-        <script src="{{ asset('wncms/js/widgets.js?v=' . $wncms->getVersion('js')) }}"></script>
+        <script src="{{ asset('wncms/plugins/global/plugins.bundle.js' . $wncms->addVersion('js')) }}"></script>
+        <script src="{{ asset('wncms/js/scripts.bundle.js' . $wncms->addVersion('js')) }}"></script>
+        <script src="{{ asset('wncms/js/widgets.js' . $wncms->addVersion('js')) }}"></script>
         <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
-        <script src="{{ asset('wncms/js/main.js?v=' . $wncms->getVersion('js')) }}"></script>
+        <script src="{{ asset('wncms/js/main.js' . $wncms->addVersion('js')) }}"></script>
         <script src="{{ asset('wncms/js/lazysizes.min.js') }}"></script>
-        <script src="{{ asset('wncms/js/init.js?v='). $wncms->getVersion('js') }}"></script>
-        <script src="{{ asset('wncms/js/wncms.js?v='). $wncms->getVersion('js') }}"></script>
+        <script src="{{ asset('wncms/js/init.js'). $wncms->addVersion('js') }}"></script>
+        <script src="{{ asset('wncms/js/wncms.js'). $wncms->addVersion('js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
 
         @include('wncms::backend.common.check_for_update')

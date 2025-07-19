@@ -7,28 +7,32 @@ use Illuminate\Http\Request;
 
 class ParameterController extends BackendController
 {
-    public function getModelClass(): string
-    {
-        return config('wncms.models.parameter', \Wncms\Models\Parameter::class);
-    }
-
     public function index(Request $request)
     {
-        $q = Parameter::query();
-        
+        $q = $this->modelClass::query();
+
+        $q->orderBy('id', 'desc');
+
         $parameters = $q->paginate($request->page_size ?? 100);
 
-        return view('wncms::backend.parameters.index', [
+        return $this->view('backend.parameters.index', [
             'page_title' =>  wncms_model_word('parameter', 'management'),
             'parameters' => $parameters,
         ]);
     }
 
-    public function create(?Parameter $parameter)
+    public function create($id = null)
     {
-        $parameter ??= new Parameter;
+        if ($id) {
+            $parameter = $this->modelClass::find($id);
+            if (!$parameter) {
+                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+            }
+        } else {
+            $parameter = new $this->modelClass;
+        }
 
-        return view('wncms::backend.parameters.create', [
+        return $this->view('backend.parameters.create', [
             'page_title' =>  wncms_model_word('parameter', 'management'),
             'parameter' => $parameter,
         ]);
@@ -38,30 +42,39 @@ class ParameterController extends BackendController
     {
         // dd($request->all());
 
-        $parameter = Parameter::create([
+        $parameter = $this->modelClass::create([
             'name' => $request->name,
             'key' => $request->key,
             'remark' => $request->remark,
         ]);
 
-        wncms()->cache()->flush(['parameters']);
+        $this->flush();
 
         return redirect()->route('parameters.edit', [
             'parameter' => $parameter,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
-    public function edit(Parameter $parameter)
+    public function edit($id)
     {
-        return view('wncms::backend.parameters.edit', [
+        $parameter = $this->modelClass::find($id);
+        if (!$parameter) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
+        return $this->view('backend.parameters.edit', [
             'page_title' =>  wncms_model_word('parameter', 'management'),
             'parameter' => $parameter,
         ]);
     }
 
-    public function update(Request $request, Parameter $parameter)
+    public function update(Request $request, $id)
     {
         // dd($request->all());
+        $parameter = $this->modelClass::find($id);
+        if (!$parameter) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
 
         $parameter->update([
             'name' => $request->name,
@@ -69,36 +82,10 @@ class ParameterController extends BackendController
             'remark' => $request->remark,
         ]);
 
-        wncms()->cache()->flush(['parameters']);
-        
+        $this->flush();
+
         return redirect()->route('parameters.edit', [
             'parameter' => $parameter,
         ])->withMessage(__('wncms::word.successfully_updated'));
-    }
-
-    public function destroy(Parameter $parameter)
-    {
-        $parameter->delete();
-        return redirect()->route('parameters.index')->withMessage(__('wncms::word.successfully_deleted'));
-    }
-
-    public function bulk_delete(Request $request)
-    {
-        if(!is_array($request->model_ids)){
-            $modelIds = explode(",", $request->model_ids);
-        }else{
-            $modelIds = $request->model_ids;
-        }
-
-        $count = Parameter::whereIn('id', $modelIds)->delete();
-
-        if($request->ajax()){
-            return response()->json([
-                'status' => 'success',
-                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
-            ]);
-        }
-
-        return redirect()->route('parameters.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
     }
 }

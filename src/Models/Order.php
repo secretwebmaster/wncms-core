@@ -4,7 +4,6 @@ namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Wncms\Facades\Wncms;
 
 class Order extends Model
 {
@@ -38,13 +37,21 @@ class Order extends Model
         'failed',
     ];
 
+    public const ORDERS = [
+        'id',
+        'created_at',
+        'updated_at',
+        'status',
+        'total_amount',
+    ];
+
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
             do {
-                $slug = Wncms::getUniqueSlug('orders', 'slug', 12, 'upper', 'ORD-');
+                $slug = wncms()->getUniqueSlug('orders', 'slug', 12, 'upper', 'ORD-');
             } while (self::where('slug', $slug)->exists());
 
             $model->slug = $slug;
@@ -53,21 +60,21 @@ class Order extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(wncms()->getModelClass('user'));
     }
 
     public function order_items()
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->hasMany(wncms()->getModelClass('order_item'));
     }
 
     public function transactions()
     {
-        return $this->hasMany(Transaction::class);
+        return $this->hasMany(wncms()->getModelClass('transaction'));
     }
 
     public function payment_gateway()
     {
-        return $this->belongsTo(PaymentGateway::class);
+        return $this->belongsTo(wncms()->getModelClass('payment_gateway'));
     }
 }

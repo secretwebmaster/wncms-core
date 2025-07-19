@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -233,7 +233,7 @@
             </div>
         </div>
 
-        <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#modal_mulk_set_website">@lang('wncms::word.bulk_set_website')</button>
+        {{-- <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#modal_mulk_set_website">@lang('wncms::word.bulk_set_website')</button>
         <div class="modal fade" tabindex="-1" id="modal_mulk_set_website">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -271,7 +271,7 @@
                     </form>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         {{-- one_click_create_demo_posts --}}
         <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#one_click_create_demo_posts">@lang('wncms::word.one_click_create_demo_posts')</button>
@@ -343,7 +343,7 @@
 <div class="card card-flush rounded overflow-hidden">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-bordered table-sm table-hover align-middle text-nowrap mb-0">
+            <table class="table table-bordered table-xs table-hover align-middle text-nowrap mb-0">
                 <thead class="table-dark">
                     <tr class="fw-bold gs-0">
                         <th class="w-10px pe-2">
@@ -354,7 +354,7 @@
                         <th>@lang('wncms::word.action')</th>
                         <th>@lang('wncms::word.id')</th>
                         <th>@lang('wncms::word.user')</th>
-                        <th>@lang('wncms::word.website') <a href="javascript:;" title="@lang('wncms::word.preview_the_post_on_specific_domain')"><i class="fa-regular fa-circle-question"></i></a></th>
+                        {{-- <th>@lang('wncms::word.website') <a href="javascript:;" title="@lang('wncms::word.preview_the_post_on_specific_domain')"><i class="fa-regular fa-circle-question"></i></a></th> --}}
                         <th>@lang('wncms::word.status')</th>
                         {{-- <th>@lang('wncms::word.is_trashed')</th> --}}
 
@@ -403,11 +403,11 @@
                             </td>
                             <td>{{ $post->id }}</td>
                             <td>{{ $post->user?->username }}</td>
-                            <td>
+                            {{-- <td>
                                 @foreach($post->websites as $website)
                                 <span title="{{ $website->domain }}"><a href="{{ $wncms->getRoute('frontend.posts.single', ['slug' => $post->slug], false, $website->domain) }}" target="_blank">#{{$website->id}}</a></span>
                                 @endforeach
-                            </td>
+                            </td> --}}
                             <td>@include('wncms::common.table_status', ['model' => $post])</td>
                             {{-- <td>@if($post->trashed()) <span class="badge badge-danger">@lang('wncms::word.trashed')</span>@endif</td> --}}
 

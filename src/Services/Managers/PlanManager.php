@@ -3,12 +3,10 @@
 namespace Wncms\Services\Managers;
 
 use Wncms\Facades\Wncms;
-use Wncms\Models\Plan;
-use Wncms\Models\Price;
 
 class PlanManager
 {
-    public function calculateExpiredAt(Price $price, $from = null)
+    public function calculateExpiredAt($price, $from = null)
     {
         if($price->is_lifetime){
             return null;
@@ -28,14 +26,7 @@ class PlanManager
         };
     }
 
-    /**
-     * Subscribe a user to a plan
-     * @param User $user
-     * @param Plan $plan
-     * @param Price $price
-     * @return Subscription
-     */
-    public function subscribe($user, Plan $plan, Price $price)
+    public function subscribe($user, $plan, $price)
     {
         // check if user has an subscription to this plan but with different duration
         $existingSubscription = $user->subscriptions()->where('plan_id', $plan->id)->where('price_id', '!=', $price->id)->where('status', 'active')->first();
@@ -62,10 +53,11 @@ class PlanManager
 
     public function unsubscribe($user, $subscription)
     {
-        if(!$subscription instanceof Subscription) {
+        $subscriptionClass = wncms()->getModelClass('subscription');
+
+        if (!($subscription instanceof $subscriptionClass)) {
             $subscription = $user->subscriptions()->find($subscription);
         }
-
         if (!$subscription) {
             return response()->json(['error' => 'Subscription not found'], 404);
         }
@@ -87,7 +79,7 @@ class PlanManager
     /**
      * Check if a user can subscribe to a plan
      */
-    public function canSubscribe($user, Plan $plan, Price $price)
+    public function canSubscribe($user, $plan, $price)
     {
         // check if user already subscribed to this plan
         if ($user->subscriptions()->where('plan_id', $plan->id)->where('price_id', $price->id)->where('status', 'active')->exists()) {
@@ -104,12 +96,10 @@ class PlanManager
 
     /**
      * Create a new plan
-     * @param array $data
-     * @return Plan
      */
     public function create($data)
     {
-        $plan = Plan::create([
+        $plan = wncms()->getModelClass('plan')::create([
             'name' => $data['name'],
             'slug' => Wncms::getUniqueSlug('plans'),
             'description' => $data['description'],
@@ -135,11 +125,8 @@ class PlanManager
 
     /**
      * Update a plan
-     * @param Plan $plan
-     * @param array $data
-     * @return Plan
      */
-    public function update(Plan $plan, $data)
+    public function update($plan, $data)
     {
         $plan->update([
             'name' => $data['name'],

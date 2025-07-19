@@ -37,8 +37,20 @@
 
                 {{-- Submit --}}
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
+            </div>
+
+                        {{-- Checkboxes --}}
+            <div class="d-flex flex-wrap">
+                @foreach(['show_detail'] as $show)
+                    <div class="mb-3 ms-0">
+                        <div class="form-check form-check-sm form-check-custom me-2">
+                            <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
+                            <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </form>
     </div>
@@ -52,13 +64,13 @@
     </div>
 
     {{-- Showing Items --}}
-    @include('wncms::backend.common.showing_item_of_total', ['models' => $orders])
+    @include('wncms::backend.common.showing_item_of_total', ['models' => $userOrders])
 
     {{-- Model Data --}}
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-nowrap mb-0">
+                <table class="table table-sm table-hover table-bordered align-middle text-nowrap mb-0">
 
                     {{-- thead --}}
                     <thead class="table-dark">
@@ -76,8 +88,20 @@
                             <th>@lang('wncms::word.status')</th>
                             <th>@lang('wncms::word.total_amount')</th>
                             <th>@lang('wncms::word.payment_method')</th>
-                            <th>@lang('wncms::word.created_at')</th>
                             @if(request()->show_detail)
+                            <th>@lang('wncms::word.payment_gateway_id')</th>
+                            <th>@lang('wncms::word.tracking_code')</th>
+                            @endif
+                            <th>@lang('wncms::word.created_at')</th>
+                            <th>@lang('wncms::word.remark')</th>
+                            @if(request()->show_detail)
+                                <th>@lang('wncms::word.coupon_id')</th>
+                                <th>@lang('wncms::word.original_amount')</th>
+                                <th>@lang('wncms::word.email')</th>
+                                <th>@lang('wncms::word.nickname')</th>
+                                <th>@lang('wncms::word.tel')</th>
+                                <th>@lang('wncms::word.address')</th>
+                                <th>@lang('wncms::word.password')</th>
                                 <th>@lang('wncms::word.updated_at')</th>
                             @endif
                         </tr>
@@ -85,7 +109,7 @@
 
                     {{-- tbody --}}
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">
-                        @foreach($orders as $order)
+                        @foreach($userOrders as $order)
                             <tr>
                                 {{-- Checkboxes --}}
                                 <td>
@@ -104,12 +128,28 @@
                                 <td>{{ $order->id }}</td>
                                 <td>{{ $order->slug }}</td>
                                 <td>{{ $order->user->username ?? '-' }}</td>
-                                <td>@lang('wncms::word.' . $order->status)</td>
+                                <td>
+                                    @include('wncms::common.table_status', ['model' => $order])
+                                </td>
                                 <td>{{ number_format($order->total_amount, 2) }}</td>
                                 <td>{{ $order->payment_method ?? '-' }}</td>
-                                <td>{{ $order->created_at->format('Y-m-d H:i') }}</td>
 
                                 @if(request()->show_detail)
+                                    <td>{{ $order->payment_gateway_id ?? '-' }}</td>
+                                    <td>{{ $order->tracking_code ?? '-' }}</td>
+                                @endif
+
+                                <td>{{ $order->created_at->format('Y-m-d H:i') }}</td>
+                                <td>{{ $order->remark ?? '-' }}</td>
+
+                                @if(request()->show_detail)
+                                    <td>{{ $order->coupon_id ?? '-' }}</td>
+                                    <td>{{ number_format($order->original_amount, 2) }}</td>
+                                    <td>{{ $order->email ?? '-' }}</td>
+                                    <td>{{ $order->nickname ?? '-' }}</td>
+                                    <td>{{ $order->tel ?? '-' }}</td>
+                                    <td>{{ $order->address ?? '-' }}</td>
+                                    <td>{{ $order->password ?? '-' }}</td>
                                     <td>{{ $order->updated_at->format('Y-m-d H:i') }}</td>
                                 @endif
                             </tr>
@@ -122,11 +162,11 @@
     </div>
 
     {{-- Showing Items --}}
-    @include('wncms::backend.common.showing_item_of_total', ['models' => $orders])
+    @include('wncms::backend.common.showing_item_of_total', ['models' => $userOrders])
 
     {{-- Pagination --}}
     <div class="mt-5">
-        {{ $orders->withQueryString()->links() }}
+        {{ $userOrders->withQueryString()->links() }}
     </div>
 
 @endsection

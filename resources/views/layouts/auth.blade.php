@@ -29,7 +29,7 @@
             }
         </style>
         @stack('head_css')
-        <link rel="stylesheet" href="{{ asset('wncms/css/core.css?v=' . $wncms->getVersion('css')) }}" type="text/css">
+        <link rel="stylesheet" href="{{ asset('wncms/css/core.css' . $wncms->addVersion('css')) }}" type="text/css">
 
         {{-- JS --}}
         @stack('head_js')
@@ -78,10 +78,10 @@
 
         {{-- JS --}}
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="{{ asset('wncms/plugins/global/plugins.bundle.js?v='). $wncms->getVersion('js') }}"></script>
-        <script src="{{ asset('wncms/js/scripts.bundle.js?v=') . $wncms->getVersion('js') }}"></script>
-        <script src="{{ asset('wncms/js/widgets.js?v=') . $wncms->getVersion('js') }}"></script>
-        <script src="{{ asset('wncms/js/wncms.js?v=') . $wncms->getVersion('js') }}"></script>
+        <script src="{{ asset('wncms/plugins/global/plugins.bundle.js'). $wncms->addVersion('js') }}"></script>
+        <script src="{{ asset('wncms/js/scripts.bundle.js') . $wncms->addVersion('js') }}"></script>
+        <script src="{{ asset('wncms/js/widgets.js') . $wncms->addVersion('js') }}"></script>
+        <script src="{{ asset('wncms/js/wncms.js') . $wncms->addVersion('js') }}"></script>
 
         @stack('foot_js')
 

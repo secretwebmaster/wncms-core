@@ -522,14 +522,14 @@
         <div class="card mt-5">
             <div class="card-body p-2 p-md-5">
                 {{-- website_id --}}
-                <div class="form-item mb-3">
+                {{-- <div class="form-item mb-3">
                     <label class="form-label required fw-bold fs-6">@lang('wncms::word.website')</label>
                     <select name="website_id" class="form-select form-select-sm" required>
                         @foreach($websites as $_website)
                         <option value="{{ $_website->id }}" @if($_website->id == $page->website?->id) selected @elseif(($_website->id != $page->website?->id) && wncms()->isSelectedWebsite($_website)) selected @endif>#{{ $_website->id }} {{ $_website->domain }}</option>
                         @endforeach
                     </select>
-                </div>
+                </div> --}}
 
                 {{-- user_id --}}
                 <div class="form-item mb-3">

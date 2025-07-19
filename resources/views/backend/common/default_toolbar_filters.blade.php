@@ -11,6 +11,12 @@
     </div>
 @endif
 
+{{-- example_id --}}
+{{-- <div class="d-flex align-items-center col-12 col-md-auto mb-3 ms-0 me-1">
+    <input type="text" name="example_id" value="{{ request()->example_id }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.example_id')" />
+</div> --}}
+
+
 {{-- statuses --}}
 @if(empty($hideToolbarStatusFiller) && !empty($statuses))
     <div class="col-6 col-md-auto mb-3 ms-0">

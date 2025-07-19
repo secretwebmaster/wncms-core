@@ -34,7 +34,7 @@ class ContactForm extends Model
 
     public function options()
     {
-        return $this->belongsToMany(ContactFormOption::class, 'contact_form_option_relationship', 'form_id', 'option_id')->withPivot('order', 'is_required');
+        return $this->belongsToMany(wncms()->getModelClass('contact_form_option'), 'contact_form_option_relationship', 'form_id', 'option_id')->withPivot('order', 'is_required');
     }
 
     public function getOptionDisplayName($fieldName)

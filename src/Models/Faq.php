@@ -44,12 +44,4 @@ class Faq extends Model
         'active',
         'inactive',
     ];
-
-
-    //! Relationship
-    public function website()
-    {
-        return $this->belongsTo(Website::class);
-    }
-
 }

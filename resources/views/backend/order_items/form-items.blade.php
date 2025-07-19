@@ -14,20 +14,27 @@
             </select>
         </div>
     </div>
-
+    
     {{-- Item Type --}}
     <div class="row mb-3">
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="order_itemable_type">@lang('wncms::word.order_itemable_type')</label>
         <div class="col-lg-9 fv-row">
-            <input id="order_itemable_type" type="text" name="order_itemable_type" class="form-control form-control-sm" value="{{ old('order_itemable_type', $orderItem->order_itemable_type ?? null) }}" required />
+            <select id="order_itemable_type" name="order_itemable_type" class="form-select form-select-sm" required>
+                <option value="">@lang('wncms::word.please_select')</option>
+                @foreach($itemTypes ?? [] as $itemType)
+                    <option value="{{ $itemType }}" {{ $itemType === old('order_itemable_type', $orderItem->order_itemable_type ?? null) ? 'selected' : '' }}>
+                        {{ $itemType }}
+                    </option>
+                @endforeach
+            </select>
         </div>
     </div>
 
     {{-- Item ID --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="order_itemable_type">@lang('wncms::word.order_itemable_type')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="order_itemable_id">@lang('wncms::word.order_itemable_id')</label>
         <div class="col-lg-9 fv-row">
-            <input id="order_itemable_type" type="number" name="order_itemable_type" class="form-control form-control-sm" value="{{ old('order_itemable_type', $orderItem->order_itemable_type ?? null) }}" required />
+            <input id="order_itemable_id" type="number" name="order_itemable_id" class="form-control form-control-sm" value="{{ old('order_itemable_id', $orderItem->order_itemable_id ?? null) }}" required />
         </div>
     </div>
 
@@ -39,19 +46,11 @@
         </div>
     </div>
 
-    {{-- Price --}}
+    {{-- Amount --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="price">@lang('wncms::word.price')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="amount">@lang('wncms::word.price')</label>
         <div class="col-lg-9 fv-row">
-            <input id="price" type="number" name="price" class="form-control form-control-sm" step="0.01" value="{{ old('price', $orderItem->price ?? 0) }}" required />
-        </div>
-    </div>
-
-    {{-- Total --}}
-    <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="total">@lang('wncms::word.total')</label>
-        <div class="col-lg-9 fv-row">
-            <input id="total" type="number" name="total" class="form-control form-control-sm" step="0.01" value="{{ old('total', $orderItem->total ?? 0) }}" required />
+            <input id="amount" type="number" name="amount" class="form-control form-control-sm" step="0.01" value="{{ old('amount', $orderItem->amount ?? 0) }}" required />
         </div>
     </div>
 </div>

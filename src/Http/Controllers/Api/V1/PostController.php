@@ -5,8 +5,6 @@ namespace Wncms\Http\Controllers\Api\V1;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Wncms\Http\Controllers\Api\V1\ApiController;
-use Wncms\Models\User;
-use Wncms\Models\Website;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Wncms\Http\Resources\PostResource;
 
@@ -69,7 +67,7 @@ class PostController extends ApiController
         }
 
         // Validate and authenticate
-        $user = User::where('api_token', $request->api_token)->first();
+        $user = wncms()->getModelClass('user')::where('api_token', $request->api_token)->first();
         if (!$user) {
             return response()->json(['status' => 'fail', 'message' => 'Invalid token']);
         }
@@ -81,7 +79,7 @@ class PostController extends ApiController
             : explode(',', $request->website_id);
 
         $websiteIds = isAdmin()
-            ? Website::query()->whereIn('id', $websiteIds)->orWhereIn('domain', $websiteIds)->pluck('id')->toArray()
+            ? wncms()->getModelClass('website')::query()->whereIn('id', $websiteIds)->orWhereIn('domain', $websiteIds)->pluck('id')->toArray()
             : auth()->user()->websites()->whereIn('id', $websiteIds)->orWhereIn('domain', $websiteIds)->pluck('id')->toArray();
 
         if (!$user) {

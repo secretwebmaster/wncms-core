@@ -2,45 +2,48 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
-use Wncms\Models\Card;
-use Wncms\Models\Plan;
 use Illuminate\Http\Request;
-use Wncms\Facades\Wncms;
 
-class CardController extends Controller
+class CardController extends BackendController
 {
     public function index(Request $request)
     {
-        $q = Card::query();
-    
+        $q = $this->modelClass::query();
+
         if ($request->filled('status')) {
             $q->where('status', $request->status);
         }
-    
+
         if ($request->filled('type')) {
             $q->where('type', $request->type);
         }
-    
+
         $cards = $q->paginate($request->page_size ?? 100);
-    
-        return view('wncms::backend.cards.index', [
+
+        return $this->view('backend.cards.index', [
             'page_title' => wncms_model_word('card', 'management'),
             'cards' => $cards,
-            'statuses' => Card::STATUSES, // Passing statuses from the enum
+            'statuses' => $this->modelClass::STATUSES, // Passing statuses from the enum
         ]);
     }
 
-    public function create(?Card $card = null)
+    public function create($id = null)
     {
-        $card ??= new Card;
-        $users = wncms()->getModel('user')->orderBy('username','asc')->get();
-        
-        return view('wncms::backend.cards.create', [
+        if ($id) {
+            $card = $this->modelClass::find($id);
+            if (!$card) {
+                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+            }
+        } else {
+            $card = new $this->modelClass;
+        }
+        $users = wncms()->getModel('user')->orderBy('username', 'asc')->get();
+
+        return $this->view('backend.cards.create', [
             'page_title' => wncms_model_word('card', 'create'),
             'card' => $card,
             'users' => $users,
-            'plans' => Plan::all(),
+            'plans' => wncms()->getModelClass('plan')::all(),
         ]);
     }
 
@@ -58,28 +61,35 @@ class CardController extends Controller
             'status' => 'required|string|in:active,redeemed,expired',
         ]);
 
-        $card = Card::create($validated);
+        $card = $this->modelClass::create($validated);
 
-        wncms()->cache()->flush(['cards']);
+        $this->flush();
 
-        return redirect()->route('cards.edit', $card)
-            ->withMessage(__('wncms::word.successfully_created'));
+        return redirect()->route('cards.edit', $card)->withMessage(__('wncms::word.successfully_created'));
     }
 
-    public function edit(Card $card)
+    public function edit($id)
     {
-        $userModal = Wncms::getUserModelClass();
+        $card = $this->modelClass::find($id);
+        if (!$card) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
 
-        return view('wncms::backend.cards.edit', [
+        return $this->view('backend.cards.edit', [
             'page_title' => wncms_model_word('card', 'edit'),
             'card' => $card,
-            'users' => $userModal::all(),
-            'plans' => Plan::all(),
+            'users' => wncms()->getModelClass('user')::all(),
+            'plans' => wncms()->getModelClass('plan')::all(),
         ]);
     }
 
-    public function update(Request $request, Card $card)
+    public function update(Request $request, $id)
     {
+        $card = $this->modelClass::find($id);
+        if (!$card) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
         $validated = $request->validate([
             'code' => 'required|string|unique:cards,code,' . $card->id . '|max:255',
             'type' => 'required|string|in:credit,plan,product',
@@ -94,36 +104,10 @@ class CardController extends Controller
 
         $card->update($validated);
 
-        wncms()->cache()->flush(['cards']);
+        $this->flush();
 
         return redirect()->route('cards.edit', $card)
             ->withMessage(__('wncms::word.successfully_updated'));
-    }
-
-    public function destroy(Card $card)
-    {
-        $card->delete();
-        return redirect()->route('cards.index')->withMessage(__('wncms::word.successfully_deleted'));
-    }
-
-    public function bulk_delete(Request $request)
-    {
-        if(!is_array($request->model_ids)){
-            $modelIds = explode(",", $request->model_ids);
-        }else{
-            $modelIds = $request->model_ids;
-        }
-
-        $count = Card::whereIn('id', $modelIds)->delete();
-
-        if($request->ajax()){
-            return response()->json([
-                'status' => 'success',
-                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
-            ]);
-        }
-
-        return redirect()->route('cards.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
     }
 
     public function bulkCreate(Request $request)
@@ -135,7 +119,7 @@ class CardController extends Controller
             'product_id' => 'nullable|exists:products,id',
             'amount' => 'required|integer|min:1|max:1000', // Limit to 1000 for safety
         ]);
-    
+
         $cards = [];
         for ($i = 0; $i < $validated['amount']; $i++) {
             $cards[] = [
@@ -149,14 +133,12 @@ class CardController extends Controller
                 'updated_at' => now(),
             ];
         }
-    
-        Card::insert($cards);
-    
-        wncms()->cache()->flush(['cards']);
-    
-        return redirect()->route('cards.index')
-            ->withMessage(__('wncms::word.bulk_create_success', ['amount' => $validated['amount']]));
-    }
-    
 
+        $this->modelClass::insert($cards);
+
+        $this->flush();
+
+        return redirect()->route('cards.index')
+            ->withMessage(__('wncms::word.bulk_created_successfully_count', ['count' => $validated['amount']]));
+    }
 }

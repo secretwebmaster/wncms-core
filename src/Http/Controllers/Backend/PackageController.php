@@ -24,7 +24,7 @@ class PackageController extends Controller
             });
         }
 
-        return view('wncms::backend.packages.index', [
+        return $this->view('backend.packages.index', [
             'packages' => $packages,
             'page_title' => __('wncms::word.packages'),
         ]);

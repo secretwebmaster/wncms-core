@@ -11,14 +11,9 @@ use Illuminate\Http\Request;
 
 class ClickController extends BackendController
 {
-    public function getModelClass(): string
-    {
-        return config('wncms.models.click', \Wncms\Models\Click::class);
-    }
-
     public function index(Request $request)
     {
-        $q = Click::query();
+        $q = $this->modelClass::query();
 
         if ($request->name) {
             $q->where('name', $request->name);
@@ -97,10 +92,10 @@ class ClickController extends BackendController
         //     $chartCounts,
         // );
 
-        $clickableTypes = Click::pluck('clickable_type')->unique();
+        $clickableTypes = $this->modelClass::pluck('clickable_type')->unique();
         $channels = Channel::all();
 
-        return view('wncms::backend.clicks.index', [
+        return $this->view('backend.clicks.index', [
             'page_title' => wncms_model_word('click', 'management'),
             'clicks' => $clicks,
             'channels' => $channels,
@@ -109,80 +104,5 @@ class ClickController extends BackendController
             'chartLabels' => $chartLabels,
             'chartCounts' => $chartCounts,
         ]);
-    }
-
-
-    public function create(?Click $click)
-    {
-        $click ??= new Click;
-
-        return view('wncms::backend.clicks.create', [
-            'page_title' =>  wncms_model_word('click', 'management'),
-            'click' => $click,
-        ]);
-    }
-
-    public function store(Request $request)
-    {
-        dd($request->all());
-
-        $click = Click::create([
-            'xxxx' => $request->xxxx,
-        ]);
-
-        wncms()->cache()->flush(['clicks']);
-
-        return redirect()->route('clicks.edit', [
-            'click' => $click,
-        ])->withMessage(__('wncms::word.successfully_created'));
-    }
-
-    public function edit(Click $click)
-    {
-        return view('wncms::backend.clicks.edit', [
-            'page_title' =>  wncms_model_word('click', 'management'),
-            'click' => $click,
-        ]);
-    }
-
-    public function update(Request $request, Click $click)
-    {
-        dd($request->all());
-
-        $click->update([
-            'xxxx' => $request->xxxx,
-        ]);
-
-        wncms()->cache()->flush(['clicks']);
-
-        return redirect()->route('clicks.edit', [
-            'click' => $click,
-        ])->withMessage(__('wncms::word.successfully_updated'));
-    }
-
-    public function destroy(Click $click)
-    {
-        $click->delete();
-        return redirect()->route('clicks.index')->withMessage(__('wncms::word.successfully_deleted'));
-    }
-
-    public function bulk_delete(Request $request)
-    {
-        if (!is_array($request->model_ids)) {
-            $modelIds = explode(",", $request->model_ids);
-        } else {
-            $modelIds = $request->model_ids;
-        }
-
-        $count = Click::whereIn('id', $modelIds)->delete();
-
-        if ($request->ajax()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
-            ]);
-        }
-
-        return redirect()->route('clicks.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
     }
 }

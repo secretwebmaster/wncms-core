@@ -23,38 +23,34 @@
             </div> --}}
 
             {{-- Tags --}}
-            @foreach($tag_type_arr as $tag_type_name => $tags)
-                <div class="accordion-item" id="accordion_{{ $tag_type_name }}">
-                    {{-- Accordion title --}}
-                    <h2 class="accordion-header" id="wncms_accordion_header_{{ $tag_type_name }}">
-                        <button class="accordion-button fw-bold text-white bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_{{ $tag_type_name }}" aria-expanded="true" aria-controls="menu_option_{{ $tag_type_name }}">
-                            @lang('wncms::word.'.$tag_type_name)
-                        </button>
-                    </h2>
+            @foreach($tagTypeArr as $tagTypeName => $tags)
+            <div class="accordion-item" id="accordion_{{ $tagTypeName }}">
+                {{-- Accordion title --}}
+                <h2 class="accordion-header" id="wncmsAccordionHeader{{ $tagTypeName }}">
+                    <button class="accordion-button fw-bold text-white bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menuOption{{ $tagTypeName }}" aria-expanded="true" aria-controls="menuOption{{ $tagTypeName }}">
+                        @lang('wncms::word.' . $tagTypeName)
+                    </button>
+                </h2>
 
-                    {{-- Accordion Content --}}
-                    <div id="menu_option_{{ $tag_type_name }}" class="menu_options accordion-collapse collapse" aria-labelledby="wncms_accordion_header_{{ $tag_type_name }}" data-bs-parent="#wncms_accordion_header_{{ $tag_type_name }}">
-                        
-                        <div class="accordion-body white-space-nowrap">
-                            {{-- Add to menu button --}}
-                            <div class="mb-3">
-                                <button class="btn btn-sm btn-secondary w-100 fw-bold add_to_menu">@lang('wncms::word.add_to_menu')</button>
-                            </div>
+                {{-- Accordion Content --}}
+                <div id="menuOption{{ $tagTypeName }}" class="menu-options accordion-collapse collapse" aria-labelledby="wncmsAccordionHeader{{ $tagTypeName }}" data-bs-parent="#wncmsAccordionHeader{{ $tagTypeName }}">
+                    <div class="accordion-body white-space-nowrap">
+                        {{-- Add to menu button --}}
+                        <div class="mb-3">
+                            <button class="btn btn-sm btn-secondary w-100 fw-bold add-to-menu">@lang('wncms::word.add_to_menu')</button>
+                        </div>
 
-                            {{-- <div class="mb-3">
-                                <input class="form-control" type="text" name="test" value="test" placeholder="@lang('wncms::word.enter_keyword_to_search')">
-                            </div> --}}
-
-                            {{-- Tag items --}}
-                            <div class="form-group mh-500px overflow-scroll text-truncate">
-                                <div class="row mw-100">
-                                    @include('wncms::backend.menus.children_tags', ['children' => $tags, 'level' => 0])
-                                </div>
+                        {{-- Tag items --}}
+                        <div class="form-group mh-500px overflow-scroll text-truncate">
+                            <div class="row mw-100">
+                                @include('wncms::backend.menus.children_tags', ['children' => $tags, 'level' => 0])
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
             @endforeach
+
 
             {{-- Pages --}}
             <div class="accordion-item">
@@ -67,9 +63,9 @@
                     <div class="accordion-body mh-500px overflow-scroll white-space-nowrap">
                         <div class="form-group">
                             <div class="row">
-                      
+
                                 {{-- From Page model --}}
-                                @foreach($menu->website->pages as $page)
+                                @foreach(wncms()->page()->getList() as $page)
                                 <div class="col-6">
                                     <div class="form-check form-check-sm form-check-custom form-check-solid mb-2">
                                         <input class="form-check-input" type="checkbox" data-id="{{ $page->id }}" data-name="{{ $page->title }}" data-type="page" data-model-type="page" data-model-id="{{ $page->id }}" id="checkbox_page_{{ $page->id }}">
@@ -98,16 +94,16 @@
                         <div class="form-group">
                             <div class="row">
                                 @foreach(config('theme.' . $menu->website?->theme . '.pages') ?? [] as $themePageName => $themePageUrl)
-                                    <div class="col-6">
-                                        <div class="form-check form-check-sm form-check-custom form-check-solid mb-2">
-                                            <input class="form-check-input" type="checkbox" data-type="theme_page" data-name="{{ $themePageName }}" data-url="{{ $themePageUrl }}">
-                                            <label class="form-check-label small" for="checkbox_page_aaa">{{ $themePageName }}</label>
-                                        </div>
+                                <div class="col-6">
+                                    <div class="form-check form-check-sm form-check-custom form-check-solid mb-2">
+                                        <input class="form-check-input" type="checkbox" data-type="theme_page" data-name="{{ $themePageName }}" data-url="{{ $themePageUrl }}">
+                                        <label class="form-check-label small" for="checkbox_page_aaa">{{ $themePageName }}</label>
                                     </div>
+                                </div>
                                 @endforeach
                             </div>
                         </div>
-                        
+
                         <button class="btn btn-sm btn-secondary w-100 mt-3 fw-bold add_theme_page_to_menu">@lang('wncms::word.add_to_menu')</button>
                     </div>
                 </div>
@@ -145,17 +141,17 @@
 
             <div class="card">
                 <div class="card-body p-2 p-md-5">
-                    <div class="row">
+                    {{-- <div class="row">
                         <div class="col-6 mb-5">
                             <label class="form-label fw-bold text-dark">@lang('wncms::word.website')</label>
                             <input type="text" class="form-control form-control-sm" value="{{ $menu->website?->domain }}" disabled>
                         </div>
-    
+
                         <div class="col-6 mb-5">
                             <label class="form-label fw-bold text-dark">@lang('wncms::word.menu_id')</label>
                             <input type="text" class="form-control form-control-sm" value="{{ $menu->id }}" disabled>
                         </div>
-                    </div>
+                    </div> --}}
 
                     <div class="mb-5">
                         <label class="form-label fw-bold text-info">@lang('wncms::word.menu_name')</label>
@@ -172,7 +168,6 @@
             </div>
 
             <button class="btn btn-dark w-100 mt-5 update_menu" wncms-btn-loading>@lang('wncms::word.update')</button>
-
         </form>
     </div>
 </div>
@@ -224,16 +219,16 @@
                             </div>
                         </div>
                     </div>
-                  
+
                     {{-- Lang --}}
                     <div class="row">
                         @foreach(wncms()->locale()->getSupportedLocales() as $locale_key => $locale)
-                            <div class="col-6">
-                                <div class="mb-3">
-                                    <label for="menu_item_name" class="form-label">@lang('wncms::word.menu_item_name') <span class="text-muted">({{ $locale['native'] }})</span></label>
-                                    <input type="text" class="form-control form-control-sm modal_edit_menu_item_name" id="modal_edit_menu_item_name" name="menu_item_name[{{ $locale_key }}]">
-                                </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label for="menu_item_name" class="form-label">@lang('wncms::word.menu_item_name') <span class="text-muted">({{ $locale['native'] }})</span></label>
+                                <input type="text" class="form-control form-control-sm modal_edit_menu_item_name" id="modal_edit_menu_item_name" name="menu_item_name[{{ $locale_key }}]">
                             </div>
+                        </div>
                         @endforeach
                         <div class="col-12 mb-3">
                             <button class="btn btn-sm btn-dark fw-bold w-100 btn-fetch-tag-languages" type="button" data-tag-id style="display: none">@lang('wncms::word.fetch_tag_languages')</button>
@@ -300,9 +295,9 @@
 @endsection
 
 @push('foot_js')
-    <script src="//cdn.jsdelivr.net/npm/nestable2@1.6.0/jquery.nestable.min.js"></script>
-    <script>
-        $(document).ready(function(){
+<script src="//cdn.jsdelivr.net/npm/nestable2@1.6.0/jquery.nestable.min.js"></script>
+<script>
+    $(document).ready(function(){
 
             //獲取menu_items轉為json
             var current_menu = @json($menu->menu_items()->whereNull('parent_id')->with('children','children.children')->orderBy('order','asc')->get()->append('thumbnail'));
@@ -756,5 +751,5 @@
                 }
             });
         }
-    </script>
+</script>
 @endpush

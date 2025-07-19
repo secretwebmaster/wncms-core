@@ -22,6 +22,6 @@ class Channel extends Model
 
     public function clicks()
     {
-        return $this->hasMany(Click::class);
+        return $this->hasMany(wncms()->getModelClass('click'));
     }
 }

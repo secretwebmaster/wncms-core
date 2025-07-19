@@ -10,36 +10,27 @@ use Wncms\Models\Tag;
 
 class MenuController extends BackendController
 {
-
-    public function getModelClass(): string
-    {
-        return config('wncms.models.menu', \Wncms\Models\Menu::class);
-    }
-
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        $q = Menu::query();
+        $q = $this->modelClass::query();
 
-        $selectedWebsiteId = $request->website ?? session('selected_website_id');
-        if($selectedWebsiteId){
-            $q->whereHas('website', function ($subq) use ($selectedWebsiteId) {
-                $subq->where('websites.id', $selectedWebsiteId);
-            });
-        }elseif(!$request->has('website')){
-            $websiteId = wncms()->website()->get()?->id;
-            $q->whereHas('website', function ($subq) use ($websiteId) {
-                $subq->where('websites.id', $websiteId);
-            });
-        }
+        // $selectedWebsiteId = $request->website ?? session('selected_website_id');
+        // if ($selectedWebsiteId) {
+        //     $q->whereHas('website', function ($subq) use ($selectedWebsiteId) {
+        //         $subq->where('websites.id', $selectedWebsiteId);
+        //     });
+        // } elseif (!$request->has('website')) {
+        //     $websiteId = wncms()->website()->get()?->id;
+        //     $q->whereHas('website', function ($subq) use ($websiteId) {
+        //         $subq->where('websites.id', $websiteId);
+        //     });
+        // }
 
         $q->with('menu_items');
         $menus = $q->paginate($request->page_size ?? 20);
 
         $websites = wn('website')->getList();
-        return view('wncms::backend.menus.index', [
+        return $this->view('backend.menus.index', [
             'menus' => $menus,
             'websites' => $websites,
             'page_title' => wncms_model_word('menu', 'management'),
@@ -49,12 +40,9 @@ class MenuController extends BackendController
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($id = null)
     {
-        $websites = wn('website')->getList();
-        return view('wncms::backend.menus.create', [
-            'websites' => $websites,
-        ]);
+        return $this->view('backend.menus.create');
     }
 
     /**
@@ -63,9 +51,8 @@ class MenuController extends BackendController
     public function store(Request $request)
     {
         // dd($request->all());
-        $website = Website::find($request->website_id);
-        if(!$website) return back()->withErrors(['message' => __('wncms::word.website_not_exist')]);
-        $menu = $website->menus()->create([
+
+        $menu = $this->modelClass::create([
             'name' => $request->name,
         ]);
 
@@ -73,52 +60,41 @@ class MenuController extends BackendController
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Menu $menu)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, Menu $menu)
+    public function edit($id)
     {
-        // dd($menu);
-        $websites = wn('website')->getList();
-        $current_website = $request->website ? Website::find($request->$website) : Website::first();
-        
-        // $post_tags = Tag::getWithType('post_tag');
-        // $post_categories = Tag::getWithType('post_category');
-        // $video_tags = Tag::getWithType('video_tag');
-        // $video_categories = Tag::getWithType('video_category');
-
-        //get all models
-
-        //get all model taxonomes
-        $tag_type_arr = [];
-        $tag_types = wncms_get_all_tag_types();
-        foreach($tag_types as $tag_type){
-            $tag_type_arr[$tag_type] = Tag::where('type',$tag_type)->whereNull('parent_id')->with('children')->get();
+        $menu = $this->modelClass::find($id);
+        if (!$menu) {
+            return back()->withErrors(['message' => __('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)])]);
         }
 
-        $menus = Menu::all();
-        return view('wncms::backend.menus.edit', [
-            'page_title' =>__('wncms::word.menu_management'),
-            'websites' => $websites,
-            'current_website' => $current_website,
+        $tagTypeArr = [];
+        $tagTypes = wncms()->tag()->getTypes();
+
+        foreach ($tagTypes as $tagType) {
+            $tagTypeArr[$tagType] = wncms()->getModelClass('tag')::where('type', $tagType)->whereNull('parent_id')->with('children')->get();
+        }
+
+        $menus = $this->modelClass::all();
+        return $this->view('backend.menus.edit', [
+            'page_title' => wncms_model_word('menu', 'management'),
             'menus' => $menus,
             'menu' => $menu,
-            'tag_type_arr' => $tag_type_arr
+            'tagTypeArr' => $tagTypeArr
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Menu $menu)
+    public function update(Request $request, $id)
     {
+        $menu = $this->modelClass::find($id);
+        if (!$menu) {
+            return back()->withErrors(['message' => __('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)])]);
+        }
+
         //更新菜單 (非菜單項目)
         $menu->update([
             'name' => $request->name
@@ -127,29 +103,28 @@ class MenuController extends BackendController
         //刪除菜單項目
         // $menu->menu_items()->whereIn('id', $request->removes ?? [])->delete();
         $removingMenuItems = $menu->menu_items()->whereIn('id', $request->removes ?? [])->get();
-        foreach($removingMenuItems as $removingMenuItems){
+        foreach ($removingMenuItems as $removingMenuItems) {
             $removingMenuItems->delete();
         }
 
         //更新菜單項目
         // dd(json_decode($request->new_menu, true));
-        foreach(json_decode($request->new_menu, true) as $order => $menu_item){
+        foreach (json_decode($request->new_menu, true) as $order => $menu_item) {
             $this->add_items($menu, $menu_item, null, $order);
         }
 
-        wncms()->cache()->flush(['menus']);
+        $this->flush();
 
         return redirect()->route('menus.edit', [
             'menu' => $menu,
         ])->withMessage(__('wncms::word.successfully_updated'));
-
     }
 
     public function add_items($menu, $menu_item, $parent_id = null, $order = 0)
     {
         // dd($menu_item);
         $existing_item = $menu->menu_items()->find($menu_item['id']);
-        if($existing_item){
+        if ($existing_item) {
             $existing_item->update([
                 'parent_id' => $parent_id,
                 'model_type' => $menu_item['modelType'] ?? $existing_item->modelType,
@@ -164,7 +139,7 @@ class MenuController extends BackendController
                 'order' => $order,
             ]);
             $new_item = $existing_item;
-        }else{
+        } else {
             $new_item = $menu->menu_items()->create([
                 'parent_id' => $parent_id,
                 'model_type' => $menu_item['modelType'] ?? null,
@@ -180,30 +155,21 @@ class MenuController extends BackendController
             ]);
         }
 
-        if(!empty($menu_item['name'])){
+        if (!empty($menu_item['name'])) {
             $new_item->setTranslation('name', app()->getLocale(), $menu_item['name']);
         }
 
-        if(!empty($menu_item['children'])){
-            foreach($menu_item['children'] as $sub_menu_item){
+        if (!empty($menu_item['children'])) {
+            foreach ($menu_item['children'] as $sub_menu_item) {
                 // info($sub_menu_item);
                 $this->add_items($menu, $sub_menu_item, $new_item->id, $order);
             }
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Menu $menu)
-    {
-        $menu->delete();
-        return redirect()->route('menus.index')->withMessage(__('wncms::word.successfully_deleted'));
-    }
-
     public function get_menu_item(Request $request)
     {
-        return MenuItem::find($request->menu_item_id)->append('thumbnail');
+        return wncms()->getModelClass('menu_item')::find($request->menu_item_id)->append('thumbnail');
     }
 
     public function edit_menu_item(Request $request)
@@ -211,21 +177,21 @@ class MenuController extends BackendController
         // dd($request->all());
         // info($request->all());
 
-        $menu_item = MenuItem::find($request->menu_item_id);
+        $menu_item = wncms()->getModelClass('menu_item')::find($request->menu_item_id);
         $menu_item->append('thumbnail');
         // info($menu_item);
 
-        if(!$menu_item) return response()->json([
+        if (!$menu_item) return response()->json([
             'status' => 'fail',
             'message' => __('wncms::word.menu_item_is_not_found'),
             'hide_modal' => false
         ]);
 
-        if(!empty($request->menu_item_thumbnail)){
+        if (!empty($request->menu_item_thumbnail)) {
             $menu_item->addMediaFromRequest('menu_item_thumbnail')->toMediaCollection('menu_item_thumbnail');
         }
 
-        if(!empty($request->menu_item_thumbnail_remove)){
+        if (!empty($request->menu_item_thumbnail_remove)) {
             $menu_item->ClearMediaCollection('menu_item_thumbnail');
         }
 
@@ -240,34 +206,34 @@ class MenuController extends BackendController
 
         $menu_item->save();
 
-        foreach($request->menu_item_name as $locale => $name){
+        foreach ($request->menu_item_name as $locale => $name) {
             $menu_item->setTranslation('name', $locale, $name);
         }
 
         $menu_item->refresh();
 
-        if($success){
-            wncms()->cache()->tags('menus')->flush();
+        if ($success) {
+            $this->flush(['menu']);
+
             return response()->json([
                 'status' => 'success',
                 'message' => __('wncms::word.successfully_updated'),
                 'menu_item' => $menu_item,
-                'menu' => $menu_item->menu->menu_items()->whereNull('parent_id')->with('children','children.children')->get(),
+                'menu' => $menu_item->menu->menu_items()->whereNull('parent_id')->with('children', 'children.children')->get(),
                 'hide_modal' => true,
                 'restoreBtn' => true,
             ]);
-        }else{
+        } else {
             return response()->json([
                 'status' => 'fail',
                 'message' => __('wncms::word.something_went_wrong'),
                 'hide_modal' => false,
             ]);
         }
-
     }
 
     // public function get_latest_menu(Request $request){
-    //     $menu = Menu::find($request->menu_id);
+    //     $menu = $this->modelClass::find($request->menu_id);
     //     return $menu->menu_items()->whereNull('parent_id')->with('children','children.children')->get();
     // }
 }

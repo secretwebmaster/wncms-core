@@ -11,7 +11,10 @@ class PluginController extends Controller
     public function index()
     {
         $plugins = Plugin::all();
-        return view('wncms::backend.plugins.index', compact('plugins'));
+        return $this->view('backend.plugins.index', [
+            'page_title' => wncms_model_word('plugin', 'management'),
+            'plugins' => $plugins,
+        ]);
     }
 
     public function upload(Request $request)
@@ -55,5 +58,22 @@ class PluginController extends Controller
         $plugin->delete();
 
         return redirect()->route('plugins.index')->with('success', 'Plugin deleted successfully!');
+    }
+
+    /**
+     * Fetch view
+     */
+    public function view(string $name, array $options = [])
+    {
+        if (view()->exists($name)) {
+            return view($name, $options);
+        }
+
+        $defaultView = 'wncms::' . $name;
+        if (view()->exists($defaultView)) {
+            return view($defaultView, $options);
+        }
+
+        abort(404, "View [{$name}] not found.");
     }
 }

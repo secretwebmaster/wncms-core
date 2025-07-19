@@ -2,35 +2,45 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
-use Wncms\Models\ContactFormOption;
 use Illuminate\Http\Request;
 
-class ContactFormOptionController extends Controller
+class ContactFormOptionController extends BackendController
 {
     public function index(Request $request)
     {
-        $contact_form_options = ContactFormOption::query()->get();
-        return view('wncms::backend.contact_form_options.index', [
-            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.contact_form_option')]),
+        $q = $this->modelClass::query();
+
+        $q->orderBy('id', 'desc');
+
+        $contact_form_options = $q->get();
+
+        return $this->view('backend.contact_form_options.index', [
+            'page_title' => wncms_model_word('contact_form_option', 'management'),
             'contact_form_options' => $contact_form_options,
         ]);
     }
 
-    public function create(ContactFormOption $contact_form_option = null)
+    public function create($id = null)
     {
-        $contact_form_option ??= new ContactFormOption;
-        return view('wncms::backend.contact_form_options.create', [
-            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.contact_form_option')]),
+        if ($id) {
+            $contact_form_option = $this->modelClass::find($id);
+            if (!$contact_form_option) {
+                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+            }
+        } else {
+            $contact_form_option = new $this->modelClass;
+        }
+
+        return $this->view('backend.contact_form_options.create', [
+            'page_title' => wncms_model_word('contact_form_option', 'management'),
             'contact_form_option' => $contact_form_option,
-            'types' => ContactFormOption::TYPES,
+            'types' => $this->modelClass::TYPES,
         ]);
     }
 
     public function store(Request $request)
     {
-        // dd($request->all());
-        $contact_form_option = ContactFormOption::create([
+        $contact_form_option = $this->modelClass::create([
             'name' => $request->name,
             'type' => $request->type,
             'display_name' => $request->display_name,
@@ -39,26 +49,34 @@ class ContactFormOptionController extends Controller
             'options' => $request->options,
         ]);
 
-        wncms()->cache()->tags(['contact_forms'])->flush();
-        wncms()->cache()->tags(['contact_form_options'])->flush();
+        $this->flush();
+        $this->flush(['contact_form_options']);
 
         return redirect()->route('contact_form_options.edit', [
             'contact_form_option' => $contact_form_option,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
-    public function edit(ContactFormOption $contact_form_option)
+    public function edit($id)
     {
-        // dd($contact_form_option);
-        return view('wncms::backend.contact_form_options.edit', [
-            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.contact_form_option')]),
+        $contact_form_option = $this->modelClass::find($id);
+        if (!$contact_form_option) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
+        return $this->view('backend.contact_form_options.edit', [
+            'page_title' => wncms_model_word('contact_form_option', 'management'),
             'contact_form_option' => $contact_form_option,
-            'types' => ContactFormOption::TYPES,
+            'types' => $this->modelClass::TYPES,
         ]);
     }
 
-    public function update(Request $request, ContactFormOption $contact_form_option)
+    public function update(Request $request, $id)
     {
+        $contact_form_option = $this->modelClass::find($id);
+        if (!$contact_form_option) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
         // dd($request->all());
         $contact_form_option->update([
             'name' => $request->name,
@@ -69,23 +87,11 @@ class ContactFormOptionController extends Controller
             'options' => $request->options,
         ]);
 
-        wncms()->cache()->tags(['contact_forms'])->flush();
-        wncms()->cache()->tags(['contact_form_options'])->flush();
-        
+        $this->flush();
+        $this->flush(['contact_form_options']);
+
         return redirect()->route('contact_form_options.edit', [
             'contact_form_option' => $contact_form_option,
         ])->withMessage(__('wncms::word.successfully_updated'));
-    }
-
-    public function destroy(ContactFormOption $contact_form_option)
-    {
-        $contact_form_option->delete();
-        return redirect()->route('contact_form_options.index')->withMessage(__('wncms::word.successfully_deleted'));
-    }
-
-    public function bulk_delete(Request $request)
-    {
-        ContactFormOption::whereIn('id', explode(",", $request->model_ids))->delete();
-        return redirect()->route('contact_form_options.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 }

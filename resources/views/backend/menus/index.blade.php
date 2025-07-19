@@ -12,7 +12,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
         </form>
@@ -50,7 +50,7 @@
                                     
                                 </div>
  
-                                <div class="form-item mb-5">
+                                {{-- <div class="form-item mb-5">
                                     <label class="form-label">@lang('wncms::word.select_websites')</label>
                                     <div class="row">
                                         @foreach($websites as $_website)
@@ -62,7 +62,7 @@
                                         </div>
                                         @endforeach
                                     </div>
-                                </div>
+                                </div> --}}
                             </div>
                 
                             <div class="modal-footer">
@@ -102,7 +102,7 @@
                             </th>
                             <th>@lang('wncms::word.action')</th>
                             <th>ID</th>
-                            <th>@lang('wncms::word.website')</th>
+                            {{-- <th>@lang('wncms::word.website')</th> --}}
                             <th>@lang('wncms::word.menu_name')</th>
                             <th>@lang('wncms::word.updated_at')</th>
                             <th>@lang('wncms::word.created_at')</th>
@@ -122,7 +122,7 @@
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$menu , 'route' => route('menus.destroy' , $menu)])
                             </td>
                             <td>{{ $menu->id }}</td>
-                            <td>{{ $menu->website?->domain }}</td>
+                            {{-- <td>{{ $menu->website?->domain }}</td> --}}
                             <td>{{ $menu->name }}</td>
                             <td>{{ $menu->updated_at }}</td>
                             <td>{{ $menu->created_at }}</td>

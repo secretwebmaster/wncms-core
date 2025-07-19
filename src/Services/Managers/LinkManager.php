@@ -89,7 +89,7 @@ class LinkManager extends ModelManager
         $q->with('media');
         $q->distinct();
 
-        return $this->finalizeResult($q, $options);
+        return $q;
     }
 
     public function getBySlug(string $slug, ?int $websiteId = null)

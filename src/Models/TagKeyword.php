@@ -17,7 +17,7 @@ class TagKeyword extends Model
 
     public function tag()
     {
-        return $this->belongsTo(Tag::class);
+        return $this->belongsTo(wncms()->getModelClass('tag'));
     }
 
 }

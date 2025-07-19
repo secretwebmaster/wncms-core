@@ -32,6 +32,6 @@ class Transaction extends Model
 
     public function order()
     {
-        return $this->belongsTo(Order::class);
+        return $this->belongsTo(wncms()->getModelClass('order'));
     }
 }

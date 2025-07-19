@@ -97,7 +97,7 @@
                     <a href="#" class="text-primary btn-quick-value me-2" data-value="[order_id]">[order_id]</a>
                     <a href="#" class="text-primary btn-quick-value me-2" data-value="[user_id]">[user_id]</a>
                 </div>
-                <button type="button" class="btn btn-sm btn-danger btn-remove-attribute ms-2">@lang('wncms::word.remove')</button>
+                <button type="button" class="btn btn-sm btn-danger btn-remove-attribute ms-2 text-nowrap">@lang('wncms::word.remove')</button>
             </div>
             @endforeach
     
@@ -108,10 +108,11 @@
                     <a href="#" class="text-primary btn-quick-value me-2" data-value="[order_id]">[order_id]</a>
                     <a href="#" class="text-primary btn-quick-value me-2" data-value="[user_id]">[user_id]</a>
                 </div>
-                <button type="button" class="btn btn-sm btn-danger btn-remove-attribute ms-2">@lang('wncms::word.remove')</button>
+                <button type="button" class="btn btn-sm btn-danger btn-remove-attribute ms-2 text-nowrap">@lang('wncms::word.remove')</button>
             </div>
+
+            <button type="button" class="btn btn-sm btn-secondary mt-3" id="btn-add-attribute">@lang('wncms::word.add_attribute')</button>
         </div>
-        <button type="button" class="btn btn-sm btn-secondary mt-3" id="btn-add-attribute">@lang('wncms::word.add_attribute')</button>
     </div>
     
     <script>

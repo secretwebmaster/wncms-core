@@ -2,37 +2,26 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
-use Wncms\Models\Record;
 use Illuminate\Http\Request;
 
-class RecordController extends Controller
+class RecordController extends BackendController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $records = Record::latest()->paginate(50);
-        $websites = wn('website')->getList();
-        return view('wncms::backend.records.index',[
+        $q = $this->modelClass::query();
+
+        $q->orderBy('id', 'desc');
+        
+        $records = $q->paginate(50);
+
+        return $this->view('backend.records.index',[
+            'page_title' => wncms_model_word('record', 'management'),
             'records' => $records,
-            'websites' => $websites,
-            'types' => Record::TYPES,
-            'orders' => Record::ORDERS,
+            'types' => $this->modelClass::TYPES,
+            'orders' => $this->modelClass::ORDERS,
         ]);
     }
-
-    public function bulk_delete(Request $request)
-    {
-        info($request->all());
-
-        Record::whereIn('id', $request->model_ids)->delete();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => __('wncms::word.successfully_deleted'),
-        ]);
-    }
-
 }

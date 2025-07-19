@@ -13,7 +13,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
         </form>
@@ -33,7 +33,7 @@
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle text-nowrap mb-0">
+                <table class="table table-xs table-hover align-middle text-nowrap mb-0">
                     <thead class="table-dark">
                         <tr class="text-start fw-bold gs-0">
                             <th class="w-10px pe-2">
@@ -43,7 +43,9 @@
                             </th>
                             <th>@lang('wncms::word.action')</th>
                             <th>@lang('wncms::word.id')</th>
-                            <th>@lang('wncms::word.name')</th>
+                            <th>@lang('wncms::word.keyword')</th>
+                            <th>@lang('wncms::word.locale')</th>
+                            <th>@lang('wncms::word.count')</th>
 
                             @if(request()->show_detail)
                             <th>@lang('wncms::word.updated_at')</th>
@@ -65,14 +67,15 @@
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$search_keyword , 'route' => route('search_keywords.destroy' , $search_keyword), 'btn_class' => 'px-2 py-1'])
                             </td>
                             <td>{{ $search_keyword->id }}</td>
-                            <td>{{ $search_keyword->name }}</td>
+                            <td>{{ $search_keyword->keyword }}</td>
+                            <td>{{ $search_keyword->locale }}</td>
+                            <td>{{ $search_keyword->count }}</td>
 
                             @if(request()->show_detail)
                             <td>{{ $search_keyword->updated_at }}</td>
                             @endif
                             
                             <td>{{ $search_keyword->created_at }}</td>
-                            <td>{{ $search_keyword->remark }}</td>
                         <tr>
                         @endforeach
                     </tbody>

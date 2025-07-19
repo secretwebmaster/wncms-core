@@ -7,7 +7,7 @@
     {{-- WNCMS toolbar filters --}}
     <div class="wncms-toolbar-filter mt-5">
 
-        <form action="@if(request()->routeIs('tags.index.type')){{ route('tags.index.type', ['type' => $type]) }}@else{{ route('tags.index') }}@endif">
+        <form action="{{ route('tags.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
                 @include('wncms::backend.common.default_toolbar_filters')
@@ -25,7 +25,7 @@
                 @endif
 
                 <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 

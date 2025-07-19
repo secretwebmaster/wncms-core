@@ -2,75 +2,23 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
-use Wncms\Models\User;
-use Wncms\Models\Website;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Wncms\Models\Tag;
 use Faker\Factory as Faker;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
-class PostController extends Controller
+class PostController extends BackendController
 {
-    protected $website;
-    protected $theme;
-
-    protected $post_categories;
-    protected $post_tags;
-
-    protected $model;
-
-    public function __construct()
-    {
-        // TODO:: Add multi website support. Move to BaseModel abastract class
-        $this->website = wncms()->website()->get();
-        if (!$this->website) redirect()->route('websites.create')->send();
-        $this->theme = $this->website->theme ?? 'default';
-
-        $this->post_categories = wncms()->tag()->getArray(tagType: "post_category", columnName: "name");
-        $this->post_tags = wncms()->tag()->getArray(tagType: "post_tag", columnName: "name");
-    }
-
-    /**
-     * Get the model class that this controller works with.
-     * Uses a setting from config/wncms.php and falls back to Post model if not set.
-     */
-    protected function getModelClass()
-    {
-        // Fetch the model class from the config file, or fall back to Post model
-        return config('wncms.models.post', \Wncms\Models\Post::class);
-    }
-
-    protected function getModelTable()
-    {
-        $modelClass = $this->getModelClass();
-        return (new $modelClass)->getTable();
-    }
-
     public function index(Request $request)
     {
-        $modelClass = $this->getModelClass();
-        $q = $modelClass::query();
+        $q = $this->modelClass::query();
 
         if (!isAdmin()) {
             $q->whereRelation('user', 'id', auth()->id());
         }
 
-        $selectedWebsiteId = $request->website ?? session('selected_website_id');
-        if ($selectedWebsiteId) {
-            $q->whereHas('websites', function ($subq) use ($selectedWebsiteId) {
-                $subq->where('websites.id', $selectedWebsiteId);
-            });
-        } elseif (!$request->has('website') && config('wncms.multi_website', false)) {
-            $websiteId = wncms()->website()->get()?->id;
-            $q->whereHas('websites', function ($subq) use ($websiteId) {
-                $subq->where('websites.id', $websiteId);
-            });
-        }
-
-        if (in_array($request->status, $modelClass::STATUSES)) {
+        if (in_array($request->status, $this->modelClass::STATUSES)) {
             $q->where('status', $request->status);
         }
 
@@ -89,7 +37,7 @@ class PostController extends Controller
             $q->withTrashed();
         }
 
-        if (in_array($request->order, $modelClass::ORDERS)) {
+        if (in_array($request->order, $this->modelClass::ORDERS)) {
             if (in_array($request->order, ['traffics', 'clicks'])) {
                 $q->orderBy($request->order . '_count', in_array($request->sort, ['asc', 'desc']) ? $request->sort : 'desc');
             } else {
@@ -97,58 +45,56 @@ class PostController extends Controller
             }
         }
 
-        $q->with(['media', 'tags', 'websites']);
+        $q->with(['media', 'tags']);
 
         $q->orderBy('created_at', 'desc');
         $q->orderBy('id', 'desc');
         $posts = $q->paginate($request->page_size ?? 20);
 
-        $post_category_parants = Tag::where('type', 'post_category')->whereNull('parent_id')->with('children')->get();
+        $post_category_parants = wncms()->getModel('tag')::where('type', 'post_category')->whereNull('parent_id')->with('children')->get();
 
-        return view('wncms::backend.posts.index', [
-            'page_title' => __('wncms::word.post_management'),
+        return $this->view('backend.posts.index', [
+            'page_title' => wncms_model_word('post', 'management'),
             'posts' => $posts,
             'post_category_parants' => $post_category_parants,
-            'orders' => $modelClass::ORDERS,
-            'statuses' => $modelClass::STATUSES,
-            'visibilities' => $modelClass::VISIBILITIES,
-            'websites' => wncms()->website()->getList(),
+            'orders' => $this->modelClass::ORDERS,
+            'statuses' => $this->modelClass::STATUSES,
+            'visibilities' => $this->modelClass::VISIBILITIES,
         ]);
     }
 
-    public function create(Request $request, $post = null)
+    public function create($id = null)
     {
-        $modelClass = $this->getModelClass();
-        $post = $modelClass::find($post);
+        $post = $this->modelClass::find($id);
+        if ($id && !$post) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
 
         if (isAdmin()) {
-            $users = User::all();
-            $websites = Website::all();
+            $users = wncms()->getModel('user')::all();
+            $websites = wncms()->getModel('website')::all();
         } else {
-            $users = User::where('id', auth()->id())->get();
+            $users = wncms()->getModel('user')::where('id', auth()->id())->get();
             $websites = auth()->user()->websites;
         }
 
-        return view('wncms::backend.posts.create', [
-            'page_title' => __('wncms::word.post_management'),
-            'statuses' => $modelClass::STATUSES,
-            'visibilities' => $modelClass::VISIBILITIES,
-            'post_categories' => $this->post_categories,
-            'post_tags' => $this->post_tags,
+        return $this->view('backend.posts.create', [
+            'page_title' => wncms_model_word('post', 'management'),
+            'statuses' => $this->modelClass::STATUSES,
+            'visibilities' => $this->modelClass::VISIBILITIES,
+            'post_categories' => wncms()->tag()->getArray(tagType: "post_category", columnName: "name"),
+            'post_tags' => wncms()->tag()->getArray(tagType: "post_tag", columnName: "name"),
             'users' => $users,
             'websites' => $websites,
-            'post' => $post ?? new $modelClass,
+            'post' => $post ?? new $this->modelClass,
         ]);
     }
 
     public function store(Request $request)
     {
-        // dd($request->all());
-        // $modelClass = $this->getModelClass();
-
         if (isAdmin()) {
-            $user = User::find($request->user_id) ?? auth()->user();
-            $website_ids = Website::whereIn("websites.id", $request->website_ids ?? [])->pluck('id')->toArray();
+            $user = wncms()->getModel('user')::find($request->user_id) ?? auth()->user();
+            $website_ids = wncms()->getModel('website')::whereIn("websites.id", $request->website_ids ?? [])->pluck('id')->toArray();
         } else {
             $user = auth()->user();
             $website_ids = auth()->user()->websites()->whereIn("websites.id", $request->website_id ?? [])->pluck('websites.id')->toArray();;
@@ -161,7 +107,7 @@ class PostController extends Controller
                 'title' => 'required|max:255',
                 'status' => 'required',
                 'visibility' => 'required',
-                'price' => 'sometimes|nullable|numeric'
+                'price' => 'sometimes|nullable|numeric|max:999999.999',
 
             ],
             [
@@ -169,6 +115,7 @@ class PostController extends Controller
                 'status.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.status')]),
                 'visibility.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.visibility')]),
                 'price.numeric' => __('wncms::word.field_should_be_numeric', ['field_name' => __('wncms::word.price')]),
+                'price.max' => __('wncms::word.field_should_not_exceed', ['field_name' => __('wncms::word.price'), 'value' => '999999.999']),
             ]
         );
 
@@ -197,7 +144,7 @@ class PostController extends Controller
         $post->wrapTables();
 
         //attach to website models
-        $post->websites()->sync($website_ids);
+        // $post->websites()->sync($website_ids);
 
         //thumbnail
         if (!empty($request->post_thumbnail_remove)) {
@@ -220,51 +167,56 @@ class PostController extends Controller
         $post->syncTagsFromRequest($request->post_tags, 'post_tag', $request->auto_generate_tag, [$request->title, $request->content]);
 
         //clear cache
-        wncms()->cache()->tags('posts')->flush();
+        $this->flush();
         return redirect()->route('posts.edit', $post->id);
     }
 
     public function show($slug)
     {
-        $post = $modelClass::where('slug', $slug)->first();
-        if (!$post) return redirect()->route('frontend.pages.home');
-        return view('wncms::frontend.theme.default.posts.single', [
-            'post' => $post,
-        ]);
+        dd('Show is disabled in backedn. Preview in frontend instead.');
+        // $post = $this->modelClass::where('slug', $slug)->first();
+        // if (!$post) return redirect()->route('frontend.pages.home');
+        // return $this->view('frontend.theme.default.posts.single', [
+        //     'post' => $post,
+        // ]);
     }
 
-    public function edit($postId)
+    public function edit($id)
     {
-        $modelClass = $this->getModelClass();
-        $post = $modelClass::withTrashed()->find($postId);
+        $post = $this->modelClass::withTrashed()->find($id);
+        if (!$post) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
         if (isAdmin()) {
-            $users = User::all();
-            $websites = Website::all();
+            $users = wncms()->getModel('user')::all();
+            $websites = wncms()->getModel('website')::all();
         } else {
-            $users = User::where('id', auth()->id())->get();
+            $users = wncms()->getModel('user')::where('id', auth()->id())->get();
             $websites = auth()->user()->websites;
         }
-        return view('wncms::backend.posts.edit', [
-            'page_title' => __('wncms::word.post_management'),
-            'statuses' => $modelClass::STATUSES,
-            'visibilities' => $modelClass::VISIBILITIES,
-            'post_categories' => $this->post_categories,
-            'post_tags' => $this->post_tags,
+        return $this->view('backend.posts.edit', [
+            'page_title' => wncms_model_word('post', 'management'),
+            'statuses' => $this->modelClass::STATUSES,
+            'visibilities' => $this->modelClass::VISIBILITIES,
+            'post_categories' => wncms()->tag()->getArray(tagType: "post_category", columnName: "name"),
+            'post_tags' => wncms()->tag()->getArray(tagType: "post_tag", columnName: "name"),
             'users' => $users,
             'websites' => $websites,
             'post' => $post,
         ]);
     }
 
-    public function update(Request $request, $post)
+    public function update(Request $request, $id)
     {
         // dd($request->all());
-        $modelClass = $this->getModelClass();
-        $post = $modelClass::withTrashed()->find($post);
-        if (!$post) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.post_not_found')]);
+        $post = $this->modelClass::withTrashed()->find($id);
+        if (!$post) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
 
         if (isAdmin()) {
-            $user = User::find($request->user_id) ?? auth()->user();
+            $user = wncms()->getModel('user')::find($request->user_id) ?? auth()->user();
             $website_ids = $request->website_ids;
         } else {
             $user = auth()->user();
@@ -285,7 +237,7 @@ class PostController extends Controller
                 'title' => 'required|max:255',
                 'status' => 'required',
                 'visibility' => 'required',
-                'price' => 'sometimes|nullable|numeric'
+                'price' => 'sometimes|nullable|numeric|max:999999.999',
 
             ],
             [
@@ -293,10 +245,11 @@ class PostController extends Controller
                 'status.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.status')]),
                 'visibility.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.visibility')]),
                 'price.numeric' => __('wncms::word.field_should_be_numeric', ['field_name' => __('wncms::word.price')]),
+                'price.max' => __('wncms::word.field_should_not_exceed', ['field_name' => __('wncms::word.price'), 'value' => '999999.999']),
             ]
         );
 
-        $duplicate_slug = $modelClass::where('slug', $request->slug)->where('id', '<>', $post->id)->first();
+        $duplicate_slug = $this->modelClass::where('slug', $request->slug)->where('id', '<>', $post->id)->first();
 
         if ($duplicate_slug) {
             return back()->withInput()->withErros(['message' => __('wncms::word.duplicated_slug')]);
@@ -327,7 +280,7 @@ class PostController extends Controller
         $post->localizeImages();
         $post->wrapTables();
 
-        $post->websites()->sync($website_ids);
+        // $post->websites()->sync($website_ids);
 
 
         //remove image
@@ -363,44 +316,46 @@ class PostController extends Controller
 
 
         //clear cache
-        wncms()->cache()->tags('posts')->flush();
+        $this->flush();
         return redirect()->route('posts.edit', $post->id);
     }
 
     public function destroy($id)
     {
-        $modelClass = $this->getModelClass();
-        $post = $modelClass::withTrashed()->find($id);
-        if ($post) {
-            $post->update(['status' => 'trashed']);
-            $post->delete();
+        $post = $this->modelClass::withTrashed()->find($id);
+        if (!$post) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
         }
-        return redirect()->route('posts.index')->withMessage(__('wncms::word.successfully_deleted'));;
+
+        $post->update(['status' => 'trashed']);
+
+        $post->delete();
+
+        return redirect()->route('posts.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function restore($id)
     {
-        $modelClass = $this->getModelClass();
-        $post = $modelClass::withTrashed()->find($id);
-
-        if ($post) {
-            $post->update(['status' => gss('restore_trashed_content_to_published') ? 'published' : 'drafted']);
-            $post->restore();
-            return redirect()->route('posts.index')->withMessage(__('wncms::word.successfully_restored'));
-        } else {
-            return back()->withErrors(['message' => __('wncms::word.successfully_restored')]);
+        $post = $this->modelClass::withTrashed()->find($id);
+        if (!$post) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
         }
+
+        $post->update(['status' => gss('restore_trashed_content_to_published') ? 'published' : 'drafted']);
+
+        $post->restore();
+
+        return redirect()->route('posts.index')->withMessage(__('wncms::word.successfully_restored'));
     }
 
     public function bulk_clone(Request $request)
     {
         // info($request->all());
-        $modelClass = $this->getModelClass();
         parse_str($request->formData, $formData);
         $status = $formData['clone_status'] ?? 'drafted';
 
         if (isAdmin()) {
-            $posts = $modelClass::whereIn('id', $request->model_ids)->get();
+            $posts = $this->modelClass::whereIn('id', $request->model_ids)->get();
         } else {
             $user = auth()->user();
             $posts = $user->posts()->whereIn('id', $request->model_ids)->get();
@@ -414,8 +369,8 @@ class PostController extends Controller
             $newPost->push();
 
             //copy websites
-            $websiteIds = $post->websites()->pluck('websites.id')->toArray();
-            $newPost->websites()->sync($websiteIds);
+            // $websiteIds = $post->websites()->pluck('websites.id')->toArray();
+            // $newPost->websites()->sync($websiteIds);
 
             //copy thumbnail
             $thumbnail = $post->getMedia('post_thumbnail')->first();
@@ -439,7 +394,9 @@ class PostController extends Controller
             preg_match_all('/<img[^>]+src="([^"]+)"/i', $content, $matches);
 
             foreach ($matches[1] as $imageUrl) {
-                $tempImageUrl = str_replace("../../..", $post->websites()->first()?->domain, $imageUrl);
+                // $tempImageUrl = str_replace("../../..", $post->websites()->first()?->domain, $imageUrl);
+                $tempImageUrl = str_replace("../../..", "/", $imageUrl);
+
                 $tempImageUrl = wncms_add_https($tempImageUrl);
 
                 if (!$post->imageUrlExists($tempImageUrl)) {
@@ -478,7 +435,7 @@ class PostController extends Controller
     public function bulk_sync_tags(Request $request)
     {
         try {
-            info($request->all());
+            // info($request->all());
             parse_str($request->formData, $formDataArray);
             // info($formDataArray);
 
@@ -491,8 +448,7 @@ class PostController extends Controller
             }
 
             //receive checked ids
-            $modelClass = $this->getModelClass();
-            $posts = $modelClass::whereIn('id', $request->model_ids)->get();
+            $posts = $this->modelClass::whereIn('id', $request->model_ids)->get();
             if ($posts->isEmpty()) {
                 return response()->json([
                     'status' => 'fail',
@@ -545,7 +501,8 @@ class PostController extends Controller
                 }
             }
 
-            wncms()->cache()->flush(['posts', 'tags']);
+            $this->flush();
+            $this->flush(['tags']);
 
             return response()->json([
                 'status' => 'success',
@@ -566,8 +523,6 @@ class PostController extends Controller
 
     public function generate_demo_posts(Request $request)
     {
-        $modelClass = $this->getModelClass();
-
         $website = wncms()->website()->get();
 
         $count = $request->count ?? 10;
@@ -592,8 +547,8 @@ class PostController extends Controller
             $fakers[$localeCode] = Faker::create($localeCode);
         }
 
-        $categories = Tag::query()->where('type', 'post_category')->inRandomOrder()->limit(3)->get();
-        $tags = Tag::query()->where('type', 'post_tag')->inRandomOrder()->limit(3)->get();
+        $categories = wncms()->getModel('tag')::query()->where('type', 'post_category')->inRandomOrder()->limit(3)->get();
+        $tags = wncms()->getModel('tag')::query()->where('type', 'post_tag')->inRandomOrder()->limit(3)->get();
 
         for ($i = 0; $i < $count; $i++) {
             // Choose a random image filename
@@ -610,7 +565,7 @@ class PostController extends Controller
             }
 
             // Create a new post
-            $post = $modelClass::create([
+            $post = $this->modelClass::create([
                 'user_id' => auth()->id(),
                 'title' => $fakers[config('app.locale')]->realText(30, 5),
                 'slug' => wncms()->getUniqueSlug('posts'),
@@ -661,10 +616,10 @@ class PostController extends Controller
                 $post->syncTagsWithType($tag_names, 'post_tag');
             }
 
-            $post->websites()->sync($website->id);
+            // $post->websites()->sync($website->id);
         }
 
-        wncms()->cache()->flush(['posts']);
+        $this->flush();
 
         if ($request->ajax()) {
             return response()->json([
@@ -676,36 +631,34 @@ class PostController extends Controller
         return back()->withMessage(__('wncms::word.successfully_created_count', ['count' => $count]));
     }
 
-    public function bulk_set_websites(Request $request)
-    {
-        // info($request->all());
+    // public function bulk_set_websites(Request $request)
+    // {
+    //     // info($request->all());
 
-        parse_str($request->formData, $formData);
-        $website = Website::find($formData['website_id']);
+    //     parse_str($request->formData, $formData);
+    //     $website = wncms()->getModel('website')::find($formData['website_id']);
 
-        if (!$website) {
-            return response()->json([
-                'status' => 'fail',
-                'message' => __('wncms::word.website_is_not_found'),
-            ]);
-        }
+    //     if (!$website) {
+    //         return response()->json([
+    //             'status' => 'fail',
+    //             'message' => __('wncms::word.website_is_not_found'),
+    //         ]);
+    //     }
 
-        $modelClass = $this->getModelClass();
+    //     if (isAdmin()) {
+    //         $posts = $this->modelClass::whereIn('id', $request->model_ids)->get();
+    //     } else {
+    //         $posts = auth()->users()->posts()->whereIn('id', $request->model_ids)->get();
+    //     }
 
-        if (isAdmin()) {
-            $posts = $modelClass::whereIn('id', $request->model_ids)->get();
-        } else {
-            $posts = auth()->users()->posts()->whereIn('id', $request->model_ids)->get();
-        }
+    //     foreach ($posts as $post) {
+    //         $post->websites()->syncWithoutDetaching($website->id);
+    //     }
 
-        foreach ($posts as $post) {
-            $post->websites()->syncWithoutDetaching($website->id);
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => __('wncms::word.successfully_updated'),
-            'reload' => true,
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => __('wncms::word.successfully_updated'),
+    //         'reload' => true,
+    //     ]);
+    // }
 }

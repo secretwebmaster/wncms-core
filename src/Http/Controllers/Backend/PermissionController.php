@@ -39,8 +39,8 @@ class PermissionController extends Controller
 
         $permissions = $q->paginate($request->page_size ?? 50);
 
-        return view('wncms::backend.permissions.index', [
-            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.permission')]),
+        return $this->view('backend.permissions.index', [
+            'page_title' => wncms_model_word('permission', 'management'),
             'permissions' => $permissions,
             'roles' => $roles,
         ]);
@@ -50,8 +50,8 @@ class PermissionController extends Controller
     {
         $roles = Role::all();
         $permissions = Permission::all();
-        return view('wncms::backend.permissions.create', [
-            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.permission')]),
+        return $this->view('backend.permissions.create', [
+            'page_title' => wncms_model_word('permission', 'management'),
             'roles' => $roles,
             'common_suffixes' => $this->common_suffixes,
             'permissions' => $permissions,
@@ -107,8 +107,8 @@ class PermissionController extends Controller
     public function edit(Permission $permission)
     {
         $roles = Role::all();
-        return view('wncms::backend.permissions.edit', [
-            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.permission')]),
+        return $this->view('backend.permissions.edit', [
+            'page_title' => wncms_model_word('permission', 'management'),
             'permission' => $permission,
             'roles' => $roles,
         ]);
@@ -134,7 +134,7 @@ class PermissionController extends Controller
     public function destroy(Permission $permission)
     {
         $permission->delete();
-        return redirect()->route('permissions.index')->withMessage(__('wncms::word.successfully_deleted'));
+        return back()->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function bulk_assign_roles(Request $request)
@@ -173,15 +173,15 @@ class PermissionController extends Controller
 
     public function bulk_delete(Request $request)
     {
-        if(!is_array($request->model_ids)){
+        if (!is_array($request->model_ids)) {
             $modelIds = explode(",", $request->model_ids);
-        }else{
+        } else {
             $modelIds = $request->model_ids;
         }
 
         $count = Permission::whereIn('id', $modelIds)->delete();
 
-        if($request->ajax()){
+        if ($request->ajax()) {
             return response()->json([
                 'status' => 'success',
                 'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
@@ -189,5 +189,22 @@ class PermissionController extends Controller
         }
 
         return redirect()->route('clicks.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
+    }
+
+    /**
+     * Fetch view
+     */
+    public function view(string $name, array $options = [])
+    {
+        if (view()->exists($name)) {
+            return view($name, $options);
+        }
+
+        $defaultView = 'wncms::' . $name;
+        if (view()->exists($defaultView)) {
+            return view($defaultView, $options);
+        }
+
+        abort(404, "View [{$name}] not found.");
     }
 }

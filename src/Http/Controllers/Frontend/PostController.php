@@ -23,7 +23,7 @@ class PostController extends FrontendController
 
         Event::dispatch('wncms.posts.single', $post);
 
-        return wncms_view('frontend.theme.' . $this->theme . '.posts.single', [
+        return wncms()->view('frontend.theme.' . $this->theme . '.posts.single', [
             'post' => $post,
         ]);
     }
@@ -90,7 +90,7 @@ class PostController extends FrontendController
             'cache' => false,
         ]);
 
-        return wncms_view('frontend.theme.' . $this->theme . '.posts.archive', [
+        return wncms()->view('frontend.theme.' . $this->theme . '.posts.archive', [
             'pageTitle' => __('wncms::word.latest_tag_models', ['tagName' => $tagName, 'modelName' => __('wncms::word.' . $modelName)]),
             'tagName' => $tagName,
             'tagType' => $tagType,
@@ -134,7 +134,7 @@ class PostController extends FrontendController
             page:$request->page,
         );
 
-        return wncms_view('frontend.theme.' . $this->theme . '.posts.search', [
+        return wncms()->view('frontend.theme.' . $this->theme . '.posts.search', [
             'pageTitle' => __('wncms::word.search_result_of', ['keyword' => $keyword]),
             'posts' => $posts,
             'keyword' => $keyword,
@@ -166,7 +166,7 @@ class PostController extends FrontendController
 
         $posts = Post::orderByViews('desc', $ranges[$period])->limit($pageSize)->get();
 
-        return wncms_view('frontend.theme.' . $this->theme . '.posts.rank', [
+        return wncms()->view('frontend.theme.' . $this->theme . '.posts.rank', [
             'pageTitle' => __('wncms::word.post_rank_of_period', ['period' => __('wncms::word.' . $period)]),
             'pageName' => 'post_rank',
             'modelName' => 'post',

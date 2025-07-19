@@ -12,7 +12,7 @@
                 @include('wncms::backend.common.default_toolbar_filters')
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -56,10 +56,14 @@
         </div>
     </div>
 
+    {{-- Index --}}
+    @include('wncms::backend.common.showing_item_of_total', ['models' => $contact_forms])
+
+    {{-- Model Data --}}
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle text-nowrap mb-0">
+                <table class="table table-sm table-hover align-middle text-nowrap mb-0">
                     <thead class="table-dark">
                         <tr class="text-start fw-bold gs-0">
                             <th class="w-10px pe-2">
@@ -92,6 +96,7 @@
                             </td>
                             <td>
                                 <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('contact_forms.edit' , $contact_form) }}">@lang('wncms::word.edit')</a>
+                                <a class="btn btn-sm btn-info fw-bold px-2 py-1" href="{{ route('contact_forms.clone' , $contact_form) }}">@lang('wncms::word.clone')</a>
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$contact_form , 'route' => route('contact_forms.destroy' , $contact_form), 'btn_class' => 'px-2 py-1'])
                             </td>
                             <td>{{ $contact_form->id }}</td>
@@ -101,7 +106,7 @@
                             <td>
                                 <div class="input-group w-300px">
                                     <input type="text" class="form-control form-control-sm" value="$wncms->contact_form()->render(contactFormId:{{ $contact_form->id }})">
-                                    <button class="btn btn-sm btn-primary fw-bold mb-1" btn-copy-to-clipboard data-original-text="@lang('wncms::word.copy')" data-copied-text="@lang('wncms::word.copied')" data-value="$wncms->contact_form()->render(contactFormId:{{ $contact_form->id }})">@lang('wncms::word.copy')</button>
+                                    <button class="btn btn-sm btn-primary fw-bold" btn-copy-to-clipboard data-original-text="@lang('wncms::word.copy')" data-copied-text="@lang('wncms::word.copied')" data-value="$wncms->contact_form()->render(contactFormId:{{ $contact_form->id }})">@lang('wncms::word.copy')</button>
                                 </div>
                             </td>
                             <td>{{ $contact_form->remark }}</td>
@@ -120,8 +125,13 @@
         </div>
     </div>
 
-    
-    {{-- {{ $contact_form->withQueryString()->links() }} --}}
+    {{-- Index --}}
+    @include('wncms::backend.common.showing_item_of_total', ['models' => $contact_forms])
+
+    {{-- Pagination --}}
+    <div class="mt-5">
+        {{ $contact_forms->withQueryString()->links() }}
+    </div>
 
 @endsection
 

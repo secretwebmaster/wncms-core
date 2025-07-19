@@ -48,7 +48,7 @@ class MenuItem extends Model implements HasMedia
 
     public function menu()
     {
-        return $this->belongsTo(Menu::class);
+        return $this->belongsTo(wncms()->getModelClass('menu'));
     }
 
     //! Asttribute

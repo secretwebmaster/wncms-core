@@ -118,6 +118,26 @@ class Wncms
     }
 
     /**
+     * Check if the current route name matches any in the given array.
+     *
+     * @param array|string $routes
+     * @param string $activeClass
+     * @param string|null $inActiveClass
+     * @return string|null
+     */
+    public function isActiveRoutes($routes, $activeClass = 'active', $inActiveClass = null)
+    {
+        $currentRoute = \Route::currentRouteName();
+
+        if (!is_array($routes)) {
+            $routes = [$routes];
+        }
+
+        return in_array($currentRoute, $routes) ? $activeClass : $inActiveClass;
+    }
+
+
+    /**
      * fnmatch for array
      * @param array $patterns
      * @param string $path
@@ -443,7 +463,7 @@ class Wncms
         }
 
         $studlyKey = str($key)->studly();
-
+        
         $configModel = config("wncms.models.{$key}");
         if ($configModel && class_exists($configModel)) {
             return $this->modelClassCache[$key] = $configModel;

@@ -33,16 +33,16 @@ class Subscription extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(wncms()->getModelClass('user'));
     }
 
     public function plan()
     {
-        return $this->belongsTo(Plan::class);
+        return $this->belongsTo(wncms()->getModelClass('plan'));
     }
 
     public function price()
     {
-        return $this->belongsTo(Price::class);
+        return $this->belongsTo(wncms()->getModelClass('price'));
     }
 }

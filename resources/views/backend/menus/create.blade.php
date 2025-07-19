@@ -7,49 +7,45 @@
 
 @include('wncms::backend.parts.message')
 
-<div class="card">
-    <div class="card-header border-0 cursor-pointer px-3 px-md-9">
-        <div class="card-title m-0">
-            <h3 class="fw-bolder m-0">@lang('wncms::word.create_menu')</h3>
+<div class="row justify-content-center align-items-center h-100">
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="card shadow-sm">
+            <div class="card-header border-0 cursor-pointer px-3 px-md-9">
+                <div class="card-title m-0">
+                    <h3 class="fw-bolder m-0">{{ wncms_model_word('menu', 'create') }}</h3>
+                </div>
+            </div>
+
+            <div class="collapse show">
+                <form class="form" method="POST" action="{{ route('menus.store') }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="card-body border-top p-3 p-md-9">
+
+                        {{-- website_id --}}
+
+                        {{-- name --}}
+                        <div class="row mb-6">
+                            <label class="fw-bold fs-6 mb-3">@lang('wncms::word.name')</label>
+                            <div class="">
+                                <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name') }}"/>
+                            </div>
+                        </div>
+
+                        {{-- hint --}}
+                        <div class="alert alert-info mt-3">
+                            @lang('wncms::word.menu_create_hint')
+                        </div>
+
+                        {{-- submit --}}
+                        <button type="submit" class="btn btn-dark w-100" id="kt_account_profile_details_submit">
+                            @include('wncms::backend.parts.submit', ['label' => __('wncms::word.create')])
+                        </button>
+                    </div>
+                </form>
+
+
+            </div>
         </div>
-    </div>
-
-    <div class="collapse show">
-        <form class="form" method="POST" action="{{ route('menus.store') }}" enctype="multipart/form-data">
-            @csrf
-            <div class="card-body border-top p-3 p-md-9">
-
-                {{-- website_id --}}
-                <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.website')</label>
-                    <div class="col-lg-8 fv-row">
-                        <select name="website_id" class="form-select form-select-sm">
-                            <option value="">@lang('wncms::word.please_select')</option>
-                            @foreach($websites as $w)
-                                <option  value="{{ $w->id }}" {{ $w->id === old('website_id') ? 'selected' :'' }}><b>{{ $w->domain }}</b></option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                {{-- name --}}
-                <div class="row mb-3">
-                    <label class="col-lg-4 col-form-label fw-bold fs-6">@lang('wncms::word.name')</label>
-                    <div class="col-lg-8 fv-row">
-                        <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name') }}"/>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="card-footer d-flex justify-content-end py-6 px-9">
-                <button type="reset" class="btn btn-white btn-active-light-primary me-2">@lang('wncms::word.cancel')</button>
-
-                <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit">
-                    @include('wncms::backend.parts.submit', ['label' => __('wncms::word.create')])
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 

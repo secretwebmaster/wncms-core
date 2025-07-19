@@ -188,6 +188,13 @@ return [
                 'options' => 'posts',
                 'description' => '選擇一篇或多篇要在頁面上顯示的文章',
             ],
+            [
+                'label' => '選擇頁面',
+                'name' => 'featured_posts',
+                'type' => 'tagify',
+                'options' => 'pages',
+                'description' => '選擇一個或多個要在頁面',
+            ],
         ],
 
         //! 頁首

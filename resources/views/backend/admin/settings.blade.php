@@ -322,4 +322,13 @@ $activeTab = request('tab') ?? old('active_tab') ?? $firstTabName;
         }
     }
 </script>
+
+<script>
+    $('.btn_check_all').click(function() {
+        var targetClass = $(this).data('target-class');
+        var checkboxes = $('.' + targetClass + ' input[type="checkbox"]');
+        var allChecked = checkboxes.filter(':checked').length === checkboxes.length;
+        checkboxes.prop('checked', !allChecked);
+    });
+</script>
 @endpush

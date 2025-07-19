@@ -47,57 +47,52 @@ class Website extends Model implements HasMedia
     //! Relationships
     public function advertisements()
     {
-        return $this->hasMany(Advertisement::class);
-    }
-
-    public function banners()
-    {
-        return $this->hasMany(Banner::class);
+        return $this->hasMany(wncms()->getModelClass('advertisement'));
     }
 
     public function domain_aliases()
     {
-        return $this->hasMany(DomainAlias::class);
+        return $this->hasMany(wncms()->getModelClass('domain_alias'));
     }
     
     public function faqs()
     {
-        return $this->hasMany(Faq::class);
+        return $this->hasMany(wncms()->getModelClass('faq'));
     }
 
     public function menus()
     {
-        return $this->hasMany(Menu::class);
+        return $this->hasMany(wncms()->getModelClass('menu'));
     }
     
     public function pages()
     {
-        return $this->hasMany(Page::class);
+        return $this->hasMany(wncms()->getModelClass('page'));
     }
 
     public function posts()
     {
-        return $this->belongsToMany(Post::class);
+        return $this->belongsToMany(wncms()->getModelClass('post'));
     }
 
     public function search_keywords()
     {
-        return $this->hasMany(SearchKeyword::class);
+        return $this->hasMany(wncms()->getModelClass('search_keyword'));
     }
 
     public function theme_options()
     {
-        return $this->hasMany(ThemeOption::class);
+        return $this->hasMany(wncms()->getModelClass('theme_option'));
     }
 
     public function users()
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(wncms()->getModelClass('user'));
     }
 
     public function contact_form_submissions()
     {
-        return $this->hasMany(ContactFormSubmission::class);
+        return $this->hasMany(wncms()->getModelClass('contact_form_submission'));
     }
 
 

@@ -16,7 +16,6 @@ return new class extends Migration
         if (!Schema::hasTable('banners')) {
             Schema::create('banners', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('website_id')->constrained()->cascadeOnDelete();
                 $table->string('status')->default('active'); // active | paused | pending | suspended
                 $table->string('external_thumbnail')->nullable();
                 $table->string('url')->nullable();

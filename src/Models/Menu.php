@@ -29,19 +29,19 @@ class Menu extends Model
     ];
 
     //! Relationship
-    public function website()
-    {
-        return $this->belongsTo(Website::class);
-    }
+    // public function website()
+    // {
+    //     return $this->belongsTo(Website::class);
+    // }
 
     public function menu_items()
     {
-        return $this->hasMany(MenuItem::class);
+        return $this->hasMany(wncms()->getModelClass('menu_item'));
     }
 
     public function direct_menu_items()
     {
-        return $this->hasMany(MenuItem::class)->whereNull('parent_id');
+        return $this->hasMany(wncms()->getModelClass('menu_item'))->whereNull('parent_id');
     }
 
     //! Asttribute

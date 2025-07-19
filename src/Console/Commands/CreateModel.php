@@ -97,16 +97,16 @@ class CreateModel extends Command
             \n\n// starter_model for model StarterModel
             Route::get('starter_models', [StarterModelController::class, 'index'])->middleware('can:starter_model_index')->name('starter_models.index');
             Route::get('starter_models/create', [StarterModelController::class, 'create'])->middleware('can:starter_model_create')->name('starter_models.create');
-            Route::get('starter_models/create/{starterModel}', [StarterModelController::class, 'create'])->middleware('can:starter_model_clone')->name('starter_models.clone');
-            Route::get('starter_models/{starterModel}/edit', [StarterModelController::class, 'edit'])->middleware('can:starter_model_edit')->name('starter_models.edit');
+            Route::get('starter_models/create/{id}', [StarterModelController::class, 'create'])->middleware('can:starter_model_clone')->name('starter_models.clone');
+            Route::get('starter_models/{id}/edit', [StarterModelController::class, 'edit'])->middleware('can:starter_model_edit')->name('starter_models.edit');
             Route::post('starter_models/store', [StarterModelController::class, 'store'])->middleware('can:starter_model_create')->name('starter_models.store');
-            Route::patch('starter_models/{starterModel}', [StarterModelController::class, 'update'])->middleware('can:starter_model_edit')->name('starter_models.update');
-            Route::delete('starter_models/{starterModel}', [StarterModelController::class, 'destroy'])->middleware('can:starter_model_delete')->name('starter_models.destroy');
+            Route::patch('starter_models/{id}', [StarterModelController::class, 'update'])->middleware('can:starter_model_edit')->name('starter_models.update');
+            Route::delete('starter_models/{id}', [StarterModelController::class, 'destroy'])->middleware('can:starter_model_delete')->name('starter_models.destroy');
             Route::post('starter_models/bulk_delete', [StarterModelController::class, 'bulk_delete'])->middleware('can:starter_model_bulk_delete')->name('starter_models.bulk_delete');
             EOT;
             
             $contentToAppend = str_replace("starter_model", $singulaer_snake, $contentToAppend);
-            $contentToAppend = str_replace("starterModel", $singulaer_camel, $contentToAppend);
+            // $contentToAppend = str_replace("starterModel", $singulaer_camel, $contentToAppend);
             $contentToAppend = str_replace("StarterModel", $className, $contentToAppend);
             File::append($customBackendFile, $contentToAppend);
             

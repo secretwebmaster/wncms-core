@@ -2,13 +2,12 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
 use Wncms\Models\Page;
 use Wncms\Models\User;
 use Wncms\Models\Website;
 use Illuminate\Http\Request;
 
-class PageController extends Controller
+class PageController extends BackendController
 {
     /**
      * ----------------------------------------------------------------------------------------------------
@@ -17,70 +16,53 @@ class PageController extends Controller
      */
     public function index(Request $request)
     {
-        $q = Page::query();
+        $q = $this->modelClass::query();
+
         $q->orderBy('id', 'desc');
-        
-        $selectedWebsiteId = $request->website ?? session('selected_website_id');
-        if($selectedWebsiteId){
-            $q->whereHas('website', function ($subq) use ($selectedWebsiteId) {
-                $subq->where('websites.id', $selectedWebsiteId);
-            });
-        }elseif(!$request->has('website')){
-            $websiteId = wncms()->website()->get()?->id;
-            $q->whereHas('website', function ($subq) use ($websiteId) {
-                $subq->where('websites.id', $websiteId);
-            });
-        }
 
-        $pages = $q->get();
+        $pages = $q->paginate($request->page_size ?? 100);
 
-        $websites = Website::all();
-
-        return view('wncms::backend.pages.index', [
-            'page_title' => __('wncms::word.page_management'),
+        return $this->view('backend.pages.index', [
+            'page_title' => wncms_model_word('page', 'management'),
             'pages' => $pages,
-            'websites' => $websites,
-            'orders' => Page::ORDERS,
-            'statuses' => Page::STATUSES,
-            'visibilities' => Page::VISIBILITIES,
+            'orders' => $this->modelClass::ORDERS,
+            'statuses' => $this->modelClass::STATUSES,
+            'visibilities' => $this->modelClass::VISIBILITIES,
         ]);
     }
 
-    public function create(Page $page = null)
+    public function create($id = null)
     {
-        if (isAdmin()) {
-            $users = User::all();
-            $websites = Website::all();
+        if ($id) {
+            $page = $this->modelClass::find($id);
+            if (!$page) {
+                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+            }
         } else {
-            $users = User::where('id', auth()->id())->get();
-            $websites = auth()->user()->websites;
+            $page = new $this->modelClass;
         }
 
-        return view('wncms::backend.pages.create', [
-            'page_title' => __('wncms::word.page_management'),
-            'websites' => $websites,
+        if (isAdmin()) {
+            $users = wncms()->getModelClass('user')::all();
+        } else {
+            $users = wncms()->getModelClass('user')::where('id', auth()->id())->get();
+        }
+
+        return $this->view('backend.pages.create', [
+            'page_title' => wncms_model_word('page', 'management'),
             'users' => $users,
-            'orders' => Page::ORDERS,
-            'types' => Page::TYPES,
-            'statuses' => Page::STATUSES,
-            'visibilities' => Page::VISIBILITIES,
-            'page' => $page ??= new Page,
+            'orders' => $this->modelClass::ORDERS,
+            'types' => $this->modelClass::TYPES,
+            'statuses' => $this->modelClass::STATUSES,
+            'visibilities' => $this->modelClass::VISIBILITIES,
+            'page' => $page,
         ]);
     }
 
     public function store(Request $request)
     {
-        // dd($request->all());
-        if (isAdmin()) {
-            $user = User::find($request->user_id) ?? auth()->user();
-            $website = Website::find($request->website_id);
-        } else {
-            $user = auth()->user();
-            $website = auth()->user()->websites()->find($request->website_id);
-        }
-
+        $user = wncms()->getModelClass('user')::find($request->user_id) ?? auth()->user();
         if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
-        if (!$website) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
 
         $request->validate(
             [
@@ -96,7 +78,6 @@ class PageController extends Controller
         );
 
         $page = $user->pages()->create([
-            'website_id' => $website->id,
             'status' => $request->status,
             'visibility' => $request->visibility,
             'title' => $request->title,
@@ -123,12 +104,12 @@ class PageController extends Controller
 
         //             //set order
         //             $inputs[$pageWidgetId]['pageWidgetOrder'] = $pageWidgetOrder;
-                
+
         //             //set field values
         //             $inputs[$pageWidgetId]['fields'][$key] = $value;
 
         //             if(str()->endswith($key, '_remove')){
-    
+
         //                 $file_key = str_replace("_remove" , '', $key);
         //                 if($value == 1){
         //                     $page->clearMediaCollection($file_key);
@@ -136,11 +117,11 @@ class PageController extends Controller
         //                 }else{
         //                     $inputs[$pageWidgetId]['fields'][$file_key] = $page->getPageTemplateOption($pageWidgetId, $file_key);
         //                 }
-                        
+
         //                 //do nnt need to save key with _remove
         //                 unset($inputs[$pageWidgetId]['fields'][$key]);
         //             }
-    
+
         //             if($request->hasFile("inputs.{$pageWidgetId}.{$key}")){
         //                 $collection = "{$pageWidgetId}_{$key}";
         //                 $page->clearMediaCollection($collection);
@@ -148,7 +129,7 @@ class PageController extends Controller
         //                 $value = str_replace(env('APP_URL') , '' ,$image->getUrl());
         //                 $inputs[$pageWidgetId]['fields'][$key] = $value;
         //             }
-                
+
         //         }
 
         //         $pageWidgetOrder++;
@@ -161,7 +142,8 @@ class PageController extends Controller
 
 
         //clear cache
-        wncms()->cache()->flush(['pages']);
+        $this->flush();
+
         return redirect()->route('pages.edit', $page->id);
     }
 
@@ -170,34 +152,49 @@ class PageController extends Controller
         dd('restore page from default theme setting');
     }
 
-    public function edit(Page $page)
+    public function edit($id)
     {
-        // dd($page);
         if (isAdmin()) {
-            $users = User::all();
-            $websites = Website::all();
+            $users = wncms()->getModelClass('user')::all();
         } else {
-            $users = User::where('id', auth()->id())->get();
-            $websites = auth()->user()->websites;
+            $users = wncms()->getModelClass('user')::where('id', auth()->id())->get();
         }
 
-        $available_templates = collect(config("theme." . $page->website?->theme . ".templates"));
+        if ($id) {
+            $page = $this->modelClass::find($id);
+            if (!$page) {
+                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+            }
+        } else {
+            $page = new $this->modelClass;
+        }
 
-        return view('wncms::backend.pages.edit', [
-            'page_title' => __('wncms::word.page_management'),
+        if(gss('multi_website')){
+            $available_templates = collect(config("theme." . $page->website?->theme . ".templates"));
+        }else{
+            $available_templates = collect(config("theme." . wncms()->website()->get()?->theme . ".templates"));
+        }
+
+        return $this->view('backend.pages.edit', [
+            'page_title' => wncms_model_word('page', 'management'),
             'page' => $page,
-            'websites' => $websites,
             'users' => $users,
-            'statuses' => Page::STATUSES,
-            'types' => Page::TYPES,
-            'visibilities' => Page::VISIBILITIES,
+            'statuses' => $this->modelClass::STATUSES,
+            'types' => $this->modelClass::TYPES,
+            'visibilities' => $this->modelClass::VISIBILITIES,
             'available_templates' => $available_templates,
         ]);
     }
 
-    public function update(Request $request, Page $page)
+    public function update(Request $request, $id)
     {
         // dd($request->all());
+
+        $page = $this->modelClass::find($id);
+        if (!$page) {
+            return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)])]);
+        }
+
         if ($page->is_locked && $request->is_locked) {
             return redirect()->back()->withInput()->withErrors([
                 'message' => __('wncms::word.page_is_lock_please_unlock_and_save_first_to_edit')
@@ -210,15 +207,12 @@ class PageController extends Controller
         }
 
         if (isAdmin()) {
-            $user = User::find($request->user_id) ?? auth()->user();
-            $website = Website::find($request->website_id);
+            $user = wncms()->getModelClass('user')::find($request->user_id) ?? auth()->user();
         } else {
             $user = auth()->user();
-            $website = auth()->user()->websites()->find($request->website_id);
         }
 
         if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
-        if (!$website) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
 
         $request->validate(
             [
@@ -232,12 +226,11 @@ class PageController extends Controller
                 'visibility.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.visibility')]),
             ]
         );
-        
+
         // TODO: Handle order
         // dd($request->inputs, $inputs);
 
         $page->update([
-            'website_id' => $website->id,
             'status' => $request->status,
             'visibility' => $request->visibility,
             'title' => $request->title,
@@ -249,7 +242,7 @@ class PageController extends Controller
             'blade_name' => $request->blade_name,
         ]);
 
-        if($page->type == 'template' && !empty($page->blade_name) && !empty($request->inputs)){
+        if ($page->type == 'template' && !empty($page->blade_name) && !empty($request->inputs)) {
             $page->spto($request);
         }
 
@@ -263,41 +256,14 @@ class PageController extends Controller
         $page->savePageOption($request);
 
         //clear cache
-        wncms()->cache()->flush(['pages']);
+        $this->flush();
 
         return redirect()->route('pages.edit', $page->id)->withMessage(__('wncms::word.successfully_updated'));
     }
 
-    public function destroy(Page $page)
-    {
-        $page->delete();
-        return redirect()->route('pages.index')->withMessage(__('wncms::word.successfully_deleted'));
-    }
-
-    public function bulk_delete(Request $request)
-    {
-        // dd($request->all());
-        if(!is_array($request->model_ids)){
-            $modelIds = explode(",", $request->model_ids);
-        }else{
-            $modelIds = $request->model_ids;
-        }
-
-        $count = Page::whereIn('id', $modelIds)->delete();
-
-        if($request->ajax()){
-            return response()->json([
-                'status' => 'success',
-                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
-            ]);
-        }
-
-        return redirect()->route('pages.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
-    }
-
     public function get_available_templates(Request $request)
     {
-        $website = Website::find($request->website_id);
+        $website = wncms()->getModelClass('website')::find($request->website_id);
         if (!$website) return response()->json([
             'status' => 'fail',
             'message' => __('wncms::word.website_not_exist')
@@ -316,18 +282,17 @@ class PageController extends Controller
     public function create_theme_pages(Request $request)
     {
         // dd($request->all());
-        if(empty($request->website_id)){
+        if (empty($request->website_id)) {
             return back()->withErrors(['message' => __('wncms::word.website_is_required')]);
         }
         //get website
-        if(isAdmin()){
-            $website = Website::find($request->website_id);
-        }else{
-            $website = Website::query()
-            ->whereRelation('users', 'users.id', auth()->id());
+        if (isAdmin()) {
+            $website = wncms()->getModelClass('website')::find($request->website_id);
+        } else {
+            $website = wncms()->getModelClass('website')::query()->whereRelation('users', 'users.id', auth()->id());
         }
 
-        if(empty($website)){
+        if (empty($website)) {
             return back()->withErrors(['message' => __('wncms::word.website_is_not_found')]);
         }
 
@@ -342,9 +307,7 @@ class PageController extends Controller
      */
     public function editor(Request $request, Page $page)
     {
-        $posts = wncms()->post()->getList(
-            count:10,
-        );
+        // $posts = wncms()->post()->getList(['count' => 10]);
         return $this->show_gjs_editor($request, $page);
     }
 
@@ -357,15 +320,14 @@ class PageController extends Controller
         $widgetOptions[] = ['type' => 'hidden', 'name' => 'widget_key'];
         $current_options = ['widget_key' => $widgetId];
 
-        $randomNameKeySuffix = md5(microtime(true) . rand(10000,99999));
+        $randomNameKeySuffix = md5(microtime(true) . rand(10000, 99999));
         $randomKey = 'inputs[item_' . $randomNameKeySuffix . ']';
         $html = '';
 
-
         $sortableIds = [];
-        foreach($widgetOptions ?? [] as $widgetOption){
-            $randomIdSuffix = md5(microtime(true) . rand(10000,99999));
-            if(!empty($widgetOption['sortable']) && !empty($widgetOption['id'])){
+        foreach ($widgetOptions ?? [] as $widgetOption) {
+            $randomIdSuffix = md5(microtime(true) . rand(10000, 99999));
+            if (!empty($widgetOption['sortable']) && !empty($widgetOption['id'])) {
                 $sortableIds[] = $widgetOption['id'] . $randomIdSuffix;
             }
 

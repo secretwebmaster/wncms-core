@@ -2,19 +2,16 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
-use Wncms\Models\CreditTransaction;
-use Wncms\Models\User;
 use Illuminate\Http\Request;
 
-class CreditTransactionController extends Controller
+class CreditTransactionController extends BackendController
 {
     /**
      * Display a listing of the credit transactions.
      */
     public function index(Request $request)
     {
-        $q = CreditTransaction::query();
+        $q = $this->modelClass::query();
 
         // Optional filters
         if ($request->filled('user_id')) {
@@ -31,21 +28,24 @@ class CreditTransactionController extends Controller
 
         $creditTransactions = $q->paginate($request->page_size ?? 100);
 
-        return view('wncms::backend.credit_transactions.index', [
+        return $this->view('backend.credit_transactions.index', [
             'page_title' => wncms_model_word('credit_transaction', 'management'),
             'creditTransactions' => $creditTransactions,
-            'users' => User::all(),
+            'transactionTypes' => $this->modelClass::TRANSACTION_TYPES,
+            'creditTypes' => wncms()->getModelClass('credit')::TYPES,
+            'users' => wncms()->getModelClass('user')::all(),
         ]);
     }
 
     /**
      * Show the form for creating a new credit transaction.
      */
-    public function create()
+    public function create($id = null)
     {
-        return view('wncms::backend.credit_transactions.create', [
+        return $this->view('backend.credit_transactions.create', [
             'page_title' => wncms_model_word('credit_transaction', 'create'),
-            'users' => User::all(),
+            'users' => wncms()->getModelClass('user')::all(),
+            'creditTypes' => wncms()->getModelClass('credit')::TYPES,
         ]);
     }
 
@@ -54,39 +54,56 @@ class CreditTransactionController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->all());
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'credit_type' => 'required|string|in:balance,points',
+            'credit_type' => 'required|string',
             'amount' => 'required|numeric|min:0.01',
             'transaction_type' => 'required|string|in:earn,spend,recharge,refund,adjustment',
             'remark' => 'nullable|string|max:255',
+        ],[
+            'user_id.required' => __('wncms::word.user_required'),
+            'credit_type.required' => __('wncms::word.credit_type_required'),
+            'amount.required' => __('wncms::word.amount_required'),
+            'transaction_type.required' => __('wncms::word.transaction_type_required'),
         ]);
 
-        $creditTransaction = CreditTransaction::create($validated);
 
-        wncms()->cache()->flush(['creditTransactions']);
+        $creditTransaction = $this->modelClass::create($validated);
 
-        return redirect()->route('credit_transactions.edit', $creditTransaction)
-            ->withMessage(__('wncms::word.successfully_created'));
+        $this->flush();
+
+        return redirect()->route('credit_transactions.edit', $creditTransaction)->withMessage(__('wncms::word.successfully_created'));
     }
 
     /**
      * Show the form for editing the specified credit transaction.
      */
-    public function edit(CreditTransaction $creditTransaction)
+    public function edit($id)
     {
-        return view('wncms::backend.credit_transactions.edit', [
+        $creditTransaction = $this->modelClass::find($id);
+        if (!$creditTransaction) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
+        return $this->view('backend.credit_transactions.edit', [
             'page_title' => wncms_model_word('credit_transaction', 'edit'),
             'creditTransaction' => $creditTransaction,
-            'users' => User::all(),
+            'creditTypes' => wncms()->getModelClass('credit')::TYPES,
+            'users' => wncms()->getModelClass('user')::all(),
         ]);
     }
 
     /**
      * Update the specified credit transaction in storage.
      */
-    public function update(Request $request, CreditTransaction $creditTransaction)
+    public function update(Request $request, $id)
     {
+        $creditTransaction = $this->modelClass::find($id);
+        if (!$creditTransaction) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'credit_type' => 'required|string|in:balance,points',
@@ -97,46 +114,8 @@ class CreditTransactionController extends Controller
 
         $creditTransaction->update($validated);
 
-        wncms()->cache()->flush(['creditTransactions']);
+        $this->flush();
 
-        return redirect()->route('credit_transactions.edit', $creditTransaction)
-            ->withMessage(__('wncms::word.successfully_updated'));
-    }
-
-    /**
-     * Remove the specified credit transaction from storage.
-     */
-    public function destroy(CreditTransaction $creditTransaction)
-    {
-        $creditTransaction->delete();
-
-        wncms()->cache()->flush(['creditTransactions']);
-
-        return redirect()->route('credit_transactions.index')
-            ->withMessage(__('wncms::word.successfully_deleted'));
-    }
-
-    /**
-     * Bulk delete credit transactions.
-     */
-    public function bulk_delete(Request $request)
-    {
-        $modelIds = is_array($request->model_ids)
-            ? $request->model_ids
-            : explode(",", $request->model_ids);
-
-        $count = CreditTransaction::whereIn('id', $modelIds)->delete();
-
-        wncms()->cache()->flush(['creditTransactions']);
-
-        if ($request->ajax()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
-            ]);
-        }
-
-        return redirect()->route('credit_transactions.index')
-            ->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
+        return redirect()->route('credit_transactions.edit', $creditTransaction)->withMessage(__('wncms::word.successfully_updated'));
     }
 }

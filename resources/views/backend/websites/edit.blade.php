@@ -20,7 +20,7 @@
                     <a href="{{ route('websites.theme.options', $website) }}" class="btn btn-sm btn-light fw-bold">@lang('wncms::word.switch_to_theme_options')</a>
                 </div>
             </div>
-            
+
             <div class="card-title m-0">
                 <div class="card-toolbar flex-row-fluid justify-content-end text-nowrap">
                     <button type="submit" wncms-btn-loading class="btn btn-sm btn-primary wncms-submit">
@@ -33,19 +33,11 @@
         <div class="collapse show">
             <div class="card-body border-top p-3 p-md-9">
 
-                {{-- License --}}
-                {{-- <div class="row mb-3">
-                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.license')</label>
-                    <div class="col-lg-9 fv-row">
-                        <input type="password" class="form-control form-control-sm" value="{{ $website->license ?? old('license') }}" disabled/>
-                    </div>
-                </div> --}}
-                
                 {{-- Domain --}}
                 <div class="row mb-1">
                     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.domain')</label>
                     <div class="col-lg-9 fv-row">
-                        <input type="text" name="domain" class="form-control form-control-sm" value="{{ $website->domain }}"/>
+                        <input type="text" name="domain" class="form-control form-control-sm" value="{{ $website->domain }}" />
                     </div>
                 </div>
 
@@ -53,18 +45,26 @@
                 <div class="row mb-1">
                     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.site_name')</label>
                     <div class="col-lg-9 fv-row">
-                        <input type="text" name="site_name" class="form-control form-control-sm" value="{{ $website->site_name ?? old('site_name') }}"/>
+                        <input type="text" name="site_name" class="form-control form-control-sm" value="{{ $website->site_name ?? old('site_name') }}" />
                     </div>
                 </div>
 
                 {{-- Other name--}}
+
                 <div class="row mb-1">
+                    @php
+                    $aliases = $website?->domain_aliases ?? collect();
+                    @endphp
                     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.domain_aliases')</label>
                     <div class="col-lg-9 fv-row">
-                        <textarea class="form-control form-control-sm" name="domain_aliases" rows="6">{{ $website?->domain_aliases()->implode('domain', "\r\n") }}</textarea>
+                        <div class="mb-2">
+                            <button type="button" class="btn btn-sm btn-dark px-2 py-1" onclick="sortAliases('created_at')">@lang('wncms::word.created_at')</button>
+                            <button type="button" class="btn btn-sm btn-dark px-2 py-1" onclick="sortAliases('domain')">@lang('wncms::word.alphabetic')</button>
+                        </div>
+                        <textarea class="form-control form-control-sm" name="domain_aliases" id="domain_aliases_textarea" rows="20">{{ $aliases->sortByDesc('created_at')->sortByDesc('id')->implode('domain', "\r\n") }}</textarea>
                     </div>
                 </div>
-                
+
                 {{-- Theme --}}
                 <div class="row mb-6">
                     <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('wncms::word.theme')</label>
@@ -72,7 +72,7 @@
                         <select name="theme" class="form-select form-select-sm">
                             <option value="">@lang('wncms::word.please_select_theme')</option>
                             @foreach($themes as $theme)
-                                <option value="{{ str_replace('frontend/theme/','',$theme) }}" {{ str_replace('frontend/theme/','',$theme) === ($website->theme ?? old('theme')) ? 'selected' : '' }}><b>{{ str_replace('frontend/theme/','',$theme) }}</b></option>
+                            <option value="{{ str_replace('frontend/theme/','',$theme) }}" {{ str_replace('frontend/theme/','',$theme)===($website->theme ?? old('theme')) ? 'selected' : '' }}><b>{{ str_replace('frontend/theme/','',$theme) }}</b></option>
                             @endforeach
                         </select>
                     </div>
@@ -82,7 +82,7 @@
                 <div class="row mb-1">
                     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.site_slogan')</label>
                     <div class="col-lg-9 fv-row">
-                        <input type="text" name="site_slogan" class="form-control form-control-sm" value="{{ $website->site_slogan ?? old('site_slogan') }}"/>
+                        <input type="text" name="site_slogan" class="form-control form-control-sm" value="{{ $website->site_slogan ?? old('site_slogan') }}" />
                     </div>
                 </div>
 
@@ -91,15 +91,15 @@
                     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.site_seo_description')</label>
                     <div class="col-lg-9 fv-row">
 
-                        <input type="text" name="site_seo_description" class="form-control form-control-sm" value="{{ $website->site_seo_description ?? old('site_seo_description') }}"/>
+                        <input type="text" name="site_seo_description" class="form-control form-control-sm" value="{{ $website->site_seo_description ?? old('site_seo_description') }}" />
                     </div>
                 </div>
 
-                {{-- site_seo_keywords  --}}
+                {{-- site_seo_keywords --}}
                 <div class="row mb-1">
                     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.site_seo_keywords')</label>
                     <div class="col-lg-9 fv-row">
-                        <input type="text" name="site_seo_keywords" class="form-control form-control-sm" value="{{ $website->site_seo_keywords ?? old('site_seo_keywords') }}"/>
+                        <input type="text" name="site_seo_keywords" class="form-control form-control-sm" value="{{ $website->site_seo_keywords ?? old('site_seo_keywords') }}" />
                     </div>
                 </div>
 
@@ -113,21 +113,21 @@
 
                             <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="@lang('wncms::word.change_favicon')">
                                 <i class="fa fa-pencil fs-7"></i>
-                                <input type="file" name="site_favicon" accept="image/*"/>
-                                <input type="hidden" name="site_favicon_remove"/>
+                                <input type="file" name="site_favicon" accept="image/*" />
+                                <input type="hidden" name="site_favicon_remove" />
                             </label>
 
                             <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="@lang('wncms::word.edit')">
                                 <i class="fa fa-times"></i>
                             </span>
-                            
+
                             <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="@lang('wncms::word.remove')">
                                 <i class="fa fa-times"></i>
                             </span>
                         </div>
                     </div>
                 </div>
-                
+
                 {{-- Logo --}}
                 <div class="row mb-1">
                     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.logo_black')</label>
@@ -139,14 +139,14 @@
                             <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="@lang('wncms::word.change_favicon')">
                                 <i class="fa fa-pencil fs-7"></i>
 
-                                <input type="file" name="site_logo" accept="image/*"/>
-                                <input type="hidden" name="site_logo_remove"/>
+                                <input type="file" name="site_logo" accept="image/*" />
+                                <input type="hidden" name="site_logo_remove" />
                             </label>
 
                             <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="@lang('wncms::word.edit')">
                                 <i class="fa fa-times"></i>
                             </span>
-                            
+
                             <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="@lang('wncms::word.remove')">
                                 <i class="fa fa-times"></i>
                             </span>
@@ -164,14 +164,14 @@
                             <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="@lang('wncms::word.change_favicon')">
                                 <i class="fa fa-pencil fs-7"></i>
 
-                                <input type="file" name="site_logo_white" accept="image/*"/>
-                                <input type="hidden" name="site_logo_white_remove"/>
+                                <input type="file" name="site_logo_white" accept="image/*" />
+                                <input type="hidden" name="site_logo_white_remove" />
                             </label>
 
                             <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="@lang('wncms::word.edit')">
                                 <i class="fa fa-times"></i>
                             </span>
-                            
+
                             <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="@lang('wncms::word.remove')">
                                 <i class="fa fa-times"></i>
                             </span>
@@ -181,12 +181,12 @@
 
                 {{-- Codes --}}
                 @foreach(['meta_verification','head_code','body_code'] as $code_field)
-                    <div class="row mb-1">
-                        <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.' . $code_field)</label>
-                        <div class="col-lg-9">
-                            <textarea class="form-control form-control-sm" name="{{ $code_field }}" cols="30" rows="4">{{ $website->{$code_field} }}</textarea>
-                        </div>
+                <div class="row mb-1">
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.' . $code_field)</label>
+                    <div class="col-lg-9">
+                        <textarea class="form-control form-control-sm" name="{{ $code_field }}" cols="30" rows="4">{{ $website->{$code_field} }}</textarea>
                     </div>
+                </div>
                 @endforeach
 
                 {{-- analytics_code --}}
@@ -220,12 +220,12 @@
                         </div>
                     </div>
                 </div>
-                                
+
                 {{-- Remark --}}
                 <div class="row mb-1">
                     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.remark')</label>
                     <div class="col-lg-9 fv-row">
-                        <input type="text" name="remark" class="form-control form-control-sm" value="{{ $website->remark ?? old('remark') }}"/>
+                        <input type="text" name="remark" class="form-control form-control-sm" value="{{ $website->remark ?? old('remark') }}" />
                     </div>
                 </div>
 
@@ -242,3 +242,21 @@
 </div>
 
 @endsection
+
+@push('foot_js')
+<script>
+    const aliases = @json($aliases->toArray());
+
+        function sortAliases(column) {
+            const sorted = [...aliases].sort((a, b) => {
+                if (column === 'domain') {
+                    return a.domain.localeCompare(b.domain);
+                }
+                return b[column] - a[column]; // Descending
+            });
+
+            const textarea = document.getElementById('domain_aliases_textarea');
+            textarea.value = sorted.map(item => item.domain).join("\r\n");
+        }
+</script>
+@endpush

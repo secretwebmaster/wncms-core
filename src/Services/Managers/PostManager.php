@@ -2,11 +2,9 @@
 
 namespace Wncms\Services\Managers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
-use Wncms\Models\Post;
-use Wncms\Models\Tag;
 
 class PostManager extends ModelManager
 {
@@ -20,7 +18,7 @@ class PostManager extends ModelManager
         return wncms()->getModelClass('post');
     }
 
-    public function get(array $options = []): ?Post
+    public function get(array $options = []): ?Model
     {
         $options['withs'] = array_merge(['media', 'comments', 'tags', 'translations'], $options['withs'] ?? []);
         return parent::get($options);
@@ -32,7 +30,28 @@ class PostManager extends ModelManager
         return parent::getList($options);
     }
 
-    protected function buildListQuery(array $options): Collection|LengthAwarePaginator
+    public function getRelated(array|Model|int|null $post, array $options = []): Collection|LengthAwarePaginator
+    {
+        if (is_int($post)) {
+            $post = $this->get(['id' => $post, 'cache' => $options['cache'] ?? true]);
+        }
+
+        if (!$post instanceof Model) {
+            return collect();
+        }
+
+        $tagType = $options['tag_type'] ?? 'post_category';
+        $tagNames = $post->tagsWithType($tagType)->pluck('name')->toArray();
+
+        return $this->getList(array_merge([
+            'excluded_post_ids' => $post->id,
+            'tags' => $tagNames,
+            'tag_type' => $tagType,
+            'website_id' => $post->website_id,
+        ], $options));
+    }
+    
+    protected function buildListQuery(array $options): mixed
     {
         $q = $this->query();
 
@@ -62,10 +81,8 @@ class PostManager extends ModelManager
                 $q = $this->getWebsiteQuery('posts', $websiteId);
             } catch (\Throwable $e) {
                 logger()->warning("Website relation error: " . $e->getMessage());
-                return $this->finalizeResult($q->whereRaw('1=0'), $options);
+                return $q->whereRaw('1=0');
             }
-        } else {
-            $q = $this->query();
         }
 
         $this->applyWiths($q, array_merge(['media', 'comments', 'tags', 'translations'], $withs));
@@ -99,28 +116,6 @@ class PostManager extends ModelManager
             $q->distinct();
         }
 
-        return $this->finalizeResult($q, $options);
-    }
-
-
-    public function getRelated(array|Post|int|null $post, array $options = []): Collection|LengthAwarePaginator
-    {
-        if (is_int($post)) {
-            $post = $this->get(['id' => $post, 'cache' => $options['cache'] ?? true]);
-        }
-
-        if (!$post instanceof Post) {
-            return collect();
-        }
-
-        $tagType = $options['tag_type'] ?? 'post_category';
-        $tagNames = $post->tagsWithType($tagType)->pluck('name')->toArray();
-
-        return $this->getList(array_merge([
-            'excluded_post_ids' => $post->id,
-            'tags' => $tagNames,
-            'tag_type' => $tagType,
-            'website_id' => $post->website_id,
-        ], $options));
+        return $q;
     }
 }

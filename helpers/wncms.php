@@ -52,11 +52,18 @@ if (!function_exists('wncms_get_model_names')) {
                 return $modelName;
             });
 
+        // 先取 App\Models 的 basename
+        $appModelBasenames = $appModels->map(fn($model) => class_basename($model))->unique();
+
         $packageModels = collect(File::allFiles(dirname(__DIR__) . '/src/Models'))
             ->map(function ($file) {
                 $relativePath = Str::replaceFirst(dirname(__DIR__) . '/src/Models' . DIRECTORY_SEPARATOR, '', $file->getPathname());
                 $namespacePath = str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath);
                 return 'Wncms\\Models\\' . Str::replace('.php', '', $namespacePath);
+            })
+            ->filter(function ($modelName) use ($appModelBasenames) {
+                // 如果 App\Models 裡已經有同名的 model，就略過
+                return !$appModelBasenames->contains(class_basename($modelName));
             });
 
         $files = $appModels->merge($packageModels);

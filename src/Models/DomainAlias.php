@@ -24,6 +24,6 @@ class DomainAlias extends Model
 
     public function website()
     {
-        return $this->belongsTo(Website::class);
+        return $this->belongsTo(wncms()->getModelClass('website'));
     }
 }

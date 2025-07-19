@@ -39,7 +39,7 @@ class Price extends Model
 
     public function plan()
     {
-        return $this->belongsTo(Plan::class);
+        return $this->belongsTo(wncms()->getModelClass('plan'));
     }
 
     /**

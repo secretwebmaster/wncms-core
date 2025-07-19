@@ -26,7 +26,7 @@
                 @endif --}}
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -61,7 +61,7 @@
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-nowrap mb-0">
+                <table class="table table-sm table-hover table-bordered align-middle text-nowrap mb-0">
 
                     {{-- thead --}}
                     <thead class="table-dark">
@@ -75,6 +75,15 @@
                             <th>@lang('wncms::word.action')</th>
                             <th>@lang('wncms::word.id')</th>
                             <th>@lang('wncms::word.name')</th>
+                            <th>@lang('wncms::word.status')</th>
+                            <th>@lang('wncms::word.slug')</th>
+                            <th>@lang('wncms::word.type')</th>
+                            <th>@lang('wncms::word.account_id')</th>
+                            <th>@lang('wncms::word.client_id')</th>
+                            <th>@lang('wncms::word.client_secret')</th>
+                            <th>@lang('wncms::word.endpoint')</th>
+                            <th>@lang('wncms::word.attributes')</th>
+                            <th>@lang('wncms::word.description')</th>
                             <th>@lang('wncms::word.created_at')</th>
 
                             @if(request()->show_detail)
@@ -103,6 +112,25 @@
                                 {{-- Data --}}
                                 <td>{{ $payment_gateways->id }}</td>
                                 <td>{{ $payment_gateways->name }}</td>
+                                <td>@include('wncms::common.table_status', ['model' => $payment_gateways])</td>
+                                <td>{{ $payment_gateways->slug }}</td>
+                                <td>{{ $payment_gateways->type }}</td>
+                                <td>{{ $payment_gateways->account_id }}</td>
+                                <td>{{ $payment_gateways->client_id }}</td>
+                                <td>{{ $payment_gateways->client_secret }}</td>
+                                <td>{{ $payment_gateways->endpoint }}</td>
+                                <td>
+                                    @if($payment_gateways->attributes)
+                                        <ul class="list-unstyled mb-0">
+                                            @foreach($payment_gateways->attributes as $key => $value)
+                                                <li>
+                                                    <strong>{{ $key }}:</strong> {{ is_array($value) ? implode(', ', $value) : $value }}
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                </td>
+                                <td>{{ $payment_gateways->description }}</td>
                                 <td>{{ $payment_gateways->created_at }}</td>
 
                                 @if(request()->show_detail)

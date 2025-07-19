@@ -26,7 +26,7 @@
                 @endif --}}
 
                 <div class="col-6 col-md-auto mb-3 ms-0">
-                    <input type="submit" class="btn btn-sm btn-primary fw-bold mb-1" value="@lang('wncms::word.submit')">
+                    <input type="submit" class="btn btn-sm btn-primary fw-bold" value="@lang('wncms::word.submit')">
                 </div>
             </div>
 
@@ -52,7 +52,7 @@
                 'model_prefix' => 'pages',
             ])
 
-            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#modal_one_click_create_theme_pages">@lang('wncms::word.one_click_create_theme_pages')</button>
+            {{-- <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#modal_one_click_create_theme_pages">@lang('wncms::word.one_click_create_theme_pages')</button>
             <div class="modal fade" tabindex="-1" id="modal_one_click_create_theme_pages">
                 <div class="modal-dialog">
                     <form action="{{ route('pages.create_theme_pages') }}" method="POST">
@@ -82,7 +82,7 @@
                     </form>
 
                 </div>
-            </div>
+            </div> --}}
         </div>
     </div>
 
@@ -90,7 +90,7 @@
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle text-nowrap mb-0">
+                <table class="table table-sm table-hover align-middle text-nowrap mb-0">
                     <thead class="table-dark">
                         <tr class="fw-bold gs-0">
                             <th class="w-10px pe-2">
@@ -102,7 +102,7 @@
                             <th>@lang('wncms::word.id')</th>
                             <th>@lang('wncms::word.slug')</th>
                             <th>@lang('wncms::word.user')</th>
-                            <th>@lang('wncms::word.website')</th>
+                            {{-- <th>@lang('wncms::word.website')</th> --}}
                             <th>@lang('wncms::word.status')</th>
                             <th>@lang('wncms::word.thumbnail')</th>
                             <th>@lang('wncms::word.title')</th>
@@ -131,10 +131,11 @@
                             <td>{{ $page->id }}</td>
                             <td>{{ $page->slug }}</td>
                             <td>{{ $page->user?->username }}</td>
-                            <td>{{ $page->website?->domain }}</td>
+                            {{-- <td>{{ $page->website?->domain }}</td> --}}
                             <td>@include('wncms::common.table_status', ['model' => $page])</td>
                             <td><img class="lazyload mw-100px rounded" src="{{ $page->thumbnail }}" alt=""></td>
-                            <td class="mw-400px text-truncate"><a href="{{ $wncms->getRoute('frontend.pages.single', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td>
+                            {{-- <td class="mw-400px text-truncate"><a href="{{ $wncms->getRoute('frontend.pages.single', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td> --}}
+                            <td class="mw-400px text-truncate"><a href="{{ route('frontend.pages.single', ['slug' => $page->slug]) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td>
                             <td>{{ $page->visibility }}</td>
                             <td>{{ $page->template }}</td>
                             <th title="@foreach(json_decode($page->attribute, true) ?? [] as $key => $value){{ $key }}: {{ $value }}&#10;@endforeach">@if($page->attribute && $page->attribute != "[]")@lang('wncms::word.hover_to_view')@endif</td>

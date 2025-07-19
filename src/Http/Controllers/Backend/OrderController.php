@@ -2,19 +2,13 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
-use Wncms\Models\Order;
-use Wncms\Models\User;
 use Illuminate\Http\Request;
 
-class OrderController extends Controller
+class OrderController extends BackendController
 {
-    /**
-     * Display a listing of the orders.
-     */
     public function index(Request $request)
     {
-        $q = Order::query();
+        $q = $this->modelClass::query();
 
         // Filters
         if ($request->filled('user_id')) {
@@ -27,27 +21,31 @@ class OrderController extends Controller
 
         $orders = $q->paginate($request->page_size ?? 100)->withQueryString();
 
-        return view('wncms::backend.orders.index', [
+        return $this->view('backend.orders.index', [
             'page_title' => wncms_model_word('orders', 'management'),
-            'orders' => $orders,
-            'users' => User::all(),
+            'orders' => $this->modelClass::ORDERS,
+            'userOrders' => $orders,
+            'users' => wncms()->getModelClass('user')::all(),
         ]);
     }
 
-    /**
-     * Show the form for creating a new order.
-     */
-    public function create()
+    public function create($id = null)
     {
-        return view('wncms::backend.orders.create', [
+        if ($id) {
+            $model = $this->modelClass::find($id);
+            if (!$model) {
+                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+            }
+        } else {
+            $model = new $this->modelClass;
+        }
+
+        return $this->view('backend.orders.create', [
             'page_title' => wncms_model_word('orders', 'create'),
-            'users' => User::all(),
+            'users' => wncms()->getModelClass('user')::all(),
         ]);
     }
 
-    /**
-     * Store a newly created order in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -57,33 +55,37 @@ class OrderController extends Controller
             'payment_method' => 'nullable|string|max:255',
         ]);
 
-        $order = Order::create(array_merge($validated, [
+        $order = $this->modelClass::create(array_merge($validated, [
             'slug' => uniqid('order_'), // Generate a unique slug
         ]));
 
-        wncms()->cache()->flush(['orders']);
+        $this->flush();
 
         return redirect()->route('orders.edit', $order)
             ->withMessage(__('wncms::word.successfully_created'));
     }
 
-    /**
-     * Show the form for editing the specified order.
-     */
-    public function edit(Order $order)
+    public function edit($id)
     {
-        return view('wncms::backend.orders.edit', [
+        $order = $this->modelClass::find($id);
+        if (!$order) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
+        return $this->view('backend.orders.edit', [
             'page_title' => wncms_model_word('orders', 'edit'),
             'order' => $order,
-            'users' => User::all(),
+            'users' => wncms()->getModelClass('user')::all(),
         ]);
     }
 
-    /**
-     * Update the specified order in storage.
-     */
-    public function update(Request $request, Order $order)
+    public function update(Request $request, $id)
     {
+        $order = $this->modelClass::find($id);
+        if (!$order) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'status' => 'required|string|in:pending,paid,failed,cancelled,completed',
@@ -93,46 +95,8 @@ class OrderController extends Controller
 
         $order->update($validated);
 
-        wncms()->cache()->flush(['orders']);
+        $this->flush();
 
-        return redirect()->route('orders.edit', $order)
-            ->withMessage(__('wncms::word.successfully_updated'));
-    }
-
-    /**
-     * Remove the specified order from storage.
-     */
-    public function destroy(Order $order)
-    {
-        $order->delete();
-
-        wncms()->cache()->flush(['orders']);
-
-        return redirect()->route('orders.index')
-            ->withMessage(__('wncms::word.successfully_deleted'));
-    }
-
-    /**
-     * Bulk delete orders.
-     */
-    public function bulk_delete(Request $request)
-    {
-        $modelIds = is_array($request->model_ids)
-            ? $request->model_ids
-            : explode(",", $request->model_ids);
-
-        $count = Order::whereIn('id', $modelIds)->delete();
-
-        wncms()->cache()->flush(['orders']);
-
-        if ($request->ajax()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
-            ]);
-        }
-
-        return redirect()->route('orders.index')
-            ->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
+        return redirect()->route('orders.edit', $order)->withMessage(__('wncms::word.successfully_updated'));
     }
 }

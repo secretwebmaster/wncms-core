@@ -112,7 +112,38 @@ abstract class ModelManager
         $cacheTime = $isRandom ? 0 : (gss('enable_cache') ? gss('data_cache_time') : 0);
 
         $callback = function () use ($options) {
-            return $this->buildListQuery($options);
+            $q = $this->buildListQuery($options);
+            return $this->finalizeResult($q, $options);
+        };
+
+        return $useCache
+            ? wncms()->cache()->remember($cacheKey, $cacheTime, $callback, $this->getCacheTag())
+            : $callback();
+    }
+
+    /**
+     * Get the count of models based on provided options.
+     * 
+     * @param array $options
+     * @return int
+     */
+    public function getCount(array $options = []): int
+    {
+        $useCache = $options['cache'] ?? true;
+
+        $cacheKey = wncms()->cache()->createKey(
+            $this->cacheKeyPrefix,
+            'getCount',
+            $this->shouldAuth ? (auth()->id() ?? false) : false,
+            $options,
+            wncms()->website()->get()?->url
+        );
+
+        $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
+
+        $callback = function () use ($options) {
+            $q = $this->buildListQuery($options);
+            return $q->count();
         };
 
         return $useCache
@@ -213,7 +244,6 @@ abstract class ModelManager
         });
     }
 
-
     /**
      * Apply keyword search across specified columns.
      * 
@@ -276,7 +306,6 @@ abstract class ModelManager
             }
         }
     }
-    
 
     /**
      * Apply a status filter.
@@ -439,5 +468,4 @@ abstract class ModelManager
 
         return $select;
     }
-
 }

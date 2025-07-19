@@ -2,24 +2,22 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
 use Wncms\Exports\ContactFormSubmissionExport;
 use Wncms\Jobs\ContactFormSubmissionNotification;
-use Wncms\Models\ContactFormSubmission;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
-class ContactFormSubmissionController extends Controller
+class ContactFormSubmissionController extends BackendController
 {
     public function index(Request $request)
     {
-        $q = ContactFormSubmission::query();
+        $q = $this->modelClass::query();
 
         if($request->keyword){
             $q->where('content', 'like', "%$request->keyword%");
         }
 
-        if($request->order && in_array($request->order, ContactFormSubmission::ORDERS)){
+        if($request->order && in_array($request->order, $this->modelClass::ORDERS)){
             $q->orderBy($request->order, $request->sort == 'asc' ? 'asc' : 'desc');
         }
         $q->orderBy('id', 'desc');
@@ -33,45 +31,23 @@ class ContactFormSubmissionController extends Controller
 
         $allKeys = $allKeys->unique()->sort();
 
-        return view('wncms::backend.contact_form_submissions.index', [
-            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.contact_form_submission')]),
+        return $this->view('backend.contact_form_submissions.index', [
+            'page_title' => wncms_model_word('contact_form_submission', 'management'),
             'contact_form_submissions' => $contact_form_submissions,
             'allKeys' => $allKeys,
-            'orders' => ContactFormSubmission::ORDERS,
+            'orders' => $this->modelClass::ORDERS,
         ]);
     }
 
-    public function show(ContactFormSubmission $contact_form_submission)
+    public function show($id)
     {
-        return view('wncms::backend.contact_form_submissions.show', [
+        $contact_form_submission = $this->modelClass::find($id);
+        if (!$contact_form_submission) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+        return $this->view('backend.contact_form_submissions.show', [
             'contact_form_submission' => $contact_form_submission,
         ]);
-    }
-
-    public function destroy(ContactFormSubmission $contact_form_submission)
-    {
-        $contact_form_submission->delete();
-        return redirect()->route('contact_form_submissions.index')->withMessage(__('wncms::word.successfully_deleted'));
-    }
-
-    public function bulk_delete(Request $request)
-    {
-        if(!is_array($request->model_ids)){
-            $modelIds = explode(",", $request->model_ids);
-        }else{
-            $modelIds = $request->model_ids;
-        }
-
-        $count = ContactFormSubmission::whereIn('id', $modelIds)->delete();
-
-        if($request->ajax()){
-            return response()->json([
-                'status' => 'success',
-                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
-            ]);
-        }
-
-        return redirect()->route('contact_form_submissions.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
     }
     
     public function export(Request $request, $type)
@@ -92,7 +68,7 @@ class ContactFormSubmissionController extends Controller
         $format = $formats[$extension] ?? \Maatwebsite\Excel\Excel::XLSX;
         $fileName = 'contact_form_data.' .  $extension;
 
-        $q = ContactFormSubmission::query();
+        $q = $this->modelClass::query();
         
         if($type == 'selected'){
             $modelIds = explode(",", $request->modelIds);
@@ -103,7 +79,7 @@ class ContactFormSubmissionController extends Controller
                 $q->where('content', 'like', "%$request->keyword%");
             }
     
-            if($request->order && in_array($request->order, ContactFormSubmission::ORDERS)){
+            if($request->order && in_array($request->order, $this->modelClass::ORDERS)){
                 $q->orderBy($request->order, $request->sort == 'asc' ? 'asc' : 'desc');
             }
             $q->orderBy('id', 'desc');

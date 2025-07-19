@@ -7,9 +7,9 @@ use Wncms\Http\Requests\BannerFormRequest;
 use Wncms\Models\Banner;
 use Wncms\Models\Website;
 use Wncms\Services\BannerService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 
+//% Depracated soon. Please use AdvertisementController instead.
 class BannerController extends Controller
 {
     protected $relatedCacheKeys = ['banners', 'pages'];
@@ -61,7 +61,7 @@ class BannerController extends Controller
 
         $websites = wncms()->website()->getList();
 
-        return view('wncms::backend.banners.index', [
+        return $this->view('backend.banners.index', [
             'banners' => $banners,
             'websites' => $websites,
             'orders' => Banner::ORDERS,
@@ -77,7 +77,7 @@ class BannerController extends Controller
     public function create(Banner $banner = null)
     {
         $websites = wncms()->website()->getList();
-        return view('wncms::backend.banners.create', [
+        return $this->view('backend.banners.create', [
             'page_title' => __('wncms::word.banner_management'),
             'positions' => Banner::POSITIONS,
             'statuses' => Banner::STATUSES,
@@ -188,7 +188,7 @@ class BannerController extends Controller
     public function edit(Banner $banner)
     {
         $websites = wncms()->website()->getList();
-        return view('wncms::backend.banners.edit', [
+        return $this->view('backend.banners.edit', [
             'page_title' => __('wncms::word.banner_management'),
             'banner' => $banner,
             'positions' => Banner::POSITIONS,

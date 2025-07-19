@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Wncms\Http\Controllers\Frontend\PageController;
 
 Route::group([
         'prefix' => LaravelLocalization::setLocale(),
@@ -25,6 +26,7 @@ Route::group([
 
 //throw 404 if no route is matched
 //pass $exception to the view
-Route::fallback(function () {
-    return view('errors.404');
-});
+Route::fallback([PageController::class, 'fallback']);
+// Route::fallback(function () {
+//     return view('errors.404');
+// });

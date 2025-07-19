@@ -11,6 +11,8 @@ class {{ class }} extends Controller
     public function index(Request $request)
     {
         $q = {{ model }}::query();
+
+        $q->orderBy('id', 'desc');
         
         ${{ modelVariable }}s = $q->paginate($request->page_size ?? 100);
 

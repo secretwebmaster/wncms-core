@@ -3,18 +3,21 @@
 @endpush
 
 <div class="card-body border-top p-3 p-md-9">
+
     {{-- website --}}
-    <div class="row mb-3">
-        <label class="col-lg-3 col-form-label required fw-bold fs-6" for="website_id">@lang('wncms::word.website')</label>
-        <div class="col-lg-9 fv-row">
-            <select id="website_id" name="website_id" class="form-select form-select-sm" required>
-                <option value="">@lang('wncms::word.please_select')</option>
-                @foreach($websites as $website)
-                    <option  value="{{ $website->id }}" {{ $website->id === old('website_id', $advertisement?->website?->id ?? '') ? 'selected' : '' }}>{{ $website->domain }} #({{ $website->id }})</option>
-                @endforeach
-            </select>
+    @if(gss('multi_website'))
+        <div class="row mb-3">
+            <label class="col-lg-3 col-form-label required fw-bold fs-6" for="website_id">@lang('wncms::word.website')</label>
+            <div class="col-lg-9 fv-row">
+                <select id="website_id" name="website_id" class="form-select form-select-sm" required>
+                    <option value="">@lang('wncms::word.please_select')</option>
+                    @foreach($websites as $website)
+                        <option  value="{{ $website->id }}" {{ $website->id === old('website_id', $advertisement?->website?->id ?? '') ? 'selected' : '' }}>{{ $website->domain }} #({{ $website->id }})</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
-    </div>
+    @endif
 
     {{-- status --}}
     <div class="row mb-3">
@@ -128,10 +131,14 @@
 
                 <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change">
                     <i class="fa fa-pencil fs-7"></i>
-                    <input type="file" name="advertisement_thumbnail" accept="image/*"/>
+                    <input type="file" name="advertisement_thumbnail" accept="image/*" ignore-developer-hint/>
                     {{-- remove image --}}
                     <input type="hidden" name="advertisement_thumbnail_remove"/>
                 </label>
+
+                @if(!empty($advertisement->exists) && request()->routeIs('advertisements.clone'))
+                <input type="hidden" name="advertisement_thumbnail_clone_id" value="{{ $advertisement->getFirstMediaUrl('advertisement_thumbnail') ? $advertisement->getMedia('advertisement_thumbnail')->value('id') : '' }}" />
+                @endif
 
                 <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="Cancel">
                     <i class="fa fa-times"></i>
@@ -162,8 +169,8 @@
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="background_color">@lang('wncms::word.background_color')</label>
         <div class="col-lg-3 fv-row">
             <div class="input-group mb-5">
-                <input id="background_color" type="text" name="background_color" {{ old('text_color', $advertisement->background_color ?? '') }} class="form-control form-control-sm"/>
-                <div class="colorpicker-input" data-input="background_color" data-current="{{ old('text_color', $advertisement->background_color ?? '') }}"></div>
+                <input id="background_color" type="text" name="background_color" value="{{ old('background_color', $advertisement->background_color ?? '') }}" class="form-control form-control-sm"/>
+                <div class="colorpicker-input" data-input="background_color" data-current="{{ old('background_color', $advertisement->background_color ?? '') }}"></div>
             </div>
         </div>
     </div>

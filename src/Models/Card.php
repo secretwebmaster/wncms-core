@@ -41,16 +41,16 @@ class Card extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(wncms()->getModelClass('user'));
     }
 
     public function plan()
     {
-        return $this->belongsTo(Plan::class);
+        return $this->belongsTo(wncms()->getModelClass('plan'));
     }
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(wncms()->getModelClass('product'));
     }
 }

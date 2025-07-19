@@ -2,17 +2,33 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
 use Wncms\Models\Credit;
 use Wncms\Models\User;
 use Illuminate\Http\Request;
 use Wncms\Models\CreditTransaction;
 
-class CreditController extends Controller
+class CreditController extends BackendController
 {
     public function index(Request $request)
     {
-        $q = Credit::query();
+        $q = $this->modelClass::query();
+
+        if ($request->filled('username')) {
+            $q->whereRelation('user', 'username', $request->username);
+        }
+
+        if ($request->filled('amount')) {
+            $q->where('amount', $request->amount);
+        }
+
+        if($request->filled('keyword')){
+            $q->where(function ($subq) use ($request) {
+                $subq->orWhere('id', $request->keyword)
+                    ->orWhereHas('user', function ($subq) use ($request) {
+                        $subq->where('username', 'like', "%$request->keyword%");
+                    });
+            });
+        }
 
         if ($request->filled('type')) {
             $q->where('type', $request->type);
@@ -20,22 +36,29 @@ class CreditController extends Controller
 
         $credits = $q->paginate($request->page_size ?? 100);
 
-        return view('wncms::backend.credits.index', [
+        return $this->view('backend.credits.index', [
             'page_title' => wncms_model_word('credit', 'management'),
             'credits' => $credits,
-            'types' => Credit::TYPES,
+            'types' => $this->modelClass::TYPES,
         ]);
     }
 
-    public function create(Credit $credit = null)
+    public function create($id = null)
     {
-        $credit ??= new Credit;
+        if ($id) {
+            $credit = $this->modelClass::find($id);
+            if (!$credit) {
+                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+            }
+        } else {
+            $credit = new $this->modelClass;
+        }
 
-        return view('wncms::backend.credits.create', [
+        return $this->view('backend.credits.create', [
             'page_title' => wncms_model_word('credit', 'create'),
             'credit' => $credit,
-            'users' => User::all(),
-            'types' => Credit::TYPES,
+            'users' => wncms()->getModelClass('user')::all(),
+            'types' => $this->modelClass::TYPES,
         ]);
     }
 
@@ -43,11 +66,11 @@ class CreditController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'type' => 'required|string|in:' . implode(',', Credit::TYPES),
+            'type' => 'required|string|in:' . implode(',', $this->modelClass::TYPES),
             'amount' => 'required|numeric|min:0',
         ]);
 
-        $existingCredit = Credit::where([
+        $existingCredit = $this->modelClass::where([
             'user_id' => $validated['user_id'],
             'type' => $validated['type'],
         ])->first();
@@ -63,43 +86,42 @@ class CreditController extends Controller
                 ->withInput();
         }
 
-        $credit = Credit::create($validated);
+        $credit = $this->modelClass::create($validated);
 
-        return redirect()->route('credits.edit', $credit)
-            ->withMessage(__('wncms::word.successfully_created_or_updated'));
+        return redirect()->route('credits.edit', $credit)->withMessage(__('wncms::word.successfully_created_or_updated'));
     }
 
-
-    public function edit(Credit $credit)
+    public function edit($id)
     {
-        return view('wncms::backend.credits.edit', [
+        $credit = $this->modelClass::find($id);
+        if (!$credit) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
+        return $this->view('backend.credits.edit', [
             'page_title' => wncms_model_word('credit', 'edit'),
             'credit' => $credit,
-            'users' => User::all(),
-            'types' => Credit::TYPES,
+            'users' => wncms()->getModelClass('user')::all(),
+            'types' => $this->modelClass::TYPES,
         ]);
     }
 
-    public function update(Request $request, Credit $credit)
+    public function update(Request $request, $id)
     {
+        $credit = $this->modelClass::find($id);
+        if (!$credit) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
         $validated = $request->validate([
             // 'user_id' => 'required|exists:users,id',
-            // 'type' => 'required|string|in:' . implode(',', Credit::TYPES),
+            // 'type' => 'required|string|in:' . implode(',', $this->modelClass::TYPES),
             'amount' => 'required|numeric|min:0',
         ]);
 
         $credit->update($validated);
 
-        return redirect()->route('credits.edit', $credit)
-            ->withMessage(__('wncms::word.successfully_updated'));
-    }
-
-    public function destroy(Credit $credit)
-    {
-        $credit->delete();
-
-        return redirect()->route('credits.index')
-            ->withMessage(__('wncms::word.successfully_deleted'));
+        return redirect()->route('credits.edit', $credit)->withMessage(__('wncms::word.successfully_updated'));
     }
 
     /**
@@ -107,10 +129,10 @@ class CreditController extends Controller
      */
     public function show_recharge()
     {
-        return view('wncms::backend.credits.recharge', [
+        return $this->view('backend.credits.recharge', [
             'page_title' => __('wncms::word.credit_recharge'),
-            'users' => User::all(),
-            'types' => Credit::TYPES,
+            'users' => wncms()->getModelClass('user')::all(),
+            'types' => $this->modelClass::TYPES,
         ]);
     }
 
@@ -121,12 +143,12 @@ class CreditController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'type' => 'required|string|in:' . implode(',', Credit::TYPES),
+            'type' => 'required|string|in:' . implode(',', $this->modelClass::TYPES),
             'amount' => 'required|numeric|min:0.01',
         ]);
 
         // Find the credit entry or create a new one
-        $credit = Credit::firstOrNew([
+        $credit = $this->modelClass::firstOrNew([
             'user_id' => $validated['user_id'],
             'type' => $validated['type'],
         ]);
@@ -136,9 +158,9 @@ class CreditController extends Controller
         $credit->save();
 
         // Create a credit transaction record
-        CreditTransaction::create([
+        wncms()->getModelClass('credit_transaction')::create([
             'user_id' => $validated['user_id'],
-            'type' => $validated['type'],
+            'credit_type' => $validated['type'],
             'amount' => $validated['amount'],
             'transaction_type' => 'recharge',
             'remark' => __('wncms::word.recharge_added_by_admin', [

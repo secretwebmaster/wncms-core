@@ -273,11 +273,16 @@
                 </div>
 
                 {{-- Preview --}}
-                <div class="mb-3">
+                {{-- <div class="mb-3">
                     @foreach($post->websites as $preview_website)
                     <div><a href="{{ $wncms->getRoute('frontend.posts.single', ['slug' => $post->slug],false, $preview_website->domain) }}" target="_blank">@lang('wncms::word.preview_on', ['domain' => $preview_website->domain])</a></div>
                     @endforeach
+                </div> --}}
+                @if($post->exists)
+                <div class="mb-3">
+                    <div><a href="{{ route('frontend.posts.single', ['slug' => $post->slug]) }}" target="_blank">@lang('wncms::word.preview')</a></div>
                 </div>
+                @endif
 
             </div>
         </div>
@@ -286,7 +291,7 @@
         <div class="card mt-5">
             <div class="card-body p-2 p-md-5">
                 {{-- website_id --}}
-                <div class="form-item mb-3">
+                {{-- <div class="form-item mb-3">
                     <label class="form-label required fw-bold fs-6">@lang('wncms::word.website')</label>
                     @foreach($websites as $index => $_website)
                     <div class="col-12 col-md-3 mb-1 website_ids_checkbox">
@@ -299,7 +304,7 @@
                         </label>
                     </div>
                     @endforeach
-                </div>
+                </div> --}}
 
                 {{-- user_id --}}
                 <div class="form-item mb-3">
@@ -335,6 +340,7 @@
 
                             <input type="hidden" name="post_thumbnail_remove" />
                         </label>
+                        
                         @if(!empty($post->exists) && request()->routeIs('posts.clone'))
                         <input type="hidden" name="post_thumbnail_clone_id" value="{{ $post->getFirstMediaUrl('post_thumbnail') ? $post->getMedia('post_thumbnail')->value('id') : '' }}" />
                         @endif

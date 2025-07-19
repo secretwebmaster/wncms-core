@@ -80,23 +80,23 @@ class Page extends Model implements HasMedia
     //! Relationship
     public function comments()
     {
-        return $this->morphMany(Comment::class, 'commentable');
+        return $this->morphMany(wncms()->getModelClass('comment'), 'commentable');
     }
     
     public function website()
     {
-        return $this->belongsTo(Website::class);
+        return $this->belongsTo(wncms()->getModelClass('website'));
     
     }
     
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(wncms()->getModelClass('user'));
     }
 
     public function templates()
     {
-        return $this->hasMany(PageTemplate::class);
+        return $this->hasMany(wncms()->getModelClass('page_template'));
     }
 
     //! Attribute

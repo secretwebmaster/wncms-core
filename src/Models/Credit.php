@@ -33,7 +33,7 @@ class Credit extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(wncms()->getModelClass('user'));
     }
 
     public static function add($user, $amount, $type = 'points')

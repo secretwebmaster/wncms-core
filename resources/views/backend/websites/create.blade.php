@@ -21,7 +21,7 @@
 
                         @include('wncms::backend.parts.message')
 
-                        @if(!empty($first_website))
+                        @if(empty($websiteCount))
                         <div class="alert alert-success fw-bold">
                             <i class="fa-regular fa-lightbulb text-success"></i>
                             <span class="ms-2">@lang('wncms::word.tell_us_about_your_first_website')</span>

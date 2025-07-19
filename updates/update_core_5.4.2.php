@@ -27,7 +27,6 @@ try{
 
     // add permissions
 
-
     uss('core_version', $thisVersion);
     info("completed update_{$thisVersion}.php");
 }catch(Exception $e){

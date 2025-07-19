@@ -13,16 +13,16 @@ class RoleController extends Controller
     public function index(Request $request)
     {
         $roles = Role::query()->get();
-        return view('wncms::backend.roles.index', [
-            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.role')]),
+        return $this->view('backend.roles.index', [
+            'page_title' => wncms_model_word('role', 'management'),
             'roles' => $roles,
         ]);
     }
 
     public function create()
     {
-        return view('wncms::backend.roles.create', [
-            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.role')]),
+        return $this->view('backend.roles.create', [
+            'page_title' => wncms_model_word('role', 'management'),
         ]);
     }
 
@@ -30,7 +30,7 @@ class RoleController extends Controller
     {
         // dd($request->all());
         $existing = Role::where('name', $request->role_name)->first();
-        if($existing){
+        if ($existing) {
             return back()->withErrors(['message' => __('wncms::word.role_already_exist', ['role_name' => $request->role_name])]);
         }
         $role = Role::create([
@@ -47,8 +47,8 @@ class RoleController extends Controller
     public function edit(Role $role)
     {
         $permissions = Permission::all();
-        return view('wncms::backend.roles.edit', [
-            'page_title' => __('wncms::word.model_management', ['model_name' => __('wncms::word.role')]),
+        return $this->view('backend.roles.edit', [
+            'page_title' => wncms_model_word('role', 'management'),
             'role' => $role,
             'permissions' => $permissions,
         ]);
@@ -66,7 +66,7 @@ class RoleController extends Controller
         $role->syncPermissions($permission_names);
 
         wncms()->cache()->tags(['roles'])->flush();
-        
+
         return redirect()->route('roles.edit', [
             'role' => $role,
         ])->withMessage(__('wncms::word.successfully_updated'));
@@ -76,5 +76,22 @@ class RoleController extends Controller
     {
         $role->delete();
         return redirect()->route('roles.index')->withMessage(__('wncms::word.successfully_deleted'));
+    }
+
+    /**
+     * Fetch view
+     */
+    public function view(string $name, array $options = [])
+    {
+        if (view()->exists($name)) {
+            return view($name, $options);
+        }
+
+        $defaultView = 'wncms::' . $name;
+        if (view()->exists($defaultView)) {
+            return view($defaultView, $options);
+        }
+
+        abort(404, "View [{$name}] not found.");
     }
 }
