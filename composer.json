@@ -9,7 +9,7 @@
         "laravel\/framework": "^11.31",
         "laravel\/tinker": "^2.9",
         "mcamara\/laravel-localization": "*",
-        "secretwebmaster\/wncms-tags": "^1.6.0",
+        "secretwebmaster\/wncms-tags": "^1.6.1",
         "spatie\/laravel-activitylog": "^4.8",
         "spatie\/laravel-medialibrary": "^11.9",
         "spatie\/laravel-permission": "^6.9",

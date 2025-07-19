@@ -29,7 +29,6 @@ $link->getAttribute('title'),
 <a class="nav-link" href="{{ route('frontend.pages.blog') }}">@lang('wncms::word.blog')</a>
 <h2>{{ wncms_model_word('link', 'single') }}</h2>
 <div>
-    @dd($link->tags)
     <table>
         <tbody>
             <tr>

@@ -30,13 +30,6 @@ class LinkController extends FrontendController
         })
         ->first();
 
-
-            dd(
-            $tagType,
-            $slug,
-            $tag,
-        );
-
         if (!$tag) {
             return redirect()->route('frontend.pages.home');
         }
