@@ -9,6 +9,7 @@ use Wncms\Http\Controllers\Frontend\PageController;
 use Wncms\Http\Controllers\Frontend\PostController;
 use Wncms\Http\Controllers\Frontend\SitemapController;
 use Wncms\Http\Controllers\Frontend\FaqController;
+use Wncms\Http\Controllers\Frontend\LinkController;
 use Wncms\Http\Controllers\Frontend\OrderController;
 use Wncms\Http\Controllers\Frontend\UserController;
 
@@ -35,6 +36,13 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
 
     Route::prefix('clicks')->controller(ClickController::class)->group(function () {
         Route::post('record', 'record')->name('clicks.record');
+    });
+
+    //link
+    Route::prefix('link')->controller(LinkController::class)->group(function () {
+        Route::get('/', 'index')->name('links.index');
+        Route::get('{id}', 'single')->name('links.single');
+        Route::get('{tagType}/{slug}', 'archive')->name('links.archive');
     });
 
     //post

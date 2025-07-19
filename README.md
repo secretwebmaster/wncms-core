@@ -4,6 +4,10 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## 更新日誌
 
+### v5.5.1 2025-07-20
+- 添加前台鏈接頁面，鏈接控制器
+- 更新依賴 wncms-tags > 1.6.0
+
 ### v5.5.0 2025-07-19
 
 -   部分後台 Blade 視圖中將 `getVersion()` 替換為 `addVersion()`

@@ -6,16 +6,57 @@ use Illuminate\Http\Request;
 
 class LinkController extends FrontendController
 {
-    public function category($slug)
+    public function index()
     {
-        dd('function not ready');
-        $tag = wncms()->getModel('tag')::where('slug', $slug)->where('type', 'link_category')->first();
-        if(!$tag){
+        return $this->view("frontend.theme.{$this->theme}.links.index");
+    }
+
+    public function archive($tagType, $slug)
+    {
+    
+        if(str()->startsWith($tagType, 'link_')) {
+            return redirect()->route('frontend.links.archive', ['tagType' => str_replace('link_', '', $tagType), 'slug' => $slug]);
+        }
+
+        $tagType = 'link_' . $tagType;
+
+        $tag = wncms()->getModel('tag')::where('type', $tagType)
+        ->where(function ($query) use ($slug) {
+            $query->where('slug', $slug)
+                ->orWhere('name', $slug)
+                ->orWhereHas('translations', function ($subq) use ($slug) {
+                    $subq->where('name', $slug);
+                });
+        })
+        ->first();
+
+
+            dd(
+            $tagType,
+            $slug,
+            $tag,
+        );
+
+        if (!$tag) {
             return redirect()->route('frontend.pages.home');
         }
 
-        return view("frontend.theme.{$this->theme}.links.category", [
+        return $this->view("frontend.theme.{$this->theme}.links.archive", [
             'tag' => $tag,
         ]);
     }
+
+    public function single($id)
+    {
+        $link = wncms()->getModelClass('link')::find($id);
+        if (!$link) {
+            return redirect()->route('frontend.pages.home');
+        }
+
+        return $this->view("frontend.theme.{$this->theme}.links.single", [
+            'link' => $link,
+        ]);
+    }
+
+
 }
