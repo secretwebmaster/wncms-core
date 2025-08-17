@@ -13,16 +13,6 @@ use Spatie\Permission\Models\Role;
 class UserController extends FrontendController
 {
     /**
-     * Get the model class that this controller works with.
-     * Uses a setting from config/wncms.php and falls back to Post model if not set.
-     */
-    protected function getModelClass()
-    {
-        // Fetch the model class from the config file, or fall back to Post model
-        return config('wncms.default_user_model', \Wncms\Models\User::class);
-    }
-
-    /**
      * Show the user dashboard.
      */
     public function dashboard()

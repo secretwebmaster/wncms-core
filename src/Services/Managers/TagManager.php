@@ -17,7 +17,7 @@ class TagManager extends ModelManager
 
     public function getModelClass(): string
     {
-        return config('wncms.models.tag', \Wncms\Models\Tag::class);
+        return wncms()->getModelClass('tag');
     }
 
     public function getByName(string $tagName, ?string $tagType = null, array $withs = [], ?string $locale = null, bool $cache = true)

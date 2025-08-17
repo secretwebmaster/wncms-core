@@ -2148,6 +2148,9 @@ $words = [
     'show_credits' => '顯示積分',
     'field_should_be_integer' => ':field_name 必須是整數。',
     'alphabetic' => '字母',
+
+    // 5.5.3
+    'core_version' => '核心版本',
 ];
 
 $locale = basename(__DIR__);

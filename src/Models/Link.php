@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Wncms\Tags\HasTags;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Wncms\Services\Models\WncmsModel;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class Link extends Model implements HasMedia
+class Link extends WncmsModel implements HasMedia
 {
     use HasFactory;
     use HasTags;

@@ -447,7 +447,7 @@ class Wncms
      * Resolve the fully qualified model class name by key.
      *
      * Resolution priority:
-     * 1. config('wncms.models.{key}')
+     * 1. config('wncms.models.{key}.class')
      * 2. App\Models\{StudlyKey}
      * 3. Wncms\Models\{StudlyKey}
      *
@@ -463,9 +463,17 @@ class Wncms
         }
 
         $studlyKey = str($key)->studly();
-        
+
         $configModel = config("wncms.models.{$key}");
-        if ($configModel && class_exists($configModel)) {
+
+        // NEW: handle array format with ['class' => ...]
+        if (is_array($configModel) && !empty($configModel['class']) && class_exists($configModel['class'])) {
+            return $this->modelClassCache[$key] = $configModel['class'];
+        }
+
+        //% OLD: handle string format
+        //% Depracated after next minor 3 version updates
+        if (is_string($configModel) && class_exists($configModel)) {
             return $this->modelClassCache[$key] = $configModel;
         }
 
@@ -481,7 +489,6 @@ class Wncms
 
         throw new \RuntimeException("Model class not found for key [{$key}].");
     }
-
 
     /**
      * Check if the website is licensed

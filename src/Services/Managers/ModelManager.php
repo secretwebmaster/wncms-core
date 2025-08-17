@@ -186,7 +186,12 @@ abstract class ModelManager
 
         $tagType = $tagType ?? $this->defaultTagType;
 
-        $tagModelClass = config('wncms.models.tag', \Wncms\Models\Tag::class);
+        //% OLD: handle string format with compatibility
+        //% Depracated after next minor 3 version updates
+        // $tagConfig = config('wncms.models.tag.class', \Wncms\Models\Tag::class);
+        $tagConfig = config('wncms.models.tag', \Wncms\Models\Tag::class);
+        $tagModelClass = is_array($tagConfig) ? ($tagConfig['class'] ?? \Wncms\Models\Tag::class) : $tagConfig;
+
 
         $ids = [];
         $names = [];
@@ -367,6 +372,12 @@ abstract class ModelManager
         }
     }
 
+    protected function applyWebsiteId(Builder $q, ?int $websiteId = null): void
+    {
+        $modelClass = $this->getModelClass();
+        $modelClass::applyWebsiteScope($q, $websiteId);
+    }
+
     /**
      * Finalize the result: apply pagination, limits, or fetch all.
      * 
@@ -404,13 +415,12 @@ abstract class ModelManager
     }
 
     /**
-     * Return a scoped builder from the Website model relation.
+     * Get a query builder for the website relation.
      * 
      * @param string $relation
      * @param int|null $websiteId
-     * @return Builder
      */
-    protected function getWebsiteQuery(string $relation, ?int $websiteId = null): Builder
+    protected function getWebsiteQuery(string $relation, ?int $websiteId = null): mixed
     {
         $website = wncms()->website()->get($websiteId);
 

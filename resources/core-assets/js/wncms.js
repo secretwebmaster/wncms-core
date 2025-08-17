@@ -249,7 +249,10 @@ var WNCMS = {
 
                     var model_ids = [];
                     $(".form-check-input:checked").each(function () {
-                        model_ids.push($(this).attr("data-model-id"));
+                        var modelId = $(this).attr("data-model-id");
+                        if (modelId) {
+                            model_ids.push(modelId);
+                        }
                     });
                     if (model_ids) {
                         params["model_ids"] = model_ids;

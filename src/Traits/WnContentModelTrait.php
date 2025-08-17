@@ -4,7 +4,7 @@ namespace Wncms\Traits;
 
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-trait WnContentModelTraits
+trait WnContentModelTrait
 {
     //! Accessor
     public function getSingleUrlAttribute()

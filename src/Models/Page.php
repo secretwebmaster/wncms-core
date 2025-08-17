@@ -3,7 +3,7 @@
 namespace Wncms\Models;
 
 use Wncms\Traits\HasExtraAttributes;
-use Wncms\Traits\WnContentModelTraits;
+use Wncms\Traits\WnContentModelTrait;
 use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +17,7 @@ class Page extends Model implements HasMedia
     use InteractsWithMedia;
     use HasTranslations;
     use WnModelTrait;
-    use WnContentModelTraits;
+    use WnContentModelTrait;
     use HasExtraAttributes;
 
     protected $guarded = [];

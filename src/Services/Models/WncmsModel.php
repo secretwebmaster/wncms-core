@@ -3,9 +3,12 @@
 namespace Wncms\Services\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Wncms\Traits\HasMultisite;
 
 class WncmsModel extends Model
 {
+    use HasMultisite;
+
     public function getAttribute($key)
     {
         // Retrieve the value using the original method

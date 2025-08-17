@@ -4,9 +4,19 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## 更新日誌
 
+### v5.5.3 2025-07-xx
+
+-   修復提交 Checkbox 會送出 NULL 值的問題
+-   Beta 版本多模組站群相容性適配
+-   更新 Starter 表單項 Blade 中的 repeater 範例
+-   將 WnContentModelTraits 更名為 WnContentModelTrait
+-   將 WnModelTraits 更名為 WnModelTrait
+-   Beta 版本新增 HasMultisite trait
+
 ### v5.5.2 2025-07-20
-- 添加前台鏈接頁面，鏈接控制器
-- 更新依賴 wncms-tags > 1.6.1
+
+-   添加前台鏈接頁面，鏈接控制器
+-   更新依賴 wncms-tags > 1.6.1
 
 ### v5.5.0 2025-07-19
 

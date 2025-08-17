@@ -7,7 +7,7 @@
             <select id="status" name="status" class="form-select form-select-sm" required>
                 <option value="">@lang('wncms::word.please_select')</option>
                 @foreach($statuses ?? [] as $status)
-                    <option  value="{{ $status }}" {{ $status === old('status', $starter->status ?? 'active') ? 'selected' :'' }}>@lang('wncms::word.' . $status)</option>
+                <option value="{{ $status }}" {{ $status===old('status', $starter->status ?? 'active') ? 'selected' :'' }}>@lang('wncms::word.' . $status)</option>
                 @endforeach
             </select>
         </div>
@@ -21,7 +21,7 @@
             <select id="user" name="user_id" class="form-select form-select-sm">
                 <option value="">@lang('wncms::word.please_select') @lang('wncms::word.user')</option>
                 @foreach($users ?? [] as $user)
-                    <option  value="{{ $user->id }}" {{ $user->id === old('user_id', $starter->user?->id ?? null) ? 'selected' :'' }}>{{ $user->username }} #{{ $user->id }}</option>
+                <option value="{{ $user->id }}" {{ $user->id === old('user_id', $starter->user?->id ?? null) ? 'selected' :'' }}>{{ $user->username }} #{{ $user->id }}</option>
                 @endforeach
             </select>
         </div>
@@ -31,28 +31,28 @@
     <div class="row mb-3">
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="text_example">@lang('wncms::word.text_example')</label>
         <div class="col-lg-9 fv-row">
-            <input id="text_example" type="text" name="text_example" class="form-control form-control-sm" value="{{ old('text_example', $starter->text_example ?? null) }}"/>
+            <input id="text_example" type="text" name="text_example" class="form-control form-control-sm" value="{{ old('text_example', $starter->text_example ?? null) }}" />
         </div>
     </div>
 
     @foreach([
-        'aaa',
-        'bbb',
+    'aaa',
+    'bbb',
     ] as $field)
-        {{-- text_example --}}
-        <div class="row mb-3">
-            <label class="col-lg-3 col-form-label fw-bold fs-6" for="{{ $field }}">@lang('wncms::word.' . $field)</label>
-            <div class="col-lg-9 fv-row">
-                <input id="{{ $field }}" type="text" name="{{ $field }}" class="form-control form-control-sm" value="{{ old($field, $starter->{$field} ?? null) }}"/>
-            </div>
+    {{-- text_example --}}
+    <div class="row mb-3">
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="{{ $field }}">@lang('wncms::word.' . $field)</label>
+        <div class="col-lg-9 fv-row">
+            <input id="{{ $field }}" type="text" name="{{ $field }}" class="form-control form-control-sm" value="{{ old($field, $starter->{$field} ?? null) }}" />
         </div>
+    </div>
     @endforeach
 
     {{-- number_example --}}
     <div class="row mb-3">
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="number_example">@lang('wncms::word.number_example')</label>
         <div class="col-lg-9 fv-row">
-            <input id="number_example" type="number" name="number_example" class="form-control form-control-sm" value="{{ old('number_example', $starter->number_example ?? null) }}"/>
+            <input id="number_example" type="number" name="number_example" class="form-control form-control-sm" value="{{ old('number_example', $starter->number_example ?? null) }}" />
         </div>
     </div>
 
@@ -63,12 +63,12 @@
             <select id="select_example" name="select_example" class="form-select form-select-sm">
                 <option value="">@lang('wncms::word.please_select') @lang('wncms::word.select_example')</option>
                 @foreach($select_examples ?? [] as $select_example)
-                    <option  value="{{ $select_example }}" {{ $select_example === old('select_example', $starter->select_example ?? null) ? 'selected' :'' }}>@lang('wncms::word.' . $select_example)</option>
+                <option value="{{ $select_example }}" {{ $select_example===old('select_example', $starter->select_example ?? null) ? 'selected' :'' }}>@lang('wncms::word.' . $select_example)</option>
                 @endforeach
             </select>
         </div>
     </div>
-    
+
     {{-- image_example --}}
     <div class="row mb-3">
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="image_example">@lang('wncms::word.image_example')</label>
@@ -78,9 +78,9 @@
 
                 <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change">
                     <i class="fa fa-pencil fs-7"></i>
-                    <input type="file" name="image_example" accept="image/*"/>
+                    <input type="file" name="image_example" accept="image/*" />
                     {{-- remove image --}}
-                    <input type="hidden" name="image_example_remove"/>
+                    <input type="hidden" name="image_example_remove" />
                 </label>
 
                 <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="Cancel">
@@ -95,7 +95,7 @@
             <div class="form-text">@lang('wncms::word.allow_file_types', ['types' => 'png, jpg, jpeg, gif'])</div>
         </div>
     </div>
-    
+
     {{-- textarea_example --}}
     <div class="row mb-3">
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="textarea_example">@lang('wncms::word.textarea_example')</label>
@@ -117,7 +117,7 @@
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="color_example">@lang('wncms::word.color_example')</label>
         <div class="col-lg-3 fv-row">
             <div class="input-group mb-5">
-                <input id="color_example" type="text" name="color_example" value="{{ old('color_example', $starter->color_example ?? '') }}" class="form-control form-control-sm"/>
+                <input id="color_example" type="text" name="color_example" value="{{ old('color_example', $starter->color_example ?? '') }}" class="form-control form-control-sm" />
                 <div class="colorpicker-input" data-input="color_example" data-current="{{ old('color_example', $starter->color_example ?? '') }}"></div>
             </div>
         </div>
@@ -165,11 +165,11 @@
         <div class="col-lg-9">
             <div class="row">
                 <div class="col-lg-6 fv-row">
-                    <input type="text" name="col_1" class="form-control form-control-sm mb-3 mb-lg-0" placeholder="" value="{{ old('col_1', $starter->col_1 ?? '') }}"/>
+                    <input type="text" name="col_1" class="form-control form-control-sm mb-3 mb-lg-0" placeholder="" value="{{ old('col_1', $starter->col_1 ?? '') }}" />
                 </div>
 
                 <div class="col-lg-6 fv-row">
-                    <input type="text" name="col_2" class="form-control form-control-sm" placeholder="" value="{{ old('col_2', $starter->col_2 ?? '') }}"/>
+                    <input type="text" name="col_2" class="form-control form-control-sm" placeholder="" value="{{ old('col_2', $starter->col_2 ?? '') }}" />
                 </div>
             </div>
         </div>
@@ -205,14 +205,14 @@
                     picker.element.val('');
                 });
             });
-        </script> 
+        </script>
     </div>
 
     {{-- starter_tag --}}
     {{-- <div class="row mb-3">
         <label class="col-lg-3 col-form-label required fw-bold fs-6">@lang('wncms::word.starter_tag')</label>
         <div class="col-lg-9 fv-row">
-            <input id="starter_tags" class="form-control form-control-sm p-0"  name="starter_tags" value="{{ $starter->tagsWithType('starter_tag')->implode('name', ',') }}"/>
+            <input id="starter_tags" class="form-control form-control-sm p-0" name="starter_tags" value="{{ $starter->tagsWithType('starter_tag')->implode('name', ',') }}" />
         </div>
 
         <script type="text/javascript">
@@ -246,38 +246,76 @@
     <div class="row mb-3 repeater-group">
         <label class="col-lg-3 col-form-label fw-bold fs-6">
             @lang('wncms::word.repeater_example')
-            @if(gss('show_developer_hints'))<span class="fs-xs text-muted">repeater_example</span>@endif
+            @if(gss('show_developer_hints'))
+            <span class="fs-xs text-muted">repeater_example</span>
+            @endif
         </label>
+
         <div class="col-lg-9">
-            <div data-repeater-list="repeater_example" class="repeater_example_wrapper">
-                @foreach(old('repeater_example', json_decode($starter->repeater_example ?? '[]', true)) as $index => $item)
-                    <div data-repeater-item class="d-flex align-items-center mb-2">
-                        <input type="text" name="text" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.text')" value="{{ $item['text'] ?? '' }}">
-                        <input type="number" name="number" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.number')" value="{{ $item['number'] ?? '' }}">
-                        <button data-repeater-delete type="button" class="btn btn-sm btn-danger">X</button>
-                    </div>
-                @endforeach
+            <div class="repeater_example">
+                <div data-repeater-list="repeater_example">
+                    @forelse(old('repeater_example', json_decode($starter->repeater_example ?? '[]', true)) as $item)
+                        <div data-repeater-item class="d-flex align-items-center mb-2">
+                            <input type="text" name="text" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.text')" value="{{ $item['text'] ?? '' }}">
+                            <input type="number" name="number" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.number')" value="{{ $item['number'] ?? '' }}">
+                            <button data-repeater-delete type="button" class="btn btn-sm btn-danger">X</button>
+                        </div>
+                    @empty
+                        <div data-repeater-item class="d-flex align-items-center mb-2" style="display:none;">
+                            <input type="text" name="text" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.text')">
+                            <input type="number" name="number" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.number')">
+                            <button data-repeater-delete type="button" class="btn btn-sm btn-danger">X</button>
+                        </div>
+                    @endforelse
+                </div>
+
+                {{-- Add button --}}
+                <button type="button" data-repeater-create class="btn btn-sm btn-primary mt-2">
+                    @lang('wncms::word.add_item')
+                </button>
             </div>
-            <button type="button" class="btn btn-sm btn-primary mt-2 repeater_example_create" data-repeater-create>@lang('wncms::word.add_item')</button>
         </div>
     </div>
 
+    @push('foot_js')
+    <script src="https://cdn.jsdelivr.net/gh/DubFriend/jquery.repeater/jquery.repeater.min.js"></script>
     <script>
-        window.addEventListener('DOMContentLoaded', function () {
-            $('.repeater_example_wrapper').repeater({
-                initEmpty: {{ empty($starter->repeater_example) ? 'true' : 'false' }},
-                defaultValues: { text: '', number: '' },
-                show: function () {
-                    $(this).slideDown();
-                },
-                hide: function (deleteElement) {
-                    if (confirm("@lang('wncms::word.confirm_delete_item')")) {
-                        $(this).slideUp(deleteElement);
-                    }
+        $(function () {
+        console.log('[Repeater Example] Initializing...');
+
+        $('.repeater_example').repeater({
+            initEmpty: {{ empty($starter->repeater_example) ? 'true' : 'false' }},
+            defaultValues: { text: '', number: '' },
+
+            show: function () {
+                console.log('[Repeater Example] show() called');
+                $(this).slideDown();
+                $(this).find('input:first').focus();
+            },
+
+            hide: function (deleteElement) {
+                console.log('[Repeater Example] hide() called');
+                if (confirm("@lang('wncms::word.confirm_delete_item')")) {
+                    $(this).slideUp(deleteElement);
                 }
-            });
+            },
+
+            ready: function () {
+                console.log('[Repeater Example] ready() executed');
+            }
         });
+
+        $(document).on('click', '[data-repeater-create]', function () {
+            console.log('[Repeater Example] Add clicked');
+        });
+
+        $(document).on('click', '[data-repeater-delete]', function () {
+            console.log('[Repeater Example] Delete clicked');
+        });
+    });
     </script>
+    @endpush
+
 
 </div>
 
