@@ -6,12 +6,12 @@ use Wncms\Traits\HasExtraAttributes;
 use Wncms\Traits\WnContentModelTrait;
 use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 use Wncms\Translatable\Traits\HasTranslations;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Page extends Model implements HasMedia
+class Page extends WncmsModel implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
@@ -76,17 +76,10 @@ class Page extends Model implements HasMedia
         $this->addMediaCollection('page_content');
     }
 
-
     //! Relationship
     public function comments()
     {
         return $this->morphMany(wncms()->getModelClass('comment'), 'commentable');
-    }
-    
-    public function website()
-    {
-        return $this->belongsTo(wncms()->getModelClass('website'));
-    
     }
     
     public function user()

@@ -40,7 +40,7 @@ class RoleController extends Controller
         wncms()->cache()->tags(['roles'])->flush();
 
         return redirect()->route('roles.edit', [
-            'role' => $role,
+            'id' => $role,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -68,7 +68,7 @@ class RoleController extends Controller
         wncms()->cache()->tags(['roles'])->flush();
 
         return redirect()->route('roles.edit', [
-            'role' => $role,
+            'id' => $role,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 

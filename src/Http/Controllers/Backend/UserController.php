@@ -35,7 +35,7 @@ class UserController extends BackendController
 
         $roles = Role::all();
 
-        if($request->show_credits){
+        if ($request->show_credits) {
             $creditTypes = wncms()->getModel('credit')::pluck('type')->unique()->toArray();
         }
 
@@ -49,14 +49,15 @@ class UserController extends BackendController
 
     public function create($id = null)
     {
-        if ($id) {
-            $user = $this->modelClass::find($id);
-            if (!$user) {
-                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
-            }
-        } else {
-            $user = new $this->modelClass;
-        }
+        //TODO clone a user
+        // if ($id) {
+        //     $user = $this->modelClass::find($id);
+        //     if (!$user) {
+        //         return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        //     }
+        // } else {
+        //     $user = new $this->modelClass;
+        // }
 
         $roles = Role::all();
         return $this->view('backend.users.create', [
@@ -82,7 +83,7 @@ class UserController extends BackendController
                 'password.required' => __('wncms::word.password_is_required'),
                 'password.same' => __('wncms::word.password_confirmation_is_not_the_same'),
                 'password.between' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
-                'password_confirmation' => __('wncms::word.password_confirmation_is_required'),
+                'password_confirmation.required' => __('wncms::word.password_confirmation_is_required'),
             ]
         );
 
@@ -129,15 +130,15 @@ class UserController extends BackendController
             [
                 'username' => 'required',
                 'email' => 'required|email',
-                'password' => 'nullable|between:6,20|confirmed'
+                'password' => 'nullable|between:6,20|confirmed',
             ],
             [
                 'username.required' => __('wncms::word.field_is_required', ['field' => __('wncms::word.username')]),
                 'email.required' => __('wncms::word.field_is_required', ['field' => __('wncms::word.email')]),
                 'email.email' => __('wncms::word.please_enter_a_valid_email'),
-                'password.required' => __('wncms::word.field_is_required', ['field' => __('wncms::word.password')]),
-                'password.same' => __('wncms::word.password_confirmation_is_not_the_same'),
-                'password_confirmation' => __('wncms::word.password_confirmation_is_required'),
+                'password.between' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
+                'password.confirmed' => __('wncms::word.password_confirmation_is_not_the_same'),
+                'password_confirmation.required' => __('wncms::word.password_confirmation_is_required'),
             ]
         );
 
@@ -170,12 +171,12 @@ class UserController extends BackendController
 
         // Prevent deleting the last admin or superadmin
         if ($this->modelClass::role(['superadmin', 'admin'])->count() == 1 && $user->hasRole(['superadmin', 'admin'])) {
-            return back()->withError('message', __('wncms::word.cannot_delete_last_admin'));
+            return back()->withErrors(['message' => __('wncms::word.cannot_delete_last_admin')]);
         }
 
         $user->delete();
 
-        return redirect()->route('users.index')->with([
+        return back()->with([
             'status' => 'success',
             'message' => __('wncms::word.successfully_deleted')
         ]);
@@ -186,24 +187,28 @@ class UserController extends BackendController
         $user = auth()->user();
         return $this->view('backend.users.account.profile', [
             'page_title' => __('wncms::word.my_account'),
-        ], [
             'user' => $user,
         ]);
     }
 
     public function update_user_profile(Request $request)
     {
-        // dd($request->all());
-        auth()->user()->update([
+        $user = auth()->user();
+
+        $user->update([
             'last_name' => $request->last_name,
             'first_name' => $request->first_name,
         ]);
 
-        if ($request->avatar) {
-            auth()->user()->addMediaFromRequest('avatar')->toMediaCollection('avatar');
+        if ($request->filled('avatar')) {
+            $user->addMediaFromRequest('avatar')->toMediaCollection('avatar');
         }
-        return redirect()->route('users.account.profile.show')->withMessage(__('wncms::word.successfully_updated'));
+
+        return redirect()
+            ->route('users.account.profile.show')
+            ->withMessage(__('wncms::word.successfully_updated'));
     }
+
 
     public function show_user_security(Request $request)
     {

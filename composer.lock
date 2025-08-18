@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2b57736178fb25678cfe8b91df48168b",
+    "content-hash": "cf6b37ac71793e73c419083c8137b93c",
     "packages": [
         {
             "name": "barryvdh/laravel-debugbar",
@@ -4087,16 +4087,16 @@
         },
         {
             "name": "secretwebmaster/wncms-translatable",
-            "version": "v1.2.6",
+            "version": "v1.2.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/secretwebmaster/wncms-translatable.git",
-                "reference": "249be63bcd4a14aac16fe2d46413b846129f2a09"
+                "reference": "e4a657e8ba74b733036e39072eb0ccf9446ae757"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/secretwebmaster/wncms-translatable/zipball/249be63bcd4a14aac16fe2d46413b846129f2a09",
-                "reference": "249be63bcd4a14aac16fe2d46413b846129f2a09",
+                "url": "https://api.github.com/repos/secretwebmaster/wncms-translatable/zipball/e4a657e8ba74b733036e39072eb0ccf9446ae757",
+                "reference": "e4a657e8ba74b733036e39072eb0ccf9446ae757",
                 "shasum": ""
             },
             "require": {
@@ -4144,9 +4144,9 @@
             ],
             "support": {
                 "issues": "https://github.com/secretwebmaster/wncms-translatable/issues",
-                "source": "https://github.com/secretwebmaster/wncms-translatable/tree/v1.2.6"
+                "source": "https://github.com/secretwebmaster/wncms-translatable/tree/v1.2.7"
             },
-            "time": "2025-01-26T23:12:56+00:00"
+            "time": "2025-08-17T14:41:08+00:00"
         },
         {
             "name": "spatie/image",

@@ -75,15 +75,7 @@ class PostManager extends ModelManager
         // $pageSize = $options['page_size'] ?? 0;
         // $pageName = $options['page_name'] ?? 'page';
 
-        // Scope by website
-        if (gss('multi_website') && $websiteId !== false) {
-            try {
-                $q = $this->getWebsiteQuery('posts', $websiteId);
-            } catch (\Throwable $e) {
-                logger()->warning("Website relation error: " . $e->getMessage());
-                return $q->whereRaw('1=0');
-            }
-        }
+        $this->applyWebsiteId($q, $websiteId);
 
         $this->applyWiths($q, array_merge(['media', 'comments', 'tags', 'translations'], $withs));
         $this->applyTagFilter($q, $tags, $tagType);

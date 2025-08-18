@@ -59,7 +59,7 @@ class SearchKeywordController extends BackendController
         $this->flush();
 
         return redirect()->route('search_keywords.edit', [
-            'search_keyword' => $search_keyword,
+            'id' => $search_keyword,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -105,7 +105,7 @@ class SearchKeywordController extends BackendController
         $this->flush();
 
         return redirect()->route('search_keywords.edit', [
-            'search_keyword' => $search_keyword,
+            'id' => $search_keyword,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 }

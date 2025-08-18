@@ -37,7 +37,7 @@
                     <div class="accordion-body white-space-nowrap">
                         {{-- Add to menu button --}}
                         <div class="mb-3">
-                            <button class="btn btn-sm btn-secondary w-100 fw-bold add-to-menu">@lang('wncms::word.add_to_menu')</button>
+                            <button class="btn btn-sm btn-secondary w-100 fw-bold add_to_menu">@lang('wncms::word.add_to_menu')</button>
                         </div>
 
                         {{-- Tag items --}}
@@ -533,7 +533,9 @@
                         html += '<div class="float-end dd-nodrag ms-3"><i class="fa fa-trash text-danger remove_menu_item"></i></div>';
 
                         //edit icon
-                        if(item.id){
+                        if(item.id && !item.is_new){
+                            console.log("item debug");
+                            console.log(item);
                             html += '<div class="float-end dd-nodrag ms-3"><i class="fa fa-edit text-info show_modal_edit_menu_item"></i></div>';
                         }
                         //new window
@@ -589,7 +591,8 @@
                             model_type: $(this).data('model-type'),
                             model_id: $(this).data('model-id'),
                             url: $(this).data('url') ? $(this).data('url') : null,
-                            newWindow: $(this).data('new-window') ? $(this).data('new-window') : 0,
+                            is_new_window: 0, //默認不在新視窗打開
+                            is_new: true
                         };
                         newItems.push(newItem); //將新項目添加到新數組中
                         $('#nestable-json').nestable('add', newItem);

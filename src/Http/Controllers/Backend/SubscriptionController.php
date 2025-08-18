@@ -84,7 +84,7 @@ class SubscriptionController extends BackendController
         $this->flush();
 
         return redirect()->route('subscriptions.edit', [
-            'subscription' => $subscription,
+            'id' => $subscription,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -127,7 +127,7 @@ class SubscriptionController extends BackendController
         $this->flush();
 
         return redirect()->route('subscriptions.edit', [
-            'subscription' => $subscription,
+            'id' => $subscription,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 }

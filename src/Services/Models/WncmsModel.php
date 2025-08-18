@@ -21,6 +21,8 @@ class WncmsModel extends Model
         }
 
         // Return the value, but make sure it's properly cast to its original type
-        return $this->hasCast($key) ? $this->castAttribute($key, $value) : $value;
+        return $this->hasCast($key) && is_string($value)
+            ? $this->castAttribute($key, $value)
+            : $value;
     }
 }

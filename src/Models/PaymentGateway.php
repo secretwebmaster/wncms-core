@@ -2,9 +2,9 @@
 
 namespace Wncms\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 
-class PaymentGateway extends Model
+class PaymentGateway extends WncmsModel
 {
 
     protected $table = 'payment_gateways';

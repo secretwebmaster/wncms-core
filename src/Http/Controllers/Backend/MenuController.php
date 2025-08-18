@@ -14,18 +14,6 @@ class MenuController extends BackendController
     {
         $q = $this->modelClass::query();
 
-        // $selectedWebsiteId = $request->website ?? session('selected_website_id');
-        // if ($selectedWebsiteId) {
-        //     $q->whereHas('website', function ($subq) use ($selectedWebsiteId) {
-        //         $subq->where('websites.id', $selectedWebsiteId);
-        //     });
-        // } elseif (!$request->has('website')) {
-        //     $websiteId = wncms()->website()->get()?->id;
-        //     $q->whereHas('website', function ($subq) use ($websiteId) {
-        //         $subq->where('websites.id', $websiteId);
-        //     });
-        // }
-
         $q->with('menu_items');
         $menus = $q->paginate($request->page_size ?? 20);
 
@@ -56,7 +44,9 @@ class MenuController extends BackendController
             'name' => $request->name,
         ]);
 
-        return redirect()->route('menus.edit', ['menu' => $menu]);
+        return redirect()->route('menus.edit', [
+            'id' => $menu
+        ])->withMessage(__('wncms::word.successfully_created'));
     }
 
     /**
@@ -116,7 +106,7 @@ class MenuController extends BackendController
         $this->flush();
 
         return redirect()->route('menus.edit', [
-            'menu' => $menu,
+            'id' => $menu,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 

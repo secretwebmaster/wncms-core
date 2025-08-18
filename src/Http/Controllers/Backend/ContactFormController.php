@@ -74,7 +74,7 @@ class ContactFormController extends BackendController
         $this->flush();
 
         return redirect()->route($this->plural . '.edit', [
-            'contact_form' => $contact_form,
+            'id' => $contact_form,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -146,7 +146,7 @@ class ContactFormController extends BackendController
         $this->flush();
         
         return redirect()->route('contact_forms.edit', [
-            'contact_form' => $contact_form,
+            'id' => $contact_form,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 }

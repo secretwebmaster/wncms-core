@@ -3,9 +3,9 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 
-class Click extends Model
+class Click extends WncmsModel
 {
     use HasFactory;
 

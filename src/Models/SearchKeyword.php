@@ -4,9 +4,9 @@ namespace Wncms\Models;
 
 use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 
-class SearchKeyword extends Model
+class SearchKeyword extends WncmsModel
 {
     use HasFactory;
     use WnModelTrait;

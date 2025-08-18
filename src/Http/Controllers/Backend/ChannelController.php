@@ -61,7 +61,7 @@ class ChannelController extends BackendController
         $this->flush();
 
         return redirect()->route('channels.edit', [
-            'channel' => $channel,
+            'id' => $channel,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -107,7 +107,7 @@ class ChannelController extends BackendController
         $this->flush();
 
         return redirect()->route('channels.edit', [
-            'channel' => $channel,
+            'id' => $channel,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 }

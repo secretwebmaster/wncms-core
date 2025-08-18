@@ -3,12 +3,12 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 use Wncms\Translatable\Traits\HasTranslations;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class MenuItem extends Model implements HasMedia
+class MenuItem extends WncmsModel implements HasMedia
 {
     use HasFactory;
     use HasTranslations;

@@ -4,12 +4,12 @@ namespace Wncms\Models;
 
 use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class Website extends Model implements HasMedia
+class Website extends WncmsModel implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;

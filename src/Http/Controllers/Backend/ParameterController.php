@@ -51,7 +51,7 @@ class ParameterController extends BackendController
         $this->flush();
 
         return redirect()->route('parameters.edit', [
-            'parameter' => $parameter,
+            'id' => $parameter,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -85,7 +85,7 @@ class ParameterController extends BackendController
         $this->flush();
 
         return redirect()->route('parameters.edit', [
-            'parameter' => $parameter,
+            'id' => $parameter,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 }

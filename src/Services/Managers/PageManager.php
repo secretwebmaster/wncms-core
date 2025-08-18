@@ -49,15 +49,7 @@ class PageManager extends ModelManager
         $withs = $options['withs'] ?? [];
         $isRandom = $options['is_random'] ?? false;
 
-        if (gss('multi_website') && $websiteId !== false) {
-            try {
-                $q = $this->getWebsiteQuery('pages', $websiteId);
-            } catch (\Throwable $e) {
-                logger()->warning("Website relation error: " . $e->getMessage());
-                return $q->whereRaw('1=0');
-            }
-        }
-
+        $this->applyWebsiteId($q, $websiteId);
         $this->applyWiths($q, array_merge($this->defaultWiths, $withs));
         $this->applyKeywordFilter($q, $keywords, ['title', 'slug', 'content', 'remark']);
         $this->applyWhereConditions($q, $wheres);

@@ -3,11 +3,11 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class ExtraAttribute extends Model
+class ExtraAttribute extends WncmsModel
 {
     use HasFactory;
     use HasTranslations;

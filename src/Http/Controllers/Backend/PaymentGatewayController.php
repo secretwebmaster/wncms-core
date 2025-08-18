@@ -57,7 +57,7 @@ class PaymentGatewayController extends BackendController
         $this->flush();
 
         return redirect()->route('payment_gateways.edit', [
-            'paymentGateway' => $paymentGateway,
+            'id' => $paymentGateway,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -103,7 +103,7 @@ class PaymentGatewayController extends BackendController
         $this->flush();
 
         return redirect()->route('payment_gateways.edit', [
-            'paymentGateway' => $paymentGateway,
+            'id' => $paymentGateway,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 }

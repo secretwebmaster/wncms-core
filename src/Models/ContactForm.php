@@ -4,10 +4,10 @@ namespace Wncms\Models;
 
 use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class ContactForm extends Model
+class ContactForm extends WncmsModel
 {
     use HasFactory;
     use HasTranslations;

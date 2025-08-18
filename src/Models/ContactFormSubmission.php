@@ -4,9 +4,9 @@ namespace Wncms\Models;
 
 use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 
-class ContactFormSubmission extends Model
+class ContactFormSubmission extends WncmsModel
 {
     use HasFactory;
     use WnModelTrait;
@@ -33,10 +33,5 @@ class ContactFormSubmission extends Model
     public function contact_form()
     {
         return $this->belongsTo(wncms()->getModelClass('contact_form'));
-    }
-
-    public function website()
-    {
-        return $this->belongsTo(wncms()->getModelClass('website'));
     }
 }

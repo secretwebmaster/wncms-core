@@ -148,7 +148,6 @@
     <canvas id="clicksChart" height="300"></canvas>
 </div>
 
-
 {{-- Index --}}
 @include('wncms::backend.common.showing_item_of_total', ['models' => $clicks])
 

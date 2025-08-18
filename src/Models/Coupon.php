@@ -2,10 +2,10 @@
 
 namespace Wncms\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Coupon extends Model
+class Coupon extends WncmsModel
 {
     protected $guarded = [];
 

@@ -43,7 +43,7 @@ class {{ class }} extends Controller
         wncms()->cache()->flush(['{{ modelVariable }}s']);
 
         return redirect()->route('{{ modelVariable }}s.edit', [
-            '{{ modelVariable }}' => ${{ modelVariable }},
+            'id' => ${{ modelVariable }},
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -66,7 +66,7 @@ class {{ class }} extends Controller
         wncms()->cache()->flush(['{{ modelVariable }}s']);
         
         return redirect()->route('{{ modelVariable }}s.edit', [
-            '{{ modelVariable }}' => ${{ modelVariable }},
+            'id' => ${{ modelVariable }},
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 

@@ -70,7 +70,7 @@ class TransactionController extends BackendController
         $this->flush();
 
         return redirect()->route('transactions.edit', [
-            'transaction' => $transaction,
+            'id' => $transaction,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -122,7 +122,7 @@ class TransactionController extends BackendController
         $this->flush();
 
         return redirect()->route('transactions.edit', [
-            'transaction' => $transaction,
+            'id' => $transaction,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 }

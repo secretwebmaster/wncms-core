@@ -70,13 +70,8 @@ class LinkManager extends ModelManager
         $this->applyStatus($q, 'status', $options['status'] ?? 'active');
         $this->applyWiths($q, $options['withs'] ?? []);
         $this->applyOrdering($q, $options['order'] ?? 'order', $options['sequence'] ?? 'desc', ($options['order'] ?? '') === 'random');
-
-        $multiWebsiteEnabled = $options['multi_website'] ?? gss('multi_website'); // fallback to global
-
-        if ($multiWebsiteEnabled) {
-            $this->applyWebsiteId($q, $options['website_id'] ?? null);
-        }
-
+        $this->applyWebsiteId($q, $options['website_id'] ?? null);
+        
         $select = $options['select'] ?? ['links.*'];
 
         // Auto-add any orderBy columns into select

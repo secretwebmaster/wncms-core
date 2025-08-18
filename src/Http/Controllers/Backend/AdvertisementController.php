@@ -11,20 +11,6 @@ class AdvertisementController extends BackendController
     {
         $q = $this->modelClass::query();
 
-        if (gss('multi_website')) {
-            $selectedWebsiteId = $request->website ?? session('selected_website_id');
-            if ($selectedWebsiteId) {
-                $q->whereHas('website', function ($subq) use ($selectedWebsiteId) {
-                    $subq->where('websites.id', $selectedWebsiteId);
-                });
-            } elseif (!$request->has('website')) {
-                $websiteId = wncms()->website()->get()?->id;
-                $q->whereHas('website', function ($subq) use ($websiteId) {
-                    $subq->where('websites.id', $websiteId);
-                });
-            }
-        }
-
         if (in_array($request->status, $this->modelClass::STATUSES)) {
             $q->where('status', $request->status);
         }
@@ -144,7 +130,7 @@ class AdvertisementController extends BackendController
         $this->flush();
 
         return redirect()->route('advertisements.edit', [
-            'advertisement' => $advertisement,
+            'id' => $advertisement,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -227,7 +213,7 @@ class AdvertisementController extends BackendController
         $this->flush();
 
         return redirect()->route('advertisements.edit', [
-            'advertisement' => $advertisement,
+            'id' => $advertisement,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 }

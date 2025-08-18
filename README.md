@@ -4,7 +4,15 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## 更新日誌
 
-### v5.5.3 2025-07-xx
+### v5.5.4 2025-08-18
+
+-   修復標籤保存時的翻譯問題，更新依賴 **wncms-translatable**
+-   修復 **UserController** 中多處驗證與資料傳遞問題（`profile` 頁面 `$user` 未傳遞、密碼驗證規則與訊息錯誤、`withError()` 使用錯誤、`profile` 更新程式優化）
+-   修復部分站群模式的問題
+-   更新 **Controller stub** 檔案以符合新結構
+-   修復後台控制器路由錯誤
+
+### v5.5.3 2025-08-17
 
 -   修復提交 Checkbox 會送出 NULL 值的問題
 -   Beta 版本多模組站群相容性適配

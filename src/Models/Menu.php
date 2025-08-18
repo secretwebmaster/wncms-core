@@ -3,10 +3,10 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class Menu extends Model
+class Menu extends WncmsModel
 {
     use HasFactory;
     use HasTranslations;
@@ -27,12 +27,6 @@ class Menu extends Model
         'index',
         'create',
     ];
-
-    //! Relationship
-    // public function website()
-    // {
-    //     return $this->belongsTo(Website::class);
-    // }
 
     public function menu_items()
     {

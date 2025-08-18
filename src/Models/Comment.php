@@ -4,11 +4,11 @@ namespace Wncms\Models;
 
 use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class Comment extends Model
+class Comment extends WncmsModel
 {
     use HasFactory;
     use HasTranslations;

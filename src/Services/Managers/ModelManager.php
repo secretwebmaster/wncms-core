@@ -375,8 +375,24 @@ abstract class ModelManager
     protected function applyWebsiteId(Builder $q, ?int $websiteId = null): void
     {
         $modelClass = $this->getModelClass();
-        $modelClass::applyWebsiteScope($q, $websiteId);
+
+        // Get model key (snake_case)
+        $modelKey = array_search($modelClass, array_column(config('wncms.models'), 'class'));
+        if ($modelKey === false) {
+            $modelKey = str()->snake(class_basename($modelClass));
+        }
+
+        $websiteMode = config("wncms.models.$modelKey.website_mode");
+
+        if ($websiteMode === 'global' || !method_exists($modelClass, 'applyWebsiteScope')) {
+            return;
+        }
+
+        if (gss('multi_website') || in_array($websiteMode, ['single', 'multi'])) {
+            $modelClass::applyWebsiteScope($q, $websiteId);
+        }
     }
+
 
     /**
      * Finalize the result: apply pagination, limits, or fetch all.

@@ -36,7 +36,7 @@
     <div class="row mb-3">
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="expired_at">@lang('wncms::word.expired_at')</label>
         <div class="col-lg-9 fv-row">
-            <input id="expired_at" name="expired_at" value="{{ !empty($advertisement->expired_at) ? $advertisement->expired_at->format('Y-m-d') : '' }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_leave_blank')" id="date_expired_at" />
+            <input id="expired_at" name="expired_at" value="{{ !empty($advertisement->expired_at) ? $advertisement->expired_at->format('Y-m-d') : '' }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_leave_blank')" />
         </div>
         <script>
             window.addEventListener('DOMContentLoaded', (event) => {

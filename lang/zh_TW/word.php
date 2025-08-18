@@ -2151,6 +2151,12 @@ $words = [
 
     // 5.5.3
     'core_version' => '核心版本',
+
+    // 5.5.4
+    'discounts' => '折扣',
+    'ended_at' => '結束時間',
+    'percentage' => '百分比',
+    'fixed' => '固定',
 ];
 
 $locale = basename(__DIR__);

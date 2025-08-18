@@ -4,13 +4,13 @@ namespace Wncms\Models;
 
 use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Services\Models\WncmsModel;
 use Wncms\Tags\HasTags;
 use Wncms\Translatable\Traits\HasTranslations;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Advertisement extends Model implements HasMedia
+class Advertisement extends WncmsModel implements HasMedia
 {
     use HasFactory;
     use HasTags;
@@ -94,37 +94,12 @@ class Advertisement extends Model implements HasMedia
         $this->addMediaCollection('advertisement_thumbnail')->singleFile();
     }
 
-    
-    /**
-     * ----------------------------------------------------------------------------------------------------
-     * ! Attributes Accessor
-     * ----------------------------------------------------------------------------------------------------
-     */
     public function getThumbnailAttribute()
     {
         $media = $this->getMedia('advertisement_thumbnail')->first();
         if ($media) return $media->getUrl();
         return $this->external_thumbnail;
     }
-
-
-
-    /**
-     * ----------------------------------------------------------------------------------------------------
-     * ! Relationship
-     * ----------------------------------------------------------------------------------------------------
-     */
-    public function website()
-    {
-        return $this->belongsTo(Website::class);
-    }
-
-
-     /**
-     * ----------------------------------------------------------------------------------------------------
-     * ! Handling Data
-     * ----------------------------------------------------------------------------------------------------
-     */
 
 }
 

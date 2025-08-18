@@ -51,7 +51,7 @@ class DiscountController extends BackendController
         $this->flush();
 
         return redirect()->route('discounts.edit', [
-            'discount' => $discount,
+            'id' => $discount,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -84,7 +84,7 @@ class DiscountController extends BackendController
         $this->flush();
 
         return redirect()->route('discounts.edit', [
-            'discount' => $discount,
+            'id' => $discount,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 }

@@ -86,7 +86,7 @@ class FaqController extends BackendController
         $this->flush();
 
         return redirect()->route('faqs.edit', [
-            'faq' => $faq,
+            'id' => $faq,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -129,7 +129,7 @@ class FaqController extends BackendController
         $this->flush();
 
         return redirect()->route('faqs.edit', [
-            'faq' => $faq,
+            'id' => $faq,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 }

@@ -11,21 +11,21 @@ class PriceController extends BackendController
     {
         $q = Price::query();
         
-        $Prices = $q->paginate($request->page_size ?? 100);
+        $prices = $q->paginate($request->page_size ?? 100);
 
         return view('backend.prices.index', [
             'page_title' =>  wncms_model_word('price', 'management'),
-            'Prices' => $Prices,
+            'Prices' => $prices,
         ]);
     }
 
-    public function create(Price $Price = null)
+    public function create($id = null)
     {
-        $Price ??= new Price;
+        $price ??= new Price;
 
         return view('backend.prices.create', [
             'page_title' =>  wncms_model_word('price', 'management'),
-            'Price' => $Price,
+            'price' => $price,
         ]);
     }
 
@@ -33,43 +33,48 @@ class PriceController extends BackendController
     {
         dd($request->all());
 
-        $Price = Price::create([
+        $price = Price::create([
             'xxxx' => $request->xxxx,
         ]);
 
         wncms()->cache()->flush(['Prices']);
 
         return redirect()->route('prices.edit', [
-            'Price' => $Price,
+            'id' => $price,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
-    public function edit(Price $Price)
+    public function edit($id)
     {
         return view('backend.prices.edit', [
             'page_title' =>  wncms_model_word('price', 'management'),
-            'Price' => $Price,
+            'price' => $price,
         ]);
     }
 
-    public function update(Request $request, Price $Price)
+    public function update(Request $request, $id)
     {
         dd($request->all());
 
-        $Price->update([
+        $price->update([
             'xxxx' => $request->xxxx,
         ]);
 
         wncms()->cache()->flush(['Prices']);
         
         return redirect()->route('prices.edit', [
-            'Price' => $Price,
+            'id' => $price,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
-    public function destroy(Price $Price)
+    public function destroy($id)
     {
-        $Price->delete();
+        $price = Price::find($id);
+        if (!$price) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
+
+        $price->delete();
         return redirect()->route('prices.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 

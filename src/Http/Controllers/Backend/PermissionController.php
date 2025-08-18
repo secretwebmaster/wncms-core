@@ -127,7 +127,7 @@ class PermissionController extends Controller
         wncms()->cache()->tags(['permissions'])->flush();
 
         return redirect()->route('permissions.edit', [
-            'permission' => $permission,
+            'id' => $permission,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
