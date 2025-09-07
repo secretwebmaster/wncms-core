@@ -4,6 +4,48 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## Changelog
 
+### v5.5.5 2025-09-08
+
+-   Update AdvertisementManager to extend ModelManager
+-   Remove duplicated translation migration file
+-   Fix Advertisement website relationship not found
+-   Load frontend theme helpers in PageController
+-   Move HasTags trait to base WncmsModel (all models can now be taggable)
+-   Remove redundant OwnModelTrait and WnModelTrait
+-   Remove ExtraAttribute and replace with laravel-optionable package
+-   Add tools page in backend
+-   Localize @simonwep/pickr package
+-   Refactor all controller view() functions to use wncms()->view()
+-   Add contact field to Advertisement model
+-   Add API to create Tag model
+-   Add HasComments trait
+-   Add comment list display to backend Post
+-   Rewrite Frontend PostController to fit latest format
+-   Fix backend permission edit page error
+-   Prepare backend UI for API usage logging
+
+### v5.5.4 2025-08-18
+
+-   Fix translation issue when saving tags, update dependency **wncms-translatable**
+-   Fix multiple validation and data passing issues in **UserController** (`profile` page missing `$user`, wrong password validation rules/messages, incorrect `withError()` usage, optimized `profile` update)
+-   Fix issues in multisite mode
+-   Update **Controller stub** files to fit new structure
+-   Fix backend controller route errors
+
+### v5.5.3 2025-08-17
+
+-   Fix issue where submitting Checkbox sends NULL value
+-   Beta version: compatibility for multi-module multisite
+-   Update Starter form item Blade repeater example
+-   Rename WnContentModelTraits to WnContentModelTrait
+-   Rename WnModelTraits to WnModelTrait
+-   Beta version: add HasMultisite trait
+
+### v5.5.2 2025-07-20
+
+-   Add frontend link page and LinkController
+-   Update dependency wncms-tags > 1.6.1
+
 ### v5.5.0 2025-07-19
 
 -   Replaced `getVersion()` with `addVersion()` in some backend Blade views

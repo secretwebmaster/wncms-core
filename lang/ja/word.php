@@ -1200,7 +1200,7 @@ $words = [
     'successfully_dispatch_job' => 'スケジュールされたタスクを作成しました',
 
     // model
-    'model_management' => ':model_name 管理',
+    'model_management' => ':model_name',
     'model_select' => ':model_name を選択',
     'model_screenshot' => ':model_name プレビュー',
     'model_list' => ':model_name 一覧',

@@ -13,7 +13,6 @@ class LinkController extends FrontendController
 
     public function archive($tagType, $slug)
     {
-    
         if(str()->startsWith($tagType, 'link_')) {
             return redirect()->route('frontend.links.archive', ['tagType' => str_replace('link_', '', $tagType), 'slug' => $slug]);
         }

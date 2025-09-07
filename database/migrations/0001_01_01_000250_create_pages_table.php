@@ -15,21 +15,15 @@ return new class extends Migration
             Schema::create('pages', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
-
                 $table->string('status')->default('published'); // published | drafted | trashed 
                 $table->string('visibility')->default('public'); // public | member | admin
-
                 $table->string('type')->default('plain'); // plain | builder1 | builder2
                 $table->string('blade_name')->nullable();
-
                 $table->string('title')->index();
                 $table->string('slug')->unique();
                 $table->text('content')->nullable();
                 $table->string('remark')->nullable();
                 $table->boolean('is_locked')->default(false);
-
-                $table->text('options')->nullable(); // 3.1.5
-
                 $table->timestamps();
             });
         }

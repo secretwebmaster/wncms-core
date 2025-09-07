@@ -136,7 +136,6 @@ class Wncms
         return in_array($currentRoute, $routes) ? $activeClass : $inActiveClass;
     }
 
-
     /**
      * fnmatch for array
      * @param array $patterns
@@ -523,17 +522,22 @@ class Wncms
      *
      * @param string $name
      * @param array $params
-     * @param string|null $fallback
+     * @param string|null $fallbackView
      * @param string|null $fallbackRoute
      */
-    public function view(string $name, array $params = [], ?string $fallback = null, ?string $fallbackRoute = null)
+    public function view(string $name, array $params = [], ?string $fallbackView = null, ?string $fallbackRoute = null)
     {
         if (view()->exists($name)) {
             return view($name, $params);
         }
 
-        if ($fallback && view()->exists($fallback)) {
-            return view($fallback, $params);
+        $defaultView = 'wncms::' . $name;
+        if (view()->exists($defaultView)) {
+            return view($defaultView, $params);
+        }
+
+        if ($fallbackView && view()->exists($fallbackView)) {
+            return view($fallbackView, $params);
         }
 
         if ($fallbackRoute && route($fallbackRoute, [], false)) {
@@ -542,9 +546,9 @@ class Wncms
 
         wncms()->log("View not found: {$name}");
 
-        return redirect()->route('frontend.pages.home');
+        // return redirect()->route('frontend.pages.home');
+        abort(404, "View [{$name}] not found.");
     }
-
 
     /**
      * 調用其他Manager Class的方法

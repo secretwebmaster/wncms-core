@@ -2,7 +2,6 @@
 
 namespace Wncms\Models;
 
-use Wncms\Traits\WnModelTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Wncms\Tags\Tag as WncmsTag;
@@ -12,7 +11,6 @@ use Illuminate\Support\Facades\Route;
 class Tag extends WncmsTag implements HasMedia
 {
     use InteractsWithMedia;
-    use WnModelTrait;
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-tag'

@@ -4,6 +4,48 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## 更新日志
 
+### v5.5.5 2025-09-08
+
+-   更新 AdvertisementManager，继承 ModelManager
+-   移除重复的翻译 migration 文件
+-   修复找不到 Advertisement 与网站的关联问题
+-   在 PageController 加载前端主题 helpers
+-   将 HasTags trait 移到基础 WncmsModel（所有模型都可以打标签）
+-   移除多余的 OwnModelTrait 和 WnModelTrait
+-   移除 ExtraAttribute，改用 laravel-optionable 包
+-   后台新增工具页面
+-   本地化 @simonwep/pickr 包
+-   重构所有控制器中的 view()，改为使用 wncms()->view()
+-   在 Advertisement 模型中新增 contact 字段
+-   新增创建 Tag 模型的 API
+-   新增 HasComments trait
+-   在后台 Post 显示评论列表
+-   重写前台 PostController 以符合最新格式
+-   修复后台权限编辑页错误
+-   预备后台 UI 以支持 API 使用日志
+
+### v5.5.4 2025-08-18
+
+-   修复标签保存时的翻译问题，更新依赖 **wncms-translatable**
+-   修复 **UserController** 中多处验证与数据传递问题（`profile` 页面 `$user` 未传递、密码验证规则和信息错误、`withError()` 使用错误、`profile` 更新程序优化）
+-   修复部分多站点模式的问题
+-   更新 **Controller stub** 文件以符合新结构
+-   修复后台控制器路由错误
+
+### v5.5.3 2025-08-17
+
+-   修复提交 Checkbox 会发送 NULL 值的问题
+-   Beta 版本多模块多站点兼容适配
+-   更新 Starter 表单项 Blade 中的 repeater 示例
+-   将 WnContentModelTraits 重命名为 WnContentModelTrait
+-   将 WnModelTraits 重命名为 WnModelTrait
+-   Beta 版本新增 HasMultisite trait
+
+### v5.5.2 2025-07-20
+
+-   添加前台链接页面和链接控制器
+-   更新依赖 wncms-tags > 1.6.1
+
 ### v5.5.0 2025-07-19
 
 -   部分后台 Blade 视图中将 `getVersion()` 替换为 `addVersion()`

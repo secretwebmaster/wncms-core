@@ -2,7 +2,6 @@
 
 namespace Wncms\Models;
 
-use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Wncms\Services\Models\WncmsModel;
 use Wncms\Translatable\Traits\HasTranslations;
@@ -11,7 +10,6 @@ class ContactFormOption extends WncmsModel
 {
     use HasFactory;
     use HasTranslations;
-    use WnModelTrait;
 
     protected $guarded = [];
 

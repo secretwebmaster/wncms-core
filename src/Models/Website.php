@@ -2,7 +2,6 @@
 
 namespace Wncms\Models;
 
-use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Wncms\Services\Models\WncmsModel;
 use Spatie\MediaLibrary\HasMedia;
@@ -13,7 +12,6 @@ class Website extends WncmsModel implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
-    use WnModelTrait;
     use HasTranslations;
 
     protected $guarded = [];

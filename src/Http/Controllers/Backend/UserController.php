@@ -5,6 +5,7 @@ namespace Wncms\Http\Controllers\Backend;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Carbon\Carbon;
 
 class UserController extends BackendController
 {
@@ -237,8 +238,31 @@ class UserController extends BackendController
 
     public function show_user_api(Request $request)
     {
+        $labels = [];
+
+        for ($i = 29; $i >= 0; $i--) {
+            $labels[] = Carbon::now()->subDays($i)->format('m-d');
+        }
+
+        // define types with min/max
+        $types = [
+            'words'  => [500, 5000],
+            'images' => [0, 50],
+        ];
+
+        $datasets = [];
+        foreach ($types as $type => [$min, $max]) {
+            $datasets[] = [
+                'key'   => $type,
+                'label' => __('wncms::word.' . $type), // translated label
+                'data'  => array_map(fn() => rand($min, $max), $labels),
+            ];
+        }
+
         return $this->view('backend.users.account.api', [
-            'page_title' => __('wncms::word.my_account'),
+            'page_title'   => __('wncms::word.my_account'),
+            'chartLabels'  => $labels,
+            'chartDatasets' => $datasets,
         ]);
     }
 

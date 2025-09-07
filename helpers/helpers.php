@@ -82,7 +82,6 @@ if (!function_exists('isAdmin')) {
     }
 }
 
-
 /**
  * -------------------------------
  * % Methods belowing are deprecating soon

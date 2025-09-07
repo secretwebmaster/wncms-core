@@ -68,6 +68,10 @@ class WncmsServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // constants
+        define('WNCMS_CORE_PATH',  base_path("vendor/secretwebmaster/wncms-core/"));
+
+        // configs
         config('app.debug') ? error_reporting(E_ALL) : error_reporting(0);
 
         // middleware

@@ -1200,7 +1200,7 @@ $words = [
     'successfully_dispatch_job' => '成功建立排程任务',
 
     // model
-    'model_management' => ':model_name管理',
+    'model_management' => ':model_name',
     'model_select' => '选择:model_name',
     'model_screenshot' => ':model_name预览图',
     'model_list' => ':model_name列表',

@@ -38,6 +38,7 @@
                                         <button class="btn btn-sm btn-primary fw-bold btn-update" 
                                             data-item-id="{{ $itemData['product'] ?? '' }}"
                                             data-package="{{ $itemData['package'] ?? '' }}"
+                                            data-version="{{ $itemData['updates']['version'] }}"
                                             data-original-text="@lang('wncms::word.update')"
                                             data-loading-text="@lang('wncms::word.updating').."
                                             data-success-text="@lang('wncms::word.updated')"
@@ -72,6 +73,8 @@
         var textSuccess = button.data('success-text');
         var textFail = button.data('fail-text');
         var itemId = button.data('item-id');
+        var package = button.data('package');
+        var version = button.data('version');
 
         // Disable the button and update its text
         button.prop('disabled', true).text(textUpdating);
@@ -116,7 +119,8 @@
             type: "POST",
             data: {
                 itemId: itemId,
-                itemId: itemId
+                package:package,
+                version: version
             },
             success: function (data) {
                 // if use job

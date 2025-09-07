@@ -8,6 +8,7 @@ class CardController extends BackendController
 {
     public function index(Request $request)
     {
+        // return $this->test($request);
         $q = $this->modelClass::query();
 
         if ($request->filled('status')) {

@@ -129,6 +129,15 @@
     </div>
     @endcan --}}
 
+    <div class="menu-item">
+        <a class="menu-link py-2 @if(request()->routeIs('tools.index')) active @endif" href="{{ route('tools.index') }}">
+            <span class="menu-icon">
+                <i class="fa-lg @if(request()->routeIs('tools.index')) fa-beat @endif fa-solid fa-screwdriver-wrench"></i>
+            </span>
+            <span class="menu-title fw-bold">@lang('wncms::word.tools')</span>
+        </a>
+    </div>
+
     @includeif('backend.parts.sidebar.custom_admin_sidebar')
 
     {{-- Settings --}}

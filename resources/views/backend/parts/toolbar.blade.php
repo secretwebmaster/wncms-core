@@ -1,5 +1,5 @@
-<div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-3">
-	<div id="kt_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
+<div id="wncms_app_toolbar" class="app-toolbar py-3 py-lg-3">
+	<div id="wncms_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
         {{-- Page Title --}}
         <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
             <h1 class="page-heading d-flex text-dark fw-bold fs-3 justify-content-center align-items-center my-0">

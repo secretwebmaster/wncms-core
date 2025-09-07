@@ -29,6 +29,7 @@ return new class extends Migration
                 $table->text('code')->nullable();
                 $table->text('style')->nullable();
                 $table->string('position')->nullable();
+                $table->string('contact')->nullable();
                 $table->integer('order')->nullable();
                 $table->timestamps();
             });

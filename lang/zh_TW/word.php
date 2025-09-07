@@ -1200,7 +1200,7 @@ $words = [
     'successfully_dispatch_job' => '成功建立排程任務',
 
     // model
-    'model_management' => ':model_name管理',
+    'model_management' => ':model_name',
     'model_select' => '選擇:model_name',
     'model_screenshot' => ':model_name預覽圖',
     'model_list' => ':model_name列表',
@@ -2157,6 +2157,28 @@ $words = [
     'ended_at' => '結束時間',
     'percentage' => '百分比',
     'fixed' => '固定',
+
+    // 5.5.5
+    'slug_already_exists' => '代稱(slug)已存在',
+    'tools' => '工具',
+    'fix_permission' => '修復權限',
+    'fix_permission_description' => '如果有檔案被建立成 root:root，可以手動將擁有者重設為 www:www。',
+    'fix_permission_warning' => '請在網站根目錄下執行以下指令：',
+    'fix_permission_run_as_root' => '⚠️ 請以 root 使用者身份執行此指令。',
+    'run_fix_permission' => '顯示指令',
+    'close' => '關閉',
+    'clear_cache' => '清除快取',
+    'clear_cache_description' => '快速清除系統快取，確保最新的設定與資料即時生效。',
+    'clear_cache_button' => '清除快取',
+    'clear_cache_warning' => '此操作會清除所有快取！',
+    'clear_cache_be_careful' => '請謹慎操作，特別是在大型線上網站上，可能會造成瞬間效能影響。',
+    'developer_mode' => '開發者模式',
+    'developer_mode_description' => '啟用後會顯示額外的開發者選項與提示。',
+    'developer_setting' => '開發者設定',
+    'comment_count' => '評論數: :count',
+    'add_comment' => '添加評論',
+    'edit_comment' => '編輯評論',
+    'write_a_comment' => '寫下你的評論...',
 ];
 
 $locale = basename(__DIR__);

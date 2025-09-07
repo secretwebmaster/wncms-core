@@ -3,11 +3,21 @@
 namespace Wncms\Services\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Wncms\Tags\HasTags;
 use Wncms\Traits\HasMultisite;
 
 class WncmsModel extends Model
 {
     use HasMultisite;
+    use HasTags;
+
+    /**
+     * Return the parent model's class name (without namespace).
+     */
+    public function getParentModelName(): string
+    {
+        return class_basename($this);
+    }
 
     public function getAttribute($key)
     {

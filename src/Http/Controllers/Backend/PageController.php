@@ -77,6 +77,11 @@ class PageController extends BackendController
             ]
         );
 
+        $existingPage = $this->modelClass::where('slug', $request->slug)->first();
+        if ($existingPage) {
+            return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.slug_already_exists')]);
+        }
+
         $page = $user->pages()->create([
             'status' => $request->status,
             'visibility' => $request->visibility,
@@ -89,8 +94,20 @@ class PageController extends BackendController
             'blade_name' => $request->blade_name,
         ]);
 
+        // options
+        if ($request->has('options')) {
+            $page->setOptions($request->input('options'));
+        }
+
         //thumbnail
-        $page->handleThumbnailFromRequest($request, 'page_thumbnail');
+        if (!empty($request->page_thumbnail_remove)) {
+            $page->clearMediaCollection('page_thumbnail');
+        }
+
+        if (!empty($request->page_thumbnail)) {
+            $page->addMediaFromRequest('page_thumbnail')->toMediaCollection('page_thumbnail');
+        }
+
         $page->savePageOption($request);
         // $inputs = [];
         // // dd($request->inputs);
@@ -144,7 +161,9 @@ class PageController extends BackendController
         //clear cache
         $this->flush();
 
-        return redirect()->route('pages.edit', $page->id);
+        return redirect()->route('pages.edit', [
+            'id' => $page->id
+        ])->withMessage(__('wncms::word.successfully_created'));
     }
 
     public function restore(Request $request)
@@ -243,22 +262,31 @@ class PageController extends BackendController
         ]);
 
         if ($page->type == 'template' && !empty($page->blade_name) && !empty($request->inputs)) {
-            $page->spto($request);
+            $page->savePageOption($request);
         }
 
-        // dd($request->model_attributes);
-        // TODO: create a composer package for this and add event listener
-        // $page->saveExtraAttribute($request->model_attributes);
+        // options
+        if ($request->has('options')) {
+            $page->setOptions($request->input('options'));
+        }
 
-        //thubmnail
-        $page->handleThumbnailFromRequest($request, 'page_thumbnail');
+        //thumbnail
+        if (!empty($request->page_thumbnail_remove)) {
+            $page->clearMediaCollection('page_thumbnail');
+        }
+
+        if (!empty($request->page_thumbnail)) {
+            $page->addMediaFromRequest('page_thumbnail')->toMediaCollection('page_thumbnail');
+        }
 
         $page->savePageOption($request);
 
         //clear cache
         $this->flush();
 
-        return redirect()->route('pages.edit', $page->id)->withMessage(__('wncms::word.successfully_updated'));
+        return redirect()->route('pages.edit', [
+            'id' => $page->id
+        ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function get_available_templates(Request $request)

@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <div class="d-flex flex-column flex-root" id="kt_app_root">
+    <div class="d-flex flex-column flex-root" id="wncms_app_root">
         <!--begin::Page bg image-->
         <style>
             body {

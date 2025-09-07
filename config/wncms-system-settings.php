@@ -96,6 +96,7 @@ return [
             ['type' => 'switch', 'name' => 'enable_api_post_index'],
             ['type' => 'switch', 'name' => 'enable_api_post_store'],
             ['type' => 'switch', 'name' => 'enable_api_post_show'],
+            ['type' => 'switch', 'name' => 'enable_api_tag_store'],
         ]
     ],
     'content' => [

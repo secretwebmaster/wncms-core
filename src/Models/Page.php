@@ -2,26 +2,25 @@
 
 namespace Wncms\Models;
 
-use Wncms\Traits\HasExtraAttributes;
-use Wncms\Traits\WnContentModelTrait;
-use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Wncms\Services\Models\WncmsModel;
-use Wncms\Translatable\Traits\HasTranslations;
+use Secretwebmaster\LaravelOptionable\Traits\HasOptions;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Wncms\Services\Models\WncmsModel;
+use Wncms\Translatable\Traits\HasTranslations;
 
 class Page extends WncmsModel implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
     use HasTranslations;
-    use WnModelTrait;
-    use WnContentModelTrait;
-    use HasExtraAttributes;
+    use HasOptions;
 
     protected $guarded = [];
-    protected $translatable = ['title','options', 'content'];
+
+    protected $with = ['options'];
+
+    protected $translatable = ['title', 'content'];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-file-lines'
@@ -81,7 +80,7 @@ class Page extends WncmsModel implements HasMedia
     {
         return $this->morphMany(wncms()->getModelClass('comment'), 'commentable');
     }
-    
+
     public function user()
     {
         return $this->belongsTo(wncms()->getModelClass('user'));
@@ -104,14 +103,14 @@ class Page extends WncmsModel implements HasMedia
     }
 
     public function getTemplatesPath()
-    { 
-        return 'pages'; 
+    {
+        return 'pages';
     }
 
     //! Data handling
     public function getWidgets()
     {
-        return config('theme.'. $this->website?->theme .'.templates.'. $this->blade_name .'.widgets') ?? [];
+        return config('theme.' . $this->website?->theme . '.templates.' . $this->blade_name . '.widgets') ?? [];
     }
 
     public function getWidgetIndex($index, $widget)
@@ -121,19 +120,17 @@ class Page extends WncmsModel implements HasMedia
 
     public function getPageTemplateOption($pageWidgetIndex, $key, $fallback = null, $valueType = null)
     {
-        if(!empty($this->options[$pageWidgetIndex]['fields'][$key])){
+        if (!empty($this->options[$pageWidgetIndex]['fields'][$key])) {
 
             $value = $this->options[$pageWidgetIndex]['fields'][$key];
-
-        }elseif(!empty($this->getTranslation('options', app()->getFallbackLocale())[$pageWidgetIndex]['fields'][$key])){
+        } elseif (!empty($this->getTranslation('options', app()->getFallbackLocale())[$pageWidgetIndex]['fields'][$key])) {
 
             $value = $this->getTranslation('options', app()->getFallbackLocale())[$pageWidgetIndex]['fields'][$key];
-
         }
 
-        if(isset($value)){
+        if (isset($value)) {
 
-            if($valueType == 'tagify' && wncms()->isValidTagifyJson($value)){
+            if ($valueType == 'tagify' && wncms()->isValidTagifyJson($value)) {
                 $value = collect(json_decode($value))->pluck('value')->implode(',');
             }
 
@@ -153,40 +150,35 @@ class Page extends WncmsModel implements HasMedia
         $newInputs = [];
         $pageWidgetOrder = 0;
 
-        foreach($request->inputs ?? [] as $pageWidgetId => $valueArr){
-            
-            foreach($valueArr as $key => $value){
-
-                //set id
+        foreach ($request->inputs ?? [] as $pageWidgetId => $valueArr) {
+            foreach ($valueArr as $key => $value) {
+                // set id
                 $newInputs[$pageWidgetId]['pageWidgetId'] = $pageWidgetId;
 
-                //set order
+                // set order
                 $newInputs[$pageWidgetId]['pageWidgetOrder'] = $pageWidgetOrder;
-            
-                //set field values
+
+                // set field values
                 $newInputs[$pageWidgetId]['fields'][$key] = $value;
 
-                //handle remove image
-                if(str()->endswith($key, '_remove')){
-
-                    $file_key = str_replace("_remove" , '', $key);
-                    if($value == 1){
+                // handle remove image
+                if (str()->endswith($key, '_remove')) {
+                    $file_key = str_replace("_remove", '', $key);
+                    if ($value == 1) {
                         $this->clearMediaCollection($file_key);
                         unset($newInputs[$pageWidgetId][$file_key]);
-                    }else{
+                    } else {
                         $newInputs[$pageWidgetId]['fields'][$file_key] = $this->getPageTemplateOption($pageWidgetId, $file_key);
                     }
-                    
-                    //do nnt need to save key with _remove
-                    unset($newInputs[$pageWidgetId]['fields'][$key]);
+                    unset($newInputs[$pageWidgetId]['fields'][$key]); // don’t keep *_remove
                 }
 
-                //handle upload image
-                if($request->hasFile("inputs.{$pageWidgetId}.{$key}")){
+                // handle upload image
+                if ($request->hasFile("inputs.{$pageWidgetId}.{$key}")) {
                     $collection = "{$pageWidgetId}_{$key}";
                     $this->clearMediaCollection($collection);
                     $image = $this->addMediaFromRequest("inputs.{$pageWidgetId}.{$key}")->toMediaCollection($collection);
-                    $value = str_replace(env('APP_URL') , '' ,$image->getUrl());
+                    $value = str_replace(env('APP_URL'), '', $image->getUrl());
                     $newInputs[$pageWidgetId]['fields'][$key] = $value;
                 }
             }
@@ -194,28 +186,21 @@ class Page extends WncmsModel implements HasMedia
             $pageWidgetOrder++;
         }
 
-        $this->update([
-            'options' => !empty($request->inputs) ? [wncms()->getLocale() => $newInputs] : null,
-        ]);
+        // 🔑 Use HasOptions trait to persist instead of updating a dropped column
+        if (!empty($newInputs)) {
+            $this->setOption('template_inputs_' . wncms()->getLocale(), $newInputs);
+        } else {
+            $this->deleteOption('template_inputs_' . wncms()->getLocale());
+        }
     }
 
-    public function spto(...$arg)
-    {
-        return $this->savePageOption(...$arg);
-    }
 
     public function getPageOption($key, $fallback = null)
     {
-        if(!empty($this->options[$key])){
+        if (!empty($this->options[$key])) {
             return $this->options[$key];
         }
 
         return $fallback;
     }
-
-    public function gpo($key, $fallback = null)
-    {
-        return $this->getPageOption($key, $fallback);
-    }
-
 }

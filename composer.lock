@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cf6b37ac71793e73c419083c8137b93c",
+    "content-hash": "18cf24623720fd024adf4644b9cfbc51",
     "packages": [
         {
             "name": "barryvdh/laravel-debugbar",
@@ -4021,6 +4021,65 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.0"
             },
             "time": "2025-06-25T14:20:11+00:00"
+        },
+        {
+            "name": "secretwebmaster/laravel-optionable",
+            "version": "v1.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/secretwebmaster/laravel-optionable.git",
+                "reference": "e54a8ff32d3c79a199d7b1dff5eb9751b50cf772"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/secretwebmaster/laravel-optionable/zipball/e54a8ff32d3c79a199d7b1dff5eb9751b50cf772",
+                "reference": "e54a8ff32d3c79a199d7b1dff5eb9751b50cf772",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "orchestra/testbench": "8.x-dev"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Secretwebmaster\\LaravelOptionable\\Providers\\PackageServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Secretwebmaster\\LaravelOptionable\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "secretwebmaster",
+                    "email": "earnbyshare2016@gmail.com"
+                }
+            ],
+            "description": "Allow any Eloquent model to have own options such as user options, page options, etc.",
+            "keywords": [
+                "Settings",
+                "eloquent",
+                "laravel",
+                "options",
+                "preferences",
+                "secretwebmaster",
+                "wncms"
+            ],
+            "support": {
+                "issues": "https://github.com/secretwebmaster/laravel-optionable/issues",
+                "source": "https://github.com/secretwebmaster/laravel-optionable/tree/v1.3.0"
+            },
+            "time": "2025-09-07T03:33:30+00:00"
         },
         {
             "name": "secretwebmaster/wncms-tags",

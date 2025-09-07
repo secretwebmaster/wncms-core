@@ -19,10 +19,14 @@ trait HasMultisite
         return 'global';
     }
 
-    public function website(): BelongsTo
+    // Fake "belongsTo-like" relation that works in both modes
+    public function getWebsiteAttribute()
     {
-        $websiteClass = wncms()->getModelClass('website');
-        return $this->belongsTo($websiteClass);
+        if (! $this->relationLoaded('websites')) {
+            $this->load('websites');
+        }
+
+        return $this->websites->first();
     }
 
     public function websites(): BelongsToMany
@@ -62,17 +66,19 @@ trait HasMultisite
         return $q;
     }
 
-    public function bindWebsites(array|int $websiteIds): void
+    public function bindWebsites(array|int $websiteIds): array
     {
         $websiteIds = (array)$websiteIds;
         $mode = static::getWebsiteMode();
 
         if ($mode === 'single') {
             // force only one website: take the first
-            $this->websites()->sync([reset($websiteIds)]);
+            return $this->websites()->sync([reset($websiteIds)]);
         } elseif ($mode === 'multi') {
-            $this->websites()->syncWithoutDetaching($websiteIds);
+            return $this->websites()->syncWithoutDetaching($websiteIds);
         }
+
+        return [];
     }
 
     public function unbindWebsites(array|int $websiteIds): void

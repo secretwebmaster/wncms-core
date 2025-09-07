@@ -4,6 +4,48 @@
 
 ## 更新履歴
 
+### v5.5.5 2025-09-08
+
+-   AdvertisementManager を ModelManager を継承するように更新
+-   重複した翻訳マイグレーションファイルを削除
+-   Advertisement と Website のリレーションが見つからない問題を修正
+-   PageController でフロントエンドテーマのヘルパーを読み込み
+-   HasTags トレイトを基底の WncmsModel に移動（すべてのモデルがタグ付け可能に）
+-   冗長な OwnModelTrait と WnModelTrait を削除
+-   ExtraAttribute を削除し、laravel-optionable パッケージに置き換え
+-   バックエンドにツールページを追加
+-   @simonwep/pickr パッケージをローカライズ
+-   すべてのコントローラーの view() 関数をリファクタリングし、wncms()->view() を使用
+-   Advertisement モデルに contact フィールドを追加
+-   Tag モデルを作成する API を追加
+-   HasComments トレイトを追加
+-   バックエンド Post にコメント一覧表示を追加
+-   フロントエンド PostController を最新フォーマットに書き直し
+-   バックエンドのパーミッション編集ページのエラーを修正
+-   API 利用ログ用にバックエンド UI を準備
+
+### v5.5.4 2025-08-18
+
+-   タグ保存時の翻訳問題を修正し、依存関係 **wncms-translatable** を更新
+-   **UserController** 内の複数のバリデーションおよびデータ受け渡し問題を修正（`profile` ページで `$user` が渡されない、パスワード検証ルール/メッセージの誤り、`withError()` の誤用、`profile` 更新処理を最適化）
+-   一部のマルチサイトモードの問題を修正
+-   **Controller stub** ファイルを新しい構造に更新
+-   バックエンドコントローラのルートエラーを修正
+
+### v5.5.3 2025-08-17
+
+-   Checkbox 提出時に NULL 値が送信される問題を修正
+-   Beta 版でマルチモジュール・マルチサイトの互換性を追加
+-   Starter フォーム項目 Blade の repeater サンプルを更新
+-   WnContentModelTraits を WnContentModelTrait にリネーム
+-   WnModelTraits を WnModelTrait にリネーム
+-   Beta 版で HasMultisite trait を追加
+
+### v5.5.2 2025-07-20
+
+-   フロントエンドにリンクページと LinkController を追加
+-   依存関係 wncms-tags > 1.6.1 を更新
+
 ### v5.5.0 2025-07-19
 
 -   一部のバックエンド Blade ビューで `getVersion()` を `addVersion()` に置き換え

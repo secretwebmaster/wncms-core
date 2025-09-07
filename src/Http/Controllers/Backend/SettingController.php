@@ -10,12 +10,22 @@ use Illuminate\Support\Facades\Mail;
 
 class SettingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        if($request->has('developer_mode')){
+            if($request->developer_mode === '1'){
+                uss('developer_mode', '1');
+            }elseif($request->developer_mode === '0'){
+                uss('developer_mode', '0');
+            }
+            return redirect()->route('settings.index');
+        }
+
         //check if there is system update
         $settings = Setting::pluck('value','key')->toArray();
+
         $availableSettings = array_merge(config('wncms-system-settings'), (config('wncms.custom-settings') ?? []));
-        return view('wncms::backend.admin.settings',[
+        return $this->view('wncms::backend.admin.settings',[
             'settings' => $settings,
             'page_title' => __('wncms::word.setting'),
             'availableSettings' => $availableSettings,
@@ -35,7 +45,6 @@ class SettingController extends Controller
             uss('active_models', "{}");
         }
 
-        wncms()->cache()->flush(['settings']);
         return redirect()->back();
     }
 
@@ -110,5 +119,4 @@ class SettingController extends Controller
     
         return back()->withMessage(__('wncms::word.successfully_updated'));
     }
-    
 }

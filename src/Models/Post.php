@@ -3,23 +3,21 @@
 namespace Wncms\Models;
 
 use Wncms\Services\Models\WncmsModel;
-use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Wncms\Tags\HasTags;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Str;
+use Wncms\Traits\HasComments;
 use Wncms\Translatable\Traits\HasTranslations;
 
 class Post extends WncmsModel implements HasMedia
 {
     use HasFactory;
-    use HasTags;
     use InteractsWithMedia;
     use SoftDeletes;
     use HasTranslations;
-    use WnModelTrait;
+    use HasComments;
 
     protected $guarded = [];
 
@@ -81,11 +79,6 @@ class Post extends WncmsModel implements HasMedia
     public function user()
     {
         return $this->belongsTo(wncms()->getModelClass('user'));
-    }
-
-    public function comments()
-    {
-        return $this->morphMany(wncms()->getModelClass('comment'), 'commentable');
     }
 
     /**
@@ -207,7 +200,6 @@ class Post extends WncmsModel implements HasMedia
             'status' => $status,
         ]);
     }
-    
     
     //Base
     public function getTagAttributeArray($type = 'post_category', $attribute = "name")

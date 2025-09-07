@@ -31,7 +31,10 @@
 
 {{-- 網站列表 website --}}
 {{-- user $_website to avoid override the globel $website --}}
-@if(empty($hideToolbarWebsiteFiller) && !empty($websites))
+@if(
+    (empty($hideToolbarWebsiteFiller) && !empty($websites))
+    || (gss('multi_website') && $websites = wncms()->website()->getList())
+)
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="website" class="form-select form-select-sm">
             <option value="">@lang('wncms::word.select_website')</option>

@@ -1,5 +1,5 @@
 {{-- Footer --}}
-<div id="kt_app_footer" class="app-footer">
+<div id="wncms_app_footer" class="app-footer">
 	<div class="app-container container-fluid d-flex flex-column flex-md-row flex-center flex-md-stack py-3">
 		<div class="text-dark order-2 order-md-1">
 			<span class="text-muted fw-semibold me-1">{{ date('Y') }} &copy; @lang('wncms::word.all_rights_reserved')</span>
@@ -7,8 +7,8 @@
 		</div>
 
 		<ul class="menu menu-gray-600 menu-hover-primary fw-semibold order-1">
-			<li class="menu-item"><a href="https://3dayseo.com" target="_blank" class="menu-link px-2">@lang('wncms::word.wn_official_website')</a></li>
 			<li class="menu-item"><a href="https://wncms.cc" target="_blank" class="menu-link px-2">@lang('wncms::word.wncms_official_website')</a></li>
+			<li class="menu-item"><a href="https://3dayseo.com" target="_blank" class="menu-link px-2">@lang('wncms::word.wn_official_website')</a></li>
 			<li class="menu-item"><a href="https://wntheme.com" target="_blank" class="menu-link px-2">@lang('wncms::word.wntheme_official_website')</a></li>
 			<li class="menu-item"><a href="https://t.me/secretwebmaster" target="_blank" class="menu-link px-2">@lang('wncms::word.live_support')</a></li>
 			<li class="menu-item"><a href="https://t.me/secretwebmaster" target="_blank" class="menu-link px-2">@lang('wncms::word.contact_to_purchase')</a></li>

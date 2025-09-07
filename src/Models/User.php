@@ -2,7 +2,6 @@
 
 namespace Wncms\Models;
 
-use Wncms\Traits\WnModelTrait;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -19,7 +18,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     use LogsActivity;
     use HasRoles;
     use InteractsWithMedia;
-    use WnModelTrait;
 
     protected $guarded = [];
 

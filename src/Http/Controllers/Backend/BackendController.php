@@ -68,23 +68,6 @@ abstract class BackendController extends Controller
     }
 
     /**
-     * Fetch view
-     */
-    public function view(string $name, array $options = [])
-    {
-        if (view()->exists($name)) {
-            return view($name, $options);
-        }
-
-        $defaultView = 'wncms::' . $name;
-        if (view()->exists($defaultView)) {
-            return view($defaultView, $options);
-        }
-
-        abort(404, "View [{$name}] not found.");
-    }
-
-    /**
      * ============================================
      * CRUD Operations
      * ============================================

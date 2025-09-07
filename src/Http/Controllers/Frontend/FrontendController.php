@@ -24,6 +24,16 @@ class FrontendController extends Controller
         }
 
         $this->theme = $this->website->theme ?? 'default';
+
+        $projectHelper = resource_path("views/frontend/theme/{$this->theme}/system/helpers.php");
+        $packageHelper = WNCMS_CORE_PATH. "resources/views/frontend/theme/{$this->theme}/system/helpers.php";   
+        if (file_exists($projectHelper)) {
+            require_once $projectHelper;
+        } elseif (file_exists($packageHelper)) {
+            require_once $packageHelper;
+        }
+
+        $this->modelClass = $this->getModelClass();
     }
 
     public function getModelClass(): string
@@ -53,19 +63,5 @@ class FrontendController extends Controller
     protected function getModelPlural(): string
     {
         return $this->plural ?? str()->plural($this->getModelSingular());
-    }
-
-    public function view(string $name, array $options = [])
-    {
-        if (view()->exists($name)) {
-            return view($name, $options);
-        }
-
-        $defaultView = 'wncms::' . $name;
-        if (view()->exists($defaultView)) {
-            return view($defaultView, $options);
-        }
-
-        abort(404, "View [{$name}] not found.");
     }
 }

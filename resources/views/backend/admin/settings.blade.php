@@ -34,6 +34,17 @@ $activeTab = request('tab') ?? old('active_tab') ?? $firstTabName;
                         </li>
                         @endif
                         @endforeach
+
+                        @if(gss('developer_mode'))
+                        <li class="nav-item col-4 col-md-12 fw-bold me-0">
+                            <a class="nav-link {{ $activeTab === 'developer' ? 'active' : '' }}"
+                                data-bs-toggle="tab"
+                                data-bs-target="#tab_{{ 'developer' }}"
+                                href="javascript:void(0);">
+                                @lang("wncms::word." . 'developer' . "_setting")
+                            </a>
+                        </li>
+                        @endif
                     </ul>
                 </div>
 
@@ -246,24 +257,24 @@ $activeTab = request('tab') ?? old('active_tab') ?? $firstTabName;
                             @push('foot_js')
                             <script>
                                 $('#modal_test_smtp .btn-test').on('click', function(){
-                                                        console.log('smtp test');
-                                                        var button = $(this);
-                                                        button.prop('disabled', true)
-                                                        var recipient = $('#recipient').val();
-                                                        $.ajax({
-                                                            headers:{'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                                                            url:"{{ route('settings.smtp_test') }}",
-                                                            data:{
-                                                                recipient:recipient,
-                                                            },
-                                                            type:"POST",
-                                                            success:function(response){
-                                                                console.log(response)
-                                                                $('.smtp-test-result textarea').val(response.message);
-                                                                button.prop('disabled', false)
-                                                            }
-                                                        });
-                                                    })
+                                    console.log('smtp test');
+                                    var button = $(this);
+                                    button.prop('disabled', true)
+                                    var recipient = $('#recipient').val();
+                                    $.ajax({
+                                        headers:{'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                                        url:"{{ route('settings.smtp_test') }}",
+                                        data:{
+                                            recipient:recipient,
+                                        },
+                                        type:"POST",
+                                        success:function(response){
+                                            console.log(response)
+                                            $('.smtp-test-result textarea').val(response.message);
+                                            button.prop('disabled', false)
+                                        }
+                                    });
+                                })
                             </script>
                             @endpush
                             @endif
@@ -274,6 +285,41 @@ $activeTab = request('tab') ?? old('active_tab') ?? $firstTabName;
             </div>
             @endif
             @endforeach
+
+            {{-- developer_mode tab --}}
+            @if(gss('developer_mode'))
+                <div class="tab-pane fade show active" id="tab_developer" role="tabpanel">
+                    <div class="card">
+                        <div class="collapse show">
+                            <div class="card-body border-top p-6">
+
+                                {{-- developer_mode switch --}}
+                                <div class="row mb-1">
+                                    <label class="col-lg-4 col-form-label fw-bold fs-6">
+                                        @lang('wncms::word.developer_mode')
+                                        <br>
+                                        <span class="fs-xs text-gray-300">developer_mode</span>
+                                    </label>
+                                    <div class="col-lg-8 d-flex align-items-center">
+                                        <div class="form-check form-check-solid form-check-custom form-switch fv-row">
+                                            <input type="hidden" name="settings[developer_mode]" value="0">
+                                            <input class="form-check-input w-35px h-20px border border-1 border-secondary"
+                                                type="checkbox"
+                                                name="settings[developer_mode]"
+                                                value="1"
+                                                {{ $settings['developer_mode'] ?? false ? 'checked' : '' }} />
+                                            <label class="form-check-label" for="developer_mode"></label>
+                                        </div>
+                                        <div class="text-muted p-1">@lang('wncms::word.developer_mode_description')</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
 
             {{-- submit --}}
             <div class="card-footer d-flex justify-content-end mt-5">

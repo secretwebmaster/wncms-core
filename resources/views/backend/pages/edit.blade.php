@@ -12,7 +12,7 @@
 
 @include('wncms::backend.parts.message')
 
-<form class="form" method="POST" action="{{ route('pages.update', ['page' => $page]) }}" enctype="multipart/form-data">
+<form class="form" method="POST" action="{{ route('pages.update', ['id' => $page]) }}" enctype="multipart/form-data">
     @csrf
     @method('PATCH')
 

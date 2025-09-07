@@ -2,151 +2,99 @@
 
 namespace Wncms\Services\Managers;
 
-use Wncms\Models\Advertisement;
+use Illuminate\Database\Eloquent\Model;
 
-class AdvertisementManager
+class AdvertisementManager extends ModelManager
 {
-    //Cache key prefix that prepend all cache key in this page
-    protected $cacheKeyPrefix = "wncms_advertisement";
+    protected string $cacheKeyPrefix = 'wncms_advertisement';
+    protected string|array $cacheTags = ['advertisements'];
+    protected bool $shouldAuth = false;
 
-
-    /**
-     * ----------------------------------------------------------------------------------------------------
-     * Get single advertisement by id
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.0.0
-     * 
-     * @param integer $advertisementId
-     * @return mixed
-     * TODO: 加入搜索多個欄位
-     * ----------------------------------------------------------------------------------------------------
-     */
-    function get(?int $advertisementId = null)
+    public function getModelClass(): string
     {
-        if(empty($advertisementId)) return null;
-        $method = "get";
-        $shouldAuth = false;
-        $cacheKeyDomain = empty($websiteId) ? wncms()->getDomain() : '';
-        $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()), $cacheKeyDomain);
-        $cacheTags = ['advertisements'];
-        $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
-        //wncms()->cache()->clear($cacheKey, $cacheTags);
-        // dd($cacheKey);
+        return wncms()->getModelClass('advertisement');
+    }
 
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($advertisementId) {
-            info("no cache");
-            $website = wncms()->website()->getCurrent();
-            if (!$website) return null;
+    public function get(array $options = []): ?Model
+    {
+        return parent::get($options);
+    }
 
-            $q = $website->advertisements();
-            $q->where('id', $advertisementId);
-            $q->with('media', function ($subq) {
-                $subq->where('collection_name', 'advertisement_thumbnail');
+    public function getList(array $options = []): mixed
+    {
+        return parent::getList($options);
+    }
+
+    protected function buildListQuery(array $options): mixed
+    {
+        $q = $this->query();
+
+        // Website scope
+        if (!empty($options['website_id'])) {
+            $q = $this->getWebsiteQuery('advertisements', $options['website_id']);
+        }
+
+        // Status (default active)
+        $this->applyStatus($q, 'status', $options['status'] ?? 'active');
+
+        // Expired handling
+        $includeExpired = $options['include_expired'] ?? false;
+        $excludeExpired = $options['exclude_expired'] ?? true;
+
+        if ($excludeExpired) {
+            $q->where(function ($subq) {
+                $subq->whereNull('expired_at')
+                    ->orWhere('expired_at', '>=', now());
             });
-            $advertisement = $q->first();
+        }
 
-            return $advertisement;
-        });
+        if (!$includeExpired) {
+            $q->where(
+                fn($subq) =>
+                $subq->whereDate('expired_at', '>=', now())
+                    ->orWhereNull('expired_at')
+            );
+        }
+
+        // Positions filter
+        if (!empty($options['positions'])) {
+            $positions = is_string($options['positions'])
+                ? explode(',', $options['positions'])
+                : (array) $options['positions'];
+
+            $q->whereIn('position', $positions);
+        }
+
+
+
+        // Generic filters
+        $this->applyIds($q, 'advertisements.id', $options['ids'] ?? []);
+        $this->applyExcludeIds($q, 'advertisements.id', $options['excluded_ids'] ?? []);
+        $this->applyKeywordFilter($q, $options['keywords'] ?? [], ['name', 'remark', 'cta_text', 'url']);
+        $this->applyWhereConditions($q, $options['wheres'] ?? []);
+        $this->applyWiths($q, array_merge(['media'], $options['withs'] ?? []));
+        $this->applyOrdering(
+            $q,
+            $options['order'] ?? 'order',
+            $options['sequence'] ?? 'desc',
+            ($options['order'] ?? '') === 'random'
+        );
+
+
+        $this->applySelect($q, $options['select'] ?? ['*']);
+        $this->applyOffset($q, $options['offset'] ?? 0);
+        $this->applyLimit($q, $options['count'] ?? 0);
+        $q->distinct();
+
+        return $q;
     }
 
-    /**
-     * ----------------------------------------------------------------------------------------------------
-     * Get a collect of advertisements
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.0.0
-     * @param integer $count Number of advertisements to get
-     * @param ?int $pageSize How many advertisements per page. Will not call paginate() if set to null or 0, set to -1 to paginate all records in one page
-     * @param string $order By default, advertisement will be ordered by id
-     * @param string $sequence By Defaultm advertisement will be sorted in descending order
-     * @param string $status 
-     * @param integer|null $websiteId By default, advertisements will be retrieved from current website
-     * @param integer|null $websiteId By default, advertisements will be retrieved from current website
-     * @return Illuminate\Database\Eloquent\Collection
-     * TODO: 設定預設model type
-     * ----------------------------------------------------------------------------------------------------
-     */
-    function getList(
-        int $count = 0,
-        int $pageSize = 0,
-        string $order = 'order',
-        string $sequence = 'desc',
-        string $status = 'active',
-        ?array $wheres = [],
-        int $websiteId = null,
-        bool $includeExpired = false,
-        string|array|null $positions = null,
-        bool $excludeExpired = true,
-    )
+    public function getByPosition(string|array $positions, ?int $websiteId = null)
     {
-        $method = "getList";
-        $shouldAuth = false;
-        $cacheKeyDomain = empty($websiteId) ? wncms()->getDomain() : '';
-        $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()), $cacheKeyDomain);
-        $cacheTags = ['advertisements'];
-        $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
-        // wncms()->cache()->clear($cacheKey, $cacheTags);
-
-        // dd($cacheKey);
-
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($count, $pageSize, $order, $sequence, $status, $wheres, $websiteId, $includeExpired, $positions, $excludeExpired) {
-
-            $website = wncms()->website()->get($websiteId);
-
-            if (!$website) return collect([]);
-
-            $q = $website->advertisements();
-
-            $q->where('status', $status);
-
-            if($excludeExpired){
-                $q->where(function($subq){
-                    $subq->whereNull('expired_at')->orWhere('expired_at', ">=", now());
-                });
-            }
-
-            if(!$includeExpired){
-                $q->where(fn($q) => $q->whereDate('expired_at', '>=', now())->orWhereNull('expired_at'));
-            }
-
-            if($positions){
-                if(is_string($positions)){
-                    $positions = explode(",", $positions);
-                }
-                $q->whereIn('position', $positions);
-            }
-
-            $q->orderBy($order, $sequence);
-            $q->oldest();
-            $q->with('media');
-            $q->when($count > 0, fn ($q) => $q->take($count));
-
-            //custom where query
-            if(!empty($wheres)){
-                foreach($wheres as $where){
-                    if(!empty($where[0]) && !empty($where[1]) && !empty($where[2])){
-                        $q->where($where[0],$where[1],$where[2]);
-                    }elseif(!empty($where[0]) && !empty($where[1]) && empty($where[2])){
-                        $q->where($where[0],$where[1]);
-                    }else{
-                        info('condition error in advertisements query. $wheres = ' . json_encode($wheres));
-                    }
-                }
-            }
-
-            $advertisements = $q->get();
-
-            if($pageSize > 0){
-                $advertisements = $advertisements->paginate($pageSize);
-            }elseif($pageSize == -1){
-                $advertisements = $advertisements->paginate($advertisements->count());
-            }
-            
-            return $advertisements;
-        });
+        return $this->getList([
+            'positions' => $positions,
+            'website_id' => $websiteId,
+            'count' => 1,
+        ])?->first();
     }
-
-
-
 }

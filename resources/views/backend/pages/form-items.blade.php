@@ -9,15 +9,15 @@
             </li>
 
             @if($page->type == 'template' && $page->template_info && !empty($page->template_info['widgets']))
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link fw-bold" id="pills-template-tab" data-bs-toggle="pill" data-bs-target="#pills-template" type="button" role="tab" aria-controls="pills-template" aria-selected="false">@lang('wncms::word.theme_template_options')</button>
-                </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="pills-template-tab" data-bs-toggle="pill" data-bs-target="#pills-template" type="button" role="tab" aria-controls="pills-template" aria-selected="false">@lang('wncms::word.theme_template_options')</button>
+            </li>
             @endif
 
             @if($page->type == 'builder')
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link fw-bold" id="pills-builder-tab" data-bs-toggle="pill" data-bs-target="#pills-builder" type="button" role="tab" aria-controls="pills-builder" aria-selected="false">@lang('wncms::word.builder')</button>
-                </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="pills-builder-tab" data-bs-toggle="pill" data-bs-target="#pills-builder" type="button" role="tab" aria-controls="pills-builder" aria-selected="false">@lang('wncms::word.builder')</button>
+            </li>
             @endif
         </ul>
 
@@ -60,15 +60,15 @@
 
                         {{-- blade_name --}}
                         @if($page->type == 'template' && !empty($available_templates))
-                            <div class="form-item mb-3">
-                                <label class="form-label fw-bold fs-6">@lang('wncms::word.available_theme_template')</label>
-                                <select name="blade_name" class="form-select form-select-sm" required>
-                                    <option value="">@lang('wncms::word.not_using_theme_template')</option>
-                                    @foreach($available_templates as $available_template)
-                                    <option value="{{ $available_template['blade_name'] }}" {{ $available_template['blade_name']==old('blade_name', $page->blade_name) ? 'selected' :'' }}><b>{{ $available_template['blade_name'] }}</b></option>
-                                    @endforeach
-                                </select>
-                            </div>
+                        <div class="form-item mb-3">
+                            <label class="form-label fw-bold fs-6">@lang('wncms::word.available_theme_template')</label>
+                            <select name="blade_name" class="form-select form-select-sm" required>
+                                <option value="">@lang('wncms::word.not_using_theme_template')</option>
+                                @foreach($available_templates as $available_template)
+                                <option value="{{ $available_template['blade_name'] }}" {{ $available_template['blade_name']==old('blade_name', $page->blade_name) ? 'selected' :'' }}><b>{{ $available_template['blade_name'] }}</b></option>
+                                @endforeach
+                            </select>
+                        </div>
                         @else
                         <input type="hidden" name="blade_name" value="{{ $page->blade_name }}">
                         @endif
@@ -96,154 +96,154 @@
 
             {{-- Theme template option --}}
             @if($page->type == 'template' && $page->template_info && !empty($page->template_info['widgets']))
-                <div class="tab-pane fade" id="pills-template" role="tabpanel" aria-labelledby="pills-template-tab">
-                    <div class="card mt-5">
-                        
-                        <div class="card-header border-0 cursor-pointer px-3 px-md-5">
-                            <div class="card-title m-0">
-                                <h3 class="fw-bolder m-0">@lang('wncms::word.theme_template_options')</h3>
-                            </div>
+            <div class="tab-pane fade" id="pills-template" role="tabpanel" aria-labelledby="pills-template-tab">
+                <div class="card mt-5">
+
+                    <div class="card-header border-0 cursor-pointer px-3 px-md-5">
+                        <div class="card-title m-0">
+                            <h3 class="fw-bolder m-0">@lang('wncms::word.theme_template_options')</h3>
                         </div>
+                    </div>
 
-                        {{-- Theme template widget list --}}
-                        <div class="card-body p-2 p-md-5">
-                            <div class="row">
+                    {{-- Theme template widget list --}}
+                    <div class="card-body p-2 p-md-5">
+                        <div class="row">
 
-                                <div class="col-12">
-                                    <div class="accordion list-group col min-h-200px border border-1 border-secondary border-dashed">
-                                        @foreach(collect(config('theme.' . $page->website->theme . '.templates'))->where('blade_name', $page->blade_name)->first()['widgets'] ?? [] as $index => $widget)
-  
-                                            @php 
-                                                $pageWidgetId = "widget_{$index}_{$widget}";
-                                                $widgetInfo = config('theme.' . $page->website?->theme . '.widgets.' . $widget);
-                                                if(empty($widgetInfo)) continue;
-                                                // dd(
-                                                //     'theme.' . $page->website?->theme . '.widgets.' . $widget,
-                                                //     $widgetInfo
-                                                // );
-                                            @endphp
-                                            {{-- Accordion item --}}
-                                            <div class="accordion-item widget-list-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button text-gray-100 fw-bold bg-dark py-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $pageWidgetId }}" aria-expanded="true" aria-controls="{{ $pageWidgetId }}">
-                                                        {{ $widgetInfo['name'] }}
-                                                    </button>
-                                                </h2>
-                                                <div id="{{ $pageWidgetId }}" class="accordion-collapse collapse @if($loop->iteration == 1) show @endif" data-bs-parent="#widget-options">
-                                                    <div class="accordion-body">
-                                                        @foreach(config("theme." . $page->website->theme . '.widgets.' . $widget . '.fields') as $option_index => $option)
+                            <div class="col-12">
+                                <div class="accordion list-group col min-h-200px border border-1 border-secondary border-dashed">
+                                    @foreach(collect(config('theme.' . $page->website->theme . '.templates'))->where('blade_name', $page->blade_name)->first()['widgets'] ?? [] as $index => $widget)
 
-                                                        {{-- @dd([
-                                                            'option' => $option,
-                                                            'current_options' => $page->options,
-                                                            'inputNameKey' => "inputs[" . $pageWidgetId . "]",
-                                                            'isPageTemplateValue' => true,
-                                                            'pageWidgetId' => $pageWidgetId,
-                                                        ]) --}}
-                                                            @include('wncms::backend.parts.inputs', [
-                                                                'option' => $option,
-                                                                'current_options' => $page->options,
-                                                                'inputNameKey' => "inputs[" . $pageWidgetId . "]",
-                                                                'isPageTemplateValue' => true,
-                                                                'pageWidgetId' => $pageWidgetId,
-                                                            ])
-                                                        @endforeach
-                                                    </div>
-                                                </div>
+                                    @php
+                                    $pageWidgetId = "widget_{$index}_{$widget}";
+                                    $widgetInfo = config('theme.' . $page->website?->theme . '.widgets.' . $widget);
+                                    if(empty($widgetInfo)) continue;
+                                    // dd(
+                                    // 'theme.' . $page->website?->theme . '.widgets.' . $widget,
+                                    // $widgetInfo
+                                    // );
+                                    @endphp
+                                    {{-- Accordion item --}}
+                                    <div class="accordion-item widget-list-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button text-gray-100 fw-bold bg-dark py-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $pageWidgetId }}" aria-expanded="true" aria-controls="{{ $pageWidgetId }}">
+                                                {{ $widgetInfo['name'] }}
+                                            </button>
+                                        </h2>
+                                        <div id="{{ $pageWidgetId }}" class="accordion-collapse collapse @if($loop->iteration == 1) show @endif" data-bs-parent="#widget-options">
+                                            <div class="accordion-body">
+                                                @foreach(config("theme." . $page->website->theme . '.widgets.' . $widget . '.fields') as $option_index => $option)
+
+                                                {{-- @dd([
+                                                'option' => $option,
+                                                'current_options' => $page->options,
+                                                'inputNameKey' => "inputs[" . $pageWidgetId . "]",
+                                                'isPageTemplateValue' => true,
+                                                'pageWidgetId' => $pageWidgetId,
+                                                ]) --}}
+                                                @include('wncms::backend.parts.inputs', [
+                                                'option' => $option,
+                                                'current_options' => $page->options,
+                                                'inputNameKey' => "inputs[" . $pageWidgetId . "]",
+                                                'isPageTemplateValue' => true,
+                                                'pageWidgetId' => $pageWidgetId,
+                                                ])
+                                                @endforeach
                                             </div>
-           
-                                        @endforeach
+                                        </div>
                                     </div>
-                                </div>
 
+                                    @endforeach
+                                </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
+            </div>
             @endif
 
             {{-- Wncms builder --}}
             @if($page->type == 'builder')
-                <div class="tab-pane fade" id="pills-template" role="tabpanel" aria-labelledby="pills-template-tab">
-                    <div class="card mt-5">
-                        
-                        <div class="card-header border-0 cursor-pointer px-3 px-md-5">
-                            <div class="card-title m-0">
-                                <h3 class="fw-bolder m-0">@lang('wncms::word.theme_template_options')</h3>
+            <div class="tab-pane fade" id="pills-template" role="tabpanel" aria-labelledby="pills-template-tab">
+                <div class="card mt-5">
+
+                    <div class="card-header border-0 cursor-pointer px-3 px-md-5">
+                        <div class="card-title m-0">
+                            <h3 class="fw-bolder m-0">@lang('wncms::word.theme_template_options')</h3>
+                        </div>
+                    </div>
+
+                    {{-- Theme template widget list --}}
+                    <div class="card-body p-2 p-md-5">
+
+                        <div class="row">
+                            <div class="col-12 col-md-3">
+                                <h4>@lang('wncms::word.widgets')</h4>
+
+                                <div id="widget-list" class="row g-2">
+                                    @foreach(config('theme.' . $page->website?->theme . '.widgets') ?? [] as $widget)
+                                    <div class="col-6 accordion-item widget-list-item" data-widget="{{ $widget['key'] ?? 'undefined_widget_key' }}" data-name="@lang($page->website?->theme . '.' . ($widget['key'] ?? 'undefined_widget_key'))">
+                                        <div class="widget-info-wrapper bg-light">
+                                            <i class="{{ $widget['icon'] ?? 'fa-solid fa-cube' }}"></i>
+                                            <div class="widget-name">{{ $widget['name'] ?? 'undefined_widget_name' }}</div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-9">
+                                <h4>@lang('wncms::word.options')</h4>
+
+                                <div id="widget-options" class="accordion list-group col min-h-200px border border-1 border-secondary border-dashed">
+
+                                    @if(!empty($page->options))
+                                    @foreach($page->options as $groupId => $valueArray)
+                                    @php
+                                    if(empty($valueArray['widget_key'])) continue;
+                                    $widget = config("theme." . $page->website?->theme . ".widgets." . ($valueArray['widget_key']));
+                                    if(empty($widget)) continue;
+
+                                    $options = $widget['fields'] ?? [];
+                                    $options[] = ['type' => 'hidden', 'name' => 'widget_key'];
+                                    $current_options = $page->options;
+                                    @endphp
+
+                                    {{-- Accordion item --}}
+                                    <div class="accordion-item widget-list-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button text-gray-100 fw-bold bg-dark py-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $groupId }}" aria-expanded="true" aria-controls="{{ $groupId }}">
+                                                {{ $widget['name'] }}
+                                            </button>
+                                        </h2>
+                                        <div id="{{ $groupId }}" class="accordion-collapse collapse show" data-bs-parent="#widget-options">
+                                            <div class="accordion-body">
+                                                @foreach($options as $option)
+                                                {{-- @dd($options, $current_options) --}}
+                                                @include('wncms::backend.parts.inputs', [
+                                                'option' => $option,
+                                                'current_options' => $current_options,
+                                                'inputNameKey' => "inputs[" . $groupId . "]",
+                                                'isPageTemplateValue' => true,
+                                                'groupId' => $groupId,
+                                                ])
+                                                @endforeach
+
+                                                <button class="btn btn-sm btn-danger fw-bold w-100 remove-widget-option" type="button">@lang("wncms::word.delete")</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @endforeach
+                                    @endif
+                                    {{-- @dd($page->options) --}}
+                                </div>
                             </div>
                         </div>
 
-                        {{-- Theme template widget list --}}
-                        <div class="card-body p-2 p-md-5">
-
-                            <div class="row">
-                                <div class="col-12 col-md-3">
-                                    <h4>@lang('wncms::word.widgets')</h4>
-
-                                    <div id="widget-list" class="row g-2">
-                                        @foreach(config('theme.' . $page->website?->theme . '.widgets') ?? [] as $widget)
-                                        <div class="col-6 accordion-item widget-list-item" data-widget="{{ $widget['key'] ?? 'undefined_widget_key' }}" data-name="@lang($page->website?->theme . '.' . ($widget['key'] ?? 'undefined_widget_key'))">
-                                            <div class="widget-info-wrapper bg-light">
-                                                <i class="{{ $widget['icon'] ?? 'fa-solid fa-cube' }}"></i>
-                                                <div class="widget-name">{{ $widget['name'] ?? 'undefined_widget_name' }}</div>
-                                            </div>
-                                        </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-
-                                <div class="col-12 col-md-9">
-                                    <h4>@lang('wncms::word.options')</h4>
-
-                                    <div id="widget-options" class="accordion list-group col min-h-200px border border-1 border-secondary border-dashed">
-
-                                        @if(!empty($page->options))
-                                            @foreach($page->options as $groupId => $valueArray)
-                                                @php
-                                                    if(empty($valueArray['widget_key'])) continue;
-                                                    $widget =  config("theme." . $page->website?->theme . ".widgets." .  ($valueArray['widget_key']));
-                                                    if(empty($widget)) continue;
-                                                    
-                                                    $options = $widget['fields'] ?? [];
-                                                    $options[] = ['type' => 'hidden', 'name' => 'widget_key'];
-                                                    $current_options = $page->options;
-                                                @endphp
-
-                                                {{-- Accordion item --}}
-                                                <div class="accordion-item widget-list-item">
-                                                    <h2 class="accordion-header">
-                                                        <button class="accordion-button text-gray-100 fw-bold bg-dark py-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $groupId }}" aria-expanded="true" aria-controls="{{ $groupId }}">
-                                                            {{ $widget['name'] }}
-                                                        </button>
-                                                    </h2>
-                                                    <div id="{{ $groupId }}" class="accordion-collapse collapse show" data-bs-parent="#widget-options">
-                                                        <div class="accordion-body">
-                                                            @foreach($options as $option)
-                                                            {{-- @dd($options, $current_options) --}}
-                                                                @include('wncms::backend.parts.inputs', [
-                                                                    'option' => $option,
-                                                                    'current_options' => $current_options,
-                                                                    'inputNameKey' => "inputs[" . $groupId . "]",
-                                                                    'isPageTemplateValue' => true,
-                                                                    'groupId' => $groupId,
-                                                                ])
-                                                            @endforeach
-
-                                                            <button class="btn btn-sm btn-danger fw-bold w-100 remove-widget-option" type="button">@lang("wncms::word.delete")</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                            @endforeach
-                                        @endif
-                                        {{-- @dd($page->options) --}}
-                                    </div>
-                                </div>
-                            </div>
-
-                            @push('foot_js')
-                                <script>
-                                    widgetList = document.getElementById('widget-list');
+                        @push('foot_js')
+                        <script>
+                            widgetList = document.getElementById('widget-list');
                                     new Sortable(widgetList, {
                                         group: {
                                             name: 'shared',
@@ -374,93 +374,93 @@
 
                                     bindButtonFunctions();
 
-                                </script>
-                            @endpush
+                        </script>
+                        @endpush
 
-                        </div>
                     </div>
                 </div>
+            </div>
             @endif
-                
+
             {{-- // TODO: 可視化編輯器--}}
             @if(false && $page->type == 'visual-builder')
-                <div class="tab-pane fade" id="pills-builder" role="tabpanel" aria-labelledby="pills-builder-tab">
-                    <div class="card mt-5">
-                        <div class="card-header border-0 cursor-pointer px-3 px-md-5">
-                            <div class="card-title m-0">
-                                <h3 class="fw-bolder m-0">@lang('wncms::word.page_builder')</h3>
+            <div class="tab-pane fade" id="pills-builder" role="tabpanel" aria-labelledby="pills-builder-tab">
+                <div class="card mt-5">
+                    <div class="card-header border-0 cursor-pointer px-3 px-md-5">
+                        <div class="card-title m-0">
+                            <h3 class="fw-bolder m-0">@lang('wncms::word.page_builder')</h3>
+                        </div>
+                    </div>
+
+                    {{-- <div class="card-body p-2 p-md-5">
+                        @dd($available_templates)
+                        @if(!empty($available_templates))
+                        @foreach($available_templates as $available_template)
+                        {{ $available_template }}
+                        @endforeach
+                        @else
+                        <div class="alert alert-secondary">@lang('wncms::word.no_template_is_available_for_this_theme')</div>
+                        @endif
+                    </div> --}}
+
+                    {{-- <div class="card-body p-2 p-md-5 row">
+
+                        <div class="col-12 col-md-4 row g-2 mt-0 align-items-start flex-column">
+                            <div>
+                                <button class="btn btn-dark w-100" type="button">@lang('wncms::word.add_to_page')</button>
                             </div>
+                            @foreach($available_templates as $template_name => $template_data)
+                            <div>
+                                <input type="radio" class="btn-check" name="radio_buttons_2" value="{{ $template_name }}" id="{{ $template_name }}" />
+                                <label class="btn btn-outline btn-outline-dashed btn-active-light-primary p-2 d-flex align-items-center mb-1" for="{{ $template_name }}">
+                                    <i class="fa-solid fa-{{ $template_data['icon'] }}"><span class="path1"></span><span class="path2"></span></i>
+                                    <span class="d-block fw-semibold text-start">
+                                        <span class="text-dark d-block fs-5 ms-1">{{ $template_data['label'] }}</span>
+                                    </span>
+                                </label>
+                            </div>
+                            @endforeach
                         </div>
 
-                        {{-- <div class="card-body p-2 p-md-5">
-                            @dd($available_templates)
-                            @if(!empty($available_templates))
-                            @foreach($available_templates as $available_template)
-                            {{ $available_template }}
-                            @endforeach
-                            @else
-                            <div class="alert alert-secondary">@lang('wncms::word.no_template_is_available_for_this_theme')</div>
-                            @endif
-                        </div> --}}
+                        <div class="col-12 col-md-8">
+                            <div class="border border-1 border-dotted border-dark h-100 rounded p-2">
+                                @foreach($page->templates as $page_template)
+                                @php
+                                $current_template = $available_templates[$page_template->template_id];
+                                @endphp
+                                <div class="card border border-1 border-dotted border-dark rounded mb-2">
+                                    <div class="card-header bg-dark align-items-center">
+                                        <h4 class="text-gray-100 mb-0">{{ $current_template['label'] }}</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="page-template-option">
+                                            @foreach($current_template['options'] as $option_index => $option)
+                                            @php
+                                            dd(
+                                            $page_template,
+                                            $current_template,
+                                            $option,
+                                            $page_template->value[$option['name']],
+                                            );
+                                            @endphp
+                                            @include('wncms::backend.parts.inputs' , [
+                                            'website'=> $website,
+                                            'option_index'=>$option_index,
+                                            'option'=>$option,
+                                            'current_options'=>$current_options,
+                                            ])
 
-                        {{-- <div class="card-body p-2 p-md-5 row">
-
-                            <div class="col-12 col-md-4 row g-2 mt-0 align-items-start flex-column">
-                                <div>
-                                    <button class="btn btn-dark w-100" type="button">@lang('wncms::word.add_to_page')</button>
-                                </div>
-                                @foreach($available_templates as $template_name => $template_data)
-                                <div>
-                                    <input type="radio" class="btn-check" name="radio_buttons_2" value="{{ $template_name }}" id="{{ $template_name }}" />
-                                    <label class="btn btn-outline btn-outline-dashed btn-active-light-primary p-2 d-flex align-items-center mb-1" for="{{ $template_name }}">
-                                        <i class="fa-solid fa-{{ $template_data['icon'] }}"><span class="path1"></span><span class="path2"></span></i>
-                                        <span class="d-block fw-semibold text-start">
-                                            <span class="text-dark d-block fs-5 ms-1">{{ $template_data['label'] }}</span>
-                                        </span>
-                                    </label>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                 </div>
                                 @endforeach
                             </div>
+                        </div>
 
-                            <div class="col-12 col-md-8">
-                                <div class="border border-1 border-dotted border-dark h-100 rounded p-2">
-                                    @foreach($page->templates as $page_template)
-                                    @php
-                                    $current_template = $available_templates[$page_template->template_id];
-                                    @endphp
-                                    <div class="card border border-1 border-dotted border-dark rounded mb-2">
-                                        <div class="card-header bg-dark align-items-center">
-                                            <h4 class="text-gray-100 mb-0">{{ $current_template['label'] }}</h4>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="page-template-option">
-                                                @foreach($current_template['options'] as $option_index => $option)
-                                                @php
-                                                dd(
-                                                $page_template,
-                                                $current_template,
-                                                $option,
-                                                $page_template->value[$option['name']],
-                                                );
-                                                @endphp
-                                                @include('wncms::backend.parts.inputs' , [
-                                                'website'=> $website,
-                                                'option_index'=>$option_index,
-                                                'option'=>$option,
-                                                'current_options'=>$current_options,
-                                                ])
-
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                        </div> --}}
-                    </div>
+                    </div> --}}
                 </div>
+            </div>
             @endif
         </div>
 
@@ -509,10 +509,10 @@
 
                 {{-- Preview --}}
                 @if(!empty($page->website))
-                    <div class="mb-3">
-                        <a href="{{ $wncms->getRoute('frontend.pages', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" class="btn btn-dark fw-bold w-100">@lang('wncms::word.preview')</a>
-                        {{-- <a href="{{ route('frontend.pages', ['slug' => $page->slug]) }}" target="_blank" class="btn btn-dark w-100">@lang('wncms::word.preview')</a> --}}
-                    </div>
+                <div class="mb-3">
+                    <a href="{{ $wncms->getRoute('frontend.pages', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" class="btn btn-dark fw-bold w-100">@lang('wncms::word.preview')</a>
+                    {{-- <a href="{{ route('frontend.pages', ['slug' => $page->slug]) }}" target="_blank" class="btn btn-dark w-100">@lang('wncms::word.preview')</a> --}}
+                </div>
                 @endif
 
             </div>
@@ -605,23 +605,23 @@
             <div class="card-body p-2 p-md-5">
 
                 @foreach([
-                    // 'extend_theme_layout',
-                    // 'include_header',
-                    // 'include_footer',
-                    'hide_title',
+                // 'extend_theme_layout',
+                // 'include_header',
+                // 'include_footer',
+                'hide_title',
                 ] as $option)
 
-                    {{-- option --}}
-                    <div class="row mb-1">
-                        <div class="col d-flex align-items-center">
-                            <div class="form-check form-check-custom form-switch fv-row">
-                                <input type="hidden" name="{{ $option }}" value="0">
-                                <input class="form-check-input w-35px h-20px" type="checkbox" name="model_attributes[{{ $option }}]" value="1" {{ old($option, $page->getExtraAttribute($option)) ? 'checked' : '' }}/>
-                                <label class="form-check-label"></label>
-                            </div>
+                {{-- option --}}
+                <div class="row mb-1">
+                    <div class="col d-flex align-items-center">
+                        <div class="form-check form-check-custom form-switch fv-row">
+                            <input type="hidden" name="options[{{ $option }}]" value="0">
+                            <input class="form-check-input w-35px h-20px" type="checkbox" name="options[{{ $option }}]" value="1" {{ old($option, $page->getOption($option)) ? 'checked' : '' }}/>
+                            <label class="form-check-label"></label>
                         </div>
-                        <label class="col-auto col-form-label fw-bold fs-6 py-1">@lang('wncms::word.' . $option)</label>
                     </div>
+                    <label class="col-auto col-form-label fw-bold fs-6 py-1">@lang('wncms::word.' . $option)</label>
+                </div>
 
                 @endforeach
 
@@ -640,8 +640,8 @@
 </div>
 
 @push('foot_js')
-    <script>
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
             // Expand all accordions
             $('.expand-all-accordion-items').click(function () {
                 const target = $(this).data('target');
@@ -654,37 +654,39 @@
                 $(target).find('.accordion-collapse.show').removeClass('show');
             });
         });
-    </script>
+</script>
 @endpush
 
 @push('foot_css')
-    <style>
-        #widget-list{
-            display:flex;
-            flex-wrap:wrap;
-        }
+<style>
+    #widget-list {
+        display: flex;
+        flex-wrap: wrap;
+    }
 
-        #widget-list .widget-list-item{
-            aspect-ratio: 16/11;
-        }
+    #widget-list .widget-list-item {
+        aspect-ratio: 16/11;
+    }
 
-        #widget-list .widget-list-item .widget-info-wrapper{
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 5px;
-            border: 1px solid black;
-            padding:15px;
-        }
-        #widget-list .widget-list-item .widget-info-wrapper i{
-            font-size:26px;
-        }
-        #widget-list .widget-list-item .widget-name{
-            font-weight: bold;
-            margin-top:5px;
-        }
-    </style>
+    #widget-list .widget-list-item .widget-info-wrapper {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 5px;
+        border: 1px solid black;
+        padding: 15px;
+    }
+
+    #widget-list .widget-list-item .widget-info-wrapper i {
+        font-size: 26px;
+    }
+
+    #widget-list .widget-list-item .widget-name {
+        font-weight: bold;
+        margin-top: 5px;
+    }
+</style>
 @endpush

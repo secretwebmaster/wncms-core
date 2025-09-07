@@ -38,18 +38,18 @@
         style="--wncms-toolbar-height:55px;--wncms-toolbar-height-tablet-and-mobile:55px" 
         data-kt-name="wncms">
 
-        <div class="d-flex flex-column flex-root app-root" id="kt_app_root">
-            <div class="app-page flex-column flex-column-fluid" id="kt_app_page">
+        <div class="d-flex flex-column flex-root app-root" id="wncms_app_root">
+            <div class="app-page flex-column flex-column-fluid" id="wncms_app_page">
             
                 {{-- Header --}}
                 @include('wncms::backend.parts.header')
 
-                <div class="app-wrapper flex-column flex-row-fluid p-1 p-md-0" id="kt_app_wrapper">
+                <div class="app-wrapper flex-column flex-row-fluid p-1 p-md-0" id="wncms_app_wrapper">
 
                     {{-- Sidebar --}}
                     @include('wncms::backend.parts.sidebar')
 
-                    <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
+                    <div class="app-main flex-column flex-row-fluid" id="wncms_app_main">
 
                         <style>
                             .global-notification-message {
@@ -88,8 +88,8 @@
                             @include('wncms::backend.parts.toolbar')
 
                             {{-- Content --}}
-                            <div id="kt_app_content" class="app-content flex-column-fluid">
-                                <div id="kt_app_content_container" class="app-container container-fluid h-100">
+                            <div id="wncms_app_content" class="app-content flex-column-fluid">
+                                <div id="wncms_app_content_container" class="app-container container-fluid h-100">
                                     @yield('content')
                                 </div>
                             </div>

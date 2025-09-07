@@ -26,7 +26,7 @@ class SettingManager
      */
     function get(string $key, $fallback = null, $fromCache = true)
     {
-        if(empty($fromCache)){
+        if (empty($fromCache)) {
             return Setting::where('key', $key)->first()?->value ?? $fallback;
         }
         $systemSettings = $this->getList();
@@ -55,26 +55,29 @@ class SettingManager
         $cacheTime = 3600;
         // wncms()->cache()->clear($cacheKey, $cacheTags);
 
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use($keys){
-            // info('no system setting cache');
-            try{
-                if(!wncms_is_installed()) return [];
+        info('use system setting cache');
+        info($cacheKey);
+        info($cacheTags);
+
+        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($keys) {
+            info('no system setting cache');
+            try {
+                if (!wncms_is_installed()) return [];
                 $q = Setting::query();
- 
-                if(!empty($keys)){
-                    if(is_string($keys)){
+
+                if (!empty($keys)) {
+                    if (is_string($keys)) {
                         $keys = explode(",", $keys);
                     }
                     $q->whereIn('key', $keys);
                 }
-    
+
                 //return all keys if empty $keys is passed
                 return $q->pluck('value', 'key')->toArray();;
-            }catch(\Exception $e){
+            } catch (\Exception $e) {
                 logger()->error($e);
                 return [];
             }
-          
         });
     }
 
@@ -95,19 +98,14 @@ class SettingManager
     function update($key, $value)
     {
         $result = Setting::query()->updateOrCreate(
-            [
-                'key' => $key
-            ],
-            [
-                'value' => $value
-            ]
+            ['key' => $key],
+            ['value' => $value]
         );
 
         wncms()->cache()->flush(['settings']);
-
         return $result !== false;
     }
-    
+
     /**
      * ----------------------------------------------------------------------------------------------------
      * Delete system setting by key
@@ -132,15 +130,14 @@ class SettingManager
             'request_timeout',
         ];
 
-        if(in_array($key, $core_keys)){
+        if (in_array($key, $core_keys)) {
             return false;
         }
-        
+
         $result = Setting::where('key', $key)->delete();
-        
+
         wncms()->cache()->tags(['settings'])->flush();
 
         return $result;
     }
-
 }

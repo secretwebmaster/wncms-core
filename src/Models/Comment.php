@@ -2,7 +2,6 @@
 
 namespace Wncms\Models;
 
-use Wncms\Traits\WnModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Wncms\Services\Models\WncmsModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,7 +12,6 @@ class Comment extends WncmsModel
     use HasFactory;
     use HasTranslations;
     use SoftDeletes;
-    use WnModelTrait;
 
     protected $guarded = [];
     

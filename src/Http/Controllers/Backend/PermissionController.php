@@ -104,36 +104,41 @@ class PermissionController extends Controller
         return redirect()->route('permissions.index');
     }
 
-    public function edit(Permission $permission)
+    public function edit(int $id)
     {
+        $permission = Permission::findOrFail($id);
         $roles = Role::all();
+
         return $this->view('backend.permissions.edit', [
             'page_title' => wncms_model_word('permission', 'management'),
             'permission' => $permission,
-            'roles' => $roles,
+            'roles'      => $roles,
         ]);
     }
 
-    public function update(Request $request, Permission $permission)
+    public function update(Request $request, int $id)
     {
-        // dd($request->all());
+        $permission = Permission::findOrFail($id);
+
         $permission->update([
             'name' => $request->name,
         ]);
 
-        $role_names = Role::whereIn('id', $request->roles)->pluck('name')->toArray();
+        $role_names = Role::whereIn('id', $request->roles ?? [])->pluck('name')->toArray();
         $permission->syncRoles($role_names);
 
         wncms()->cache()->tags(['permissions'])->flush();
 
-        return redirect()->route('permissions.edit', [
-            'id' => $permission,
-        ])->withMessage(__('wncms::word.successfully_updated'));
+        return redirect()->route('permissions.edit', ['id' => $permission->id])
+            ->withMessage(__('wncms::word.successfully_updated'));
     }
 
-    public function destroy(Permission $permission)
+
+    public function destroy(int $id)
     {
+        $permission = Permission::findOrFail($id);
         $permission->delete();
+
         return back()->withMessage(__('wncms::word.successfully_deleted'));
     }
 
@@ -189,22 +194,5 @@ class PermissionController extends Controller
         }
 
         return redirect()->route('clicks.index')->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
-    }
-
-    /**
-     * Fetch view
-     */
-    public function view(string $name, array $options = [])
-    {
-        if (view()->exists($name)) {
-            return view($name, $options);
-        }
-
-        $defaultView = 'wncms::' . $name;
-        if (view()->exists($defaultView)) {
-            return view($defaultView, $options);
-        }
-
-        abort(404, "View [{$name}] not found.");
     }
 }

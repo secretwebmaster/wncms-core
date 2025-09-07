@@ -34,6 +34,7 @@ use Wncms\Http\Controllers\Backend\OrderController;
 use Wncms\Http\Controllers\Backend\CardController;
 use Wncms\Http\Controllers\Backend\ChannelController;
 use Wncms\Http\Controllers\Backend\ClickController;
+use Wncms\Http\Controllers\Backend\CommentController;
 use Wncms\Http\Controllers\Backend\CreditTransactionController;
 use Wncms\Http\Controllers\Backend\CreditController;
 use Wncms\Http\Controllers\Backend\DiscountController;
@@ -43,6 +44,7 @@ use Wncms\Http\Controllers\Backend\ProductController;
 use Wncms\Http\Controllers\Backend\PlanController;
 use Wncms\Http\Controllers\Backend\PriceController;
 use Wncms\Http\Controllers\Backend\ParameterController;
+use Wncms\Http\Controllers\Backend\ToolController;
 
 Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->group(function () {
 
@@ -55,6 +57,10 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     // Route::patch('starter_models/{id}', [StarterModelController::class, 'update'])->middleware('can:starter_model_edit')->name('starter_models.update');
     // Route::delete('starter_models/{id}', [StarterModelController::class, 'destroy'])->middleware('can:starter_model_delete')->name('starter_models.destroy');
     // Route::post('starter_models/bulk_delete', [StarterModelController::class, 'bulk_delete'])->middleware('can:starter_model_bulk_delete')->name('starter_models.bulk_delete');
+
+    Route::prefix('tools')->name('tools.')->group(function () {
+        Route::get('/', [ToolController::class, 'index'])->name('index');
+    });
 
     //advertisement
     Route::prefix('advertisements')->controller(AdvertisementController::class)->group(function () {
@@ -101,6 +107,12 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::patch('/{id}', 'update')->middleware('can:channel_edit')->name('channels.update');
         Route::delete('/{id}', 'destroy')->middleware('can:channel_delete')->name('channels.destroy');
         Route::post('/bulk_delete', 'bulk_delete')->middleware('can:channel_bulk_delete')->name('channels.bulk_delete');
+    });
+
+    // comment
+    Route::prefix('comments')->controller(CommentController::class)->group(function () {
+        Route::post('/store', 'store')->middleware('can:comment_create')->name('comments.store');
+        Route::delete('/{id}', 'destroy')->middleware('can:comment_delete')->name('comments.destroy');
     });
 
     //click

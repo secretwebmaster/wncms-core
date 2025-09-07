@@ -2,10 +2,12 @@
 <link rel="stylesheet" href="{{ asset('wncms/css/pickr.min.css') }}">
 @endpush
 
+{{-- @dd($advertisement->websites()->get()) --}}
+
 <div class="card-body border-top p-3 p-md-9">
 
     {{-- website --}}
-    @if(gss('multi_website'))
+    @if(gss('multi_website') && $advertisement::getWebsiteMode() === 'single')
         <div class="row mb-3">
             <label class="col-lg-3 col-form-label required fw-bold fs-6" for="website_id">@lang('wncms::word.website')</label>
             <div class="col-lg-9 fv-row">
@@ -97,7 +99,6 @@
         </div>
     </div>
 
-    
     {{-- order --}}
     <div class="row mb-3">
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="order">@lang('wncms::word.order')</label>
@@ -111,6 +112,7 @@
             'url',
             'cta_text_2',
             'url_2',
+            'contact',
             'remark',
         ] as $field)
         {{-- text_example --}}

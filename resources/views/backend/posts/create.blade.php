@@ -8,7 +8,7 @@
 
     @include('wncms::backend.parts.message')
 
-    <form class="form" method="POST" action="{{ route('posts.store', ['post' => $post]) }}" enctype="multipart/form-data">
+    <form class="form" method="POST" action="{{ route('posts.store', ['id' => $post->id]) }}" enctype="multipart/form-data">
         @csrf
         @include('wncms::backend.posts.form-items', [
             'submitLabelText' => __('wncms::word.publish')

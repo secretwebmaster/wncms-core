@@ -168,7 +168,9 @@ class PostController extends BackendController
 
         //clear cache
         $this->flush();
-        return redirect()->route('posts.edit', $post->id);
+        return redirect()->route('posts.edit', [
+            'id' => $post->id,
+        ]);
     }
 
     public function show($slug)
@@ -317,7 +319,9 @@ class PostController extends BackendController
 
         //clear cache
         $this->flush();
-        return redirect()->route('posts.edit', $post->id);
+        return redirect()->route('posts.edit', [
+            'id' => $post->id,
+        ]);
     }
 
     public function destroy($id)

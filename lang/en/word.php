@@ -1200,7 +1200,7 @@ $words = [
     'successfully_dispatch_job' => 'Successfully Created Scheduled Task',
 
     // model
-    'model_management' => ':model_name Management',
+    'model_management' => ':model_name',
     'model_select' => 'Select :model_name',
     'model_screenshot' => ':model_name Preview',
     'model_list' => ':model_name List',

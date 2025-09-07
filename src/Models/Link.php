@@ -3,7 +3,6 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Wncms\Tags\HasTags;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Wncms\Services\Models\WncmsModel;
@@ -12,7 +11,6 @@ use Wncms\Translatable\Traits\HasTranslations;
 class Link extends WncmsModel implements HasMedia
 {
     use HasFactory;
-    use HasTags;
     use InteractsWithMedia;
     use HasTranslations;
 

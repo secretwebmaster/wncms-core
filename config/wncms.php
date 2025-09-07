@@ -5,6 +5,10 @@ return [
     'multi_website' => false,
 
     'models' => [
+        'advertisement' => [
+            'class' => \Wncms\Models\Advertisement::class,
+            'website_mode' => 'single',
+        ],
         // 'tag' => [
         //     'class' => \Wncms\Models\Tag::class,
         //     'website_mode' => 'global', // global | single | multi

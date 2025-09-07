@@ -36,6 +36,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::prefix('tags')->name('tags.')->controller(TagController::class)->group(function () {
         Route::post('index', 'index')->name('index');
         Route::post('exist', 'exist')->name('exist');
+        Route::post('store', 'store')->name('store');
     });
 
     // Update

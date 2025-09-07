@@ -58,7 +58,8 @@ class CacheManager
      */
     public function flush(array|string|null $tags = null): bool
     {
-        return $this->tags($tags)->flush();
+        $result = $this->tags($tags)->flush();
+        return $result;
     }
 
     /**
@@ -133,8 +134,11 @@ class CacheManager
      */
     public function tags(array|string|null $tags = null)
     {
-        if (Cache::getStore() instanceof \Illuminate\Cache\TaggableStore && !empty($tags)) {
-            return cache()->tags(is_array($tags) ? $tags : explode(',', $tags));
+        $isTaggable = Cache::getStore() instanceof \Illuminate\Cache\TaggableStore;
+
+        if ($isTaggable && !empty($tags)) {
+            $repo = cache()->tags(is_array($tags) ? $tags : explode(',', $tags));
+            return $repo;
         }
 
         return cache();

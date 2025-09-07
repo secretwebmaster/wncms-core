@@ -4,11 +4,6 @@
 
     <div class="row">
 
-        {{-- info card --}}
-        <div class="col-12 col-md-4">
-            @include('wncms::backend.users.parts.info')
-        </div>
-
         {{-- Basic info --}}
         <div class="col-12 col-md-8">
 
@@ -21,6 +16,13 @@
             @yield('account_content')
             
         </div>
+
+        {{-- info card --}}
+        <div class="col-12 col-md-4">
+            <h2 class="mb-5">@lang('wncms::word.preview')</h2>
+            @include('wncms::backend.users.parts.info')
+        </div>
+
     </div>
 @endsection
 
