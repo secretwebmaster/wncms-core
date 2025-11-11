@@ -16,7 +16,8 @@
         "spatie/laravel-permission": "^6.9",
         "secretwebmaster/wncms-tags": "^1.3.0",
         "secretwebmaster/wncms-translatable": "^1.2.9",
-        "secretwebmaster/laravel-optionable": "^1.4.0"
+        "secretwebmaster/laravel-optionable": "^1.4.0",
+        "fakerphp/faker": "^1.23"
     },
     "require-dev": {
         "laravel/pint": "^1.13",
@@ -27,8 +28,7 @@
         "orchestra/testbench": "^10.0",
         "barryvdh/laravel-debugbar": "*",
         "laravel/tinker": "^2.9",
-        "barryvdh/laravel-ide-helper": "^3.2",
-        "fakerphp/faker": "^1.23"
+        "barryvdh/laravel-ide-helper": "^3.2"
     },
     "license": "MIT",
     "autoload": {
