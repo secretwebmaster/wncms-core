@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        Artisan::call('storage:link');
+        // Artisan::call('storage:link');
         
         $this->call([
             RolesSeeder::class,
