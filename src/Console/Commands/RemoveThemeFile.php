@@ -32,9 +32,9 @@ class RemoveThemeFile extends Command
         }
     
         // Define source and destination paths
-        $configDestination = config_path("theme/{$themeName}.php");
-        $publicDestination = public_path("theme/{$themeName}");
-        $viewsDestination = resource_path("views/frontend/theme/{$themeName}");
+        $configDestination = config_path("themes/{$themeName}.php");
+        $publicDestination = public_path("themes/{$themeName}");
+        $viewsDestination = resource_path("views/frontend/themes/{$themeName}");
         $langsDestination = resource_path("lang/zh_TW/{$themeName}.php");
 
          // Remove the files and directories

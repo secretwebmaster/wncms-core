@@ -5,6 +5,9 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 ## 更新日誌
 ### v6.0.0-alpha1 2025-11-11
 - Added `public/themes` and `public/plugins` to filesystems config. Removed wncms-core Plugin dir.
+- Fix typo pageNmae to pageName
+- Change theme structure
+- Fix some route errors where id is not passed
 
 ### v5.5.6 2025-09-09
 

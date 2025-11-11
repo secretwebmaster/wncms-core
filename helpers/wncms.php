@@ -210,7 +210,7 @@ if (!function_exists('wncms_to_unicode')) {
  * @since 1.0.0
  * @version 3.0.0
  * @return string
- * @example wncms_css('theme/default/css/style.css')
+ * @example wncms_css('themes/default/css/style.css')
  */
 if (!function_exists('wncms_css')) {
     function wncms_css($path)
@@ -225,7 +225,7 @@ if (!function_exists('wncms_css')) {
  * @since 1.0.0
  * @version 3.0.0
  * @return string
- * @example wncms_js('theme/default/css/main.js')
+ * @example wncms_js('themes/default/css/main.js')
  */
 if (!function_exists('wncms_js')) {
     function wncms_js($path)

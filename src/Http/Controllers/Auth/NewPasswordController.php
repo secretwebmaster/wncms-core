@@ -22,8 +22,8 @@ class NewPasswordController extends Controller
     public function create(Request $request, $token)
     {
         $website = wn('website')->get();
-        if($website && view()->exists("frontend.theme.{$website?->theme}.auth.reset-password")){
-            return view("wncms::frontend.theme.{$website?->theme}.auth.reset-password");
+        if($website && view()->exists("frontend.themes.{$website?->theme}.auth.reset-password")){
+            return view("wncms::frontend.themes.{$website?->theme}.auth.reset-password");
         }
         return view('wncms::auth.reset-password', compact('request', 'token'));
     }

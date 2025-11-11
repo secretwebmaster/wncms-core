@@ -97,7 +97,7 @@ class PageManager extends ModelManager
         foreach ($bladeNamesToCreate as $bladeName) {
             $template = $templates->where('blade_name', $bladeName)->first();
 
-            if ($template && view()->exists("frontend.theme.{$website->theme}.pages.{$bladeName}")) {
+            if ($template && view()->exists("frontend.themes.{$website->theme}.pages.{$bladeName}")) {
                 $page = $website->pages()->create([
                     'user_id' => auth()->id(),
                     'title' => $template['title'] ?? 'untitled',

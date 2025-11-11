@@ -32,14 +32,14 @@ class CreateThemeFile extends Command
         }
     
         // Define source and destination paths
-        $configSource = config_path('theme/starter.php');
-        $configDestination = config_path("theme/{$themeName}.php");
+        $configSource = config_path('themes/starter.php');
+        $configDestination = config_path("themes/{$themeName}.php");
     
-        $publicSource = public_path('theme/starter');
-        $publicDestination = public_path("theme/{$themeName}");
+        $publicSource = public_path('themes/starter');
+        $publicDestination = public_path("themes/{$themeName}");
     
-        $viewsSource = resource_path("views/frontend/theme/starter");
-        $viewsDestination = resource_path("views/frontend/theme/{$themeName}");
+        $viewsSource = resource_path("views/frontend/themes/starter");
+        $viewsDestination = resource_path("views/frontend/themes/{$themeName}");
     
         $langsSource = base_path("lang/zh_TW/starter.php");
         $langsDestination = base_path("lang/zh_TW/{$themeName}.php");

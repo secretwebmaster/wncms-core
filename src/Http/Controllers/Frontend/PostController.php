@@ -23,7 +23,7 @@ class PostController extends FrontendController
 
         Event::dispatch('wncms.posts.single', $post);
 
-        return $this->view("frontend.theme.{$this->theme}.posts.single", compact('post'));
+        return $this->view("frontend.themes.{$this->theme}.posts.single", compact('post'));
     }
 
     /**
@@ -75,7 +75,7 @@ class PostController extends FrontendController
             'cache'     => false,
         ]);
 
-        return $this->view("frontend.theme.{$this->theme}.posts.archive", [
+        return $this->view("frontend.themes.{$this->theme}.posts.archive", [
             'pageTitle' => __('wncms::word.latest_tag_models', [
                 'tagName'   => $tagName,
                 'modelName' => __('wncms::word.' . $modelName),
@@ -112,7 +112,7 @@ class PostController extends FrontendController
             page: $request->page,
         );
 
-        return $this->view("frontend.theme.{$this->theme}.posts.search", [
+        return $this->view("frontend.themes.{$this->theme}.posts.search", [
             'pageTitle' => __('wncms::word.search_result_of', ['keyword' => $keyword]),
             'posts'     => $posts,
             'keyword'   => $keyword,
@@ -139,7 +139,7 @@ class PostController extends FrontendController
             ->limit(gto('video_rank_page_size', 96))
             ->get();
 
-        return $this->view("frontend.theme.{$this->theme}.posts.rank", [
+        return $this->view("frontend.themes.{$this->theme}.posts.rank", [
             'pageTitle' => __('wncms::word.post_rank_of_period', [
                 'period' => __('wncms::word.' . $period),
             ]),
@@ -191,7 +191,7 @@ class PostController extends FrontendController
 
         $posts = wncms()->post()->getList($options);
 
-        return $this->view("frontend.theme.{$this->theme}.posts.archive", [
+        return $this->view("frontend.themes.{$this->theme}.posts.archive", [
             'page_title'       => $pageTitle,
             'posts'            => $posts,
             'show_post_filter' => true,
@@ -208,7 +208,7 @@ class PostController extends FrontendController
 
         $categories = wncms()->tag()->getList($tagOptions);
 
-        return $this->view("frontend.theme.{$this->theme}.posts.create", [
+        return $this->view("frontend.themes.{$this->theme}.posts.create", [
             'page_title'   => __('wncms::word.post_management'),
             'statuses'     => $this->modelClass::STATUSES,
             'visibilities' => $this->modelClass::VISIBILITIES,
@@ -309,7 +309,7 @@ class PostController extends FrontendController
             'tag_ids'  => gto('user_allowed_post_category') ?: null,
         ]);
 
-        return $this->view("frontend.theme.{$this->theme}.posts.edit", [
+        return $this->view("frontend.themes.{$this->theme}.posts.edit", [
             'page_title'   => __('wncms::word.post_management'),
             'statuses'     => $this->modelClass::STATUSES,
             'visibilities' => $this->modelClass::VISIBILITIES,

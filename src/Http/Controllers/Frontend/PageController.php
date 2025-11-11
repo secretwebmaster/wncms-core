@@ -17,7 +17,7 @@ class PageController extends FrontendController
 
         //send to home blade if no custom theme option is found
         return $this->getFrontendPageView(
-            pageNmae: 'home',
+            pageName: 'home',
             params: [
                 'page_title' => $this->website->site_name ?? __('wncms::word.homepage'),
                 'pageId' => 'home',
@@ -44,7 +44,7 @@ class PageController extends FrontendController
         ]);
 
         return $this->getFrontendPageView(
-            pageNmae: 'blog', 
+            pageName: 'blog', 
             params: [
                 'pageTitle' => gto('blog_title', __('wncms::word.latest_posts')),
                 'page' => null,
@@ -75,7 +75,7 @@ class PageController extends FrontendController
 
             // load theme template with specific name as same as the page slug
             if($page->type == 'template'){
-                $pageTemplateView = "frontend.theme.{$this->theme}.pages." . $page->blade_name;
+                $pageTemplateView = "frontend.themes.{$this->theme}.pages." . $page->blade_name;
                 if (view()->exists($pageTemplateView)) {
                     return view($pageTemplateView, [
                         'page' => $page,
@@ -87,7 +87,7 @@ class PageController extends FrontendController
             // load theme single page template
             if($page->type == 'plain'){
                 //get singe view if exist
-                $singlePageView = "frontend.theme.{$this->theme}.pages.single";
+                $singlePageView = "frontend.themes.{$this->theme}.pages.single";
                 if (view()->exists($singlePageView)) {
                     return view($singlePageView, [
                         'page' => $page,
@@ -100,16 +100,16 @@ class PageController extends FrontendController
         Event::dispatch('wncms.pages.single', $page);
 
         // page model does not exist. Load default static page
-        if (view()->exists("wncms::frontend.theme.{$this->theme}.pages." . $slug)) {
-            return view("wncms::frontend.theme.{$this->theme}.pages." . $slug, [
+        if (view()->exists("wncms::frontend.themes.{$this->theme}.pages." . $slug)) {
+            return view("wncms::frontend.themes.{$this->theme}.pages." . $slug, [
                 'page' => $page ?? new Page,
                 'pageTitle' => $page?->title,
             ]);
         }
 
         // load custom static page
-        if (view()->exists("frontend.theme.{$this->theme}.pages." . $slug)) {
-            return view("frontend.theme.{$this->theme}.pages." . $slug, [
+        if (view()->exists("frontend.themes.{$this->theme}.pages." . $slug)) {
+            return view("frontend.themes.{$this->theme}.pages." . $slug, [
                 'page' => $page ?? new Page,
                 'pageTitle' => $page?->title,
             ]);
@@ -128,7 +128,7 @@ class PageController extends FrontendController
      * Redirect to static pages
      * ----------------------------------------------------------------------------------------------------
      * @link https://wncms.cc
-     * @param string|null $pageNmae 
+     * @param string|null $pageName 
      *      The blade file name without .blade.php. 
      *      For example:
      *          Name of "/resource/view/frontend/theme/default/pages/blog.blade.php" is "blog"
@@ -136,11 +136,16 @@ class PageController extends FrontendController
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      * ----------------------------------------------------------------------------------------------------
      */
-    protected function getFrontendPageView($pageNmae, $params = [], $fallbackPage = "home", $fallbackRoute = null)
+    protected function getFrontendPageView($pageName, $params = [], $fallbackPage = "home", $fallbackRoute = null)
     {
         //check if page exists
-        if (view()->exists("frontend.theme.{$this->theme}.pages.{$pageNmae}")) {
-            return view("frontend.theme.{$this->theme}.pages.{$pageNmae}", $params);
+        if (view()->exists("frontend.themes.{$this->theme}.pages.{$pageName}")) {
+            return view("frontend.themes.{$this->theme}.pages.{$pageName}", $params);
+        }
+
+        // check if wncms view exists
+        if (view()->exists("wncms::frontend.themes.{$this->theme}.pages.{$pageName}")) {
+            return view("wncms::frontend.themes.{$this->theme}.pages.{$pageName}", $params);
         }
 
         if($fallbackRoute && Wncms::getRoute($fallbackRoute)){
@@ -163,12 +168,12 @@ class PageController extends FrontendController
     {
         $segments = request()->segments();
 
-        $view = 'frontend.theme.' . $this->theme . '.' . implode('.', $segments);
+        $view = 'frontend.themes.' . $this->theme . '.' . implode('.', $segments);
         if (view()->exists($view)) {
             return view($view);
         }
 
-        $notFoundView = 'frontend.theme.' . $this->theme . '.pages.404';
+        $notFoundView = 'frontend.themes.' . $this->theme . '.pages.404';
         if (view()->exists($notFoundView)) {
             return view($notFoundView);
         }

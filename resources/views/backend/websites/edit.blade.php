@@ -72,7 +72,7 @@
                         <select name="theme" class="form-select form-select-sm">
                             <option value="">@lang('wncms::word.please_select_theme')</option>
                             @foreach($themes as $theme)
-                            <option value="{{ str_replace('frontend/theme/','',$theme) }}" {{ str_replace('frontend/theme/','',$theme)===($website->theme ?? old('theme')) ? 'selected' : '' }}><b>{{ str_replace('frontend/theme/','',$theme) }}</b></option>
+                            <option value="{{ $theme }}" {{ $theme === ($website->theme ?? old('theme')) ? 'selected' : '' }}><b>{{ $theme }}</b></option>
                             @endforeach
                         </select>
                     </div>

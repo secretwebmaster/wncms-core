@@ -42,8 +42,8 @@ class WncmsExceptionHandler extends ExceptionHandler
             }
 
             // 1. Theme error page
-            if (view()->exists("frontend.theme.{$theme}.errors.{$status}")) {
-                return response()->view("frontend.theme.{$theme}.errors.{$status}", [], $status);
+            if (view()->exists("frontend.themes.{$theme}.errors.{$status}")) {
+                return response()->view("frontend.themes.{$theme}.errors.{$status}", [], $status);
             }
 
             // 2. App default error page

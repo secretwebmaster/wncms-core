@@ -8,7 +8,7 @@ class LinkController extends FrontendController
 {
     public function index()
     {
-        return $this->view("frontend.theme.{$this->theme}.links.index");
+        return $this->view("frontend.themes.{$this->theme}.links.index");
     }
 
     public function archive($tagType, $slug)
@@ -33,7 +33,7 @@ class LinkController extends FrontendController
             return redirect()->route('frontend.pages.home');
         }
 
-        return $this->view("frontend.theme.{$this->theme}.links.archive", [
+        return $this->view("frontend.themes.{$this->theme}.links.archive", [
             'tag' => $tag,
         ]);
     }
@@ -45,7 +45,7 @@ class LinkController extends FrontendController
             return redirect()->route('frontend.pages.home');
         }
 
-        return $this->view("frontend.theme.{$this->theme}.links.single", [
+        return $this->view("frontend.themes.{$this->theme}.links.single", [
             'link' => $link,
         ]);
     }

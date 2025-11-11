@@ -56,9 +56,9 @@ class PackThemeFile extends Command
 
         // Collect files/folders to be packed
         $themeFiles = array_merge([
-            config_path("theme/{$themeName}.php"),
-            public_path("theme/{$themeName}"),
-            resource_path("views/frontend/theme/{$themeName}"),
+            config_path("themes/{$themeName}.php"),
+            public_path("themes/{$themeName}"),
+            resource_path("views/frontend/themes/{$themeName}"),
         ], $themeLangFiles);
 
         $zip = new ZipArchive();

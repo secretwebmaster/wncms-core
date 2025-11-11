@@ -692,7 +692,7 @@ return [
         //     'key' => 'block_1',
         //     'icon' => 'fa-solid fa-newspaper',
         //     'fields' => [
-        //         ['label' => '演示圖', 'type' => 'display_image', 'path' => '/theme/technology/images/template_screenshots/block_1_screenshot.png', 'width' => '800px'],
+        //         ['label' => '演示圖', 'type' => 'display_image', 'path' => '/themes/technology/images/template_screenshots/block_1_screenshot.png', 'width' => '800px'],
         //         ['label' => '標題1', 'name' => 'block_1_title_1', 'type' => 'text'],
         //         ['label' => '標題2', 'name' => 'block_1_title_2', 'type' => 'text'],
         //         ['label' => '背景文字', 'name' => 'block_1_background_text', 'type' => 'text'],

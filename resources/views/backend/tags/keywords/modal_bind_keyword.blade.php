@@ -1,8 +1,9 @@
+@dd($binding_model)
 <button type="button" class="btn btn-sm px-2 py-1 btn-dark fw-bold" data-bs-toggle="modal" data-bs-target="#modal_update_keyword_{{ $binding_model->id }}">@lang('wncms::word.edit_keyword')</button>
 <div class="modal fade" tabindex="-1" id="modal_update_keyword_{{ $binding_model->id }}">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="form_bind_keyword_{{ $binding_model->id }}" action="{{ route('tags.keywords.update', ['tag' => $binding_model]) }}" method="POST">
+            <form id="form_bind_keyword_{{ $binding_model->id }}" action="{{ route('tags.keywords.update', ['id' => $binding_model]) }}" method="POST">
                 @csrf
                 <div class="modal-header">
                     <h3 class="modal-title">#{{ $binding_model->id }} {{ $binding_model->name }}@lang('wncms::word.keyword')</h3>

@@ -27,7 +27,7 @@
                             <span class="ms-2">@lang('wncms::word.tell_us_about_your_first_website')</span>
                         </div>
                         @endif
-                        
+
 
                         {{-- License --}}
                         {{-- <div class="row mb-3">
@@ -42,7 +42,7 @@
                         <div class="row mb-3">
                             <label class="col-lg-12 col-form-label fw-bold fs-6">@lang('wncms::word.site_name')</label>
                             <div class="col-lg-12 fv-row">
-                                <input type="text" name="site_name" class="form-control form-control-sm" value="{{ old('site_name') }}" required/>
+                                <input type="text" name="site_name" class="form-control form-control-sm" value="{{ old('site_name') }}" required />
                             </div>
                         </div>
 
@@ -50,7 +50,7 @@
                         <div class="row mb-3">
                             <label class="col-lg-12 col-form-label fw-bold fs-6">@lang('wncms::word.domain')</label>
                             <div class="col-lg-12 fv-row">
-                                <input type="text" name="domain" class="form-control form-control-sm" value="{{ old('domain', !empty($first_website) ? request()->getHost() : '') }}" required/>
+                                <input type="text" name="domain" class="form-control form-control-sm" value="{{ old('domain', !empty($first_website) ? request()->getHost() : '') }}" required />
                                 <div class="ps-1 text-muted">@lang('wncms::word.enter_domain_such_as_wntheme.com')</div>
                             </div>
                         </div>
@@ -62,7 +62,7 @@
                                 <select name="theme" class="form-select form-select-sm" required>
                                     <option value="">@lang('wncms::word.please_select_theme')</option>
                                     @foreach($themes as $theme)
-                                    <option value="{{ str_replace('frontend/theme/','',$theme) }}" {{ str_replace('frontend/theme/','',$theme)===($website->theme ?? 'default' ?? old('theme')) ? 'selected' : '' }}>{{ str_replace('frontend/theme/','',$theme) }}</option>
+                                    <option value="{{ $theme }}" {{ $theme === ($website->theme ?? 'default' ?? old('theme')) ? 'selected' : '' }}>{{ $theme }}</option>
                                     @endforeach
                                 </select>
                             </div>

@@ -24,7 +24,7 @@ class AuthenticatedSessionController extends Controller
     public function create()
     {
         $website = wncms()->website()->get();
-        $adminLoginView = "frontend.theme.{$website?->theme}.admin.login";
+        $adminLoginView = "frontend.themes.{$website?->theme}.admin.login";
         if($website && view()->exists($adminLoginView)){
             return view($adminLoginView);
         }

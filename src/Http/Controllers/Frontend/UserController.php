@@ -17,9 +17,9 @@ class UserController extends FrontendController
     public function dashboard()
     {
         return $this->view(
-            "frontend.theme.{$this->theme}.users.dashboard",
+            "frontend.themes.{$this->theme}.users.dashboard",
             [],
-            'wncms::frontend.theme.default.users.dashboard',
+            'wncms::frontend.themes.default.users.dashboard',
         );
     }
 
@@ -35,9 +35,9 @@ class UserController extends FrontendController
         }
 
         return $this->view(
-            "frontend.theme.{$this->theme}.users.login",
+            "frontend.themes.{$this->theme}.users.login",
             [],
-            'wncms::frontend.theme.default.users.login',
+            'wncms::frontend.themes.default.users.login',
         );
     }
 
@@ -80,7 +80,7 @@ class UserController extends FrontendController
             }
 
             // if theme has dashboard page
-            if (view()->exists("frontend.theme.{$this->theme}.users.dashboard")) {
+            if (view()->exists("frontend.themes.{$this->theme}.users.dashboard")) {
                 return redirect()->route('frontend.users.dashboard');
             }
 
@@ -123,9 +123,9 @@ class UserController extends FrontendController
     public function show_register()
     {
         return $this->view(
-            "frontend.theme.{$this->theme}.users.register",
+            "frontend.themes.{$this->theme}.users.register",
             [],
-            'wncms::frontend.theme.default.users.register',
+            'wncms::frontend.themes.default.users.register',
         );
     }
 
@@ -215,7 +215,7 @@ class UserController extends FrontendController
         }
 
         // if theme has dashboard page
-        if (view()->exists("frontend.theme.{$this->theme}.users.dashboard")) {
+        if (view()->exists("frontend.themes.{$this->theme}.users.dashboard")) {
             return redirect()->route('frontend.users.dashboard');
         }
 
@@ -257,22 +257,22 @@ class UserController extends FrontendController
     public function show_profile()
     {
         return $this->view(
-            "frontend.theme.{$this->theme}.users.profile.show",
+            "frontend.themes.{$this->theme}.users.profile.show",
             [
                 'user' => auth()->user(),
             ],
-            'wncms::frontend.theme.default.users.profile.show',
+            'wncms::frontend.themes.default.users.profile.show',
         );
     }
 
     public function edit_profile()
     {
         return $this->view(
-            "frontend.theme.{$this->theme}.users.profile.edit",
+            "frontend.themes.{$this->theme}.users.profile.edit",
             [
                 'user' => auth()->user(),
             ],
-            'wncms::frontend.theme.default.users.profile.edit',
+            'wncms::frontend.themes.default.users.profile.edit',
         );
     }
 
@@ -323,9 +323,9 @@ class UserController extends FrontendController
     public function show_password_forgot()
     {
         return $this->view(
-            "frontend.theme.{$this->theme}.users.password.forgot",
+            "frontend.themes.{$this->theme}.users.password.forgot",
             [],
-            'wncms::frontend.theme.default.users.password.forgot',
+            'wncms::frontend.themes.default.users.password.forgot',
         );
     }
 
@@ -349,9 +349,9 @@ class UserController extends FrontendController
             $user->notify(new ResetPassword($token));
 
             return $this->view(
-                "frontend.theme.{$this->theme}.users.password.sent",
+                "frontend.themes.{$this->theme}.users.password.sent",
                 ['email' => $request->email],
-                'wncms::frontend.theme.default.users.password.sent',
+                'wncms::frontend.themes.default.users.password.sent',
             );
         }
 
@@ -367,12 +367,12 @@ class UserController extends FrontendController
     public function show_password_reset(Request $request)
     {
         return $this->view(
-            "frontend.theme.{$this->theme}.users.password.reset",
+            "frontend.themes.{$this->theme}.users.password.reset",
             [
                 'token' => $request->token,
                 'email' => $request->email,
             ],
-            'wncms::frontend.theme.default.users.password.reset',
+            'wncms::frontend.themes.default.users.password.reset',
         );
     }
 
@@ -409,9 +409,9 @@ class UserController extends FrontendController
         );
 
         return $this->view(
-            "frontend.theme.{$this->theme}.users.password.completed",
+            "frontend.themes.{$this->theme}.users.password.completed",
             ['status' => $status],
-            'wncms::frontend.theme.default.users.password.completed',
+            'wncms::frontend.themes.default.users.password.completed',
         );
     }
 
@@ -426,12 +426,12 @@ class UserController extends FrontendController
         $page = implode('.', $segments);
 
         // Debug: see what Laravel resolves
-        dd("frontend.theme.{$this->theme}.users.{$page}");
+        dd("frontend.themes.{$this->theme}.users.{$page}");
 
         return $this->view(
-            "frontend.theme.{$this->theme}.users.{$page}",
+            "frontend.themes.{$this->theme}.users.{$page}",
             [],
-            "frontend.theme.{$this->theme}.pages.home",
+            "frontend.themes.{$this->theme}.pages.home",
         );
     }
 }

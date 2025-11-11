@@ -30,8 +30,8 @@ class FrontendController extends Controller
 
         $this->theme = $this->website->theme ?? 'default';
 
-        $projectHelper = resource_path("views/frontend/theme/{$this->theme}/system/helpers.php");
-        $packageHelper = WNCMS_CORE_PATH. "resources/views/frontend/theme/{$this->theme}/system/helpers.php";   
+        $projectHelper = resource_path("views/frontend/themes/{$this->theme}/system/helpers.php");
+        $packageHelper = WNCMS_CORE_PATH. "resources/views/frontend/themes/{$this->theme}/system/helpers.php";   
         if (file_exists($projectHelper)) {
             require_once $projectHelper;
         } elseif (file_exists($packageHelper)) {

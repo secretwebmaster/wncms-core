@@ -16,7 +16,7 @@ return new class extends Migration
                 $table->id();
                 $table->foreignId('page_id')->constrained()->cascadeOnDelete();
 
-                //use to locate template path /view("frontend.theme.{$theme_id}.templates.{$template_id}")
+                //use to locate template path /view("frontend.themes.{$theme_id}.templates.{$template_id}")
                 $table->string('theme_id');
                 $table->string('template_id');
 

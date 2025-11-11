@@ -178,7 +178,7 @@ class PostController extends BackendController
         dd('Show is disabled in backedn. Preview in frontend instead.');
         // $post = $this->modelClass::where('slug', $slug)->first();
         // if (!$post) return redirect()->route('frontend.pages.home');
-        // return $this->view('frontend.theme.default.posts.single', [
+        // return $this->view('wncms::frontend.themes.default.posts.single', [
         //     'post' => $post,
         // ]);
     }

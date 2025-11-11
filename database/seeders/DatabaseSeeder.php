@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
             UsersSeeder::class,
             TagSeeder::class,
             SettingSeeder::class,
-            ContactFormSeeder::class
         ]);
     }
 }

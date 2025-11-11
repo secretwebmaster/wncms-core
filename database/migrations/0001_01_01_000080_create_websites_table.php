@@ -33,7 +33,6 @@ return new class extends Migration
                 $table->text('body_code')->nullable();
                 $table->text('analytics')->nullable();
 
-
                 $table->string('license')->nullable();
 
                 $table->boolean('enabled_page_cache')->default(false);

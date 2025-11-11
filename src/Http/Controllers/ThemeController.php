@@ -11,11 +11,11 @@ class ThemeController extends Controller
 {
     public function index()
     {
-        $themes = collect(glob(resource_path('views/frontend/theme/*')))
+        $themes = collect(glob(resource_path('views/frontend/themes/*')))
             ->filter(fn($theme) => is_dir($theme))
             ->map(function ($theme) {
                 $themeId = basename($theme);
-                $configPath = config_path("theme/{$themeId}.php");
+                $configPath = config_path("themes/{$themeId}.php");
 
                 if (!file_exists($configPath)) {
                     return [
@@ -81,10 +81,10 @@ class ThemeController extends Controller
         $themeId = $validation['themeId'];
         $config = $validation['config'];
 
-        $themeViewPath = resource_path("views/frontend/theme/{$themeId}");
-        $configTargetPath = config_path("theme/{$themeId}.php");
-        $assetsSource = "{$rootPath}/public/theme/{$themeId}";
-        $assetsTarget = public_path("theme/{$themeId}");
+        $themeViewPath = resource_path("views/frontend/themes/{$themeId}");
+        $configTargetPath = config_path("themes/{$themeId}.php");
+        $assetsSource = "{$rootPath}/public/themes/{$themeId}";
+        $assetsTarget = public_path("themes/{$themeId}");
 
         if (file_exists($configTargetPath)) {
             $existing = include $configTargetPath;
@@ -98,7 +98,7 @@ class ThemeController extends Controller
 
         File::ensureDirectoryExists(dirname($configTargetPath));
         File::copy("{$rootPath}/config/theme/{$themeId}.php", $configTargetPath);
-        File::copyDirectory("{$rootPath}/resources/views/frontend/theme/{$themeId}", $themeViewPath);
+        File::copyDirectory("{$rootPath}/resources/views/frontend/themes/{$themeId}", $themeViewPath);
 
         if (is_dir($assetsSource)) {
             File::copyDirectory($assetsSource, $assetsTarget);
@@ -136,9 +136,9 @@ class ThemeController extends Controller
             return redirect()->back()->with('error_message', __('wncms::word.theme_in_use_cannot_delete'));
         }
 
-        File::delete(config_path("theme/{$themeId}.php"));
-        File::deleteDirectory(resource_path("views/frontend/theme/{$themeId}"));
-        File::deleteDirectory(public_path("theme/{$themeId}"));
+        File::delete(config_path("themes/{$themeId}.php"));
+        File::deleteDirectory(resource_path("views/frontend/themes/{$themeId}"));
+        File::deleteDirectory(public_path("themes/{$themeId}"));
 
         return redirect()->back()->with('message', __('wncms::word.theme_deleted_successfully'));
     }
@@ -167,7 +167,7 @@ class ThemeController extends Controller
 
         $required = [
             "{$rootPath}/config/theme/{$themeId}.php",
-            "{$rootPath}/resources/views/frontend/theme/{$themeId}/pages/home.blade.php",
+            "{$rootPath}/resources/views/frontend/themes/{$themeId}/pages/home.blade.php",
         ];
 
         foreach ($required as $file) {

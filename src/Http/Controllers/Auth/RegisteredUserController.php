@@ -35,8 +35,8 @@ class RegisteredUserController extends Controller
     public function create()
     {
         $website = wncms()->website()->get();
-        if($website && view()->exists("frontend.theme.{$website?->theme}.auth.register")){
-            return view("wncms::frontend.theme.{$website?->theme}.auth.register");
+        if($website && view()->exists("frontend.themes.{$website?->theme}.auth.register")){
+            return view("wncms::frontend.themes.{$website?->theme}.auth.register");
         }
         return view('wncms::auth.register');
     }

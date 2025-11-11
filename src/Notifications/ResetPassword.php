@@ -32,10 +32,10 @@ class ResetPassword extends BaseResetPassword
 
         // Check for a custom view
         $website = Wncms::website()->get();
-        if ($website && view()->exists("frontend.theme.{$website->theme}.emails.password_reset")) {
+        if ($website && view()->exists("frontend.themes.{$website->theme}.emails.password_reset")) {
             return $mailMessage
             ->subject($website->name . " " . __('wncms::word.reset_password_notification'))
-            ->view("frontend.theme.{$website->theme}.emails.password_reset");
+            ->view("frontend.themes.{$website->theme}.emails.password_reset");
         }
 
         // Return the default message if no custom view exists
