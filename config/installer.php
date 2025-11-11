@@ -35,10 +35,10 @@ return [
             'mod_rewrite',
         ],
         'php_functions' => [
-            // 'putenv',
-            'symlink',
+            'putenv',
+            // 'symlink',
             'proc_open',
-            'exec',
+            // 'exec',
         ]
     ],
 
