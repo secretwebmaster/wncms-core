@@ -2195,7 +2195,6 @@ $words = [
     'view' => '查看',
     'package_is_not_activated' => '套件 :package_id 未啟用',
     'multi_website' => '多網站模式',
-    'multi_website_hint' => '啟用多網站管理（預設關閉）',
 ];
 
 $locale = basename(__DIR__);

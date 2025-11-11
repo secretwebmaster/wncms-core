@@ -78,9 +78,11 @@
 
             {{-- Multi-Website --}}
             <div class="form-group form-check mt-3">
-                <input type="checkbox" name="multi_website" id="multi_website" class="form-check-input" value="1" {{ old('multi_website') ? 'checked' : '' }}>
                 <label for="multi_website" class="form-check-label fw-semibold">@lang('wncms::word.multi_website')</label>
-                <div class="form-text text-muted">@lang('wncms::installer.environment.wizard.form.multi_website_hint')</div>
+                <div class="form-check-item">
+                    <input type="checkbox" name="multi_website" id="multi_website" class="form-check-input" value="1" {{ old('multi_website') ? 'checked' : '' }}>
+                    <div class="form-text text-muted">@lang('wncms::word.multi_website_hint')</div>
+                </div>
             </div>
 
             <div class="buttons">
