@@ -35,6 +35,7 @@ class WncmsServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../../config/translatable.php', 'translatable');
         $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-system-settings.php', 'wncms-system-settings');
         $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-tags.php', 'wncms-tags');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/permission.php', 'wncms');
         $this->mergeConfigFrom(__DIR__ . '/../../config/wncms.php', 'wncms');
         $this->mergeConfigFrom(__DIR__ . '/../../config/theme/default.php', 'theme.default');
         $this->mergeConfigFrom(__DIR__ . '/../../config/theme/starter.php', 'theme.starter');
