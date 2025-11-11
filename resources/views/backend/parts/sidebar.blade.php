@@ -77,10 +77,13 @@
 				{{-- Active routes --}}
 				@include('wncms::backend.parts.sidebar.model')
 
+				{{-- Package menu --}}
+				@include('wncms::backend.parts.sidebar.package')
+
 				{{-- Theme menu --}}
 
 				{{-- Plugin menu --}}
-				@include('wncms::backend.parts.sidebar.plugin')
+				{{-- @include('wncms::backend.parts.sidebar.plugin') --}}
 				
 			</div>
 		</div>

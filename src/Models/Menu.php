@@ -3,10 +3,10 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Wncms\Services\Models\WncmsModel;
+use Wncms\Models\BaseModel;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class Menu extends WncmsModel
+class Menu extends BaseModel
 {
     use HasFactory;
     use HasTranslations;

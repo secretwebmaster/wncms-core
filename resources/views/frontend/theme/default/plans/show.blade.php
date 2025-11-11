@@ -52,7 +52,7 @@
                     <td>
                         @if(!auth()->check())
                             <button disabled>@lang('wncms::word.login_first')</button>
-                        @elseif(!$user->subscriptions->where('plan_id', $plan->id)->where('price_id', $price->id)->where('status', 'active')->first())
+                        @elseif(!$user->subscriptions()->where('plan_id', $plan->id)->where('price_id', $price->id)->where('status', 'active')->first())
                             <form action="{{ route('frontend.plans.subscribe', ['plan_id' => $plan->id, 'price_id' => $price->id ]) }}" method="POST">
                                 @csrf
                                 <button type="submit">@lang('wncms::word.subscribe')</button>

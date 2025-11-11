@@ -21,17 +21,17 @@
                     <td>{{ $order->id }}</td>
                     <td>{{ number_format($order->total_amount, 2) }}</td>
                     <td>@lang('wncms::word.' . $order->status)</td>
-                    <td>{{ $order->payment_method ? __('wncms::word.' . $order->payment_method) : __('wncms::word.not_specified') }}</td>
+                    <td>{{ $order->payment_gateway?->name }}</td>
                     <td>{{ $order->created_at->format('Y-m-d H:i:s') }}</td>
                     <td>
-                        <a href="{{ route('frontend.orders.show', $order->id) }}">
+                        <a href="{{ route('frontend.orders.show', ['slug' => $order->slug]) }}">
                             @lang('wncms::word.view_details')
                         </a>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">@lang('wncms::word.no_orders')</td>
+                    <td colspan="6">@lang('wncms-ecommerce::word.no_orders')</td>
                 </tr>
             @endforelse
         </tbody>

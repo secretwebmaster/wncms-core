@@ -5,14 +5,16 @@ namespace Wncms\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Wncms\Services\Models\WncmsModel;
+use Wncms\Models\BaseModel;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class Link extends WncmsModel implements HasMedia
+class Link extends BaseModel implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
     use HasTranslations;
+
+    protected static string $packageId = 'wncms';
 
     protected $guarded = [];
 

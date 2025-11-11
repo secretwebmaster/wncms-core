@@ -33,7 +33,7 @@
                                     <td>{{ $itemData['product'] }}</td>
                                     <td>{{ $itemData['updates']['version'] }}</td>
                                     <td>{{ gss($itemData['product'] . '_version', '-') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($itemData['updates']['released_at'])?->format('Y-m-d') }}</td>
+                                    <td>{{ !empty($itemData['updates']['released_at']) ? \Carbon\Carbon::parse($itemData['updates']['released_at'])->format('Y-m-d') : '-' }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-primary fw-bold btn-update" 
                                             data-item-id="{{ $itemData['product'] ?? '' }}"

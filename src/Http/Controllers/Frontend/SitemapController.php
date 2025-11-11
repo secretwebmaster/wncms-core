@@ -6,7 +6,7 @@ use Wncms\Models\Tag;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
 
-class SitemapController extends FrontendController
+class SitemapController
 {
     public function posts()
     {

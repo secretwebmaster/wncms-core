@@ -143,4 +143,15 @@ class CacheManager
 
         return cache();
     }
+
+    /**
+     * Check if a cache entry exists, optionally within tags.
+     */
+    public function has(string $key, array|string|null $tags = null): bool
+    {
+        if (empty($tags)) {
+            return cache()->has($key);
+        }
+        return $this->tags($tags)->has($key);
+    }
 }

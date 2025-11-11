@@ -33,15 +33,3 @@ event('backend.menu.render', $PluginMenuItems = new \Illuminate\Support\Collecti
         </div>
     </div>
 @endforeach
-
-{{-- Paackage --}}
-@can('package_index')
-<div class="menu-item">
-    <a class="menu-link py-2 @if(request()->routeIs('packages.index')) active @endif" href="{{ route('packages.index') }}">
-        <span class="menu-icon">
-            <i class="fa-lg @if(request()->routeIs('packages.index')) fa-beat @endif fa-solid fa-gear"></i>
-        </span>
-        <span class="menu-title fw-bold">@lang('wncms::word.packages')</span>
-    </a>
-</div>
-@endcan

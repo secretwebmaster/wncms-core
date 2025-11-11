@@ -17,7 +17,7 @@ class MenuController extends BackendController
         $q->with('menu_items');
         $menus = $q->paginate($request->page_size ?? 20);
 
-        $websites = wn('website')->getList();
+        $websites =  wncms()->website()->getList();
         return $this->view('backend.menus.index', [
             'menus' => $menus,
             'websites' => $websites,

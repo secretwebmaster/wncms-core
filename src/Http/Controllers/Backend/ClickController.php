@@ -3,8 +3,6 @@
 namespace Wncms\Http\Controllers\Backend;
 
 use Wncms\Models\Channel;
-use Wncms\Models\Click;
-use Wncms\Models\Link;
 use Wncms\Models\Parameter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -92,7 +90,21 @@ class ClickController extends BackendController
         //     $chartCounts,
         // );
 
-        $clickableTypes = $this->modelClass::pluck('clickable_type')->unique();
+        // $clickableTypes = $this->modelClass::pluck('clickable_type')->unique();
+
+        // Get all clickable model types recorded in clicks
+        $rawClickableTypes = $this->modelClass::pluck('clickable_type')->unique()->filter();
+
+        // Map each clickable type to a display name
+        $clickableTypes = $rawClickableTypes->mapWithKeys(function ($type) {
+            if (class_exists($type) && method_exists($type, 'getModelName')) {
+                return [$type => $type::getModelName()];
+            }
+
+            return [$type => class_basename($type)];
+        });
+
+        // dd($clickableTypes);
         $channels = Channel::all();
 
         return $this->view('backend.clicks.index', [

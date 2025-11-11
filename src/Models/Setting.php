@@ -3,13 +3,13 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Wncms\Services\Models\WncmsModel;
+use Wncms\Models\BaseModel;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class Setting extends WncmsModel
+class Setting extends BaseModel
 {
     use HasFactory;
-    use HasTranslations;
+    // use HasTranslations;
 
     protected $translatable = ['value'];
 

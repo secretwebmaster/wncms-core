@@ -19,6 +19,7 @@ return new class extends Migration
                 $table->string('key')->unique();
                 $table->text('value')->nullable();
                 $table->string('type')->nullable();
+                $table->string('group')->nullable();
                 $table->timestamps();
             });
         }

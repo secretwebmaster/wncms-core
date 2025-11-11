@@ -21,7 +21,7 @@
             <th>@lang('wncms::word.updated_at')</th>
         </thead>
         <tbody>
-            @foreach($wncms->faq()->getList(pageSize:10) as $faq)
+            @foreach($faqs = $wncms->package('wncms-faqs')->faq()->getList(['page_size' => 10]) as $faq)
                 <tr>
                     <td>{{ $faq->id }}</td>
                     <td>{{ $faq->website?->domain }}</td>
@@ -41,5 +41,5 @@
         </tbody>
     </table>
 
-    {!! $wncms->faq()->getList(pageSize:10)->links() !!}
+    {!! $faqs->links() !!}
 @endsection

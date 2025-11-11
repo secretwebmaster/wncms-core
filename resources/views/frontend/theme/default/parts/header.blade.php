@@ -63,12 +63,18 @@
 <div class="user-menu">
     <ul class="">
         {{-- User menu --}}
-        <li><a href="{{ route('frontend.plans.index') }}">@lang('wncms::word.plans')</a></li>
         @auth
         <li><a href="{{ route('frontend.users.dashboard') }}">@lang('wncms::word.dashboard')</a></li>
         <li><a href="{{ route('frontend.users.profile') }}">@lang('wncms::word.my_account')</a></li>
-        <li><a href="{{ route('frontend.users.card') }}">@lang('wncms::word.card_recharge')</a></li>
-        <li><a href="{{ route('frontend.users.subscription') }}">@lang('wncms::word.my_subscriptions')</a></li>
+        
+        @if(wncms()->isPackageActive('wncms-ecommerce'))
+        <li><a href="{{ route('frontend.plans.index') }}">@lang('wncms-ecommerce::word.plans')</a></li>
+        <li><a href="{{ route('frontend.products.index') }}">@lang('wncms-ecommerce::word.products')</a></li>
+        <li><a href="{{ route('frontend.users.card') }}">@lang('wncms-ecommerce::word.card_recharge')</a></li>
+        <li><a href="{{ route('frontend.users.subscriptions.index') }}">@lang('wncms-ecommerce::word.my_subscriptions')</a></li>
+        <li><a href="{{ route('frontend.orders.index') }}">@lang('wncms-ecommerce::word.my_orders')</a></li>
+        @endif
+
         <li><a href="{{ route('frontend.users.logout') }}">@lang('wncms::word.logout')</a></li>
         @else
         <li><a href="{{ route('frontend.users.login') }}">@lang('wncms::word.login')</a></li>

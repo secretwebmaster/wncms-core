@@ -57,10 +57,6 @@ class RolesSeeder extends Seeder
     {
         return [
             'advertisement',
-            'banner',
-            'contact_form',
-            'contact_form_option',
-            'contact_form_submission',
             'menu',
             'page',
             'permission',
@@ -73,7 +69,6 @@ class RolesSeeder extends Seeder
             'tag_keyword',
             'user',
             'website',
-            'faq',
             'package',
             'link',
 
@@ -114,7 +109,6 @@ class RolesSeeder extends Seeder
             'analytics_index',
             'cache_clear',
             'cache_flush',
-            'contact_form_submission_export',
             'post_bulk_clone',
             'post_bulk_set_websites',
             'post_bulk_sync_tags',

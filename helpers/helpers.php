@@ -1,17 +1,19 @@
 <?php
 
 if (!function_exists('wncms')) {
-    /**
-     * ----------------------------------------------------------------------------------------------------
-     * WNCMS Core function class
-     * ----------------------------------------------------------------------------------------------------
-     * @link https://wncms.cc
-     * @since 3.0.0
-     * @version 3.0.0
-     */
-    function wncms()
+    function wncms(): \Wncms\Services\Wncms
     {
-        return new \Wncms\Services\Wncms;
+        static $instance = null;
+
+        if (!$instance) {
+            if (function_exists('app')) {
+                $instance = app(\Wncms\Services\Wncms::class);
+            } else {
+                $instance = new \Wncms\Services\Wncms();
+            }
+        }
+
+        return $instance;
     }
 }
 
@@ -42,16 +44,16 @@ if (!function_exists('gto')) {
     }
 }
 
-if (!function_exists('wn')) {
-    function wn(?string $model = null)
-    {
-        if(!empty($model)){
-            return wncms()->$model();
-        }else{
-            return wncms();
-        }
-    }
-}
+// if (!function_exists('wn')) {
+//     function wn(?string $model = null)
+//     {
+//         if(!empty($model)){
+//             return wncms()->$model();
+//         }else{
+//             return wncms();
+//         }
+//     }
+// }
 
 if (!function_exists('isAdmin')) {
     /**

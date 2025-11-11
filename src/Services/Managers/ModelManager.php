@@ -81,6 +81,16 @@ abstract class ModelManager
         return $func();
     }
 
+    /**
+     * Run a function with optional caching.
+     *
+     * @param callable $func
+     * @param bool $useCache
+     * @param string|int $cacheKey
+     * @param int $cacheTime
+     * @param string|array|null $cacheTag
+     * @return mixed
+     */
     public function run($func, $useCache = true, $cacheKey = 3600, $cacheTime = 3600, $cacheTag = null)
     {
         if (gss('enable_cache') && $useCache) {
@@ -372,6 +382,9 @@ abstract class ModelManager
         }
     }
 
+    /**
+     * Apply website scoping to the query.
+     */
     protected function applyWebsiteId(Builder $q, ?int $websiteId = null): void
     {
         $modelClass = $this->getModelClass();
@@ -392,7 +405,6 @@ abstract class ModelManager
             $modelClass::applyWebsiteScope($q, $websiteId);
         }
     }
-
 
     /**
      * Finalize the result: apply pagination, limits, or fetch all.
@@ -447,22 +459,62 @@ abstract class ModelManager
         throw new \Exception("Website does not support relation: {$relation}");
     }
 
+    /**
+     * Get the cache key prefix for this manager.
+     */
     public function getCacheKeyPrefix(): string
     {
         return $this->cacheKeyPrefix;
     }
 
+    /**
+     * Get the model key used in configuration.
+     */
+    public function getModelKey(): string
+    {
+        // Return custom model key if set
+        if (property_exists($this, 'modelKey')) {
+            return $this->modelKey;
+        }
+
+        // Derive model key from model class
+        $modelClass = $this->getModelClass();
+        $modelKey = array_search($modelClass, array_column(config('wncms.models'), 'class'));
+        if ($modelKey === false) {
+            $modelKey = str()->snake(class_basename($modelClass));
+        }
+
+        return $modelKey;
+    }
+
+    /**
+     * Get the package key used in configuration.
+     */
+    public function getPackageKey(): string
+    {
+        return $this->packageKey ?? 'wncms';
+    }
+
+    /**
+     * Get the cache tag(s) for this manager.
+     */
     public function getCacheTag(): array|string
     {
         return $this->cacheTags;
     }
 
+    /**
+     * Get the default tag type for this model.
+     */
     public function getDefaultTagType(): string
     {
         return $this->defaultTagType;
     }
 
-    protected function getCacheKey(string $method, array $args = []): string
+    /**
+     * Generate a cache key for a method with arguments.
+     */
+    public function getCacheKey(string $method, array $args = []): string
     {
         return wncms()->cache()->createKey(
             prefix: $this->getCacheKeyPrefix(),
@@ -472,11 +524,17 @@ abstract class ModelManager
         );
     }
 
+    /**
+     * Get the cache time in seconds.
+     */
     public function getCacheTime(int $fallback = 0): int
     {
         return gss('enable_cache') ? gss('data_cache_time', $fallback) : 0;
     }
 
+    /**
+     * Automatically add order by columns to select clause to avoid SQL errors.
+     */
     protected function autoAddOrderByColumnsToSelect(Builder $q, array $select): array
     {
         $orderColumns = collect($q->getQuery()->orders ?? [])
@@ -493,5 +551,42 @@ abstract class ModelManager
         }
 
         return $select;
+    }
+
+    /**
+     * Get all allowed tag types for model.
+     *
+     * Reads from the model (so other packages can extend via HasTags),
+     * then formats each tag into a clean, structured array for frontend usage.
+     */
+    public function getAllowedTagTypes(): array
+    {
+        $modelClass = $this->getModelClass();
+        $instance = new $modelClass();
+
+        if (!method_exists($instance, 'getAllowedTagTypes')) {
+            return [];
+        }
+
+        $allowedTagTypes = $instance->getAllowedTagTypes();
+
+        if (empty($allowedTagTypes) || !is_array($allowedTagTypes)) {
+            return [];
+        }
+
+        // Transform each allowed tag into a structured array
+        return collect($allowedTagTypes)->map(function ($key) {
+
+            $modelKey = $this->getModelKey();
+            $packageKey = $this->getPackageKey();
+            $key = str($key)->replace($modelKey . '_', '')->toString();
+            $full = $modelKey . '_' . $key;
+
+            return [
+                'full'  => $full, // full tag type. e.g. product_category
+                'key'  => $key, // readable key. e.g. category  
+                'label' => __($packageKey . '::word.' . $full), // localized label e.g. Product Category
+            ];
+        })->values()->toArray();
     }
 }

@@ -1,25 +1,25 @@
+@php
+    $value = $model->{$column} instanceof \Carbon\Carbon
+        ? $model->{$column}
+        : \Carbon\Carbon::parse($model->{$column});
+@endphp
+
 @if($column == 'expired_at')
-
-    @if($model->{$column} < now())
-        <span class="text-danger fw-bold">{{ $model->{$column} }}</span>
-    @elseif($model->{$column} > now() && $model->{$column} < now()->addDays($warning_days ?? 3))
-        <span class="text-warning fw-bold">{{ $model->{$column} }}</span>
+    @if($value->lt(now()))
+        <span class="text-danger fw-bold">{{ $value }}</span>
+    @elseif($value->between(now(), now()->addDays($warning_days ?? 3)))
+        <span class="text-warning fw-bold">{{ $value }}</span>
     @else
-        <span class="">{{ $model->{$column} }}</span>
+        <span>{{ $value }}</span>
     @endif
-
 @else
     {{-- Today --}}
-    @if(\Carbon\Carbon::parse($model->{$column})->isToday())
-    
-        <span class="text-danger fw-bold">{{ $model->{$column} }}</span>
-
-    {{-- Recent days--}}
-    @elseif($model->{$column} > now()->subDays($warning_days ?? 3))
-        <span class="text-warning fw-bold">{{ $model->{$column} }}</span>
+    @if($value->isToday())
+        <span class="text-danger fw-bold">{{ $value }}</span>
+    {{-- Recent days --}}
+    @elseif($value->gt(now()->subDays($warning_days ?? 3)))
+        <span class="text-warning fw-bold">{{ $value }}</span>
     @else
-        <span class="">{{ $model->{$column} }}</span>
+        <span>{{ $value }}</span>
     @endif
-
 @endif
-

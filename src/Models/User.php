@@ -2,8 +2,6 @@
 
 namespace Wncms\Models;
 
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -15,7 +13,6 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class User extends Authenticatable implements MustVerifyEmail, HasMedia
 {
     use HasFactory, Notifiable;
-    use LogsActivity;
     use HasRoles;
     use InteractsWithMedia;
 
@@ -39,12 +36,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         'email_verified_at' => 'datetime',
         'last_login_at' => 'datetime',
     ];
-
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()->logOnly(['username']);
-        // Chain fluent methods for configuration options
-    }
 
     public function getRememberToken()
     {
@@ -83,20 +74,20 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         return $this->hasMany(wncms()->getModelClass('email'), 'to_user_id', 'id');
     }
 
-    public function credits()
-    {
-        return $this->hasMany(wncms()->getModelClass('credit'));
-    }
+    // public function credits()
+    // {
+    //     return $this->hasMany(wncms()->getModelClass('credit'));
+    // }
 
-    public function subscriptions()
-    {
-        return $this->hasMany(wncms()->getModelClass('subscription'));
-    }
+    // public function subscriptions()
+    // {
+    //     return $this->hasMany(wncms()->getModelClass('subscription'));
+    // }
 
-    public function orders()
-    {
-        return $this->hasMany(wncms()->getModelClass('order'));
-    }
+    // public function orders()
+    // {
+    //     return $this->hasMany(wncms()->getModelClass('order'));
+    // }
 
 
     //! Attribues
@@ -105,30 +96,30 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         return $this->getFirstMediaUrl('avatar') ?: asset('wncms/media/avatars/blank.png');
     }
 
-    public function getBalanceAttribute()
-    {
-        return $this->credits->where('type', 'balance')->first()->amount ?? 0;
-    }
+    // public function getBalanceAttribute()
+    // {
+    //     return $this->credits->where('type', 'balance')->first()->amount ?? 0;
+    // }
 
-    public function getCredit($type)
-    {
-        return $this->credits->where('type', $type)->first()->amount ?? 0;
-    }
+    // public function getCredit($type)
+    // {
+    //     return $this->credits->where('type', $type)->first()->amount ?? 0;
+    // }
 
-    public function getPlans()
-    {
-        // get an collections of unique plans
-        return $this->subscriptions->map(function ($subscription) {
-            return $subscription->plan;
-        })->unique();
-    }
+    // public function getPlans()
+    // {
+    //     // get an collections of unique plans
+    //     return $this->subscriptions->map(function ($subscription) {
+    //         return $subscription->plan;
+    //     })->unique();
+    // }
 
-    public function hasPlan($planId = null)
-    {
-        if (!$planId) {
-            return $this->subscriptions->where('status', 'active')->count() > 0;
-        }
+    // public function hasPlan($planId = null)
+    // {
+    //     if (!$planId) {
+    //         return $this->subscriptions->where('status', 'active')->count() > 0;
+    //     }
 
-        return $this->getPlans()->contains('id', $planId);
-    }
+    //     return $this->getPlans()->contains('id', $planId);
+    // }
 }

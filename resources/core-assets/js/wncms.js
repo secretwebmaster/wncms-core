@@ -266,6 +266,9 @@ var WNCMS = {
                     type: method,
                     data: params,
                     success: function (response) {
+                        console.log(route);
+                        console.log(method);
+                        console.log(params);
                         console.log(response);
                         if (response.status == "success") {
                             if (isSwal) {

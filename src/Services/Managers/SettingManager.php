@@ -55,12 +55,7 @@ class SettingManager
         $cacheTime = 3600;
         // wncms()->cache()->clear($cacheKey, $cacheTags);
 
-        info('use system setting cache');
-        info($cacheKey);
-        info($cacheTags);
-
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($keys) {
-            info('no system setting cache');
             try {
                 if (!wncms_is_installed()) return [];
                 $q = Setting::query();

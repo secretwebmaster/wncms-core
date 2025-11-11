@@ -3,6 +3,20 @@
 Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## 更新日誌
+### v6.0.0-alpha1 2025-11-11
+- Added `public/themes` and `public/plugins` to filesystems config. Removed wncms-core Plugin dir.
+
+### v5.5.6 2025-09-09
+
+-   Move Wncms\Services\Models\WncmsModel to Wncms\Models\Base
+-   Re-organize Wncms.php
+-   Fix SitemapController throws error due to model is not found
+-   Remove banner related routes
+-   Update backend default toolbar button blade. Allow custom prefix label
+-   Add disabling cache option to getTagifyDropdownItems of TagManager
+-   Add BaseResource for API json output
+-   Fix return back() does not keep the repeater items
+-   Add wncms()->displayPrice($number). right trim digit zeros
 
 ### v5.5.5 2025-09-08
 

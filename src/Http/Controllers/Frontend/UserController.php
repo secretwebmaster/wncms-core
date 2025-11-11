@@ -5,7 +5,6 @@ namespace Wncms\Http\Controllers\Frontend;
 use Wncms\Notifications\ResetPassword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Wncms\Facades\Wncms;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Password;
 use Spatie\Permission\Models\Role;
@@ -17,10 +16,10 @@ class UserController extends FrontendController
      */
     public function dashboard()
     {
-        return Wncms::view(
-            name: "frontend.theme.{$this->theme}.users.dashboard",
-            params: [],
-            fallback: 'wncms::frontend.theme.default.users.dashboard',
+        return $this->view(
+            "frontend.theme.{$this->theme}.users.dashboard",
+            [],
+            'wncms::frontend.theme.default.users.dashboard',
         );
     }
 
@@ -31,15 +30,14 @@ class UserController extends FrontendController
      */
     public function show_login()
     {
-        // check if aleady logged in
         if (auth()->check()) {
             return redirect()->route('frontend.pages.home');
         }
-        
-        return Wncms::view(
-            name: "frontend.theme.{$this->theme}.users.login",
-            params: [],
-            fallback: 'wncms::frontend.theme.default.users.login',
+
+        return $this->view(
+            "frontend.theme.{$this->theme}.users.login",
+            [],
+            'wncms::frontend.theme.default.users.login',
         );
     }
 
@@ -124,10 +122,10 @@ class UserController extends FrontendController
      */
     public function show_register()
     {
-        return Wncms::view(
-            name: "frontend.theme.{$this->theme}.users.register",
-            params: [],
-            fallback: 'wncms::frontend.theme.default.users.register',
+        return $this->view(
+            "frontend.theme.{$this->theme}.users.register",
+            [],
+            'wncms::frontend.theme.default.users.register',
         );
     }
 
@@ -159,15 +157,15 @@ class UserController extends FrontendController
 
         // if username is not provided, use string before @ in email as username
         if (!$request->filled('username')) {
-            $username = 'user_' . time() . rand(10,99);
-        }else{
+            $username = 'user_' . time() . rand(10, 99);
+        } else {
             $username = $request->username;
         }
-        
+
         // if email is not provided, use username plus current domain as email
         if (!$request->filled('email')) {
             $email = $request->username . '@' . request()->getHttpHost();
-        }else{
+        } else {
             $email = $request->email;
         }
 
@@ -195,7 +193,7 @@ class UserController extends FrontendController
 
         $defaultUserRoleOption = gto('default_user_roles', 'member');
         $defaultUserRoles = Role::whereIn('name', explode(',', $defaultUserRoleOption))->get();
-        if($defaultUserRoles->isEmpty()){
+        if ($defaultUserRoles->isEmpty()) {
             $defaultUserRoles = Role::where('name', 'member')->get();
         }
         $user->assignRole($defaultUserRoles);
@@ -258,23 +256,23 @@ class UserController extends FrontendController
 
     public function show_profile()
     {
-        return Wncms::view(
-            name: "frontend.theme.{$this->theme}.users.profile.show",
-            params: [
+        return $this->view(
+            "frontend.theme.{$this->theme}.users.profile.show",
+            [
                 'user' => auth()->user(),
             ],
-            fallback: 'wncms::frontend.theme.default.users.profile.show',
+            'wncms::frontend.theme.default.users.profile.show',
         );
     }
 
     public function edit_profile()
     {
-        return Wncms::view(
-            name: "frontend.theme.{$this->theme}.users.profile.edit",
-            params: [
+        return $this->view(
+            "frontend.theme.{$this->theme}.users.profile.edit",
+            [
                 'user' => auth()->user(),
             ],
-            fallback: 'wncms::frontend.theme.default.users.profile.edit',
+            'wncms::frontend.theme.default.users.profile.edit',
         );
     }
 
@@ -324,10 +322,10 @@ class UserController extends FrontendController
      */
     public function show_password_forgot()
     {
-        return Wncms::view(
-            name: "frontend.theme.{$this->theme}.users.password.forgot",
-            params: [],
-            fallback: 'wncms::frontend.theme.default.users.password.forgot',
+        return $this->view(
+            "frontend.theme.{$this->theme}.users.password.forgot",
+            [],
+            'wncms::frontend.theme.default.users.password.forgot',
         );
     }
 
@@ -339,7 +337,6 @@ class UserController extends FrontendController
      */
     public function handle_password_forgot(Request $request)
     {
-        // dd($request->all());
         $request->validate([
             'email' => 'required|email|exists:users,email',
         ]);
@@ -348,17 +345,13 @@ class UserController extends FrontendController
         $user = $modelClass::where('email', $request->email)->first();
 
         if ($user) {
-
             $token = Password::createToken($user);
-
-            // Send the custom reset password notification
             $user->notify(new ResetPassword($token));
-            return Wncms::view(
-                name: "frontend.theme.{$this->theme}.users.password.sent",
-                params: [
-                    'email' => $request->email,
-                ],
-                fallback: 'wncms::frontend.theme.default.users.password.sent',
+
+            return $this->view(
+                "frontend.theme.{$this->theme}.users.password.sent",
+                ['email' => $request->email],
+                'wncms::frontend.theme.default.users.password.sent',
             );
         }
 
@@ -373,13 +366,13 @@ class UserController extends FrontendController
      */
     public function show_password_reset(Request $request)
     {
-        return Wncms::view(
-            name: "frontend.theme.{$this->theme}.users.password.reset",
-            params: [
+        return $this->view(
+            "frontend.theme.{$this->theme}.users.password.reset",
+            [
                 'token' => $request->token,
                 'email' => $request->email,
             ],
-            fallback: 'wncms::frontend.theme.default.users.password.reset',
+            'wncms::frontend.theme.default.users.password.reset',
         );
     }
 
@@ -415,37 +408,30 @@ class UserController extends FrontendController
             }
         );
 
-        return Wncms::view(
-            name: "frontend.theme.{$this->theme}.users.password.completed",
-            params: [
-                'status' => $status,
-            ],
-            fallback: 'wncms::frontend.theme.default.users.password.completed',
+        return $this->view(
+            "frontend.theme.{$this->theme}.users.password.completed",
+            ['status' => $status],
+            'wncms::frontend.theme.default.users.password.completed',
         );
     }
 
-    /**
-     * Show user subscriptions.
-     */
-    public function show_subscription()
+    // other pages
+    public function page()
     {
-        $subscriptions = auth()->user()->subscriptions()->with(['plan', 'price'])->get();
-        return Wncms::view(
-            name: "frontend.theme.{$this->theme}.users.subscriptions",
-            params: [
-                'subscriptions' => $subscriptions,
-            ],
-            fallback: 'wncms::frontend.theme.default.users.subscriptions',
-        );
-    }
+        // Get all segments after 'user'
+        // Example: /user/custom/aaa/bbb → ['custom', 'aaa', 'bbb']
+        $segments = array_slice(request()->segments(), 1);
 
-    //other pages
-    public function page($page)
-    {;
-        return Wncms::view(
-            name: "frontend.theme.{$this->theme}.users.{$page}",
-            params: [],
-            fallback: "frontend.theme.{$this->theme}.pages.home",
+        // Join into a single dot-notated path for Blade (custom.aaa.bbb)
+        $page = implode('.', $segments);
+
+        // Debug: see what Laravel resolves
+        dd("frontend.theme.{$this->theme}.users.{$page}");
+
+        return $this->view(
+            "frontend.theme.{$this->theme}.users.{$page}",
+            [],
+            "frontend.theme.{$this->theme}.pages.home",
         );
     }
 }

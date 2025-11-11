@@ -54,7 +54,6 @@ class TagManager extends ModelManager
         return $query->first();
     }
     
-    
     /**
      * Retrieve a list of tags using unified options array.
      *
@@ -248,29 +247,29 @@ class TagManager extends ModelManager
                 return in_array("Wncms\Tags\HasTags", $reflection->getTraitNames());
             });
 
-        $packageModelsWithHasTagsTraits = collect(File::allFiles(wncms()->getPackagePath('Models')))
-            ->map(function ($file) {
+        // $packageModelsWithHasTagsTraits = collect(File::allFiles(wncms()->getPackagePath('Models')))
+        //     ->map(function ($file) {
 
-                $relativePath = Str::replaceFirst(wncms()->getPackagePath('Models') . DIRECTORY_SEPARATOR, '', $file->getPathname());
-                $class = 'Wncms\\Models\\' . Str::replace('.php', '', str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath));
-                return class_exists($class) ? app($class) : null;
-            })
-            ->filter(function ($model) {
-                $reflection = new \ReflectionClass($model);
-                return in_array("Wncms\Tags\HasTags", $reflection->getTraitNames());
-            });
+        //         $relativePath = Str::replaceFirst(wncms()->getPackagePath('Models') . DIRECTORY_SEPARATOR, '', $file->getPathname());
+        //         $class = 'Wncms\\Models\\' . Str::replace('.php', '', str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath));
+        //         return class_exists($class) ? app($class) : null;
+        //     })
+        //     ->filter(function ($model) {
+        //         $reflection = new \ReflectionClass($model);
+        //         return in_array("Wncms\Tags\HasTags", $reflection->getTraitNames());
+        //     });
 
-        $modelsWithHasTagsTraits = $appModelsWithHasTagsTraits->merge($packageModelsWithHasTagsTraits);
+        // $modelsWithHasTagsTraits = $appModelsWithHasTagsTraits->merge($packageModelsWithHasTagsTraits);
 
         $tagTypes = [];
         $index = 0;
-        foreach ($modelsWithHasTagsTraits as $modelsWithHasTagsTrait) {
-            foreach (\Wncms\Models\Tag::SUBTYPES as $subType) {
-                $tagTypes[$index]['slug'] = str()->singular($modelsWithHasTagsTrait->getTable()) . "_" . $subType;
-                $tagTypes[$index]['name'] = $this->getWord(str()->singular($modelsWithHasTagsTrait->getTable()), $subType);
-                $index++;
-            }
-        }
+        // foreach ($modelsWithHasTagsTraits as $modelsWithHasTagsTrait) {
+        //     foreach (\Wncms\Models\Tag::SUBTYPES as $subType) {
+        //         $tagTypes[$index]['slug'] = str()->singular($modelsWithHasTagsTrait->getTable()) . "_" . $subType;
+        //         $tagTypes[$index]['name'] = $this->getWord(str()->singular($modelsWithHasTagsTrait->getTable()), $subType);
+        //         $index++;
+        //     }
+        // }
         return $tagTypes;
     }
 
@@ -282,12 +281,12 @@ class TagManager extends ModelManager
         return __('wncms::word.' . $modelName) . __('wncms::word.word_separator') . __('wncms::word.' . $subType);
     }
 
-    public function getTagifyDropdownItems($type, $nameColumn = 'name', $valueColumn = null): array
+    public function getTagifyDropdownItems($type, $nameColumn = 'name', $valueColumn = null, $cache = true): array
     {
         $tags = $this->getList([
             'tag_type' => $type,
             'select' => [$nameColumn, $valueColumn ?? $nameColumn],
-            'cache' => true,
+            'cache' => $cache,
         ]);
     
         return collect($tags)->map(function ($tag) use ($nameColumn, $valueColumn) {
@@ -298,5 +297,78 @@ class TagManager extends ModelManager
             ];
         })->toArray();
     }
+
+    public function getUrl($tag): string
+    {
+        if (empty($tag) || empty($tag->type)) {
+            return 'javascript:;';
+        }
+
+        // Split type: e.g. product_category
+        $segments = explode('_', $tag->type);
+        if (count($segments) < 2) {
+            return 'javascript:;';
+        }
+
+        [$modelKey, $key] = $segments;
+
+        // Get model class dynamically
+        $modelClass = wncms()->getModelClass($modelKey);
+        if (!class_exists($modelClass)) {
+            return 'javascript:;';
+        }
+
+        $instance = new $modelClass();
+        $packageId = method_exists($modelClass, 'getPackageId')
+            ? $modelClass::getPackageId()
+            : null;
+
+        // Determine route from model tagFormats
+        $routeName = $instance->tagFormats[$tag->type]
+            ?? "frontend." . str($modelKey)->plural() . ".tag";
+
+        // Generate URL if route exists
+        if (wncms_route_exists($routeName)) {
+            return route($routeName, ['type' => $key, 'slug' => $tag->slug]);
+        }
+
+        return 'javascript:;';
+    }
+
+    public function getTypeLabel(string $type, ?string $locale = null): string
+    {
+        try {
+            if (empty($type) || !str_contains($type, '_')) {
+                return ucfirst($type);
+            }
+
+            [$modelKey, $subType] = explode('_', $type);
+
+            $modelClass = wncms()->getModelClass($modelKey);
+            if (!class_exists($modelClass)) {
+                return ucfirst($type);
+            }
+
+            $packageId = method_exists($modelClass, 'getPackageId')
+                ? $modelClass::getPackageId()
+                : null;
+
+            if ($packageId) {
+                $translated = __("{$packageId}::word.{$modelKey}_{$subType}", locale: $locale);
+                if ($translated !== "{$packageId}::word.{$modelKey}_{$subType}") {
+                    return $translated;
+                }
+            }
+
+            $modelName = $modelClass::getModelName($locale);
+            $subLabel = __("wncms::word.{$subType}", locale: $locale);
+            return "{$modelName}{$subLabel}";
+        } catch (\Throwable $e) {
+            report($e);
+            return ucfirst($type);
+        }
+    }
+
+
     
 }

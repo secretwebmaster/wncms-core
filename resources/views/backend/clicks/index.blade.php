@@ -62,8 +62,10 @@
             <div class="col-6 col-md-auto mb-3 ms-0">
                 <select name="clickable_type" class="form-select form-select-sm">
                     <option value="">@lang('wncms::word.select')@lang('wncms::word.clickable_type')</option>
-                    @foreach($clickableTypes as $clickableType)
-                    <option value="{{ $clickableType }}" @if($clickableType==request()->clickable_type) selected @endif>{{ $clickableType }}</option>
+                    @foreach($clickableTypes as $className => $displayName)
+                    <option value="{{ $className }}" @selected(request('clickable_type')==$className)>
+                        {{ $displayName }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -167,17 +169,27 @@
                             </div>
                         </th> --}}
                         {{-- <th>@lang('wncms::word.action')</th> --}}
-                        <th>@lang('wncms::word.id') <div class="resizer"></div></th>
-                        <th>@lang('wncms::word.clickable_type') <div class="resizer"></div></th>
-                        <th>@lang('wncms::word.clickable_id') <div class="resizer"></div></th>
-                        <th>@lang('wncms::word.clickable_name') <div class="resizer"></div></th>
-                        <th>@lang('wncms::word.name') <div class="resizer"></div></th>
-                        <th>@lang('wncms::word.value') <div class="resizer"></div></th>
-                        <th>@lang('wncms::word.channel') <div class="resizer"></div></th>
-                        <th>@lang('wncms::word.ip') <div class="resizer"></div></th>
-                        <th>@lang('wncms::word.referer') <div class="resizer"></div></th>
+                        <th>@lang('wncms::word.id') <div class="resizer"></div>
+                        </th>
+                        <th>@lang('wncms::word.clickable_type') <div class="resizer"></div>
+                        </th>
+                        <th>@lang('wncms::word.clickable_id') <div class="resizer"></div>
+                        </th>
+                        <th>@lang('wncms::word.clickable_name') <div class="resizer"></div>
+                        </th>
+                        <th>@lang('wncms::word.name') <div class="resizer"></div>
+                        </th>
+                        <th>@lang('wncms::word.value') <div class="resizer"></div>
+                        </th>
+                        <th>@lang('wncms::word.channel') <div class="resizer"></div>
+                        </th>
+                        <th>@lang('wncms::word.ip') <div class="resizer"></div>
+                        </th>
+                        <th>@lang('wncms::word.referer') <div class="resizer"></div>
+                        </th>
                         @foreach($parameters as $parameter)
-                        <th title="{{ $parameter->key }}" class="text-gray-500">{{ $parameter->name }} <div class="resizer"></div></th>
+                        <th title="{{ $parameter->key }}" class="text-gray-500">{{ $parameter->name }} <div class="resizer"></div>
+                        </th>
                         @endforeach
                         <th>@lang('wncms::word.created_at')</th>
 

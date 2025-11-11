@@ -64,6 +64,25 @@
                 @endif
             </div>
 
+            {{-- Language --}}
+            <div class="form-group">
+                <label for="app_locale">@lang('wncms::word.language')</label>
+                <select name="app_locale" id="app_locale" class="form-select">
+                    @foreach($languages as $locale => $props)
+                    <option value="{{ $locale }}" {{ app()->getLocale() == $locale ? 'selected' : '' }}>
+                        {{ $props['native'] }} ({{ strtoupper($locale) }})
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Multi-Website --}}
+            <div class="form-group form-check mt-3">
+                <input type="checkbox" name="multi_website" id="multi_website" class="form-check-input" value="1" {{ old('multi_website') ? 'checked' : '' }}>
+                <label for="multi_website" class="form-check-label fw-semibold">@lang('wncms::word.multi_website')</label>
+                <div class="form-text text-muted">@lang('wncms::installer.environment.wizard.form.multi_website_hint')</div>
+            </div>
+
             <div class="buttons">
                 <button class="button" onclick="showCacheSettings();return false">
                     @lang('wncms::installer.environment.wizard.form.buttons.setup_database')

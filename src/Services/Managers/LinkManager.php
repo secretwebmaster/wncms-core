@@ -126,7 +126,7 @@ class LinkManager extends ModelManager
             return;
         }
     
-        // 💡 Final fallback: just use requested column but preserve pinned
+        // Final fallback: just use requested column but preserve pinned
         if (!in_array($order, ['is_pinned', 'total_views_yesterday', 'random'])) {
             $q->orderBy("links.{$order}", in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc');
             $q->orderBy('links.id', 'desc');

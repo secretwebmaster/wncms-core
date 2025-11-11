@@ -40,7 +40,7 @@
             <th>@lang('wncms::word.redeemed_at')</th>
             <th>@lang('wncms::word.expired_at')</th>
         </tr>
-        @foreach(\Wncms\Models\Card::limit(10)->get() as $card)
+        @foreach(\Secretwebmaster\WncmsEcommerce\Models\Card::limit(10)->get() as $card)
         <tr>
             <td>{{ $card->code }}</td>
             <td>{{ $card->status }}</td>

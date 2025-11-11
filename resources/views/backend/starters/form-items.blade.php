@@ -219,7 +219,7 @@
             window.addEventListener('DOMContentLoaded', (event) => {
                 //Tagify
                 var input = document.querySelector("#starter_tags");
-                var starter_tags = @json(wncms()->tag()->getTagifyDropdownItems('starter_tag'));
+                var starter_tags = @json(wncms()->tag()->getTagifyDropdownItems('starter_tag', 'name', 'name', false));
     
                 console.log(starter_tags)
                 // Initialize Tagify script on the above inputs
@@ -255,17 +255,17 @@
             <div class="repeater_example">
                 <div data-repeater-list="repeater_example">
                     @forelse(old('repeater_example', json_decode($starter->repeater_example ?? '[]', true)) as $item)
-                        <div data-repeater-item class="d-flex align-items-center mb-2">
-                            <input type="text" name="text" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.text')" value="{{ $item['text'] ?? '' }}">
-                            <input type="number" name="number" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.number')" value="{{ $item['number'] ?? '' }}">
-                            <button data-repeater-delete type="button" class="btn btn-sm btn-danger">X</button>
-                        </div>
+                    <div data-repeater-item class="d-flex align-items-center mb-2">
+                        <input type="text" name="text" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.text')" value="{{ $item['text'] ?? '' }}">
+                        <input type="number" name="number" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.number')" value="{{ $item['number'] ?? '' }}">
+                        <button data-repeater-delete type="button" class="btn btn-sm btn-danger">X</button>
+                    </div>
                     @empty
-                        <div data-repeater-item class="d-flex align-items-center mb-2" style="display:none;">
-                            <input type="text" name="text" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.text')">
-                            <input type="number" name="number" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.number')">
-                            <button data-repeater-delete type="button" class="btn btn-sm btn-danger">X</button>
-                        </div>
+                    <div data-repeater-item class="d-flex align-items-center mb-2" style="display:none;">
+                        <input type="text" name="text" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.text')">
+                        <input type="number" name="number" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.number')">
+                        <button data-repeater-delete type="button" class="btn btn-sm btn-danger">X</button>
+                    </div>
                     @endforelse
                 </div>
 
@@ -284,7 +284,7 @@
         console.log('[Repeater Example] Initializing...');
 
         $('.repeater_example').repeater({
-            initEmpty: {{ empty($starter->repeater_example) ? 'true' : 'false' }},
+            initEmpty: {{ empty(old('repeater_example', json_decode($starter->repeater_example ?? '[]', true))) ? 'true' : 'false' }},
             defaultValues: { text: '', number: '' },
 
             show: function () {
@@ -315,6 +315,7 @@
     });
     </script>
     @endpush
+
 
 
 </div>

@@ -50,25 +50,27 @@
 
     {{-- User Credits --}}
     <h3>@lang('wncms::word.credits')</h3>
-    @if($user->credits->isEmpty())
-    <p>@lang('wncms::word.no_credits')</p>
-    @else
-    <table class="credits-table">
-        <thead>
-            <tr>
-                <th>@lang('wncms::word.credit_type')</th>
-                <th>@lang('wncms::word.amount')</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($user->credits as $credit)
-            <tr>
-                <td>@lang('wncms::word.' . $credit->type)</td>
-                <td>{{ number_format($credit->amount, 2) }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+    @if($user->credits)
+        @if($user->credits->isEmpty())
+        <p>@lang('wncms::word.no_credits')</p>
+        @else
+        <table class="credits-table">
+            <thead>
+                <tr>
+                    <th>@lang('wncms::word.credit_type')</th>
+                    <th>@lang('wncms::word.amount')</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($user->credits as $credit)
+                <tr>
+                    <td>@lang('wncms::word.' . $credit->type)</td>
+                    <td>{{ number_format($credit->amount, 2) }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        @endif
     @endif
 
     @if($user->hasPlan(16))

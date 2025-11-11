@@ -2,7 +2,6 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Jobs\InstallWncms;
 use Wncms\Services\Installer\DatabaseManager;
 use Wncms\Services\Installer\PermissionChecker;
 use Wncms\Services\Installer\RequirementChecker;
@@ -12,10 +11,8 @@ use Illuminate\Routing\Controller;
 use Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Process;
 use Validator;
 use Str;
-use Wncms\Database\Seeders\DatabaseSeeder;
 
 class InstallController extends Controller
 {
@@ -67,7 +64,10 @@ class InstallController extends Controller
      */
     public function wizard()
     {
-        return view('wncms::install.wizard');
+        $languages = config('laravellocalization.supportedLocales');
+        return view('wncms::install.wizard', [
+            'languages' => $languages,
+        ]);
     }
 
     /**
@@ -107,10 +107,10 @@ class InstallController extends Controller
             ]);
         }
 
-        //create .env file
+        // create .env file
         $this->saveEnvFile($input);
 
-        //generate key
+        // generate key
         Artisan::call('key:generate', ['--force' => true]);
         info('generated key');
 
@@ -123,6 +123,11 @@ class InstallController extends Controller
                 DB::unprepared(file_get_contents($sqlPath));
                 info('Imported SQL dump instead of running migrations.');
 
+                Artisan::call('db:seed', [
+                    '--force' => true,
+                    '--class' => \Wncms\Database\Seeders\DatabaseSeeder::class,
+                ]);
+                info('Seeded database after schema import.');
             } catch (\Throwable $e) {
                 info('SQL import failed: ' . $e->getMessage());
 
@@ -131,7 +136,7 @@ class InstallController extends Controller
                 Artisan::call('migrate:fresh', [
                     '--seed' => true,
                     '--force' => true,
-                    '--seeder' => \Database\Seeders\DatabaseSeeder::class,
+                    '--seeder' => \Wncms\Database\Seeders\DatabaseSeeder::class,
                 ]);
                 info('Completed fallback migrations + seeders.');
             }
@@ -141,35 +146,38 @@ class InstallController extends Controller
             Artisan::call('migrate:fresh', [
                 '--seed' => true,
                 '--force' => true,
-                '--seeder' => \Database\Seeders\DatabaseSeeder::class,
+                '--seeder' => \Wncms\Database\Seeders\DatabaseSeeder::class,
             ]);
             info('Completed migrations + seeders.');
         }
 
-        Artisan::call('vendor:publish', ['--tag' => 'wncms-system-config']);
-        Artisan::call('vendor:publish', ['--tag' => 'wncms-theme-config']);
         Artisan::call('vendor:publish', ['--tag' => 'wncms-core-assets']);
         Artisan::call('vendor:publish', ['--tag' => 'wncms-theme-assets']);
         info('assets published');
 
-        //install lang files
-        $this->install_lang_files();
+        // install lang files
+        $this->install_custom_lang_files();
 
-        //install custom trait files
-        // $this->install_trait_files();
+        // install custom route files
+        $this->install_custom_route_files();
 
-        //install custom route files
-        $this->install_route_files();
+        // set default locale
+        if (!empty($input['app_locale'])) {
+            uss('app_locale', $input['app_locale']);
+            info("Set default app locale to " . $input['app_locale']);
+        }
 
-        //mark installed
+        // Set multi-website flag in system settings
+        $multiWebsite = !empty($input['multi_website']) && $input['multi_website'] == '1';
+        uss('multi_website', $multiWebsite);
+        info("Set multi_website to " . ($multiWebsite ? 'true' : 'false'));
+
+        // mark installed
         $message = $this->markInstalled();
         info('created installed file');
         info($message);
 
-        //install composer files
-        $this->install_composer_files();
-
-        //force https
+        // force https
         if (!empty($input['force_https'])) {
             uss('force_https', true);
             info("updated force_https to true");
@@ -222,6 +230,12 @@ class InstallController extends Controller
         }
     }
 
+    /**
+     * Save the environment file.
+     *
+     * @param array $input
+     * @return string
+     */
     private function saveEnvFile($input)
     {
 
@@ -305,7 +319,10 @@ class InstallController extends Controller
         ]);
     }
 
-    public function install_lang_files()
+    /**
+     * Install custom lang files
+     */
+    public function install_custom_lang_files()
     {
         $availableLanguages = array_diff(scandir(lang_path()), ['.', '..', '.gitkeep', '.gitignore']);
         $customContent = "<?php\n\n\$custom_words = [\n\n];\n\nreturn \$custom_words;";
@@ -329,60 +346,10 @@ class InstallController extends Controller
         }
     }
 
-    public function install_trait_files()
-    {
-        $customTraitFiles = [
-            'CustomAdvertisementTraits',
-            'CustomPageTraits',
-            'CustomPostTraits',
-            'CustomTagTraits',
-            'CustomUserTraits',
-            'CustomWebsiteTraits',
-        ];
-
-        $traitTemplate = <<<'EOT'
-        <?php
-        /**
-         * 此檔案不會因系統版本更新而被取代
-         */
-
-        namespace Wncms\Traits;
-
-        trait {{ TraitName }}
-        {
-
-        }
-        EOT;
-
-        foreach ($customTraitFiles as $traitFileName) {
-            // Construct the trait file path.
-            $traitFilePath = app_path("Traits/$traitFileName.php");
-
-            // Check if the directory exists, and if not, create it with the desired permissions.
-            $directory = dirname($traitFilePath);
-            if (!is_dir($directory)) {
-                mkdir($directory, 0755, true);
-            }
-
-            // Check if the trait file exists.
-            if (!file_exists($traitFilePath)) {
-                // If it doesn't exist, create the trait file with the template.
-                $traitContent = str_replace('{{ TraitName }}', $traitFileName, $traitTemplate);
-
-                // Set file permissions to 'www' user and 'www' group.
-                $result = file_put_contents($traitFilePath, $traitContent);
-                if ($result !== false) {
-                    // Process::run("chmod 0664 {$traitFilePath}");
-                    // Process::run("chown www:www {$traitFilePath}");
-                    info("Created missing trait file: $traitFilePath");
-                } else {
-                    info("Failed to create trait file: $traitFilePath");
-                }
-            }
-        }
-    }
-
-    public function install_route_files()
+    /**
+     * Install custom route files
+     */
+    public function install_custom_route_files()
     {
         $customRouteFiles = [
             'custom_api',
@@ -412,12 +379,6 @@ class InstallController extends Controller
         }
     }
 
-    public function install_composer_files()
-    {
-        //run composer install
-        // Process::run("composer install");
-    }
-
     /**
      * Show when user try to install at installed status 
      */
@@ -425,7 +386,6 @@ class InstallController extends Controller
     {
         return view('wncms::errors.installed');
     }
-
 
     /**
      * Create an installed file in storage

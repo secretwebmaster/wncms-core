@@ -5645,6 +5645,7 @@ textarea.form-control-lg {
   border-radius: var(--bs-modal-border-radius);
   box-shadow: var(--bs-modal-box-shadow);
   outline: 0;
+  white-space:normal;
 }
 
 .modal-backdrop {

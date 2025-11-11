@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Secretwebmaster\LaravelOptionable\Traits\HasOptions;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Wncms\Services\Models\WncmsModel;
+use Wncms\Models\BaseModel;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class Page extends WncmsModel implements HasMedia
+class Page extends BaseModel implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;

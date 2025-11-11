@@ -6,7 +6,7 @@ use Wncms\Http\Controllers\Api\V1\PageController;
 use Wncms\Http\Controllers\Api\V1\PostController;
 use Wncms\Http\Controllers\Api\V1\TagController;
 use Wncms\Http\Controllers\Api\V1\UpdateController;
-use Wncms\Http\Controllers\Api\V1\PaymentGatewayController;
+
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
 
@@ -43,11 +43,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::prefix('update')->name('update.')->controller(UpdateController::class)->group(function () {
         Route::post('/', 'update')->name('run');
         Route::post('progress', 'progress')->name('progress');
-    });
-
-    // Payment
-    Route::prefix('payment')->name('payment.')->controller(PaymentGatewayController::class)->group(function () {
-        Route::post('notify', 'notify')->name('notify');
     });
 });
 

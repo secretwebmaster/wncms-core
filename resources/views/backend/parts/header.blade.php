@@ -63,6 +63,11 @@
 
                     @if(!empty($quickLinks = json_decode(gss('quick_links'), true)))
                         @foreach($quickLinks as $quickLink)
+                            {{-- Skip if route is required but does not exist --}}
+                            @if(empty($quickLink['url']) && !empty($quickLink['route']) && !wncms()->getRoute($quickLink['route']))
+                                @continue
+                            @endif
+
                             <div class="menu-item me-lg-1">
                                 <a class="menu-link p-2" href="{{ $quickLink['url'] ?? route($quickLink['route']) }}" title="{{ $quickLink['url'] ?? route($quickLink['route']) }}">
                                     <span class="menu-title text-gray-700">{{ $quickLink['name'] }}</span>
@@ -70,6 +75,7 @@
                             </div>
                         @endforeach
                     @endif
+
 
                 </div>
             </div>

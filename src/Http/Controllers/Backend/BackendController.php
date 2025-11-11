@@ -56,15 +56,23 @@ abstract class BackendController extends Controller
      * @param string|array|null $tag
      * @return bool
      */
-    public function flush(string|array|null $tag = null)
+    public function flush(string|array|null $tags = null)
     {
-        if ($tag) {
-            return wncms()->cache()->tags($tag)->flush();
-        } else if ($this->cacheTags) {
-            return wncms()->cache()->tags($this->cacheTags)->flush();
-        } else {
-            return false;
+        $tags ??= $this->cacheTags;
+        if (is_string($tags)) {
+            $tags = [$tags];
         }
+
+        $isCleared = false;
+
+        foreach ($tags as $tag) {
+            $result = wncms()->cache()->tags($tag)->flush();
+            if ($result) {
+                $isCleared = true;
+            }
+        }
+
+        return $isCleared;
     }
 
     /**

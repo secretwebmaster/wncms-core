@@ -1,25 +1,17 @@
 <?php
 
-use Wncms\Http\Controllers\Frontend\CardController;
 use Wncms\Http\Controllers\Frontend\ClickController;
-use Wncms\Http\Controllers\Frontend\PlanController;
 use Wncms\Http\Controllers\Frontend\CommentController;
-use Wncms\Http\Controllers\Frontend\ContactFormSubmissionController;
 use Wncms\Http\Controllers\Frontend\PageController;
 use Wncms\Http\Controllers\Frontend\PostController;
 use Wncms\Http\Controllers\Frontend\SitemapController;
-use Wncms\Http\Controllers\Frontend\FaqController;
 use Wncms\Http\Controllers\Frontend\LinkController;
-use Wncms\Http\Controllers\Frontend\OrderController;
 use Wncms\Http\Controllers\Frontend\UserController;
 
 Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_cache')->group(function () {
 
     //home
     Route::get('/', [PageController::class, 'home'])->name('pages.home');
-
-    //contact_form_submission
-    Route::post('contact_form_submissions/submit_ajax', [ContactFormSubmissionController::class, 'submit_ajax'])->name('contact_form_submissions.submit_ajax');
 
     //build-in pages
     Route::get('blog', [PageController::class, 'blog'])->name('pages.blog');
@@ -67,19 +59,6 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::get('{tagType}/{tagName?}', 'archive')->name('posts.archive');
     });
 
-    //faq
-    Route::get('faq/{slug}', [FaqController::class, 'single'])->name('faqs.single');
-    Route::get('faq/search/{keyword}', [FaqController::class, 'search_result'])->name('faqs.search_result');
-    Route::post('faq/search', [FaqController::class, 'search'])->name('faqs.search');
-    Route::get('faq/tag/{tagName?}', [FaqController::class, 'tag'])->name('faqs.tag');
-    Route::get('faq/{tagType}/{tagName?}', [FaqController::class, 'archive'])->name('faqs.archive');
-
-    //plan
-    Route::get('plans', [PlanController::class, 'index'])->name('plans.index');
-    Route::get('plans/{plan}', [PlanController::class, 'show'])->name('plans.show');
-    Route::post('plans/subscribe', [PlanController::class, 'subscribe'])->name('plans.subscribe');
-    Route::post('plans/unsubscribe', [PlanController::class, 'unsubscribe'])->name('plans.unsubscribe');
-
     //sitemap
     Route::get('sitemap/posts', [SitemapController::class, 'posts'])->name('sitemaps.posts');
     Route::get('sitemap/pages', [SitemapController::class, 'pages'])->name('sitemaps.pages');
@@ -109,26 +88,18 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
             Route::get('/profile', 'show_profile')->name('users.profile');
             Route::get('/profile/edit', 'edit_profile')->name('users.profile.edit');
             Route::post('/profile/update', 'update_profile')->name('users.profile.update');
-            Route::get('/subscription', 'show_subscription')->name('users.subscription');
+            // Route::get('/subscription', 'show_subscription')->name('users.subscription');
     
             Route::get('/bindmsg', 'sendBindMessage')->name('users.bindmsg');
             Route::post('/bind', 'bindAccount')->name('users.bind');
             Route::post('/unbind', 'unbindAccount')->name('users.unbind');
     
-            // orders
-            Route::prefix('orders')->controller(OrderController::class)->group(function () {
-                Route::get('/', 'index')->name('orders.index');
-                Route::get('/{order}', 'show')->name('orders.show');
-                Route::post('/{order}/pay', 'pay')->name('orders.pay');
-                Route::get('/{order}/success', 'success')->name('orders.success');
-            });
+            // Route::prefix('card')->controller(CardController::class)->group(function () {
+            //     Route::get('/', 'show')->name('users.card');
+            //     Route::post('/use', 'use')->name('users.card.use');
+            // });
     
-            Route::prefix('card')->controller(CardController::class)->group(function () {
-                Route::get('/', 'show')->name('users.card');
-                Route::post('/use', 'use')->name('users.card.use');
-            });
-    
-            Route::get('{page}', 'page')->name('users.page');
+            Route::fallback('page')->name('users.page');
         });
     });
 

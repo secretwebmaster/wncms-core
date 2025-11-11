@@ -2179,6 +2179,23 @@ $words = [
     'add_comment' => '添加評論',
     'edit_comment' => '編輯評論',
     'write_a_comment' => '寫下你的評論...',
+
+    // 6.0.0
+    'package_activated' => '套件已啟用',
+    'package_activated_with_name' => '套件 :name 已啟用',
+    'package_deactivated' => '套件已停用',
+    'package_deactivated_with_name' => '套件 :name 已停用',
+    'package' => '套件',
+    'deactivate_package' => '停用套件',
+    'deactivate_package_confirmation' => '此操作將停用套件 :package_name，可能會移除相關數據，再此啟用無法復原數據，確定要繼續嗎？',
+    'deactivate_and_delete_data' => '停用並刪除數據',
+    'fail_to_submit' => '提交失敗',
+    'installed' => '已安裝',
+    'successfully_installed' => '成功安裝',
+    'view' => '查看',
+    'package_is_not_activated' => '套件 :package_id 未啟用',
+    'multi_website' => '多網站模式',
+    'multi_website_hint' => '啟用多網站管理（預設關閉）',
 ];
 
 $locale = basename(__DIR__);

@@ -2,7 +2,7 @@
 
 namespace Wncms\Models;
 
-use Wncms\Services\Models\WncmsModel;
+use Wncms\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
@@ -11,7 +11,7 @@ use Str;
 use Wncms\Traits\HasComments;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class Post extends WncmsModel implements HasMedia
+class Post extends BaseModel implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
