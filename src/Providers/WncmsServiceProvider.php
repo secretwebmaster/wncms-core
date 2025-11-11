@@ -157,14 +157,6 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function loadPublishFiles(): void
     {
-        // User-editable configs
-        $this->publishes([
-            __DIR__ . '/../../config/wncms.php' => config_path('wncms.php'),
-            __DIR__ . '/../../config/wncms-system-settings.php' => config_path('wncms-system-settings.php'),
-            __DIR__ . '/../../config/wncms-tags.php' => config_path('wncms-tags.php'),
-            __DIR__ . '/../../config/theme' => config_path('theme'),
-        ], 'wncms-config');
-
         // Core assets
         $this->publishes([
             __DIR__ . '/../../resources/core-assets' => public_path('wncms'),
