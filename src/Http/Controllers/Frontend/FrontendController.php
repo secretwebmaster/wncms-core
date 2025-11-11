@@ -16,7 +16,12 @@ class FrontendController extends Controller
 
     public function __construct()
     {
-        $this->website = wncms()->website()->get();
+        if(wncms_is_installed()){
+            $this->website = wncms()->website()->get();
+        }else{
+            $this->website = null;
+            info("Wncms is not installed yet.");
+        }
 
         // TODO: config destination in setting
         if (!$this->website) {
