@@ -94,4 +94,13 @@ trait ModelMethods
     {
         return array_values($this->modelClassCache);
     }
+
+    public function getModelByKey(string $key)
+    {
+        // get from modelClassCache
+        if (isset($this->modelClassCache[$key])) {
+            $class = $this->modelClassCache[$key];
+            return new $class;
+        }
+    }
 }
