@@ -42,13 +42,14 @@ class SitemapController
 
             if($model == 'posts'){
                 if($type == 'post_category'){
-                    $sitemap->add(Url::create(route("frontend.posts.category", ['tagName' => $tag->name]))->setLastModificationDate($tag->updated_at));
+                    $sitemap->add(Url::create(route("frontend.posts.tag", ['type' => 'category', 'slug' => $tag->name]))->setLastModificationDate($tag->updated_at));
 
                 }elseif($type == 'post_tag'){
-                    $sitemap->add(Url::create(route("frontend.posts.tag", ['tagName' => $tag->name]))->setLastModificationDate($tag->updated_at));
+                    $sitemap->add(Url::create(route("frontend.posts.tag", ['type' => 'tag', 'slug' => $tag->name]))->setLastModificationDate($tag->updated_at));
 
                 }else{
-                    $sitemap->add(Url::create(route("frontend.posts.archive", ['tagType' => $tag->type, 'tagName' => $tag->name]))->setLastModificationDate($tag->updated_at));
+                    info("unsupported tag type [{$type}] for posts sitemap");
+                    // $sitemap->add(Url::create(route("frontend.posts.archive", ['tagType' => $tag->type, 'tagName' => $tag->name]))->setLastModificationDate($tag->updated_at));
                 }
             }
         }
