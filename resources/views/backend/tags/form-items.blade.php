@@ -4,11 +4,71 @@
     <div class="col-lg-9 fv-row">
         <select name="type" class="form-select form-select-sm" required>
             @foreach($tagTypes as $tagType)
-            <option value="{{ $tagType['slug'] }}" @if($tagType['slug'] == $tag->type || $tagType['slug'] == request()->type) selected @endif>{{ $tagType['name'] }} - {{ $tagType['slug'] }}</option>
+            <option data-model-key="{{ $tagType['model_key'] }}" value="{{ $tagType['key'] }}" @if($tagType['key']==$tag->type || $tagType['key'] == request()->type) selected @endif>{{ wncms()->tag()->getTagTypeLabel($tagType['model'], $tagType['key']) }} - {{ $tagType['key'] }}</option>
             @endforeach
         </select>
     </div>
 </div>
+
+{{-- Tag group --}}
+<div class="row mb-3">
+    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.tag_group')</label>
+    <div class="col-lg-9 fv-row">
+        <select name="group" class="form-select form-select-sm" required>
+            @foreach($modelGroups as $group)
+            <option value="{{ $group }}" @if($group==($tag->group ?? request()->group)) selected @endif>
+                {{ $group }}
+            </option>
+            @endforeach
+        </select>
+    </div>
+
+    @push('foot_js')
+    <script>
+    $(function () {
+
+        const $typeSelect  = $('select[name="type"]');
+        const $groupSelect = $('select[name="group"]');
+
+        function autoSelectGroup() {
+
+            // If group already selected in Blade (edit mode), DO NOT override
+            const currentGroup = $groupSelect.val();
+
+            if (currentGroup) {
+                console.log('Group already set, skip auto-select:', currentGroup);
+                return;
+            }
+
+            const modelKey = $typeSelect.find('option:selected').data('model-key');
+
+            if (!modelKey) {
+                console.log('No data-model-key found on selected option');
+                return;
+            }
+
+            console.log('Auto-select group:', modelKey);
+            $groupSelect.val(modelKey).trigger('change');
+        }
+
+        // run on page load
+        autoSelectGroup();
+
+        // run when user changes the type manually
+        $typeSelect.on('change', function () {
+            // On change, always auto-select (user intentionally changed type)
+            const modelKey = $(this).find('option:selected').data('model-key');
+            $groupSelect.val(modelKey).trigger('change');
+        });
+
+    });
+    </script>
+    @endpush
+
+
+</div>
+
+
 
 {{-- Parent --}}
 <div class="row mb-3">
