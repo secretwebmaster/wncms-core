@@ -43,7 +43,7 @@ class TagController extends BackendController
         $q->orderBy('sort', 'desc');
 
         $parents = $q->paginate($request->page_size ?? 50);
-        $tagTypes = wncms()->tag()->getModelsWithHasTagsTraits();
+        $tagTypes = wncms()->tag()->getAllTagTypes();
 
         $allParents = $this->modelClass::whereNull('parent_id')->when($request->type, function ($subq) use ($request) {
             $subq->where('type', $request->type);
@@ -56,6 +56,7 @@ class TagController extends BackendController
             'sorts' => $this->modelClass::SORTS,
             'tagTypes' => $tagTypes,
             'type' => $selectedType,
+            'hideToolbarCreateButton' => true,
         ]);
     }
 
@@ -63,8 +64,6 @@ class TagController extends BackendController
     {
         // Get allowed tag types registered by all models
         $tagTypes = wncms()->tag()->getAllTagTypes();
-
-        dd($tagTypes);
 
         $request = request();
 
@@ -90,11 +89,19 @@ class TagController extends BackendController
             $tag = new $this->modelClass;
         }
 
+        $modelGroups = collect(wncms()->getModels())
+            ->map(fn($model) => $model::$modelKey ?? null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
         return $this->view('backend.tags.create', [
             'page_title' => __('wncms::word.category_management'),
             'tagTypes'   => $tagTypes,
             'parents'    => $parents,
             'tag'        => $tag,
+            'modelGroups' => $modelGroups,
         ]);
     }
 
@@ -125,6 +132,7 @@ class TagController extends BackendController
             'icon' => $icon_name,
             'sort' => $request->sort,
             'type' => $request->type ?? 'post_category',
+            'group' => $request->group ?? (is_string($request->type) ? explode('_', $request->type)[0] : null),
         ]);
 
         if (!empty($request->tag_thumbnail_remove)) $tag->clearMediaCollection('tag_thumbnail');
@@ -146,11 +154,20 @@ class TagController extends BackendController
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
         }
 
-        $tagTypes = wncms()->tag()->getModelsWithHasTagsTraits();
+        $tagTypes = wncms()->tag()->getAllTagTypes();
+
+        $modelGroups = collect(wncms()->getModels())
+            ->map(fn($model) => $model::$modelKey ?? null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
         return $this->view('backend.tags.edit', [
             'page_title' => __('wncms::word.edit_tag'),
             'tagTypes' => $tagTypes,
             'tag' => $tag,
+            'modelGroups' => $modelGroups,
         ]);
     }
 
@@ -188,6 +205,7 @@ class TagController extends BackendController
             'description' => $request->description,
             'icon' => $icon_name,
             'sort' => $request->sort,
+            'group' => $request->group ?? (is_string($request->type) ? explode('_', $request->type)[0] : null),
         ]);
 
         if (app()->getLocale() != LaravelLocalization::getDefaultLocale()) {
@@ -327,7 +345,7 @@ class TagController extends BackendController
 
         $parents = $q->paginate($request->page_size ?? 50);
 
-        $tagTypes = wncms()->tag()->getModelsWithHasTagsTraits();
+        $tagTypes = wncms()->tag()->getAllTagTypes();
 
         $allKeywords = TagKeyword::whereRelation('tag', 'type', $selectedType)->get()->map(function ($keyword) {
             return ['value' => $keyword->id, 'name' => $keyword->name];
