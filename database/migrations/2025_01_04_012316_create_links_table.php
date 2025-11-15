@@ -22,19 +22,16 @@ return new class extends Migration
                 $table->string('external_thumbnail')->nullable();
                 $table->integer('clicks')->nullable()->default(0);
                 $table->string('remark')->nullable();
-
-                $table->integer('order')->nullable();
+                $table->integer('sort')->nullable();
                 $table->string('color')->nullable();
                 $table->boolean('is_pinned')->nullable()->default(false);
                 $table->datetime('expired_at')->nullable();
-
                 $table->string('tracking_code')->nullable()->index();
                 $table->string('slogan')->nullable();
                 $table->string('background')->nullable();
                 $table->string('contact')->nullable();
                 $table->boolean('is_recommended')->nullable()->default(false);
                 $table->datetime('hit_at')->nullable();
-
                 $table->timestamps();
             });
         }

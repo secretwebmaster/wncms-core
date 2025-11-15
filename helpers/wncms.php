@@ -28,9 +28,9 @@ use Illuminate\Support\Facades\Route;
 if (!function_exists('wncms_get_version')) {
     function wncms_get_version($debug_type = null)
     {
-        if(!empty($debug_type)){
-            if($debug_type == 'js') return gss('core_version') . env('APP_VERSION') . (env('JS_DEBUG') ? time() : '');
-            if($debug_type == 'css') return gss('core_version') . env('APP_VERSION') . (env('CSS_DEBUG') ? time() : '');
+        if (!empty($debug_type)) {
+            if ($debug_type == 'js') return gss('core_version') . env('APP_VERSION') . (env('JS_DEBUG') ? time() : '');
+            if ($debug_type == 'css') return gss('core_version') . env('APP_VERSION') . (env('CSS_DEBUG') ? time() : '');
         }
         $app_debug =  env('APP_DEBUG') ? time() : '';
         return gss('core_version') . $app_debug;
@@ -69,20 +69,28 @@ if (!function_exists('wncms_get_model_names')) {
         $files = $appModels->merge($packageModels);
 
         $collection = $files->map(function ($modelName) {
-            if (class_exists($modelName)) {
-                $model = new $modelName;
-
-                return [
-                    'model_name' => class_basename($modelName),
-                    'name_key' => defined(get_class($model) . '::NAME_KEY') ? $model::NAME_KEY : null,
-                    'model_name_with_namespace' => $modelName,
-                    'priority' => property_exists($model, 'menuPriority') ? $model->menuPriority : 0,
-                    'routes' => defined($modelName . "::ROUTES") ? $modelName::ROUTES : null,
-                ];
+            if (!class_exists($modelName)) {
+                return null;
             }
 
-            return null;
+            $ref = new \ReflectionClass($modelName);
+
+            // Skip abstract models
+            if ($ref->isAbstract()) {
+                return null;
+            }
+
+            $model = new $modelName;
+
+            return [
+                'model_name' => class_basename($modelName),
+                'name_key' => defined(get_class($model) . '::NAME_KEY') ? $model::NAME_KEY : null,
+                'model_name_with_namespace' => $modelName,
+                'priority' => property_exists($model, 'menuPriority') ? $model->menuPriority : 0,
+                'routes' => defined($modelName . "::ROUTES") ? $modelName::ROUTES : null,
+            ];
         })->filter();
+
         return $collection;
     }
 }
@@ -99,8 +107,8 @@ if (!function_exists('wncms_route_is')) {
     {
         $route_names = (array)$route_names;
 
-        foreach($route_names as $route_name){
-            if(request()->routeIs($route_name)){
+        foreach ($route_names as $route_name) {
+            if (request()->routeIs($route_name)) {
                 return $true_value;
             }
         }
@@ -111,11 +119,11 @@ if (!function_exists('wncms_route_is')) {
 if (!function_exists('wncms_view')) {
     function wncms_view($view_name, $params, $fallback_view = null)
     {
-        if(view()->exists($view_name)){
+        if (view()->exists($view_name)) {
             return view($view_name, $params);
-        }elseif(view()->exists($fallback_view)){
+        } elseif (view()->exists($fallback_view)) {
             return view($fallback_view, $params);
-        }else{
+        } else {
             abort(404);
         }
     }
@@ -179,12 +187,12 @@ if (!function_exists('wncms_is_installed')) {
 if (!function_exists('wncms_info')) {
     function wncms_info($data, $title = null)
     {
-        if($title){
+        if ($title) {
             info("================== $title start =================");
         }
         info($data);
-        
-        if($title){
+
+        if ($title) {
             info("================== $title end =================");
         }
     }
@@ -266,7 +274,7 @@ if (!function_exists('wncms_array_has_any')) {
                 return $key;
             }
         }
-        
+
         return false;
     }
 }
@@ -372,12 +380,13 @@ if (!function_exists('wncms_generate_url_with_query')) {
 }
 
 if (!function_exists('getSeoImageType')) {
-    function getSeoImageType($imagePath) {
+    function getSeoImageType($imagePath)
+    {
         try {
             if (file_exists($imagePath)) {
                 // Use getimagesize to fetch the image MIME type
                 $imageInfo = getimagesize($imagePath);
-    
+
                 if (is_array($imageInfo) && isset($imageInfo['mime'])) {
                     return $imageInfo['mime'];
                 }
@@ -386,7 +395,7 @@ if (!function_exists('getSeoImageType')) {
             // Handle any exceptions here, e.g., log the error
             // Log::error('Error while fetching image type: ' . $e->getMessage());
         }
-    
+
         // If an error occurs or the image doesn't exist, return a default MIME type
         return 'image/jpeg'; // You can change this to any default value you prefer
     }

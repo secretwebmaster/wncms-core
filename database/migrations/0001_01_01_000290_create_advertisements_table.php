@@ -30,7 +30,7 @@ return new class extends Migration
                 $table->text('style')->nullable();
                 $table->string('position')->nullable();
                 $table->string('contact')->nullable();
-                $table->integer('order')->nullable();
+                $table->integer('sort')->nullable();
                 $table->timestamps();
             });
         }

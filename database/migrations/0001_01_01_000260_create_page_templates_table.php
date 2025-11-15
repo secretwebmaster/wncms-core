@@ -15,13 +15,10 @@ return new class extends Migration
             Schema::create('page_templates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('page_id')->constrained()->cascadeOnDelete();
-
-                //use to locate template path /view("frontend.themes.{$theme_id}.templates.{$template_id}")
                 $table->string('theme_id');
                 $table->string('template_id');
-
                 $table->json('value');
-                $table->integer('order')->default(0);
+                $table->integer('sort')->nullable();
                 $table->timestamps();
             });
         }

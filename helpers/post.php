@@ -27,15 +27,15 @@ if (!function_exists('wncms_get_post')) {
 }
 
 if (!function_exists('wncms_get_posts')) {
-    function wncms_get_posts(Website $website = null, array|string|null $category = [], $taxonomy_type = 'post_category', $count = 0, $page_size = 0, $order = 'id', $sequence = 'desc', $status = 'published')
+    function wncms_get_posts(Website $website = null, array|string|null $category = [], $taxonomy_type = 'post_category', $count = 0, $page_size = 0, $sort = 'id', $direction = 'desc', $status = 'published')
     {
         if (empty($category)) $category = [];
         if (is_string($category)) $category = explode(',', $category);
         //% To DO
 
-        $cacheKey = "wncms_get_posts_" . implode(",", $category) . "_taxonomy_type_{$taxonomy_type}_{$count}_{$page_size}_{$order}_{$sequence}_{$status}";
+        $cacheKey = "wncms_get_posts_" . implode(",", $category) . "_taxonomy_type_{$taxonomy_type}_{$count}_{$page_size}_{$sort}_{$direction}_{$status}";
         wncms()->cache()->tags(['posts'])->forget($cacheKey);
-        $posts = wncms()->cache()->tags(['posts'])->remember($cacheKey, gss('data_cache_time'), function () use ($category, $taxonomy_type, $count, $page_size, $order, $sequence, $status) {
+        $posts = wncms()->cache()->tags(['posts'])->remember($cacheKey, gss('data_cache_time'), function () use ($category, $taxonomy_type, $count, $page_size, $sort, $direction, $status) {
             return Post::query()
                 ->with('media', function ($q) {
                     $q->where('collection_name', 'post_thumbnail');
@@ -47,7 +47,7 @@ if (!function_exists('wncms_get_posts')) {
                     $q->withAnyTags($category, $taxonomy_type);
                 })
                 ->when($count, fn ($q) => $q->limit($count))
-                ->orderBy($order, in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc')
+                ->orderBy($sort, in_array($direction, ['asc', 'desc']) ? $direction : 'desc')
                 ->orderBy('id', 'desc')
                 ->where('status', $status)
                 ->get();
@@ -68,14 +68,14 @@ if (!function_exists('wncms_get_posts')) {
 }
 
 if (!function_exists('wncms_get_posts_by_keyword')) {
-    function wncms_get_posts_by_keyword(Website $website = null, array|string|null $keywords = [], $count = 0, $page_size = 0, $order = 'id', $sequence = 'desc', $status = 'published')
+    function wncms_get_posts_by_keyword(Website $website = null, array|string|null $keywords = [], $count = 0, $page_size = 0, $sort = 'id', $direction = 'desc', $status = 'published')
     {
         if (empty($keywords)) $keywords = [];
         if (is_string($keywords)) $keywords = explode(',', $keywords);
 
-        $cacheKey = "wncms_get_posts_by_keyword_" . implode(",", $keywords) . "_{$count}_{$page_size}_{$order}_{$sequence}_{$status}";
+        $cacheKey = "wncms_get_posts_by_keyword_" . implode(",", $keywords) . "_{$count}_{$page_size}_{$sort}_{$direction}_{$status}";
         wncms()->cache()->tags(['posts'])->forget($cacheKey);
-        $posts = wncms()->cache()->tags(['posts'])->remember($cacheKey, gss('data_cache_time'), function () use ($website, $keywords, $count, $order, $sequence, $status) {
+        $posts = wncms()->cache()->tags(['posts'])->remember($cacheKey, gss('data_cache_time'), function () use ($website, $keywords, $count, $sort, $direction, $status) {
             return $website->posts()
                 ->with('media')
                 ->where(function ($q) use ($keywords) {
@@ -85,7 +85,7 @@ if (!function_exists('wncms_get_posts_by_keyword')) {
                     }
                 })
                 // ->when($count, fn($q)=>$q->limit($count))
-                // ->orderBy($order, in_array($sequence, ['asc','desc']) ? $sequence : 'desc')
+                // ->orderBy($sort, in_array($direction, ['asc','desc']) ? $direction : 'desc')
                 // ->orderBy('id','desc')
                 // ->where('status',$status)
                 ->get();
@@ -106,12 +106,12 @@ if (!function_exists('wncms_get_posts_by_keyword')) {
 }
 
 if (!function_exists('wncms_get_posts_by_tag')) {
-    function wncms_get_posts_by_tag(Tag $tag, $count = 0, $page_size = 0, $order = 'id', $sequence = 'desc', $status = 'published')
+    function wncms_get_posts_by_tag(Tag $tag, $count = 0, $page_size = 0, $sort = 'id', $direction = 'desc', $status = 'published')
     {
         if (empty($tag)) return;
-        $cacheKey = "wncms_get_posts_by_tag_{$tag->id}_{$count}_{$page_size}_{$order}_{$sequence}_{$status}";
+        $cacheKey = "wncms_get_posts_by_tag_{$tag->id}_{$count}_{$page_size}_{$sort}_{$direction}_{$status}";
         wncms()->cache()->tags(['posts'])->forget($cacheKey);
-        $posts = wncms()->cache()->tags(['posts'])->remember($cacheKey, gss('data_cache_time'), function () use ($tag, $count, $page_size, $order, $sequence, $status) {
+        $posts = wncms()->cache()->tags(['posts'])->remember($cacheKey, gss('data_cache_time'), function () use ($tag, $count, $page_size, $sort, $direction, $status) {
             $website = wn('website')->get();
             if (!$website) return;
 
@@ -121,7 +121,7 @@ if (!function_exists('wncms_get_posts_by_tag')) {
                     $q->where('collection_name', 'post_thumbnail');
                 })
                 ->when($count, fn ($q) => $q->limit($count))
-                ->orderBy($order, in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc')
+                ->orderBy($sort, in_array($direction, ['asc', 'desc']) ? $direction : 'desc')
                 ->orderBy('id', 'desc')
                 ->where('status', $status)
                 ->get();
@@ -138,17 +138,17 @@ if (!function_exists('wncms_get_posts_by_tag')) {
 }
 
 if (!function_exists('wncms_get_related_posts')) {
-    function wncms_get_related_posts(Post $post, array|string|null $category = [], $taxonomy_type = 'post_category', $count = 0, $page_size = 0, $order = 'id', $sequence = 'desc', $status = 'published')
+    function wncms_get_related_posts(Post $post, array|string|null $category = [], $taxonomy_type = 'post_category', $count = 0, $page_size = 0, $sort = 'id', $direction = 'desc', $status = 'published')
     {
         if (!$post) return collect([]);
         if (empty($category)) $category = [];
         if (is_string($category)) $category = explode(',', $category);
         //% To DO
 
-        $cacheKey = "wncms_get_related_posts_{$post->id}_" . implode(",", $category) . "_taxonomy_type_{$taxonomy_type}_{$count}_{$page_size}_{$order}_{$sequence}_{$status}";
+        $cacheKey = "wncms_get_related_posts_{$post->id}_" . implode(",", $category) . "_taxonomy_type_{$taxonomy_type}_{$count}_{$page_size}_{$sort}_{$direction}_{$status}";
         $cacheTags = ['posts'];
         wncms()->cache()->tags($cacheTags)->forget($cacheKey);
-        $posts = wncms()->cache()->tags($cacheTags)->remember($cacheKey, gss('data_cache_time'), function () use ($post, $category, $taxonomy_type, $count, $page_size, $order, $sequence, $status) {
+        $posts = wncms()->cache()->tags($cacheTags)->remember($cacheKey, gss('data_cache_time'), function () use ($post, $category, $taxonomy_type, $count, $page_size, $sort, $direction, $status) {
             return Post::query()
                 ->with('media', function ($q) {
                     $q->where('collection_name', 'post_thumbnail');
@@ -157,7 +157,7 @@ if (!function_exists('wncms_get_related_posts')) {
                     $q->withAnyTags($category, $taxonomy_type);
                 })
                 ->when($count, fn ($q) => $q->limit($count))
-                ->orderBy($order, in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc')
+                ->orderBy($sort, in_array($direction, ['asc', 'desc']) ? $direction : 'desc')
                 ->orderBy('id', 'desc')
                 ->where('status', $status)
                 ->where('id', '<>' , $post->id)

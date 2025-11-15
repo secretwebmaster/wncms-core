@@ -24,10 +24,8 @@ return new class extends Migration
                 $table->string('url')->nullable(); // auto assign to model route when null for model | auto javascript:; when null for external link | link 
                 $table->boolean('is_new_window')->default(false);
                 $table->boolean('is_mega_menu')->default(false);
-                $table->integer('order')->default(0);
-
+                $table->integer('sort')->nullable();
                 $table->string('description')->nullable(); //3.1.5
-
                 $table->timestamps();
             });
         }

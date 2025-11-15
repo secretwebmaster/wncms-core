@@ -160,7 +160,7 @@ if (!function_exists('wncms_get_tags')) {
             return Tag::where('type', 'link_category')
                 ->whereIn('name', explode(',', $category_str))
                 ->orWhereIn('id', explode(',', $category_str))
-                ->orderBy('order_column', 'desc')
+                ->orderBy('sort', 'desc')
                 ->get() ?? [];
         });
     }
