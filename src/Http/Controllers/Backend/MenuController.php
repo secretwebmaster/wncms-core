@@ -55,25 +55,54 @@ class MenuController extends BackendController
     public function edit($id)
     {
         $menu = $this->modelClass::find($id);
+
         if (!$menu) {
-            return back()->withErrors(['message' => __('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)])]);
+            return back()->withErrors(['message' => __('wncms::word.model_not_found', [
+                'model_name' => __('wncms::word.' . $this->singular)
+            ])]);
         }
 
         $tagTypeArr = [];
-        $tagTypes = wncms()->tag()->getTypes();
 
-        foreach ($tagTypes as $tagType) {
-            $tagTypeArr[$tagType] = wncms()->getModelClass('tag')::where('type', $tagType)->whereNull('parent_id')->with('children')->get();
+        // Loop all registered models
+        foreach (wncms()->getModels() as $modelClass) {
+
+            // Each model's tag meta definitions
+            if (method_exists($modelClass, 'getTagMeta')) {
+                foreach ($modelClass::getTagMeta() as $meta) {
+
+                    $tagType = $meta['key'];
+
+                    // Load top-level tags for this tagType (with children)
+                    $tags = wncms()->getModelClass('tag')::withType($tagType)
+                        ->whereNull('parent_id')
+                        ->with('children')
+                        ->get();
+
+                    if ($tags->isEmpty()) {
+                        continue;
+                    }
+
+                    // Merge tags into the meta structure
+                    $tagTypeArr[$tagType] = array_merge($meta, [
+                        'tags' => $tags,
+                    ]);
+                }
+            }
         }
 
+        // dd($tagTypeArr);
+
         $menus = $this->modelClass::all();
+
         return $this->view('backend.menus.edit', [
             'page_title' => wncms_model_word('menu', 'management'),
             'menus' => $menus,
             'menu' => $menu,
-            'tagTypeArr' => $tagTypeArr
+            'tagTypeArr' => $tagTypeArr,
         ]);
     }
+
 
     /**
      * Update the specified resource in storage.
