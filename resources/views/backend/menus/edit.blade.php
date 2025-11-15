@@ -4,7 +4,6 @@
 <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/nestable2@1.6.0/jquery.nestable.min.css" />
 @endpush
 
-
 @section('content')
 
 @include('wncms::backend.parts.message')
@@ -22,40 +21,67 @@
                 </select>
             </div> --}}
 
-            {{-- Tags --}}
-            @foreach($tagTypeArr as $tagTypeName => $tags)
+            {{-- Tag groups --}}
+            @foreach($tagTypeArr as $tagTypeName => $meta)
+            @php
+            $modelClass = $meta['model'];
+            $packageId = $meta['package'];
+            $tags = $meta['tags'];
+
+            // tag type label (商品標籤)
+            $typeLabel = wncms()->tag()->getTagTypeLabel($modelClass, $tagTypeName);
+            @endphp
+
             <div class="accordion-item" id="accordion_{{ $tagTypeName }}">
+
                 {{-- Accordion title --}}
                 <h2 class="accordion-header" id="wncmsAccordionHeader{{ $tagTypeName }}">
-                    <button class="accordion-button fw-bold text-white bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menuOption{{ $tagTypeName }}" aria-expanded="true" aria-controls="menuOption{{ $tagTypeName }}">
-                        @lang('wncms::word.' . $tagTypeName)
+                    <button class="accordion-button collapsed fw-bold text-gray-100 bg-dark py-3"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#menuOption{{ $tagTypeName }}"
+                        aria-expanded="true"
+                        aria-controls="menuOption{{ $tagTypeName }}">
+                        {{ $typeLabel }}
                     </button>
                 </h2>
 
-                {{-- Accordion Content --}}
-                <div id="menuOption{{ $tagTypeName }}" class="menu-options accordion-collapse collapse" aria-labelledby="wncmsAccordionHeader{{ $tagTypeName }}" data-bs-parent="#wncmsAccordionHeader{{ $tagTypeName }}">
+                {{-- Accordion content --}}
+                <div id="menuOption{{ $tagTypeName }}"
+                    class="menu-options accordion-collapse collapse"
+                    aria-labelledby="wncmsAccordionHeader{{ $tagTypeName }}"
+                    data-bs-parent="#wncms_accordion">
+
                     <div class="accordion-body white-space-nowrap">
-                        {{-- Add to menu button --}}
+
+                        {{-- Add to menu --}}
                         <div class="mb-3">
-                            <button class="btn btn-sm btn-secondary w-100 fw-bold add_to_menu">@lang('wncms::word.add_to_menu')</button>
+                            <button class="btn btn-sm btn-secondary w-100 fw-bold add_to_menu">
+                                @lang('wncms::word.add_to_menu')
+                            </button>
                         </div>
 
                         {{-- Tag items --}}
                         <div class="form-group mh-500px overflow-scroll text-truncate">
                             <div class="row mw-100">
-                                @include('wncms::backend.menus.children_tags', ['children' => $tags, 'level' => 0])
+                                @include('wncms::backend.menus.children_tags', [
+                                'children' => $tags,
+                                'level' => 0
+                                ])
                             </div>
                         </div>
+
                     </div>
+
                 </div>
+
             </div>
             @endforeach
-
 
             {{-- Pages --}}
             <div class="accordion-item">
                 <h2 class="accordion-header" id="wncms_accordion_page">
-                    <button class="accordion-button fw-bold text-white bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_page" aria-expanded="true" aria-controls="menu_option_page">
+                    <button class="accordion-button collapsed fw-bold text-gray-100 bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_page" aria-expanded="true" aria-controls="menu_option_page">
                         @lang('wncms::word.custom_page')
                     </button>
                 </h2>
@@ -84,7 +110,7 @@
             {{-- Theme pages --}}
             <div class="accordion-item">
                 <h2 class="accordion-header" id="wncms_accordion_theme_page">
-                    <button class="accordion-button fw-bold text-white bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_theme_page" aria-expanded="true" aria-controls="menu_option_theme_page">
+                    <button class="accordion-button collapsed fw-bold text-gray-100 bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_theme_page" aria-expanded="true" aria-controls="menu_option_theme_page">
                         @lang('wncms::word.theme_page')
                     </button>
                 </h2>
@@ -112,7 +138,7 @@
             {{-- External Link --}}
             <div class="accordion-item">
                 <h2 class="accordion-header" id="wncms_accordion_external_link">
-                    <button class="accordion-button fw-bold text-white bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_external_link" aria-expanded="true" aria-controls="menu_option_external_link">
+                    <button class="accordion-button collapsed fw-bold text-gray-100 bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_external_link" aria-expanded="true" aria-controls="menu_option_external_link">
                         @lang('wncms::word.external_link')
                     </button>
                 </h2>
