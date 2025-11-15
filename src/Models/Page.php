@@ -25,6 +25,19 @@ class Page extends BaseModel implements HasMedia
 
     protected $guarded = [];
 
+    protected static array $tagMetas = [
+        [
+            'key'   => 'page_category',
+            'short' => 'category',
+            'route' => '',
+        ],
+        [
+            'key'   => 'page_tag',
+            'short' => 'tag',
+            'route' => '',
+        ],
+    ];
+
     protected $with = ['options'];
 
     protected $translatable = ['title', 'content'];
