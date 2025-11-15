@@ -27,65 +27,58 @@ class PostController extends FrontendController
     }
 
     /**
-     * Show posts by category.
-     */
-    public function category(?string $tagName = null)
-    {
-        if (empty($tagName)) {
-            return redirect()->route('frontend.pages.home');
-        }
-        return $this->archive('post_category', $tagName);
-    }
-
-    /**
      * Show posts by tag.
      */
-    public function tag(?string $tagName = null)
+    public function tag(string $type, string $slug)
     {
-        if (empty($tagName)) {
-            return redirect()->route('frontend.pages.home');
-        }
-        return $this->archive('post_tag', $tagName);
-    }
-
-    /**
-     * Show posts by tag type and tag name.
-     */
-    public function archive(string $tagType, ?string $tagName = null)
-    {
-        if (empty($tagName)) {
+        if (empty($slug)) {
             return redirect()->route('frontend.pages.home');
         }
 
-        $tag = wncms()->tag()->getByName(
-            tagName: $tagName,
-            tagType: $tagType,
-            withs: ['posts', 'posts.media', 'children']
-        );
+        // get tag type meta
+        $modelClass = wncms()->getModelClass('post');
+        $tagMeta = collect(wncms()->tag()->getTagTypes(wncms()->getModelClass('post'), 'full'))->firstWhere('short', $type);
+        $tagType = $tagMeta['key'] ?? '';
+        if (empty($tagType)) {
+            return redirect()->route('frontend.pages.home');;
+        }
+
+        // fetch tag by slug or name in current locale
+        $tag = wncms()->tag()->get([
+            'type' => $type,
+            'slug' => $slug,     // slug or name (ModelManager handles both)
+            'name' => $slug,     // allow name match as well
+            'cache' => true,
+        ]);
 
         if (!$tag) {
-            return redirect()->route('frontend.posts.search_result', ['keyword' => $tagName]);
+            return redirect()->route('frontend.posts.search_result', [
+                'keyword' => $slug
+            ]);
         }
 
-        $modelName = explode("_", $tagType)[0] ?? '';
-        $posts = $tag->getPostList([
+        $posts = wncms()->post()->getList([
             'count' => gto('post_limit', 0),
             'page' => request('page', 0),
             'page_size' => gto('post_page_size', 10),
             'cache' => false,
+            'tags' => [$tag->name],
+            'tag_type' => $tagType,
         ]);
+
 
         return $this->view("frontend.themes.{$this->theme}.posts.archive", [
             'pageTitle' => __('wncms::word.latest_tag_models', [
-                'tagName' => $tagName,
-                'modelName' => __('wncms::word.' . $modelName),
+                'tagName' => $slug,
+                'modelName' => $modelClass::getModelName(),
             ]),
-            'tagName' => $tagName,
-            'tagType' => $tagType,
+            'tagName' => $slug,
+            'tagType' => $type,
             'posts' => $posts,
             'tag' => $tag,
         ]);
     }
+
 
     /**
      * Search request via POST.
