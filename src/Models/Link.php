@@ -30,6 +30,19 @@ class Link extends BaseModel implements HasMedia
         'hit_at' => 'datetime',
     ];
 
+    protected static array $tagMetas = [
+        [
+            'key'   => 'link_category',
+            'short' => 'category',
+            'route' => '',
+        ],
+        [
+            'key'   => 'link_tag',
+            'short' => 'tag',
+            'route' => '',
+        ],
+    ];
+
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-link'
     ];
