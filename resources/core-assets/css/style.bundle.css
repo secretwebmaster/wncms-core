@@ -2205,8 +2205,10 @@ progress {
 }
 
 .col-form-label {
-  padding-top: calc(0.775rem + 1px);
-  padding-bottom: calc(0.775rem + 1px);
+  /* padding-top: calc(0.775rem + 1px);
+  padding-bottom: calc(0.775rem + 1px); */
+  padding-top: calc(0.575rem + 1px);
+  padding-bottom: calc(0.575rem + 1px);
   margin-bottom: 0;
   font-size: inherit;
   font-weight: 500;
