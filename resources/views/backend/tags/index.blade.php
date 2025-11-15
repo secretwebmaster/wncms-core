@@ -18,7 +18,7 @@
                         <select name="type" class="form-select form-select-sm">
                             <option value="all">@lang('wncms::word.tag_type')</option>
                             @foreach($tagTypes as $tagType)
-                                <option value="{{ $tagType['slug'] }}" @if($tagType['slug'] == request()->type) selected @endif>{{ $tagType['name'] }}</option>
+                                <option value="{{ $tagType['key'] }}" @if($tagType['key'] == (request()->type ?: 'post_category')) selected @endif>{{ __($tagType['label']) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -47,10 +47,7 @@
     {{-- WNCMS toolbar buttons --}}
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
-            {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('wncms::backend.common.default_toolbar_buttons', [
-                'model_prefix' => 'tags',
-            ])
+
 
             <a href="{{ route('tags.create', ['type' => request()->type]) }}" class="btn btn-sm btn-info fw-bold mb-1">@lang('wncms::word.create_current_tag_type')</a>
             <a href="{{ route('tags.bulk_create') }}" class="btn btn-sm btn-info fw-bold mb-1">@lang('wncms::word.bulk_create_tag')</a>
@@ -97,6 +94,11 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Create + Bilk Create + Clone + Bulk Delete --}}
+            @include('wncms::backend.common.default_toolbar_buttons', [
+                'model_prefix' => 'tags',
+            ])
         </div>
     </div>
 
