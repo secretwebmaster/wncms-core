@@ -37,11 +37,11 @@ class PostController extends BackendController
             $q->withTrashed();
         }
 
-        if (in_array($request->order, $this->modelClass::ORDERS)) {
-            if (in_array($request->order, ['traffics', 'clicks'])) {
-                $q->orderBy($request->order . '_count', in_array($request->sort, ['asc', 'desc']) ? $request->sort : 'desc');
+        if (in_array($request->sort, $this->modelClass::SORTS)) {
+            if (in_array($request->sort, ['traffics', 'clicks'])) {
+                $q->orderBy($request->sort . '_count', in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc');
             } else {
-                $q->orderBy($request->order, in_array($request->sort, ['asc', 'desc']) ? $request->sort : 'desc');
+                $q->orderBy($request->sort, in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc');
             }
         }
 
@@ -49,6 +49,7 @@ class PostController extends BackendController
 
         $q->orderBy('created_at', 'desc');
         $q->orderBy('id', 'desc');
+        
         $posts = $q->paginate($request->page_size ?? 20);
 
         $post_category_parants = wncms()->getModel('tag')::where('type', 'post_category')->whereNull('parent_id')->with('children')->get();
@@ -57,7 +58,7 @@ class PostController extends BackendController
             'page_title' => wncms_model_word('post', 'management'),
             'posts' => $posts,
             'post_category_parants' => $post_category_parants,
-            'orders' => $this->modelClass::ORDERS,
+            'sorts' => $this->modelClass::SORTS,
             'statuses' => $this->modelClass::STATUSES,
             'visibilities' => $this->modelClass::VISIBILITIES,
         ]);
@@ -120,23 +121,23 @@ class PostController extends BackendController
         );
 
         $post = $user->posts()->create([
-            'status' => $request->status,
-            'visibility' => $request->visibility,
-            'external_thumbnail' => $request->external_thumbnail,
+            'status' => $request->input('status'),
+            'visibility' => $request->input('visibility'),
+            'external_thumbnail' => $request->input('external_thumbnail'),
             'slug' => wncms_get_unique_slug('posts', 'slug', 8, 'lower'),
-            'title' => $request->title,
-            'label' => $request->label,
-            'excerpt' => $request->excerpt,
-            'content' => $request->content,
-            'remark' => $request->remark,
-            'order' => $request->order,
-            'password' => $request->password,
-            'price' => $request->price,
-            'is_pinned' => $request->is_pinned ?? false,
-            'is_recommended' => $request->is_recommended ?? false,
-            'is_dmca' => $request->is_dmca ?? false,
-            'published_at' => $request->published_at ? Carbon::parse($request->published_at) : Carbon::now(),
-            'expired_at' => $request->expired_at ? Carbon::parse($request->expired_at) : null,
+            'title' => $request->input('title'),
+            'label' => $request->input('label'),
+            'excerpt' => $request->input('excerpt'),
+            'content' => $request->input('content'),
+            'remark' => $request->input('remark'),
+            'sort' => $request->input('sort'),
+            'password' => $request->input('password'),
+            'price' => $request->input('price'),
+            'is_pinned' => $request->input('is_pinned') ?? false,
+            'is_recommended' => $request->input('is_recommended') ?? false,
+            'is_dmca' => $request->input('is_dmca') ?? false,
+            'published_at' => $request->input('published_at') ? Carbon::parse($request->input('published_at')) : Carbon::now(),
+            'expired_at' => $request->input('expired_at') ? Carbon::parse($request->input('expired_at')) : null,
         ]);
 
         //handle content
@@ -163,8 +164,8 @@ class PostController extends BackendController
         }
 
         //tags
-        $post->syncTagsFromRequest($request->post_categories, 'post_category', $request->auto_generate_category, [$request->title, $request->content]);
-        $post->syncTagsFromRequest($request->post_tags, 'post_tag', $request->auto_generate_tag, [$request->title, $request->content]);
+        $post->syncTagsFromRequest($request->post_categories, 'post_category', $request->auto_generate_category, [$request->title, $request->input('content')]);
+        $post->syncTagsFromRequest($request->post_tags, 'post_tag', $request->auto_generate_tag, [$request->title, $request->input('content')]);
 
         //clear cache
         $this->flush();
@@ -259,23 +260,23 @@ class PostController extends BackendController
 
         $post->update([
             'user_id' => $user->id,
-            'status' => $request->status,
-            'visibility' => $request->visibility,
-            'external_thumbnail' => $request->external_thumbnail,
-            'slug' => $request->slug,
-            'title' => $request->title,
-            'label' => $request->label,
-            'excerpt' => $request->excerpt,
-            'content' => $request->content,
-            'remark' => $request->remark,
-            'order' => $request->order,
-            'password' => $request->password,
-            'price' => $request->price,
-            'is_pinned' => $request->is_pinned ?? false,
-            'is_recommended' => $request->is_recommended ?? false,
-            'is_dmca' => $request->is_dmca ?? false,
-            'published_at' => $request->published_at ? Carbon::parse($request->published_at) : Carbon::now(),
-            'expired_at' => $request->expired_at ? Carbon::parse($request->expired_at) : null,
+            'status' => $request->input('status'),
+            'visibility' => $request->input('visibility'),
+            'external_thumbnail' => $request->input('external_thumbnail'),
+            'slug' => $request->input('slug'),
+            'title' => $request->input('title'),
+            'label' => $request->input('label'),
+            'excerpt' => $request->input('excerpt'),
+            'content' => $request->input('content'),
+            'remark' => $request->input('remark'),
+            'sort' => $request->input('sort'),
+            'password' => $request->input('password'),
+            'price' => $request->input('price'),
+            'is_pinned' => $request->input('is_pinned') ?? false,
+            'is_recommended' => $request->input('is_recommended') ?? false,
+            'is_dmca' => $request->input('is_dmca') ?? false,
+            'published_at' => $request->input('published_at') ? Carbon::parse($request->input('published_at')) : Carbon::now(),
+            'expired_at' => $request->input('expired_at') ? Carbon::parse($request->input('expired_at')) : null,
         ]);
 
         //handle content

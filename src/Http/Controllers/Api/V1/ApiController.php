@@ -29,7 +29,7 @@ class ApiController extends Controller
     {
         if (!gss($key)) {
             return response()->json([
-                'status'  => 403,
+                'status' => 403,
                 'message' => "API feature '{$key}' is disabled",
             ], 403);
         }
@@ -46,7 +46,7 @@ class ApiController extends Controller
 
         if (empty($token)) {
             return response()->json([
-                'status'  => 'fail',
+                'status' => 'fail',
                 'message' => 'Missing api_token',
             ], 401);
         }
@@ -56,7 +56,7 @@ class ApiController extends Controller
 
         if (!$user) {
             return response()->json([
-                'status'  => 'fail',
+                'status' => 'fail',
                 'message' => 'Invalid token',
             ], 401);
         }

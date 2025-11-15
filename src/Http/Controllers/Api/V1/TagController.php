@@ -10,12 +10,12 @@ class TagController extends Controller
 {
     public function index(Request $request)
     {
-        $locale = $request->locale ?? app()->getLocale();
-        // info($request->all());
+        $locale = $request->input('locale', app()->getLocale());
+
         $tags = Tag::where('type', $request->type)
             ->whereNull('parent_id')
             ->with('children', 'children.children')
-            ->orderBy('order_column', 'desc')
+            ->orderBy('sort', 'desc')
             ->with('translations')
             ->get()
             ->map(function ($tag) use ($locale) {
@@ -28,15 +28,14 @@ class TagController extends Controller
 
     public function exist(Request $request)
     {
-        // info($request->all());
         $tagIds = Tag::whereIn('id', $request->tagIds ?? [])->pluck('id')->toArray();
+
         return response()->json([
             'status' => 'success',
             'message' => __('wncms::word.successfully_fetched_data'),
             'ids' => $tagIds,
         ]);
     }
-
 
     /**
      * Store a new tag (or update an existing one if duplicated and allowed).
@@ -49,20 +48,12 @@ class TagController extends Controller
      * - parent_id      (int, optional)      → Parent tag ID (nullable, must exist in `tags`)
      * - description    (string, optional)   → Tag description
      * - icon           (string, optional)   → Tag icon reference
-     * - order_column   (int, optional)      → Sorting order
-     * - website_id     (int|array|string)   → Website IDs (array or comma-separated string); optional for multisite binding
+     * - sort           (int, optional)      → Sorting order
+     * - website_id     (int|array|string)   → Website IDs (array or comma-separated string)
      * - update_when_duplicated (bool, optional) → If true, update existing tag when duplicate slug+type is found
-     *
-     * Response:
-     * {
-     *   "status": "success|fail",
-     *   "message": "string",
-     *   "data": { ...tag fields... }
-     * }
      */
     public function store(Request $request)
     {
-        // Optional: allow enabling/disabling via settings
         if (!gss('enable_api_tag_store', true)) {
             return response()->json([
                 'status' => 403,
@@ -71,7 +62,7 @@ class TagController extends Controller
         }
 
         try {
-            // Auth by api_token (same as PostController)
+            // Auth by api_token
             $user = wncms()->getModelClass('user')::where('api_token', $request->api_token)->first();
             if (!$user) {
                 return response()->json(['status' => 'fail', 'message' => 'Invalid token']);
@@ -81,12 +72,12 @@ class TagController extends Controller
             // Validate
             $data = $request->validate([
                 'name' => 'required|string|max:255',
-                'type' => 'nullable|string|max:50', // e.g. post_tag, post_category
+                'type' => 'nullable|string|max:50',
                 'parent_id' => 'nullable|integer|exists:tags,id',
-                'order_column' => 'nullable|integer',
+                'sort' => 'nullable|integer',
             ]);
 
-            // Default type if none passed
+            // Default type
             if (empty($data['type'])) {
                 $data['type'] = 'post_category';
             }
@@ -95,8 +86,7 @@ class TagController extends Controller
                 $data['slug'] = str()->slug($data['name']) ?: $data['name'];
             }
 
-
-            // Check for duplicate tag
+            // Check duplicate
             $tagModel = wncms()->getModel('tag');
             $existing = $tagModel::where('name', $data['name'])->where('type', $data['type'])->first();
 
@@ -117,10 +107,10 @@ class TagController extends Controller
                 ]);
             }
 
-            // Create tag
+            // Create new
             $tag = $tagModel::create($data);
 
-            // Sync websites if multi-site
+            // Bind websites
             if (gss('multi_website') && $request->filled('website_id')) {
                 $websiteIds = is_array($request->website_id)
                     ? $request->website_id
@@ -136,6 +126,7 @@ class TagController extends Controller
                 'message' => "tag #{$tag->id} created",
                 'data' => $tag,
             ], 200, [], JSON_UNESCAPED_UNICODE);
+
         } catch (\Throwable $e) {
             logger()->error('API TagController@store error', [
                 'message' => $e->getMessage(),

@@ -14,7 +14,7 @@ class BannerFormRequest extends FormRequest
         $this->merge([
             'status' => $this->status,
             'url' => $this->url,
-            'order' => $this->order,
+            'sort' => $this->sort,
             'contact' => $this->contact,
             'remark' => $this->remark,
             'positions' => $this->positions,
@@ -40,7 +40,7 @@ class BannerFormRequest extends FormRequest
         return [
             'status' => '',
             'url' => '',
-            'order' => '',
+            'sort' => '',
             'contact' => '',
             'remark' => '',
             'positions' => '',

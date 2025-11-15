@@ -10,7 +10,7 @@ class LinkController extends BackendController
     {
         $q = $this->modelClass::query();
 
-        if ($request->order === 'views_yesterday') {
+        if ($request->input('sort') === 'views_yesterday') {
             $yesterday = now()->subDay()->toDateString();
             $q->leftJoin('total_views as tv_y', function ($join) use ($yesterday) {
                 $join->on('links.id', '=', 'tv_y.link_id')
@@ -19,9 +19,9 @@ class LinkController extends BackendController
             $q->orderByDesc('tv_y.total');
         }
 
-        if ($request->keyword) {
+        if ($request->input('keyword')) {
             $q->where(function ($subq) use ($request) {
-                $keyword = str_replace('@', '', $request->keyword);
+                $keyword = str_replace('@', '', $request->input('keyword'));
                 $keyword = str_replace('https://t.me/', '', $keyword);
                 $subq->where('name', 'like', '%' . $keyword . '%')
                     ->orWhere('url', 'like', '%' . $keyword . '%')
@@ -44,7 +44,7 @@ class LinkController extends BackendController
         }
 
         // $q->orderBy('is_pinned', 'desc');
-        // $q->orderBy('order', 'desc');
+        // $q->orderBy('sort', 'desc');
         $q->orderBy('links.id', 'desc');
 
         $links = $q->paginate($request->page_size ?? 100);
@@ -84,24 +84,24 @@ class LinkController extends BackendController
         $uid = wncms()->getUniqueSlug('links', 'slug', 8, 'lower');
 
         $link = $this->modelClass::create([
-            'status' => $request->status,
-            'tracking_code' => $request->tracking_code ?? $uid,
-            'slug' => $request->slug ?? $uid,
-            'name' => $request->name,
-            'url' => $request->url,
-            'slogan' => $request->slogan,
-            'description' => $request->description,
-            'external_thumbnail' => $request->external_thumbnail,
-            'remark' => $request->remark,
-            'order' => $request->order,
-            'color' => $request->color,
-            'background' => $request->background,
-            'is_pinned' => $request->is_pinned ? true : false,
-            'is_recommended' => $request->is_recommended ? true : false,
-            'expired_at' => $request->expired_at,
-            'hit_at' => $request->hit_at,
-            'clicks' => $request->clicks,
-            'contact' => $request->contact,
+            'status' => $request->input('status'),
+            'tracking_code' => $request->input('tracking_code') ?? $uid,
+            'slug' => $request->input('slug') ?? $uid,
+            'name' => $request->input('name'),
+            'url' => $request->input('url'),
+            'slogan' => $request->input('slogan'),
+            'description' => $request->input('description'),
+            'external_thumbnail' => $request->input('external_thumbnail'),
+            'remark' => $request->input('remark'),
+            'sort' => $request->input('sort'),
+            'color' => $request->input('color'),
+            'background' => $request->input('background'),
+            'is_pinned' => $request->input('is_pinned') ? true : false,
+            'is_recommended' => $request->input('is_recommended') ? true : false,
+            'expired_at' => $request->input('expired_at'),
+            'hit_at' => $request->input('hit_at'),
+            'clicks' => $request->input('clicks'),
+            'contact' => $request->input('contact'),
         ]);
 
         //thumbnail
@@ -155,24 +155,24 @@ class LinkController extends BackendController
         }
 
         $link->update([
-            'status' => $request->status,
-            'tracking_code' => $request->tracking_code ?? $link->tracking_code,
-            'slug' => $request->slug ?? $link->slug,
-            'name' => $request->name,
-            'url' => $request->url,
-            'slogan' => $request->slogan,
-            'description' => $request->description,
-            'external_thumbnail' => $request->external_thumbnail,
-            'remark' => $request->remark,
-            'order' => $request->order,
-            'color' => $request->color,
-            'background' => $request->background,
-            'is_pinned' => (bool) $request->is_pinned,
-            'is_recommended' => (bool) $request->is_recommended,
-            'expired_at' => $request->expired_at,
-            'hit_at' => $request->hit_at,
-            'clicks' => $request->clicks,
-            'contact' => $request->contact,
+            'status' => $request->input('status'),
+            'tracking_code' => $request->input('tracking_code') ?? $link->tracking_code,
+            'slug' => $request->input('slug') ?? $link->slug,
+            'name' => $request->input('name'),
+            'url' => $request->input('url'),
+            'slogan' => $request->input('slogan'),
+            'description' => $request->input('description'),
+            'external_thumbnail' => $request->input('external_thumbnail'),
+            'remark' => $request->input('remark'),
+            'sort' => $request->input('sort'),
+            'color' => $request->input('color'),
+            'background' => $request->input('background'),
+            'is_pinned' => (bool) $request->input('is_pinned'),
+            'is_recommended' => (bool) $request->input('is_recommended'),
+            'expired_at' => $request->input('expired_at'),
+            'hit_at' => $request->input('hit_at'),
+            'clicks' => $request->input('clicks'),
+            'contact' => $request->input('contact'),
         ]);
 
         // thumbnail
@@ -205,13 +205,13 @@ class LinkController extends BackendController
             ->withMessage(__('wncms::word.successfully_updated'));
     }
 
-    public function bulk_update_order(Request $request)
+    public function bulk_update_sort(Request $request)
     {
         $count = 0;
         foreach ($request->data as $linkData) {
             $link = $this->modelClass::find($linkData['id']);
-            if ($link && $link->order != $linkData['order']) {
-                $link->update(['order' => $linkData['order']]);
+            if ($link && $link->sort != $linkData['sort']) {
+                $link->update(['sort' => $linkData['sort']]);
                 $count++;
             } else {
                 info("link not found");

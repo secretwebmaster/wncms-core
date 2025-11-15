@@ -112,7 +112,7 @@ class PermissionController extends Controller
         return $this->view('backend.permissions.edit', [
             'page_title' => wncms_model_word('permission', 'management'),
             'permission' => $permission,
-            'roles'      => $roles,
+            'roles' => $roles,
         ]);
     }
 

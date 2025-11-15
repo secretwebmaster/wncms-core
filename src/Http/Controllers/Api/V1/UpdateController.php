@@ -16,7 +16,7 @@ class UpdateController extends Controller
         if (gss('disable_core_update')) {
             info('[UpdateController] Core update disabled by config');
             return response()->json([
-                'status'  => 'fail',
+                'status' => 'fail',
                 'message' => __('wncms::word.core_update_disabled'),
             ]);
         }
@@ -25,7 +25,7 @@ class UpdateController extends Controller
         if (gss('updating_core') && gss('update_lock') > time() - 180) {
             info('[UpdateController] Another update is already in progress');
             return response()->json([
-                'status'  => 'fail',
+                'status' => 'fail',
                 'message' => __('wncms::word.core_update_in_progress'),
             ]);
         }
@@ -41,7 +41,7 @@ class UpdateController extends Controller
             info('[UpdateController] Invalid request: missing package');
             uss('updating_core', 0);
             return response()->json([
-                'status'  => 'fail',
+                'status' => 'fail',
                 'message' => __('wncms::word.invalid_update_request'),
             ]);
         }
@@ -60,7 +60,7 @@ class UpdateController extends Controller
             info("[UpdateController] Core version updated to {$version}");
 
             $status = [
-                'status'  => 'success',
+                'status' => 'success',
                 'message' => __('wncms::word.successfully_updated'),
                 'version' => $version ?: __('wncms::word.latest'),
             ];
@@ -68,7 +68,7 @@ class UpdateController extends Controller
         } catch (\Throwable $e) {
             info('[UpdateController] Update failed: ' . $e->getMessage());
             $status = [
-                'status'  => 'fail',
+                'status' => 'fail',
                 'message' => __('wncms::word.update_failed') . ': ' . $e->getMessage(),
             ];
         }
@@ -85,8 +85,8 @@ class UpdateController extends Controller
         if ($request->itemId === 'core') {
             info('[UpdateController] Checking progress for core update');
             return response()->json([
-                'status'   => 'success',
-                'message'  => __('wncms::word.successfully_fetched_updating_progress'),
+                'status' => 'success',
+                'message' => __('wncms::word.successfully_fetched_updating_progress'),
                 'progress' => gss('updating_core', 0, false),
             ]);
         }

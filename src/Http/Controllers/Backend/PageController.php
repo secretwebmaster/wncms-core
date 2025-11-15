@@ -25,7 +25,7 @@ class PageController extends BackendController
         return $this->view('backend.pages.index', [
             'page_title' => wncms_model_word('page', 'management'),
             'pages' => $pages,
-            'orders' => $this->modelClass::ORDERS,
+            'sorts' => $this->modelClass::SORTS,
             'statuses' => $this->modelClass::STATUSES,
             'visibilities' => $this->modelClass::VISIBILITIES,
         ]);
@@ -51,7 +51,7 @@ class PageController extends BackendController
         return $this->view('backend.pages.create', [
             'page_title' => wncms_model_word('page', 'management'),
             'users' => $users,
-            'orders' => $this->modelClass::ORDERS,
+            'sorts' => $this->modelClass::SORTS,
             'types' => $this->modelClass::TYPES,
             'statuses' => $this->modelClass::STATUSES,
             'visibilities' => $this->modelClass::VISIBILITIES,

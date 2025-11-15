@@ -10,18 +10,18 @@ class CommentController extends BackendController
     {
         $validated = $request->validate([
             'commentable_type' => 'required|string',
-            'commentable_id'   => 'required|integer',
-            'content'          => 'required|string|max:2000',
-            'parent_id'        => 'nullable|exists:' . (new $this->modelClass)->getTable() . ',id',
+            'commentable_id' => 'required|integer',
+            'content' => 'required|string|max:2000',
+            'parent_id' => 'nullable|exists:' . (new $this->modelClass)->getTable() . ',id',
         ]);
 
         $comment = $this->modelClass::create([
             'commentable_type' => $validated['commentable_type'],
-            'commentable_id'   => $validated['commentable_id'],
-            'content'          => $validated['content'],
-            'user_id'          => auth()->id(),
-            'parent_id'        => $validated['parent_id'] ?? null,
-            'status'           => 'visible',
+            'commentable_id' => $validated['commentable_id'],
+            'content' => $validated['content'],
+            'user_id' => auth()->id(),
+            'parent_id' => $validated['parent_id'] ?? null,
+            'status' => 'visible',
         ]);
 
         return back()->withMessage(__('wncms::word.successfully_created'));

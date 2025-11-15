@@ -9,13 +9,10 @@ use Wncms\Models\Tag;
 use Wncms\Models\TagKeyword;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
-
 class TagController extends BackendController
 {
-
     public function index(Request $request)
     {
-        //記錄當前請求地址，用於返回
         $q = $this->modelClass::query();
 
         $selectedType = $type ?? $request->type ?? 'post_category';
@@ -29,10 +26,7 @@ class TagController extends BackendController
         }
 
         $q->whereNull('parent_id');
-
         $q->with('children');
-
-        // $q->withCount('model_count');
 
         if ($request->keyword) {
             $q->where('name', 'like', "%$request->keyword%")
@@ -42,17 +36,15 @@ class TagController extends BackendController
                 ->orWhere('slug', 'like', "%$request->keyword%");
         }
 
-        if (in_array($request->order, $this->modelClass::ORDERS)) {
-            $q->orderBy($request->order, $request->sort ?? 'desc');
+        if (in_array($request->sort, $this->modelClass::SORTS)) {
+            $q->orderBy($request->sort, $request->direction ?? 'desc');
         }
 
-        $q->orderBy('order_column', 'desc');
+        $q->orderBy('sort', 'desc');
 
         $parents = $q->paginate($request->page_size ?? 50);
-
         $tagTypes = wncms()->tag()->getModelsWithHasTagsTraits();
 
-        //for binding 
         $allParents = $this->modelClass::whereNull('parent_id')->when($request->type, function ($subq) use ($request) {
             $subq->where('type', $request->type);
         })->get();
@@ -61,7 +53,7 @@ class TagController extends BackendController
             'page_title' => __('wncms::word.category_management'),
             'parents' => $parents,
             'allParents' => $allParents,
-            'orders' => $this->modelClass::ORDERS,
+            'sorts' => $this->modelClass::SORTS,
             'tagTypes' => $tagTypes,
             'type' => $selectedType,
         ]);
@@ -69,18 +61,30 @@ class TagController extends BackendController
 
     public function create($id = null)
     {
-        $tagTypes = wncms()->tag()->getModelsWithHasTagsTraits();
+        // Get allowed tag types registered by all models
+        $tagTypes = wncms()->tag()->getAllTagTypes();
 
+        dd($tagTypes);
+
+        $request = request();
+
+        // Load parent tags if type is selected
         if ($request->type) {
-            $parents = $this->modelClass::whereType($request->type)->whereNull('parent_id')->with('children')->get();
+            $parents = $this->modelClass::whereType($request->type)
+                ->whereNull('parent_id')
+                ->with('children')
+                ->get();
         } else {
             $parents = [];
         }
 
+        // Existing or new tag
         if ($id) {
             $tag = $this->modelClass::find($id);
             if (!$tag) {
-                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+                return back()->withMessage(__('wncms::word.model_not_found', [
+                    'model_name' => __('wncms::word.' . $this->singular)
+                ]));
             }
         } else {
             $tag = new $this->modelClass;
@@ -88,15 +92,14 @@ class TagController extends BackendController
 
         return $this->view('backend.tags.create', [
             'page_title' => __('wncms::word.category_management'),
-            'tagTypes' => $tagTypes,
-            'parents' => $parents,
-            'tag' => $tag,
+            'tagTypes'   => $tagTypes,
+            'parents'    => $parents,
+            'tag'        => $tag,
         ]);
     }
 
     public function store(Request $request)
     {
-        //去除fontawesome標籤
         $icon_name = str_replace('<i class="', '', $request->icon);
         $icon_name = str_replace('"></i>', '', $icon_name);
 
@@ -120,15 +123,13 @@ class TagController extends BackendController
             'slug' => $request->slug ?? $request->name,
             'description' => $request->description,
             'icon' => $icon_name,
-            'order_column' => $request->order_column,
+            'sort' => $request->sort,
             'type' => $request->type ?? 'post_category',
         ]);
 
-        //handle tag_thumbnail
         if (!empty($request->tag_thumbnail_remove)) $tag->clearMediaCollection('tag_thumbnail');
         if (!empty($request->tag_thumbnail)) $tag->addMediaFromRequest('tag_thumbnail')->toMediaCollection('tag_thumbnail');
 
-        //handle tag_background
         if (!empty($request->tag_background_remove)) $tag->clearMediaCollection('tag_background');
         if (!empty($request->tag_background)) $tag->addMediaFromRequest('tag_background')->toMediaCollection('tag_background');
 
@@ -155,8 +156,6 @@ class TagController extends BackendController
 
     public function update(Request $request, $id)
     {
-        // dd($request->all());
-
         $tag = $this->modelClass::find($id);
         if (!$tag) {
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
@@ -172,26 +171,14 @@ class TagController extends BackendController
         }
 
         $icon_name = $request->icon;
-
-        //去除fontawesome標籤
         $icon_name = str_replace('<i class="', '', $icon_name);
         $icon_name = str_replace('"></i>', '', $icon_name);
-
-        //TODO: check if selected parent_id is one of the children 
-        // if (!empty($request->parent_id)) {
-        //     $children_ids = $tag->descendants()->pluck('id')->toArray();
-        //     if (in_array($request->parent_id, $children_ids)) {
-        //         return back()->withErrors(['message' => __('wncms::word.cannot_set_child_as_parent')]);
-        //     };
-        // }
 
         if (app()->getLocale() != LaravelLocalization::getDefaultLocale()) {
             $newName = $tag->getTranslation('name', LaravelLocalization::getDefaultLocale());
         } else {
             $newName = $request->name;
         }
-
-        // dd($newName);
 
         $tag->update([
             'parent_id' => $request->parent_id,
@@ -200,7 +187,7 @@ class TagController extends BackendController
             'slug' => $request->slug,
             'description' => $request->description,
             'icon' => $icon_name,
-            'order_column' => $request->order_column,
+            'sort' => $request->sort,
         ]);
 
         if (app()->getLocale() != LaravelLocalization::getDefaultLocale()) {
@@ -215,11 +202,9 @@ class TagController extends BackendController
             );
         }
 
-        //handle tag_thumbnail
         if (!empty($request->tag_thumbnail_remove)) $tag->clearMediaCollection('tag_thumbnail');
         if (!empty($request->tag_thumbnail)) $tag->addMediaFromRequest('tag_thumbnail')->toMediaCollection('tag_thumbnail');
 
-        //handle tag_background
         if (!empty($request->tag_background_remove)) $tag->clearMediaCollection('tag_background');
         if (!empty($request->tag_background)) $tag->addMediaFromRequest('tag_background')->toMediaCollection('tag_background');
 
@@ -246,62 +231,23 @@ class TagController extends BackendController
         ]);
     }
 
-    /**
-     * ----------------------------------------------------------------------------------------------------
-     * Bulk create tags with relationships
-     * ----------------------------------------------------------------------------------------------------
-     * @link https://wncms.cc
-     * @since 3.0.0
-     * @version 3.0.0
-     * 
-     * @param Request $request textarea input from frontend
-     *      Format:
-     *      name|slug|type|description|parentName|icon|order_column
-     *      name|slug|type|description|parentName|icon|order_column
-     *      
-     *      Example:
-     *      name|slug|type|description|parentName|icon|order_column
-     *      name|slug|type|description|parentName|icon|order_column
-     *      
-     *      Rule:
-     *      1. must be in sequence
-     *      2. input 0 as empty if need to input next parameters
-     *      3. parent should be input before children
-     * 
-     *      After explode:
-     *      $tagData[0] = name          | required  | should be string
-     *      $tagData[1] = slug          | optional  | Default = random unique 8 letters and numbers combination
-     *      $tagData[2] = type          | optional  | Default = "post_category"
-     *      $tagData[3] = description   | optional  | Default = null
-     *      $tagData[4] = parentName    | optional  | Default = null
-     *      $tagData[5] = icon          | optional  | Default = null
-     *      $tagData[6] = order_column  | optional  | Default = null
-     * 
-     * 
-     * ----------------------------------------------------------------------------------------------------
-     */
     public function bulk_store(Request $request)
     {
-        // dd($request->all());
         $inputs = explode("\r\n", $request->bulk_tag_data_input);
         $locale = wncms()->getLocale();
         $count = 0;
-        if (strpos($request->bulk_tag_data_input, "\t") !== false) {
-            $separator = "\t";
-        } else {
-            $separator = "|";
-        }
-        // dd($separator);
+        $separator = strpos($request->bulk_tag_data_input, "\t") !== false ? "\t" : "|";
 
         foreach ($inputs as $input) {
             $tagData = explode($separator, $input);
+
             $name = $tagData[0] ?? null;
             $slug = !empty($tagData[1]) ? $tagData[1] : wncms()->getUniqueSlug('tags');
             $type = $tagData[2] ?? 'post_category';
             $description = $tagData[3] ?? null;
             $parentName = $tagData[4] ?? null;
             $icon = $tagData[5] ?? null;
-            $orderColumn = $tagData[6] ?? null;
+            $sort = $tagData[6] ?? null;
 
             if (empty($name)) continue;
 
@@ -317,7 +263,7 @@ class TagController extends BackendController
                     'description' => $description,
                     'parent_id' => $parent?->id,
                     'icon' => $icon,
-                    'order_column' => $orderColumn,
+                    'sort' => $sort,
                 ]
             );
 
@@ -329,7 +275,6 @@ class TagController extends BackendController
         $this->flush(['page']);
         $this->flush();
 
-        //返回之前的index
         return back()->withMessage(__('wncms::word.successfully_created_count', ['count' => $count]));
     }
 
@@ -339,18 +284,15 @@ class TagController extends BackendController
             Excel::import(new TagImport($request), $request->file('csv_file'));
         }
 
-        //clear cache
         $this->flush(['page']);
         $this->flush();
 
-        //返回之前的index
         if (session('current_url')) {
             return redirect(session('current_url'))->withInput()->withMessage(__('wncms::word.successfully_created'));
         }
         return redirect()->route('tags.index')->withInput()->withMessage(__('wncms::word.successfully_created'));
     }
 
-    //! Keywords
     public function show_keyword_index(Request $request)
     {
         $q = $this->modelClass::query();
@@ -362,7 +304,6 @@ class TagController extends BackendController
 
         $q->whereNull('parent_id');
         $q->with('children');
-        // $q->withCount('model_count');
 
         if ($request->keyword) {
             $q->where('name->' . LaravelLocalization::getCurrentLocale(), 'like', "%$request->keyword%")
@@ -374,15 +315,16 @@ class TagController extends BackendController
                 });
         }
 
-        if (in_array($request->order, $this->modelClass::ORDERS)) {
-            $q->orderBy($request->order, $request->sort ?? 'desc');
+        if (in_array($request->sort, $this->modelClass::SORTS)) {
+            $q->orderBy($request->sort, $request->direction ?? 'desc');
         }
 
         if ($request->tag_type) {
             $q->where('type', $request->tag_type);
         }
 
-        $q->orderBy('order_column', 'desc');
+        $q->orderBy('sort', 'desc');
+
         $parents = $q->paginate($request->page_size ?? 50);
 
         $tagTypes = wncms()->tag()->getModelsWithHasTagsTraits();
@@ -390,7 +332,6 @@ class TagController extends BackendController
         $allKeywords = TagKeyword::whereRelation('tag', 'type', $selectedType)->get()->map(function ($keyword) {
             return ['value' => $keyword->id, 'name' => $keyword->name];
         })->toArray();
-        // dd($selectedType,$allKeywords);
 
         return $this->view('backend.tags.keywords.index', [
             'tagTypes' => $tagTypes,
@@ -402,28 +343,22 @@ class TagController extends BackendController
 
     public function update_keyword(Request $request, Tag $tag)
     {
-        // dd($request->all());
         $keywordsToUpdate = collect(json_decode($request->tag_keywords, true))->pluck('name')->toArray();
 
-        //attach tag if name not in list
         foreach ($keywordsToUpdate as $keywordName) {
             $tag->keywords()->updateOrCreate(['name' => $keywordName]);
         }
 
-        //get current tag keyword name list array
         $keywordNameList = $tag->keywords()->pluck('name')->toArray();
-
-        //remove tag not in name list
         $removingKeywords = array_diff($keywordNameList, $keywordsToUpdate);
 
-        $removedKeywords = $tag->keywords()->whereIn('name', $removingKeywords)->delete();
+        $tag->keywords()->whereIn('name', $removingKeywords)->delete();
 
         return redirect()->route('tags.keywords.index', [
             'type' => $tag->type,
         ])->withMessage(__('wncms::word.tag_keywords_are_updated'));
     }
 
-    //! Types
     public function create_type()
     {
         return $this->view('backend.tags.types.create', [
@@ -440,23 +375,8 @@ class TagController extends BackendController
         ]);
     }
 
-    /**
-     * ----------------------------------------------------------------------------------------------------
-     * 演示功能描述
-     * ----------------------------------------------------------------------------------------------------
-     * @link https://wncms.cc
-     * @since 3.0.0
-     * @version 3.0.7
-     * 
-     * @param Request $request 請求
-     *  - $reqesut->formData 包括父分類ID interger，例如 "parent_id=1"
-     *  - $request->model_ids 子分類ID array
-     * @return Illuminate\Http\Response
-     * ----------------------------------------------------------------------------------------------------
-     */
     public function bulk_set_parent(Request $request)
     {
-        // info($request->all());
         parse_str($request->formData, $formData);
 
         $parent = $this->modelClass::find($formData['parent_id']);
@@ -481,7 +401,6 @@ class TagController extends BackendController
         ]);
 
         if ($tags) {
-
             $this->flush();
 
             return response()->json([
@@ -500,7 +419,6 @@ class TagController extends BackendController
 
     public function get_languages(Request $request)
     {
-        // info($request->all());
         if (empty($request->model_id)) {
             return response()->json([
                 'status' => 'fail',

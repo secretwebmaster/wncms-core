@@ -246,22 +246,22 @@ class UserController extends BackendController
 
         // define types with min/max
         $types = [
-            'words'  => [500, 5000],
+            'words' => [500, 5000],
             'images' => [0, 50],
         ];
 
         $datasets = [];
         foreach ($types as $type => [$min, $max]) {
             $datasets[] = [
-                'key'   => $type,
+                'key' => $type,
                 'label' => __('wncms::word.' . $type), // translated label
-                'data'  => array_map(fn() => rand($min, $max), $labels),
+                'data' => array_map(fn() => rand($min, $max), $labels),
             ];
         }
 
         return $this->view('backend.users.account.api', [
-            'page_title'   => __('wncms::word.my_account'),
-            'chartLabels'  => $labels,
+            'page_title' => __('wncms::word.my_account'),
+            'chartLabels' => $labels,
             'chartDatasets' => $datasets,
         ]);
     }

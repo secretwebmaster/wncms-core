@@ -21,7 +21,7 @@ class RecordController extends BackendController
             'page_title' => wncms_model_word('record', 'management'),
             'records' => $records,
             'types' => $this->modelClass::TYPES,
-            'orders' => $this->modelClass::ORDERS,
+            'sorts' => $this->modelClass::SORTS,
         ]);
     }
 }

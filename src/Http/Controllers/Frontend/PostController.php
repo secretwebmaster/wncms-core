@@ -69,21 +69,21 @@ class PostController extends FrontendController
 
         $modelName = explode("_", $tagType)[0] ?? '';
         $posts = $tag->getPostList([
-            'count'     => gto('post_limit', 0),
-            'page'      => request('page', 0),
+            'count' => gto('post_limit', 0),
+            'page' => request('page', 0),
             'page_size' => gto('post_page_size', 10),
-            'cache'     => false,
+            'cache' => false,
         ]);
 
         return $this->view("frontend.themes.{$this->theme}.posts.archive", [
             'pageTitle' => __('wncms::word.latest_tag_models', [
-                'tagName'   => $tagName,
+                'tagName' => $tagName,
                 'modelName' => __('wncms::word.' . $modelName),
             ]),
             'tagName' => $tagName,
             'tagType' => $tagType,
-            'posts'   => $posts,
-            'tag'     => $tag,
+            'posts' => $posts,
+            'tag' => $tag,
         ]);
     }
 
@@ -114,8 +114,8 @@ class PostController extends FrontendController
 
         return $this->view("frontend.themes.{$this->theme}.posts.search", [
             'pageTitle' => __('wncms::word.search_result_of', ['keyword' => $keyword]),
-            'posts'     => $posts,
-            'keyword'   => $keyword,
+            'posts' => $posts,
+            'keyword' => $keyword,
         ]);
     }
 
@@ -125,10 +125,10 @@ class PostController extends FrontendController
     public function rank(Request $request, string $period = 'month')
     {
         $ranges = [
-            'year'  => Period::subYears(1),
+            'year' => Period::subYears(1),
             'month' => Period::subMonths(1),
-            'week'  => Period::subWeeks(1),
-            'day'   => Period::subDays(1),
+            'week' => Period::subWeeks(1),
+            'day' => Period::subDays(1),
         ];
 
         if (!array_key_exists($period, $ranges)) {
@@ -143,10 +143,10 @@ class PostController extends FrontendController
             'pageTitle' => __('wncms::word.post_rank_of_period', [
                 'period' => __('wncms::word.' . $period),
             ]),
-            'pageName'  => 'post_rank',
+            'pageName' => 'post_rank',
             'modelName' => 'post',
-            'period'    => $period,
-            'posts'     => $posts,
+            'period' => $period,
+            'posts' => $posts,
         ]);
     }
 
@@ -163,27 +163,27 @@ class PostController extends FrontendController
             : '';
 
         $options = [
-            'count'     => gto('post_limit', 0),
-            'page'      => request('page', 0),
+            'count' => gto('post_limit', 0),
+            'page' => request('page', 0),
             'page_size' => gto('post_page_size', 12),
         ];
 
         switch ($name) {
             case 'hot':
                 $pageTitle = $periodText . __('wncms::word.hot_posts');
-                $options['order'] = 'view_month';
+                $options['sort'] = 'view_month';
                 break;
             case 'like':
                 $pageTitle = $periodText . __('wncms::word.most_liked_posts');
-                $options['order'] = 'like';
+                $options['sort'] = 'like';
                 break;
             case 'fav':
                 $pageTitle = $periodText . __('wncms::word.most_fav_posts');
-                $options['order'] = 'view_month';
+                $options['sort'] = 'view_month';
                 break;
             case 'new':
                 $pageTitle = $periodText . __('wncms::word.latest_posts');
-                $options['order'] = 'created_at';
+                $options['sort'] = 'created_at';
                 break;
             default:
                 return redirect()->route('frontend.pages.home');
@@ -192,8 +192,8 @@ class PostController extends FrontendController
         $posts = wncms()->post()->getList($options);
 
         return $this->view("frontend.themes.{$this->theme}.posts.archive", [
-            'page_title'       => $pageTitle,
-            'posts'            => $posts,
+            'page_title' => $pageTitle,
+            'posts' => $posts,
             'show_post_filter' => true,
         ]);
     }
@@ -209,11 +209,11 @@ class PostController extends FrontendController
         $categories = wncms()->tag()->getList($tagOptions);
 
         return $this->view("frontend.themes.{$this->theme}.posts.create", [
-            'page_title'   => __('wncms::word.post_management'),
-            'statuses'     => $this->modelClass::STATUSES,
+            'page_title' => __('wncms::word.post_management'),
+            'statuses' => $this->modelClass::STATUSES,
             'visibilities' => $this->modelClass::VISIBILITIES,
-            'categories'   => $categories,
-            'post'         => new $this->modelClass,
+            'categories' => $categories,
+            'post' => new $this->modelClass,
         ]);
     }
 
@@ -231,7 +231,7 @@ class PostController extends FrontendController
                 return back()->withInput()->withErrors([
                     'message' => __('wncms::word.insufficient_credit_to_post_with_requirement', [
                         'requirement_amount' => $requiredCredits,
-                        'requirement_type'   => __('wncms::word.' . $creditType),
+                        'requirement_type' => __('wncms::word.' . $creditType),
                     ]),
                 ]);
             }
@@ -248,20 +248,20 @@ class PostController extends FrontendController
         }
 
         $post = $this->modelClass::create([
-            'user_id'    => auth()->id(),
-            'status'     => gto('default_post_status', 'draft'),
+            'user_id' => auth()->id(),
+            'status' => gto('default_post_status', 'draft'),
             'visibility' => gto('default_post_visibility', 'public'),
-            'slug'       => $request->slug ?? wncms()->getUniqueSlug('posts', 'slug', 8, 'lower'),
-            'title'      => $request->title,
-            'label'      => $request->label,
-            'excerpt'    => $request->excerpt,
-            'content'    => $request->content,
-            'remark'     => $request->remark,
-            'order'      => $request->order,
-            'password'   => $request->password,
-            'price'      => $request->price,
+            'slug' => $request->slug ?? wncms()->getUniqueSlug('posts', 'slug', 8, 'lower'),
+            'title' => $request->title,
+            'label' => $request->label,
+            'excerpt' => $request->excerpt,
+            'content' => $request->input('content'),
+            'remark' => $request->remark,
+            'sort' => $request->sort,
+            'password' => $request->password,
+            'price' => $request->price,
             'published_at' => $request->published_at ? Carbon::parse($request->published_at) : Carbon::now(),
-            'expired_at'   => $request->expired_at ? Carbon::parse($request->expired_at) : null,
+            'expired_at' => $request->expired_at ? Carbon::parse($request->expired_at) : null,
         ]);
 
         $post->localizeImages();
@@ -306,15 +306,15 @@ class PostController extends FrontendController
 
         $categories = wncms()->tag()->getList([
             'tag_type' => 'post_category',
-            'tag_ids'  => gto('user_allowed_post_category') ?: null,
+            'tag_ids' => gto('user_allowed_post_category') ?: null,
         ]);
 
         return $this->view("frontend.themes.{$this->theme}.posts.edit", [
-            'page_title'   => __('wncms::word.post_management'),
-            'statuses'     => $this->modelClass::STATUSES,
+            'page_title' => __('wncms::word.post_management'),
+            'statuses' => $this->modelClass::STATUSES,
             'visibilities' => $this->modelClass::VISIBILITIES,
-            'categories'   => $categories,
-            'post'         => $post,
+            'categories' => $categories,
+            'post' => $post,
         ]);
     }
 
@@ -344,19 +344,19 @@ class PostController extends FrontendController
         }
 
         $post->update([
-            'status'       => $request->status ?? $post->status,
-            'visibility'   => $request->visibility ?? $post->visibility,
-            'slug'         => $request->slug ?? $post->slug,
-            'title'        => $request->title,
-            'label'        => $request->label,
-            'excerpt'      => $request->excerpt,
-            'content'      => $request->content,
-            'remark'       => $request->remark,
-            'order'        => $request->order,
-            'password'     => $request->password,
-            'price'        => $request->price,
+            'status' => $request->status ?? $post->status,
+            'visibility' => $request->visibility ?? $post->visibility,
+            'slug' => $request->slug ?? $post->slug,
+            'title' => $request->title,
+            'label' => $request->label,
+            'excerpt' => $request->excerpt,
+            'content' => $request->input('content'),
+            'remark' => $request->remark,
+            'sort' => $request->sort,
+            'password' => $request->password,
+            'price' => $request->price,
             'published_at' => $request->published_at ? Carbon::parse($request->published_at) : $post->published_at,
-            'expired_at'   => $request->expired_at ? Carbon::parse($request->expired_at) : $post->expired_at,
+            'expired_at' => $request->expired_at ? Carbon::parse($request->expired_at) : $post->expired_at,
         ]);
 
         $post->localizeImages();
@@ -386,7 +386,7 @@ class PostController extends FrontendController
     {
         $categories = wncms()->tag()->getList([
             'tag_type' => $type,
-            'tag_ids'  => gto('user_allowed_' . $type) ?: null,
+            'tag_ids' => gto('user_allowed_' . $type) ?: null,
         ]);
 
         return $idOnly ? $categories->pluck('id')->toArray() : $categories;

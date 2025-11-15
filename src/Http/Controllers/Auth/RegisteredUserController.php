@@ -57,9 +57,9 @@ class RegisteredUserController extends Controller
         $request->validate(
             [
                 // 'first_name' => 'required|string|max:255',
-                // 'last_name'  => 'required|string|max:255',
+                // 'last_name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
-                'password'   => ['required', 'confirmed', Rules\Password::defaults()],
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
             ],
             [
                 'email.unique' => __('wncms::word.email_has_been_used'),
@@ -74,10 +74,10 @@ class RegisteredUserController extends Controller
 
         $user = $userModel::create([
             // 'first_name' => $request->first_name,
-            // 'last_name'  => $request->last_name,
+            // 'last_name' => $request->last_name,
             'username' => "user_" . str_replace(".", "", microtime(true)),
-            'email'      => $request->email,
-            'password'   => Hash::make($request->password),
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
         ]);
 
         $user->assignRole('member');
@@ -115,9 +115,9 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'email'      => 'required|string|email|max:255|unique:users',
-            'password'   => ['required', 'confirmed', Rules\Password::defaults()],
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $userModel = $this->getUserClass();
@@ -125,9 +125,9 @@ class RegisteredUserController extends Controller
         $token = Str::random(60);
         $user = $userModel::create([
             'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $request->email,
-            'password'   => Hash::make($request->password),
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
             'api_token' => hash('sha256', $token),
         ]);
 

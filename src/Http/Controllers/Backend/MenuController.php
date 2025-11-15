@@ -99,8 +99,8 @@ class MenuController extends BackendController
 
         //更新菜單項目
         // dd(json_decode($request->new_menu, true));
-        foreach (json_decode($request->new_menu, true) as $order => $menu_item) {
-            $this->add_items($menu, $menu_item, null, $order);
+        foreach (json_decode($request->new_menu, true) as $sort => $menu_item) {
+            $this->add_items($menu, $menu_item, null, $sort);
         }
 
         $this->flush();
@@ -110,7 +110,7 @@ class MenuController extends BackendController
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
-    public function add_items($menu, $menu_item, $parent_id = null, $order = 0)
+    public function add_items($menu, $menu_item, $parent_id = null, $sort = 0)
     {
         // dd($menu_item);
         $existing_item = $menu->menu_items()->find($menu_item['id']);
@@ -126,7 +126,7 @@ class MenuController extends BackendController
                 'url' => $menu_item['url'] ?? $existing_item->url,
                 'is_new_window' => $menu_item['is_new_window'] === 1 ? true : false,
                 'is_mega_menu' => $menu_item['is_mega_menu'] ?? false,
-                'order' => $order,
+                'sort' => $sort,
             ]);
             $new_item = $existing_item;
         } else {
@@ -141,7 +141,7 @@ class MenuController extends BackendController
                 'url' => $menu_item['url'] ?? null,
                 'is_new_window' => $menu_item['is_new_window'] === 1 ? true : false,
                 'is_mega_menu' => $menu_item['is_mega_menu'] ?? false,
-                'order' => $order,
+                'sort' => $sort,
             ]);
         }
 
@@ -152,7 +152,7 @@ class MenuController extends BackendController
         if (!empty($menu_item['children'])) {
             foreach ($menu_item['children'] as $sub_menu_item) {
                 // info($sub_menu_item);
-                $this->add_items($menu, $sub_menu_item, $new_item->id, $order);
+                $this->add_items($menu, $sub_menu_item, $new_item->id, $sort);
             }
         }
     }
