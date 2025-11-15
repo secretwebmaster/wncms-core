@@ -43,8 +43,13 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         Route::get('rank/{period}', 'rank')->name('posts.rank.period');
         Route::get('search/{keyword}', 'search_result')->name('posts.search_result');
         Route::post('search', 'search')->name('posts.search');
-        Route::get('category/{tagName?}', 'category')->name('posts.category');
-        Route::get('tag/{tagName?}', 'tag')->name('posts.tag');
+        // Route::get('category/{tagName?}', 'category')->name('posts.category');
+        // Route::get('tag/{tagName?}', 'tag')->name('posts.tag');
+        // Route::get('{tagType}/{tagName?}', 'archive')->name('posts.archive');
+        Route::get('{type}/{slug}', [PostController::class, 'tag'])
+            ->where('type', wncms()->tag()->getTagTypes(wncms()->getModelClass('post'), 'short', '|'))
+            ->name('posts.tag');
+
         Route::get('list/{name?}/{period?}', 'post_list')->where('name', 'hot|new|like|fav')->where('period', 'today|yesterday|week|month')->name('posts.list');
 
         Route::middleware(['auth'])->group(function () {
@@ -54,9 +59,9 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
             Route::post('update/{post}', 'update')->name('posts.update');
         });
 
-        Route::get('{slug}', 'single')->name('posts.single');
 
-        Route::get('{tagType}/{tagName?}', 'archive')->name('posts.archive');
+
+        Route::get('{slug}', 'single')->name('posts.single');
     });
 
     //sitemap
@@ -89,16 +94,16 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
             Route::get('/profile/edit', 'edit_profile')->name('users.profile.edit');
             Route::post('/profile/update', 'update_profile')->name('users.profile.update');
             // Route::get('/subscription', 'show_subscription')->name('users.subscription');
-    
+
             Route::get('/bindmsg', 'sendBindMessage')->name('users.bindmsg');
             Route::post('/bind', 'bindAccount')->name('users.bind');
             Route::post('/unbind', 'unbindAccount')->name('users.unbind');
-    
+
             // Route::prefix('card')->controller(CardController::class)->group(function () {
             //     Route::get('/', 'show')->name('users.card');
             //     Route::post('/use', 'use')->name('users.card.use');
             // });
-    
+
             Route::fallback('page')->name('users.page');
         });
     });
