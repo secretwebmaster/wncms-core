@@ -54,7 +54,7 @@ class PostManager extends ModelManager
     protected function buildListQuery(array $options): mixed
     {
         $q = $this->query();
-
+        
         $tags = $options['tags'] ?? [];
         $tagType = $options['tag_type'] ?? 'post_category';
         $keywords = $options['keywords'] ?? [];
