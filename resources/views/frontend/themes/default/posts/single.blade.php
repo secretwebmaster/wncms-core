@@ -36,7 +36,7 @@
                     <td>@lang('wncms::word.category')</td>
                     <td>
                         @foreach($post->post_categories as $category)    
-                        <a href="{{ route('frontend.posts.category', ['tagName' => $category->name]) }}">{{ $category->name }}</a>
+                        <a href="{{ route('frontend.posts.tag', ['type' => 'category', 'slug' => $category->name]) }}">{{ $category->name }}</a>
                         @endforeach
                     </td>
                 </tr>
@@ -44,7 +44,7 @@
                     <td>@lang('wncms::word.tag')</td>
                     <td>
                         @foreach($post->post_tags as $tag)    
-                        <a href="{{ route('frontend.posts.tag', ['tagName' => $tag->name]) }}">{{ $tag->name }}</a>
+                        <a href="{{ route('frontend.posts.tag', ['type' => 'tag', 'slug' => $tag->name]) }}">{{ $tag->name }}</a>
                         @endforeach
                     </td>
                 </tr>

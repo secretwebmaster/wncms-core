@@ -18,13 +18,13 @@
                 <td>
                     @foreach($post->postCategories as $postCategory)
                     @if($loop->index != 0),@endif
-                    <span><a href="{{ route('frontend.posts.category', ['tagName' => $postCategory->name]) }}">{{ $postCategory->name }}</a></span>
+                    <span><a href="{{ route('frontend.posts.tag', ['type' => 'category', 'slug' => $postCategory->name]) }}">{{ $postCategory->name }}</a></span>
                     @endforeach
                 </td>
                 <td>
                     @foreach($post->postTags as $postTag)
                     @if($loop->index != 0),@endif
-                    <span><a href="{{ route('frontend.posts.tag', ['tagName' => $postTag->name]) }}">{{ $postTag->name }}</a></span>
+                    <span><a href="{{ route('frontend.posts.tag', ['type' => 'tag', 'slug' => $postTag->name]) }}">{{ $postTag->name }}</a></span>
                     @endforeach
                 </td>
             </tr>
