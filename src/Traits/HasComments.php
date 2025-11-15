@@ -26,9 +26,9 @@ trait HasComments
     public function addComment(string $content, ?int $userId = null, string $status = 'visible', ?int $parentId = null)
     {
         return $this->comments()->create([
-            'content'   => $content,
-            'user_id'   => $userId ?? auth()->id(),
-            'status'    => $status,
+            'content' => $content,
+            'user_id' => $userId ?? auth()->id(),
+            'status' => $status,
             'parent_id' => $parentId,
         ]);
     }

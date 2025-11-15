@@ -24,8 +24,8 @@ class UserManager extends ModelManager
         $keywords = $options['keywords'] ?? [];
         $count = $options['count'] ?? 0;
         $offset = $options['offset'] ?? 0;
-        $order = $options['order'] ?? 'id';
-        $sequence = $options['sequence'] ?? 'desc';
+        $sort = $options['sort'] ?? 'id';
+        $direction= $options['direction'] ?? 'desc';
         $wheres = $options['wheres'] ?? [];
         $websiteId = $options['website_id'] ?? null;
         $excludedPostIds = $options['excluded_user_ids'] ?? [];
@@ -43,7 +43,7 @@ class UserManager extends ModelManager
         $this->applySelect($q, $select);
         $this->applyOffset($q, $offset);
         $this->applyLimit($q, $count);
-        $this->applyOrdering($q, $order, $sequence, $isRandom);
+        $this->applyOrdering($q, $sort, $direction, $isRandom);
         if (!isset($options['select'])) {
             $q->distinct();
         }

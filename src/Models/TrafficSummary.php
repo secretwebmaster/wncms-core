@@ -8,4 +8,11 @@ use Wncms\Models\BaseModel;
 class TrafficSummary extends BaseModel
 {
     use HasFactory;
+
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'traffic_summary';
 }

@@ -47,7 +47,7 @@ trait ModelMethods
             return $this->modelClassCache[$key] = $configModel;
         }
 
-        // ✅ Check package-defined models
+        // Check package-defined models
         if (property_exists($this, 'packages') && !empty($this->packages)) {
             foreach ($this->packages as $packageName => $packageData) {
                 $models = $packageData['models'] ?? [];
@@ -77,5 +77,21 @@ trait ModelMethods
         }
 
         throw new \RuntimeException("Model class not found for key [{$key}].");
+    }
+
+    public function registerModel(string $modelClass): void
+    {
+        if (!class_exists($modelClass)) {
+            throw new \RuntimeException("Model class [$modelClass] does not exist.");
+        }
+
+        $key = strtolower(class_basename($modelClass));
+
+        $this->modelClassCache[$key] = $modelClass;
+    }
+
+    public function getModels(): array
+    {
+        return array_values($this->modelClassCache);
     }
 }

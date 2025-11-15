@@ -23,6 +23,9 @@ class WncmsServiceProvider extends ServiceProvider
         // Facades
         $this->app->singleton('wncms', fn($app) => new \Wncms\Services\Wncms);
         $this->app->singleton('macroable-models', fn($app) => new \Wncms\Services\MacroableModels\MacroableModels);
+        $this->app->singleton(\Wncms\Services\Managers\TagManager::class, fn($app) => new \Wncms\Services\Managers\TagManager);
+
+        // Alias
         AliasLoader::getInstance()->alias('Wncms', \Wncms\Facades\Wncms::class);
 
         // Custom exception handler
@@ -133,7 +136,6 @@ class WncmsServiceProvider extends ServiceProvider
         }
     }
 
-
     /**
      * Setup shared view variables and composers.
      */
@@ -203,5 +205,15 @@ class WncmsServiceProvider extends ServiceProvider
         if (!empty($commandClasses)) {
             $this->commands($commandClasses);
         }
+    }
+
+    public function registerModelTagMeta()
+    {
+        $models = [
+            // 'model_key' => ModelClass::class,
+            'post' => \Wncms\Models\Post::class,
+            'page' => \Wncms\Models\Page::class,
+        ];
+        wncms()->tag()->registerPackageModels($models);
     }
 }

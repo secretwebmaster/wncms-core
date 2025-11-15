@@ -37,29 +37,13 @@ class Wncms
      */
     public function __call($method, $args)
     {
-        // ① Methods from traits or this class
         if (method_exists($this, $method)) {
             return $this->$method(...$args);
         }
 
-        // ② App Manager
-        $class = 'App\\Services\\Managers\\' . ucfirst(Str::camel($method)) . 'Manager';
-        if (class_exists($class)) {
-            return new $class($this, ...$args);
-        }
-
-        // ③ Core Manager
-        $class = 'Wncms\\Services\\Managers\\' . ucfirst(Str::camel($method)) . 'Manager';
-        if (class_exists($class)) {
-            return new $class($this, ...$args);
-        }
-
-        // ④ Registered Package Manager (via PackageMethods trait)
-        if (method_exists($this, 'tryPackageProxy')) {
-            $proxy = $this->tryPackageProxy($method, $args);
-            if ($proxy) {
-                return $proxy;
-            }
+        $manager = $this->resolveManager($method, $args);
+        if ($manager) {
+            return $manager;
         }
 
         throw new \RuntimeException("Undefined method or manager [{$method}] in Wncms.");
@@ -86,31 +70,44 @@ class Wncms
     {
         $studly = ucfirst(\Illuminate\Support\Str::camel($method));
 
-        // ① App Managers (always highest priority)
+        // App Managers
         $class = "App\\Services\\Managers\\{$studly}Manager";
         if (class_exists($class)) {
+            if (app()->bound($class)) {
+                return app($class);
+            }
             return new $class($this, ...$args);
         }
 
-        // ② Core Managers
+        // Core Managers
         $class = "Wncms\\Services\\Managers\\{$studly}Manager";
         if (class_exists($class)) {
+            if (app()->bound($class)) {
+                return app($class);
+            }
             return new $class($this, ...$args);
         }
 
-        // ③ Package-specific Manager (when package key is provided)
+        // Package-specific Manager
         if ($package) {
             $pkg = $this->getRegisteredPackages()[$package] ?? null;
             if ($pkg) {
                 $managerMap = $pkg['manager_map'] ?? [];
                 $alias = \Illuminate\Support\Str::lower($method);
+
                 if (!empty($managerMap[$alias]) && class_exists($managerMap[$alias])) {
-                    return new $managerMap[$alias]($this, ...$args);
+                    $pkgClass = $managerMap[$alias];
+
+                    if (app()->bound($pkgClass)) {
+                        return app($pkgClass);
+                    }
+
+                    return new $pkgClass($this, ...$args);
                 }
             }
         }
 
-        // ④ Fallback: search any package (old tryPackageProxy behavior)
+        // Fallback
         if (method_exists($this, 'tryPackageProxy')) {
             $proxy = $this->tryPackageProxy($method, $args);
             if ($proxy) return $proxy;

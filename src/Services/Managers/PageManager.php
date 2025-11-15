@@ -38,8 +38,8 @@ class PageManager extends ModelManager
         $keywords = $options['keywords'] ?? [];
         $count = $options['count'] ?? 0;
         $offset = $options['offset'] ?? 0;
-        $order = $options['order'] ?? 'id';
-        $sequence = $options['sequence'] ?? 'desc';
+        $sort = $options['sort'] ?? 'id';
+        $direction= $options['direction'] ?? 'desc';
         $status = $options['status'] ?? 'published';
         $wheres = $options['wheres'] ?? [];
         $websiteId = $options['website_id'] ?? null;
@@ -59,7 +59,7 @@ class PageManager extends ModelManager
         $this->applyOffset($q, $offset);
         $this->applyLimit($q, $count);
         $this->applyStatus($q, 'status', $status);
-        $this->applyOrdering($q, $order, $sequence, $isRandom);
+        $this->applyOrdering($q, $sort, $direction, $isRandom);
 
         $q->withCount('comments');
 

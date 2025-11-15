@@ -342,13 +342,18 @@ abstract class ModelManager
 
     /**
      * Apply ordering rules to the query.
+     *
+     * @param Builder $q
+     * @param string $sort       // column to sort by (default: 'sort')
+     * @param string $direction  // asc|desc
+     * @param bool $isRandom     // random ordering disables explicit sorting
      */
-    protected function applyOrdering(Builder $q, string $order, string $sequence = 'desc', bool $isRandom = false)
+    protected function applyOrdering(Builder $q, string $sort, string $direction = 'desc', bool $isRandom = false)
     {
         if ($isRandom) {
             $q->inRandomOrder();
         } else {
-            $q->orderBy($order, in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc');
+            $q->orderBy($sort, in_array($direction, ['asc', 'desc']) ? $direction : 'desc');
             $q->orderBy('id', 'desc');
         }
     }
@@ -537,15 +542,14 @@ abstract class ModelManager
      */
     protected function autoAddOrderByColumnsToSelect(Builder $q, array $select): array
     {
-        $orderColumns = collect($q->getQuery()->orders ?? [])
+        $columns = collect($q->getQuery()->orders ?? [])
             ->pluck('column')
             ->filter() // remove raw expressions
             ->unique()
             ->values();
 
-        foreach ($orderColumns as $column) {
-            // Skip if already selected (consider both 'col' and 'table.col')
-            if (!in_array($column, $select) && !in_array('links.' . $column, $select)) {
+        foreach ($columns as $column) {
+            if (!in_array($column, $select)) {
                 $select[] = $column;
             }
         }
@@ -583,8 +587,8 @@ abstract class ModelManager
             $full = $modelKey . '_' . $key;
 
             return [
-                'full'  => $full, // full tag type. e.g. product_category
-                'key'  => $key, // readable key. e.g. category  
+                'full' => $full, // full tag type. e.g. product_category
+                'key' => $key, // readable key. e.g. category  
                 'label' => __($packageKey . '::word.' . $full), // localized label e.g. Product Category
             ];
         })->values()->toArray();

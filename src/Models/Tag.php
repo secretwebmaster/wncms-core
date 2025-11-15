@@ -12,6 +12,13 @@ class Tag extends WncmsTag implements HasMedia
 {
     use InteractsWithMedia;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'tag';
+
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-tag'
     ];
@@ -21,17 +28,27 @@ class Tag extends WncmsTag implements HasMedia
         'tag',
     ];
 
-    public const ORDERS = [
-        'order_column',
+    public const SORTS = [
+        'sort',
         'created_at',
         'updated_at',
     ];
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Contracts
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('tag_thumbnail')->singleFile();
     }
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Relationships
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function posts()
     {
         return $this->morphedByMany(wncms()->getModelClass('post'), 'taggable');
@@ -42,41 +59,23 @@ class Tag extends WncmsTag implements HasMedia
         return $this->hasMany(wncms()->getModelClass('tag_keyword'));
     }
 
-
     /**
      * ----------------------------------------------------------------------------------------------------
-     * ! Attributes Accessor
+     * Attributes Accessor
      * ----------------------------------------------------------------------------------------------------
+     */
+    /**
+     * Get URL using TagManager and tag meta.
      */
     public function getUrlAttribute(): ?string
     {
         try {
-            $parts = explode('_', $this->type);
-            if (count($parts) !== 2) return null;
-
-            [$model, $subType] = $parts;
-
-            $model = str()->plural($model);
-
-            $routeName = "frontend.{$model}.{$subType}";
-
-            if (!Route::has($routeName)) return null;
-
-            return route($routeName, ['tagName' => $this->name]);
+            if (! function_exists('wncms')) return null;
+            return wncms()->tag()->getUrl($this) ?: null;
         } catch (\Throwable $e) {
             report($e);
             return null;
         }
-    }
-
-    public function getPostCategoryUrlAttribute()
-    {
-        return route('frontend.posts.category', ['tagName' => $this->name]);
-    }
-
-    public function getPostTagUrlAttribute()
-    {
-        return route('frontend.posts.tag', ['tagName' => $this->name]);
     }
 
     public function getThumbnailAttribute()
@@ -122,37 +121,34 @@ class Tag extends WncmsTag implements HasMedia
         return $descendantsAndSelf;
     }
 
-
     /**
-     * ----------------------------------------------------------------------------------------------------
-     * !Query
-     * ----------------------------------------------------------------------------------------------------
+     * Generate URL for a tag based on its type (key) and meta.
+     *
+     * @param  \Wncms\Models\Tag|\Wncms\Tags\Tag  $tag
      */
-    public function getPostList(array $options = [])
+    public function getUrl($tag): string
     {
-        $options['tags'] = $this->name;
-        $options['tag_type'] = $this->type;
+        if (empty($tag) || empty($tag->type)) {
+            return 'javascript:;';
+        }
 
-        return wncms()->post()->getList($options);
-    }
+        $entry = $this->getTagMetaByKey($tag->type);
+        if (! $entry) {
+            return 'javascript:;';
+        }
 
-    
-    /**
-     * ----------------------------------------------------------------------------------------------------
-     * ! Static functions
-     * ----------------------------------------------------------------------------------------------------
-     */
-    public static function getAvailableTypes($model = null)
-    {
-        return self::select('type')
-            ->whereIn('id', function ($q) use ($model) {
-                $q->select('tag_id')->from('taggables');
-                if ($model) {
-                    $q->where('taggable_type', 'Wncms\Models\\' . str()->studly($model));
-                }
-            })
-            ->distinct()
-            ->pluck('type')
-            ->toArray();
+        $meta      = $entry['meta'];
+        $routeName = $meta['route'] ?? null;
+        $short     = $meta['short'] ?? null;
+
+        if (! $routeName || ! function_exists('wncms_route_exists') || ! wncms_route_exists($routeName)) {
+            return 'javascript:;';
+        }
+
+        // Common parameter pattern; you can adjust if needed
+        return route($routeName, [
+            'type' => $short,
+            'slug' => $tag->slug,
+        ]);
     }
 }

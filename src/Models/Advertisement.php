@@ -16,6 +16,13 @@ class Advertisement extends BaseModel implements HasMedia
     use HasTranslations;
     use HasMultisite;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'advertisement';
+
     protected $guarded = [];
 
     protected $casts = [
@@ -28,15 +35,18 @@ class Advertisement extends BaseModel implements HasMedia
         'fontawesome' => 'fa-solid fa-rectangle-ad'
     ];
 
-    public const ORDERS = [
+    public const SORTS = [
+        'id',
         'status',
         'type',
         'expired_at',
         'name',
-        'order',
+        'sort',
         'position',
+        'created_at',
+        'updated_at',
     ];
-    
+
     public const POSITIONS = [
         'header',
         'footer',
@@ -69,11 +79,6 @@ class Advertisement extends BaseModel implements HasMedia
         'custom_position_10',
     ];
 
-    public const ROUTES = [
-        'index',
-        'create',
-    ];
-
     public const STATUSES = [
         'active',
         'paused',
@@ -87,17 +92,26 @@ class Advertisement extends BaseModel implements HasMedia
         'script',
     ];
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Contracts
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('advertisement_thumbnail')->singleFile();
     }
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Attributes Accessor
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function getThumbnailAttribute()
     {
         $media = $this->getMedia('advertisement_thumbnail')->first();
         if ($media) return $media->getUrl();
         return $this->external_thumbnail;
     }
-
 }
 

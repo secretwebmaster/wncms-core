@@ -9,6 +9,13 @@ class Record extends BaseModel
 {
     use HasFactory;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'record';
+
     protected $fillable = [
         'type',
         'sub_type',
@@ -20,7 +27,6 @@ class Record extends BaseModel
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-clipboard'
     ];
-
 
     public const ROUTES = [
         'index',
@@ -44,11 +50,9 @@ class Record extends BaseModel
         'fail',
     ];
 
-    public const ORDERS = [
+    public const SORTS = [
         'created_at',
         'type',
         'sub_type'
     ];
-
-    
 }

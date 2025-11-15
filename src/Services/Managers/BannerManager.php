@@ -58,8 +58,8 @@ class BannerManager
      * @version 3.0.0
      * @param integer $count Number of banners to get
      * @param ?int $pageSize How many banners per page. Will not call paginate() if set to null or 0, set to -1 to paginate all records in one page
-     * @param string $order By default, banner will be ordered by id
-     * @param string $sequence By Defaultm banner will be sorted in descending order
+     * @param string $sort By default, banner will be ordered by id
+     * @param string $direction By Defaultm banner will be sorted in descending order
      * @param string $status 
      * @param integer|null $websiteId By default, banners will be retrieved from current website
      * @param integer|null $websiteId By default, banners will be retrieved from current website
@@ -70,11 +70,11 @@ class BannerManager
     function getList(
         int $count = 0,
         int $pageSize = 0,
-        string $order = 'order',
-        string $sequence = 'desc',
+        string $sort = 'sort',
+        string $direction = 'desc',
         string $status = 'active',
         ?array $wheres = [],
-        int $websiteId = null,
+        ?int $websiteId = null,
         bool $includeExpired = false,
         string|array|null $positions = null,
     )
@@ -88,7 +88,7 @@ class BannerManager
         // wncms()->cache()->clear($cacheKey, $cacheTags);
         // dd($cacheKey);
 
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($count, $pageSize, $order, $sequence, $status, $wheres, $websiteId, $includeExpired, $positions) {
+        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($count, $pageSize, $sort, $direction, $status, $wheres, $websiteId, $includeExpired, $positions) {
             if($websiteId){
                 $website = wncms()->website()->get($websiteId, false);
             }else{
@@ -115,7 +115,7 @@ class BannerManager
                 });
             }
 
-            $q->orderBy($order, $sequence);
+            $q->orderBy($sort, $direction);
             $q->oldest();
             $q->with('media');
             $q->when($count > 0, fn ($q) => $q->take($count));

@@ -75,9 +75,9 @@ class AdvertisementManager extends ModelManager
         $this->applyWiths($q, array_merge(['media'], $options['withs'] ?? []));
         $this->applyOrdering(
             $q,
-            $options['order'] ?? 'order',
-            $options['sequence'] ?? 'desc',
-            ($options['order'] ?? '') === 'random'
+            $options['sort'] ?? 'sort',
+            $options['direction'] ?? 'desc',
+            ($options['sort'] ?? '') === 'random'
         );
 
 

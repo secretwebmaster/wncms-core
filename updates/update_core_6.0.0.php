@@ -32,7 +32,7 @@ try {
     $newDir = resource_path('views/frontend/themes');
     if (is_dir($oldDir) && !is_dir($newDir)) {
         rename($oldDir, $newDir);
-    }elseif(is_dir($oldDir) && is_dir($newDir)){
+    } elseif (is_dir($oldDir) && is_dir($newDir)) {
         //merge folders
         $files = scandir($oldDir);
         foreach ($files as $file) {
@@ -48,7 +48,7 @@ try {
     $newPublicDir = public_path('themes');
     if (is_dir($oldPublicDir) && !is_dir($newPublicDir)) {
         rename($oldPublicDir, $newPublicDir);
-    }elseif(is_dir($oldPublicDir) && is_dir($newPublicDir)){
+    } elseif (is_dir($oldPublicDir) && is_dir($newPublicDir)) {
         //merge folders
         $files = scandir($oldPublicDir);
         foreach ($files as $file) {
@@ -57,6 +57,85 @@ try {
             }
         }
         rmdir($oldPublicDir);
+    }
+
+    // tags table (order_column → sort)
+    if (Schema::hasColumn('tags', 'order_column')) {
+
+        if (!Schema::hasColumn('tags', 'sort')) {
+            Schema::table('tags', function (Blueprint $table) {
+                $table->integer('sort')->nullable()->after('icon');
+            });
+        }
+
+        DB::table('tags')->update([
+            'sort' => DB::raw('order_column')
+        ]);
+
+        Schema::table('tags', function (Blueprint $table) {
+            $table->dropColumn('order_column');
+        });
+    }
+
+    if (Schema::hasColumn('tags', 'sort')) {
+        Schema::table('tags', function (Blueprint $table) {
+            $table->index('sort');
+        });
+    }
+
+    // links table (order → sort)
+    if (Schema::hasColumn('links', 'order')) {
+        Schema::table('links', function (Blueprint $table) {
+            $table->renameColumn('order', 'sort');
+        });
+    } elseif (! Schema::hasColumn('links', 'sort')) {
+        Schema::table('links', function (Blueprint $table) {
+            $table->integer('sort')->nullable();
+        });
+    }
+
+    // page_templates table (order → sort)
+    if (Schema::hasColumn('page_templates', 'order')) {
+        Schema::table('page_templates', function (Blueprint $table) {
+            $table->renameColumn('order', 'sort');
+        });
+    } elseif (! Schema::hasColumn('page_templates', 'sort')) {
+        Schema::table('page_templates', function (Blueprint $table) {
+            $table->integer('sort')->nullable();
+        });
+    }
+
+    // menu_items table (order → sort)
+    if (Schema::hasColumn('menu_items', 'order')) {
+        Schema::table('menu_items', function (Blueprint $table) {
+            $table->renameColumn('order', 'sort');
+        });
+    } elseif (! Schema::hasColumn('menu_items', 'sort')) {
+        Schema::table('menu_items', function (Blueprint $table) {
+            $table->integer('sort')->nullable();
+        });
+    }
+
+    // advertisements table (order → sort)
+    if (Schema::hasColumn('advertisements', 'order')) {
+        Schema::table('advertisements', function (Blueprint $table) {
+            $table->renameColumn('order', 'sort');
+        });
+    } elseif (! Schema::hasColumn('advertisements', 'sort')) {
+        Schema::table('advertisements', function (Blueprint $table) {
+            $table->integer('sort')->nullable();
+        });
+    }
+
+    // posts table (order → sort)
+    if (Schema::hasColumn('posts', 'order')) {
+        Schema::table('posts', function (Blueprint $table) {
+            $table->renameColumn('order', 'sort');
+        });
+    } elseif (! Schema::hasColumn('posts', 'sort')) {
+        Schema::table('posts', function (Blueprint $table) {
+            $table->integer('sort')->nullable();
+        });
     }
 
     uss('core_version', $thisVersion);

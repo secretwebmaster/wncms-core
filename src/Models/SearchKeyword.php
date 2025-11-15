@@ -9,17 +9,24 @@ class SearchKeyword extends BaseModel
 {
     use HasFactory;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'search_keyword';
+
     protected $guarded = [];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-magnifying-glass'
     ];
 
-    public const ROUTES = [
-        'index',
-        'create',
-    ];
-
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Models Methods
+     * ----------------------------------------------------------------------------------------------------
+     */
     public static function add($keyword){
         $search_keyword = self::firstOrCreate([
             'keyword' => $keyword,

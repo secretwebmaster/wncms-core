@@ -14,6 +14,13 @@ class Website extends BaseModel implements HasMedia
     use InteractsWithMedia;
     use HasTranslations;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'website';
+
     protected $guarded = [];
 
     protected $translatable = [
@@ -29,11 +36,6 @@ class Website extends BaseModel implements HasMedia
         'fontawesome' => 'fa-solid fa-globe'
     ];
 
-    public const ROUTES = [
-        'index',
-        'create',
-    ];
-
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('site_logo')->singleFile();
@@ -41,8 +43,11 @@ class Website extends BaseModel implements HasMedia
         $this->addMediaCollection('site_favicon')->singleFile();
     }
 
-
-    //! Relationships
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Relationships
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function advertisements()
     {
         return $this->hasMany(wncms()->getModelClass('advertisement'));
@@ -52,7 +57,7 @@ class Website extends BaseModel implements HasMedia
     {
         return $this->hasMany(wncms()->getModelClass('domain_alias'));
     }
-    
+
     public function faqs()
     {
         return $this->hasMany(wncms()->getModelClass('faq'));
@@ -62,7 +67,7 @@ class Website extends BaseModel implements HasMedia
     {
         return $this->hasMany(wncms()->getModelClass('menu'));
     }
-    
+
     public function pages()
     {
         return $this->hasMany(wncms()->getModelClass('page'));
@@ -94,7 +99,11 @@ class Website extends BaseModel implements HasMedia
     }
 
 
-    //! Attribute
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Attributes Accessor
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function getSiteFaviconAttribute()
     {
         return $this->getFirstMediaUrl('site_favicon');
@@ -116,10 +125,14 @@ class Website extends BaseModel implements HasMedia
     }
 
 
-    //! Functions
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Model Methods
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function get_options($locale = null)
     {
-        if(!$this->theme){
+        if (!$this->theme) {
             return [];
         }
 
@@ -150,6 +163,4 @@ class Website extends BaseModel implements HasMedia
     {
         return data_get($this->get_options(), $key);
     }
-
-
 }

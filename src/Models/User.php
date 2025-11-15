@@ -4,27 +4,31 @@ namespace Wncms\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Wncms\Foundation\Auth\Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 
 class User extends Authenticatable implements MustVerifyEmail, HasMedia
 {
     use HasFactory, Notifiable;
     use HasRoles;
     use InteractsWithMedia;
+    use MustVerifyEmailTrait;
+
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'user';
 
     protected $guarded = [];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-user'
-    ];
-
-    public const ROUTES = [
-        'index',
-        'create',
     ];
 
     protected $hidden = [
@@ -64,16 +68,18 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         return $this->hasMany(wncms()->getModelClass('post'));
     }
 
-    public function websites()
-    {
-        return $this->belongsToMany(wncms()->getModelClass('website'));
-    }
-
     public function emails_received()
     {
         return $this->hasMany(wncms()->getModelClass('email'), 'to_user_id', 'id');
     }
 
+    //! Attribues
+    public function getAvatarAttribute()
+    {
+        return $this->getFirstMediaUrl('avatar') ?: asset('wncms/media/avatars/blank.png');
+    }
+
+    // Move to wncms-ecommerce package
     // public function credits()
     // {
     //     return $this->hasMany(wncms()->getModelClass('credit'));
@@ -88,13 +94,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     // {
     //     return $this->hasMany(wncms()->getModelClass('order'));
     // }
-
-
-    //! Attribues
-    public function getAvatarAttribute()
-    {
-        return $this->getFirstMediaUrl('avatar') ?: asset('wncms/media/avatars/blank.png');
-    }
 
     // public function getBalanceAttribute()
     // {

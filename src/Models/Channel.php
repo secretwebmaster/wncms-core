@@ -9,17 +9,24 @@ class Channel extends BaseModel
 {
     use HasFactory;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'channel';
+
     protected $guarded = [];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-star'
     ];
 
-    public const ROUTES = [
-        'index',
-        'create',
-    ];
-
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Relationships
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function clicks()
     {
         return $this->hasMany(wncms()->getModelClass('click'));

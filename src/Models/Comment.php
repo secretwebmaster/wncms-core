@@ -13,33 +13,45 @@ class Comment extends BaseModel
     use HasTranslations;
     use SoftDeletes;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'comment';
+
     protected $guarded = [];
-    
+
     protected $translatable = ['content'];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-comments'
     ];
 
-    // 定義 Comment 所屬的用戶
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Relationships
+     * ----------------------------------------------------------------------------------------------------
+     */
+    // Define the user that this Comment belongs to
     public function user()
     {
         return $this->belongsTo(wncms()->getModelClass('user'));
     }
 
-    // 定義 Comment 所屬的父節點，即回覆的 Comment
+    // Define the parent Comment (the comment this one is replying to)
     public function parent()
     {
         return $this->belongsTo(wncms()->getModelClass('comment'), 'parent_id');
     }
 
-    // 定義 Comment 所屬的子節點，即被回覆的 Comment
+    // Define the child Comments (the replies to this comment)
     public function children()
     {
         return $this->hasMany(wncms()->getModelClass('comment'), 'parent_id');
     }
 
-    // 定義 Comment 所屬的 Post 或 Video
+    // Define the Post or Video that this Comment belongs to
     public function commentable()
     {
         return $this->morphTo();

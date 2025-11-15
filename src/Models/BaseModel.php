@@ -3,46 +3,101 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Wncms\Contracts\BaseModelContract;
 use Wncms\Tags\HasTags;
 use Wncms\Traits\HasMultisite;
 
-class BaseModel extends Model
+abstract class BaseModel extends Model implements BaseModelContract
 {
     use HasMultisite;
     use HasTags;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $packageId = 'wncms';
+
+    public static $modelKey = '';
+
+    /**
+     * Tag meta definition for this model.
+     *
+     * Example:
+     * [
+     *     [
+     *         'key'   => 'product_category',
+     *         'short' => 'category',
+     *         'route' => 'frontend.products.tag',
+     *     ],
+     *     ...
+     * ]
+     *
+     * If a model does not define tagging, leave this empty.
+     */
+    protected static array $tagMetas = [];
+
+    public const ICONS = [
+        'fontawesome' => 'fa-solid fa-cube'
+    ];
+
+    public const ROUTES = [
+        'index',
+        'create',
+    ];
+
+    public const SORTS = [
+        'id',
+        'status',
+        'created_at',
+        'updated_at',
+    ];
+
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Contracts
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static function getModelKey(): string
+    {
+        return static::$modelKey;
+    }
+
+    public static function getTagMeta(): array
+    {
+        return static::$tagMetas ?? [];
+    }
+
+    /**
+     * Boot logic executed after model is initialized.
+     * 1. Ensure modelKey exists.
+     * 2. Register tag meta (if any) into TagManager.
+     */
     protected static function booted()
     {
-        if (defined(static::class . '::TAG_TYPES')) {
-            (new static())->addAllowedTagTypes(static::TAG_TYPES);
+        if (empty(static::$modelKey)) {
+            throw new \Exception(static::class . ' must define public static $modelKey.');
         }
     }
 
     /**
-     * Return the parent model's class name (without namespace).
+     * Get the short, un-namespaced model name.
+     *
+     * @return string
      */
     public function getParentModelName(): string
     {
         return class_basename($this);
     }
 
-    // public function getAttribute($key)
-    // {
-    //     // Retrieve the value using the original method
-    //     $value = parent::getAttribute($key);
-
-    //     // Check if the key exists in the model's attributes
-    //     if (array_key_exists($key, $this->attributes)) {
-    //         // Fire the event, passing the model, the attribute key, and the value by reference
-    //         event('model.getting.attribute', [$this, $key, &$value]);
-    //     }
-
-    //     // Return the value, but make sure it's properly cast to its original type
-    //     return $this->hasCast($key) && is_string($value)
-    //         ? $this->castAttribute($key, $value)
-    //         : $value;
-    // }
-
+    /**
+     * Override getAttribute to support ModelGettingAttribute event
+     * and prevent double casting for arrays/objects.
+     *
+     * @param string $key
+     * @return mixed
+     */
     public function getAttribute($key)
     {
         $value = parent::getAttribute($key);
@@ -50,16 +105,13 @@ class BaseModel extends Model
         if (array_key_exists($key, $this->attributes)) {
             $event = new \Wncms\Events\ModelGettingAttribute($this, $key, $value);
             event($event);
-
             $value = $event->value;
         }
 
         if ($this->hasCast($key)) {
-            // avoid double casting arrays/objects
             if (is_string($value) || is_null($value)) {
                 return $this->castAttribute($key, $value);
             }
-
             return $value;
         }
 
@@ -67,22 +119,28 @@ class BaseModel extends Model
     }
 
     /**
-     * Return a localized or user-defined display name for the model.
+     * Get human-friendly model display name.
+     * Priority:
+     *  1. User override via gss()
+     *  2. Package translation
+     *  3. Core translation
+     *  4. Fallback formatted class name
+     *
+     * @param string|null $locale
+     * @return string
      */
     public static function getModelName(?string $locale = null): string
     {
         $short = strtolower(class_basename(static::class));
         $packageId = static::getPackageId();
 
-        // 1. user override (namespaced)
         if (function_exists('gss') && $packageId) {
-            $custom = gss("{$packageId}::{$short}_model_name");
-            if (!empty($custom)) {
-                return $custom;
+            $override = gss("{$packageId}::{$short}_model_name");
+            if (!empty($override)) {
+                return $override;
             }
         }
 
-        // 2. translation lookup (namespaced)
         if ($packageId) {
             $translated = __("{$packageId}::word.{$short}", locale: $locale);
             if ($translated !== "{$packageId}::word.{$short}") {
@@ -90,19 +148,19 @@ class BaseModel extends Model
             }
         }
 
-        // 3. fallback to core translation
-        $coreTranslated = __("wncms::word.{$short}", locale: $locale);
-        if ($coreTranslated !== "wncms::word.{$short}") {
-            return $coreTranslated;
+        $core = __("wncms::word.{$short}", locale: $locale);
+        if ($core !== "wncms::word.{$short}") {
+            return $core;
         }
 
-        // 4. fallback to humanized class name
         return ucfirst(str_replace('_', ' ', $short));
     }
 
     /**
-     * Return the package ID for namespacing model-related data.
-     * Packages should override this method to return their own ID.
+     * Get the package ID for this model.
+     * Returns null if the model does not define a $packageId property.
+     *
+     * @return string|null
      */
     public static function getPackageId(): ?string
     {

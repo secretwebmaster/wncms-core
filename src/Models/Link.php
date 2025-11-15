@@ -14,7 +14,12 @@ class Link extends BaseModel implements HasMedia
     use InteractsWithMedia;
     use HasTranslations;
 
-    protected static string $packageId = 'wncms';
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'link';
 
     protected $guarded = [];
 
@@ -29,16 +34,16 @@ class Link extends BaseModel implements HasMedia
         'fontawesome' => 'fa-solid fa-link'
     ];
 
-    public const ROUTES = [
-        'index',
-        'create',
-    ];
-
     public const STATUSES = [
         'active',
         'inactive',
     ];
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Contracts
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('link_thumbnail')->singleFile();
@@ -47,7 +52,7 @@ class Link extends BaseModel implements HasMedia
 
     /**
      * ----------------------------------------------------------------------------------------------------
-     * ! Attributes Accessor
+     * Attributes Accessor
      * ----------------------------------------------------------------------------------------------------
      */
     public function getThumbnailAttribute()

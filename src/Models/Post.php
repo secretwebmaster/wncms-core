@@ -19,6 +19,13 @@ class Post extends BaseModel implements HasMedia
     use HasTranslations;
     use HasComments;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'post';
+
     protected $guarded = [];
 
     protected $casts = [
@@ -37,14 +44,9 @@ class Post extends BaseModel implements HasMedia
     public const IGNORED_LOCALIZED_PATH_KEYWORDS = [
         'storage',
     ];
-
-    public const ROUTES = [
-        'index',
-        'create',
-    ];
     
-    public const ORDERS = [
-        'order',
+    public const SORTS = [
+        'sort',
         'view_today',
         'view_yesterday',
         'view_week',
@@ -68,14 +70,23 @@ class Post extends BaseModel implements HasMedia
         'admin',
     ];
     
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Contracts
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('post_thumbnail')->singleFile();
         $this->addMediaCollection('post_content');
     }
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Relationships
+     * ----------------------------------------------------------------------------------------------------
+     */
 
-    //! Relationship
     public function user()
     {
         return $this->belongsTo(wncms()->getModelClass('user'));
@@ -83,7 +94,7 @@ class Post extends BaseModel implements HasMedia
 
     /**
      * ----------------------------------------------------------------------------------------------------
-     * ! Attributes Accessor
+     * Attributes Accessor
      * ----------------------------------------------------------------------------------------------------
      */
     public function getThumbnailAttribute()
@@ -106,7 +117,11 @@ class Post extends BaseModel implements HasMedia
         return !empty($this->excerpt) ? str()->limit($this->excerpt, $limit, '..') : str()->limit(str_replace("&nbsp;", '', strip_tags($this->content)), $limit, '..') ;
     }
 
-    //! tag function. Will soon be deprecated
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Model Methods
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function getPostCategoriesAttribute()
     {
         return $this->tags->where('type','post_category');
@@ -160,14 +175,18 @@ class Post extends BaseModel implements HasMedia
         return $this->tags->where('type', $type)->first()?->name;
     }
 
-    //% Depracated soon
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * % Deprecated Methods
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function getFirstCategory()
     {
         return $this->getFirstTag('post_category');
         // return $this->tags->where('type', 'post_category')->first();
     }
 
-    //TODO:: Eagar loading
+    // TODO:: Eager loading
     public function getPrevious()
     {
         $website = wncms()->website()->getCurrent();
@@ -186,8 +205,8 @@ class Post extends BaseModel implements HasMedia
         $tagType = 'post_category',
         $count = 0,
         $pageSize = 0,
-        $order = 'id',
-        $sequence = 'desc',
+        $sort = 'id',
+        $direction = 'desc',
         $status = 'published',
     )
     {
@@ -195,8 +214,8 @@ class Post extends BaseModel implements HasMedia
             'tag_type' => $tagType,
             'count' => $count,
             'pageSize' => $pageSize,
-            'order' => $order,
-            'sequence' => $sequence,
+            'sort' => $sort,
+            'direction' => $direction,
             'status' => $status,
         ]);
     }

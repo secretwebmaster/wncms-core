@@ -9,14 +9,16 @@ class Parameter extends BaseModel
 {
     use HasFactory;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'parameter';
+
     protected $guarded = [];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-cube'
-    ];
-
-    public const ROUTES = [
-        'index',
-        'create',
     ];
 }

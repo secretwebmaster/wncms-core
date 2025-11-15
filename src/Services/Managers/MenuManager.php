@@ -37,12 +37,10 @@ class MenuManager extends ModelManager
             });
         }
 
-        // ✅ Changed default ordering from 'order' → 'id'
-        $this->applyOrdering($q, $options['order'] ?? 'id', $options['sequence'] ?? 'asc');
+        $this->applyOrdering($q, $options['sort'] ?? 'id', $options['direction'] ?? 'asc');
 
         return $q;
     }
-
 
     /**
      * Get a single menu by name or ID.
@@ -83,11 +81,11 @@ class MenuManager extends ModelManager
     /**
      * Get only parent items of a menu.
      */
-    public function getMenuParentItems(Model|string|int $menuName, ?string $order = 'order', ?string $sequence = 'asc', Model|int|null $websiteId = null)
+    public function getMenuParentItems(Model|string|int $menuName, ?string $sort = 'sort', ?string $direction = 'asc', Model|int|null $websiteId = null)
     {
         $menuModel = $this->getModelClass();
         $menuItemModel = wncms()->getModelClass('menu_item');
-        $websiteModel = wncms()->getModelClass('website');
+        // $websiteModel = wncms()->getModelClass('website');
 
         $method = "getMenuParentItems";
         $cacheKeyDomain = empty($websiteId) ? wncms()->getDomain() : '';
@@ -95,17 +93,17 @@ class MenuManager extends ModelManager
         $cacheTags = ['menus'];
         $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
 
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($menuName, $order, $sequence, $websiteId, $menuModel, $menuItemModel, $websiteModel) {
+        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($menuName, $sort, $direction, $websiteId, $menuModel, $menuItemModel) {
             $website = wncms()->website()->get($websiteId);
             if (!$website) return collect([]);
 
             $menu = $menuName instanceof $menuModel ? $menuName : $this->get(['name' => $menuName, 'website_id' => $websiteId]);
             if (!$menu) return collect([]);
 
-            $order = (empty($order) || !in_array($order, $menuItemModel::ORDERS ?? [])) ? 'order' : $order;
-            $sequence = (empty($sequence) || !in_array($sequence, ['asc', 'desc'])) ? 'asc' : $sequence;
+            $sort = (empty($sort) || !in_array($sort, $menuItemModel::SORTS ?? [])) ? 'sort' : $sort;
+            $direction = (empty($direction) || !in_array($direction, ['asc', 'desc'])) ? 'asc' : $direction;
 
-            return $menu->menu_items()->whereNull('parent_id')->orderBy($order, $sequence)->get();
+            return $menu->menu_items()->whereNull('parent_id')->orderBy($sort, $direction)->get();
         });
     }
 
@@ -123,92 +121,24 @@ class MenuManager extends ModelManager
                 : $menuItem->url;
         }
 
-        // ==============================
-        // 1️⃣ Handle tag-based menu items
-        // ==============================
+        // Tag-based menu items (generic)
         if ($menuItem->model_type === "Tag") {
             $tag = wncms()->tag()->get(['id' => $menuItem->model_id]);
-            if (!$tag) return "javascript:;";
+            if (! $tag) return "javascript:;";
 
-            // Example: type = "product_category"
-            $full = $menuItem->type;
-            $segments = explode("_", $full);
-            if (count($segments) < 2) return "javascript:;";
-
-            $modelKey = $segments[0];   // e.g. product
-            $key      = $segments[1];   // e.g. category
-
-            // Get model class dynamically
-            $modelClass = wncms()->getModelClass($modelKey);
-            if (!class_exists($modelClass)) return "javascript:;";
-
-            // Instantiate once (for tagFormats or extra logic)
-            $instance = new $modelClass();
-
-            // ✅ Get static package ID
-            $packageId = method_exists($modelClass, 'getPackageId')
-                ? $modelClass::getPackageId()
-                : null;
-
-            if ($packageId === 'wncms') {
-                // Core model manager (e.g. wncms()->post()->getAllowedTagTypes())
-                if (method_exists(wncms(), $modelKey)) {
-                    $manager = wncms()->{$modelKey}();
-                    $allowedTagTypes = method_exists($manager, 'getAllowedTagTypes')
-                        ? $manager->getAllowedTagTypes()
-                        : [];
-                } else {
-                    $allowedTagTypes = [];
-                }
-            } elseif (!empty($packageId)) {
-                // Package model manager (e.g. wncms()->package('wncms-ecommerce')->product()->getAllowedTagTypes())
-                $package = wncms()->package($packageId);
-
-                $manager = $package->{$modelKey}();
-
-                // ✅ check getAllowedTagTypes() only on the manager
-                $allowedTagTypes = method_exists($manager, 'getAllowedTagTypes')
-                    ? $manager->getAllowedTagTypes()
-                    : [];
-
-            } else {
-                $allowedTagTypes = [];
-            }
-
-
-            // ✅ Find matching tag definition (e.g. full = "product_category")
-            $matched = collect($allowedTagTypes)->firstWhere('full', $full);
-  
-            if (!$matched) return "javascript:;";
-
-            // ✅ Try to find defined route pattern in tagFormats first
-            $routeName = $instance->tagFormats[$full]
-                ?? "frontend." . str($modelKey)->plural() . ".tag";
-
-            // ✅ Generate URL if route exists
-            if (wncms_route_exists($routeName)) {
-                return route($routeName, ['type' => $key, 'slug' => $tag->slug]);
-            }
-
-            // ✅ Fallback (for debugging or incomplete routes)
-            return "javascript:;";
+            return wncms()->tag()->getUrl($tag);
         }
 
-
-        // ==============================
-        // 2️⃣ Handle pages
-        // ==============================
+        // Pages (unchanged)
         if ($menuItem->model_type === "page") {
             $page = wncms()->page()->get(['id' => $menuItem->model_id]);
             return $page ? route('frontend.pages.single', ['slug' => $page->slug]) : "javascript:;";
         }
 
-        // ==============================
-        // 3️⃣ Handle generic models
-        // ==============================
+        // Generic models (unchanged)
         $modelClass = wncms()->getModelClass(strtolower($menuItem->model_type));
         if (class_exists($modelClass)) {
-            $table = (new $modelClass)->getTable();
+            $table     = (new $modelClass)->getTable();
             $routeName = "frontend.{$table}.show";
 
             if (wncms_route_exists($routeName)) {

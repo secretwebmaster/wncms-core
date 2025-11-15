@@ -9,7 +9,15 @@ class PageTemplate extends BaseModel
 {
     use HasFactory;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'page_template';
+
     protected $guarded = [];
+
     protected $casts = [
         'value' => 'array'
     ];
@@ -17,5 +25,15 @@ class PageTemplate extends BaseModel
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-cube'
     ];
+
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Relationships
+     * ----------------------------------------------------------------------------------------------------
+     */
+    // public function page()
+    // {
+    //     return $this->belongsTo(wncms()->getModelClass('page'));
+    // }
 
 }

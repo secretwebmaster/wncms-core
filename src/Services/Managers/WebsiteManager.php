@@ -169,15 +169,15 @@ class WebsiteManager
         int $count = 0,
         int $page_size = 0,
         array $wheres = [],
-        string $order = 'id',
-        string $sequence = 'desc',
+        string $sort = 'id',
+        string $direction = 'desc',
     ) {
         $shouldAuth = false;
         $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, __FUNCTION__, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()));
         // wncms()->cache()->clear($cacheKey, $this->cacheTags);
         // dd($cacheKey);
 
-        return wncms()->cache()->tags($this->cacheTags)->remember($cacheKey, $this->cacheTime, function () use ($websiteIds, $count, $page_size, $wheres, $order, $sequence) {
+        return wncms()->cache()->tags($this->cacheTags)->remember($cacheKey, $this->cacheTime, function () use ($websiteIds, $count, $page_size, $wheres, $sort, $direction) {
             $q = wncms()->getModelClass('website')::query();
 
             if (!empty($websiteIds)) {
@@ -199,7 +199,7 @@ class WebsiteManager
 
             $q->with(['media', 'translations']);
 
-            $q->orderBy($order, in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc');
+            $q->orderBy($sort, in_array($direction, ['asc', 'desc']) ? $direction : 'desc');
 
             if ($count > 0) {
                 $q->limit($count);

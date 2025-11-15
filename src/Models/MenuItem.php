@@ -14,28 +14,47 @@ class MenuItem extends BaseModel implements HasMedia
     use HasTranslations;
     use InteractsWithMedia;
 
-    public array $translatable = ['name', 'display_name','description'];
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'menu_item';
+
+    public array $translatable = ['name', 'display_name', 'description'];
+
     protected $guarded = [];
+
     protected $with = [
         'children',
 
-        //%測試隱藏後是否有Bug
+        //% Check for performance issue
         // 'children.children',
     ];
 
-    public const ORDERS = [
+    public const SORTS = [
         'id',
         'name',
-        'order',
+        'sort',
         'created_at',
         'updated_at',
     ];
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Contracts
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('menu_item_thumbnail')->singleFile();
     }
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Relationships
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function children()
     {
         return $this->hasMany(self::class, 'parent_id');
@@ -51,7 +70,11 @@ class MenuItem extends BaseModel implements HasMedia
         return $this->belongsTo(wncms()->getModelClass('menu'));
     }
 
-    //! Asttribute
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Attributes Accessor
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function getThumbnailAttribute()
     {
         $media = $this->getMedia('menu_item_thumbnail')->first();
@@ -63,6 +86,4 @@ class MenuItem extends BaseModel implements HasMedia
     {
         return wncms()->menu()->getMenuItemUrl($this);
     }
-
-    
 }

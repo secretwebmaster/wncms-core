@@ -41,14 +41,14 @@ class LinkManager extends ModelManager
      * - wheres: array - Additional raw where conditions.
      * - status: string|null - Filter by link status (e.g., 'active', 'draft').
      * - withs: array - Eloquent relationships to eager load.
-     * - order: string - Column to sort by (default: 'order').
-     * - sequence: string - Sort direction ('asc' or 'desc', default: 'desc').
+     * - sort: string - Column to sort by (default: 'sort').
+     * - direction: string - Sort direction ('asc' or 'desc', default: 'desc').
      * - select: array|string - Columns to select (default: ['*']).
      * - offset: int - Query offset for pagination or batching.
      * - count: int - Limit the number of results (0 means no limit).
      *
      * Additional behavior:
-     * - If 'order' is 'random', results will be returned in random order.
+     * - If 'sort' is 'random', results will be returned in random order.
      * - Automatically eager loads 'media' relation and removes duplicate rows using DISTINCT.
      *
      * @param array $options
@@ -69,7 +69,7 @@ class LinkManager extends ModelManager
         $this->applyWhereConditions($q, $options['wheres'] ?? []);
         $this->applyStatus($q, 'status', $options['status'] ?? 'active');
         $this->applyWiths($q, $options['withs'] ?? []);
-        $this->applyOrdering($q, $options['order'] ?? 'order', $options['sequence'] ?? 'desc', ($options['order'] ?? '') === 'random');
+        $this->applyOrdering($q, $options['sort'] ?? 'sort', $options['direction'] ?? 'desc', ($options['sort'] ?? '') === 'random');
         $this->applyWebsiteId($q, $options['website_id'] ?? null);
         
         $select = $options['select'] ?? ['links.*'];
@@ -78,7 +78,7 @@ class LinkManager extends ModelManager
         $select = $this->autoAddOrderByColumnsToSelect($q, $select);
 
         // Optional: if sorting by total_views_yesterday, make sure to explicitly join tv_y
-        if (($options['order'] ?? null) === 'total_views_yesterday' && !in_array('tv_y.total', $select)) {
+        if (($options['sort'] ?? null) === 'total_views_yesterday' && !in_array('tv_y.total', $select)) {
             $select[] = 'tv_y.total';
         }
 
@@ -101,14 +101,14 @@ class LinkManager extends ModelManager
         ])?->first();
     }
 
-    protected function applyOrdering(Builder $q, string $order, string $sequence = 'desc', bool $isRandom = false)
+    protected function applyOrdering(Builder $q, string $sort, string $direction = 'desc', bool $isRandom = false)
     {
         if ($isRandom) {
             $q->inRandomOrder();
             return;
         }
     
-        if ($order === 'total_views_yesterday') {
+        if ($sort === 'total_views_yesterday') {
 
             // info("pinned");
             $q->orderBy('links.is_pinned', 'desc');
@@ -121,14 +121,14 @@ class LinkManager extends ModelManager
                     ->where('tv_y.date', $yesterday);
             });
     
-            $q->orderBy('tv_y.total', in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc');
+            $q->orderBy('tv_y.total', in_array($direction, ['asc', 'desc']) ? $direction : 'desc');
             $q->orderBy('links.id', 'desc');
             return;
         }
     
         // Final fallback: just use requested column but preserve pinned
-        if (!in_array($order, ['is_pinned', 'total_views_yesterday', 'random'])) {
-            $q->orderBy("links.{$order}", in_array($sequence, ['asc', 'desc']) ? $sequence : 'desc');
+        if (!in_array($sort, ['is_pinned', 'total_views_yesterday', 'random'])) {
+            $q->orderBy("links.{$sort}", in_array($direction, ['asc', 'desc']) ? $direction : 'desc');
             $q->orderBy('links.id', 'desc');
             return;
         }

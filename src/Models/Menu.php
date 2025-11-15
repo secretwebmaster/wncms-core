@@ -11,6 +11,14 @@ class Menu extends BaseModel
     use HasFactory;
     use HasTranslations;
 
+
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'menu';
+
     protected $guarded = [];
 
     protected $translatable = ['name'];
@@ -23,11 +31,11 @@ class Menu extends BaseModel
         'fontawesome' => 'fa-solid fa-bars'
     ];
 
-    public const ROUTES = [
-        'index',
-        'create',
-    ];
-
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Relationships
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function menu_items()
     {
         return $this->hasMany(wncms()->getModelClass('menu_item'));
@@ -37,7 +45,4 @@ class Menu extends BaseModel
     {
         return $this->hasMany(wncms()->getModelClass('menu_item'))->whereNull('parent_id');
     }
-
-    //! Asttribute
-
 }

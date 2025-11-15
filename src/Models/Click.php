@@ -9,7 +9,15 @@ class Click extends BaseModel
 {
     use HasFactory;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'click';
+
     protected $guarded = [];
+
     protected $casts = [
         'parameters' => 'array',
     ];
@@ -20,9 +28,13 @@ class Click extends BaseModel
 
     public const ROUTES = [
         'index',
-        // 'create',
     ];
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Relationships
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function clickable()
     {
         return $this->morphTo();

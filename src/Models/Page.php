@@ -16,6 +16,13 @@ class Page extends BaseModel implements HasMedia
     use HasTranslations;
     use HasOptions;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'page';
+
     protected $guarded = [];
 
     protected $with = ['options'];
@@ -32,8 +39,8 @@ class Page extends BaseModel implements HasMedia
         'include_footer',
     ];
 
-    public const ORDERS = [
-        'order',
+    public const SORTS = [
+        'sort',
         'traffic_recently',
         'traffic_today',
         'traffic_yesterday',
@@ -44,11 +51,6 @@ class Page extends BaseModel implements HasMedia
         'expired_at',
         'created_at',
         'updated_at',
-    ];
-
-    public const ROUTES = [
-        'index',
-        'create',
     ];
 
     public const STATUSES = [
@@ -69,13 +71,22 @@ class Page extends BaseModel implements HasMedia
         'admin',
     ];
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Contracts
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('page_thumbnail')->singleFile();
         $this->addMediaCollection('page_content');
     }
 
-    //! Relationship
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Relationships
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function comments()
     {
         return $this->morphMany(wncms()->getModelClass('comment'), 'commentable');
@@ -91,7 +102,11 @@ class Page extends BaseModel implements HasMedia
         return $this->hasMany(wncms()->getModelClass('page_template'));
     }
 
-    //! Attribute
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Attributes Accessor
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function getThumbnailAttribute()
     {
         return $this->getFirstMediaUrl('page_thumbnail');
@@ -107,7 +122,11 @@ class Page extends BaseModel implements HasMedia
         return 'pages';
     }
 
-    //! Data handling
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Methods
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function getWidgets()
     {
         return config('theme.' . $this->website?->theme . '.templates.' . $this->blade_name . '.widgets') ?? [];
@@ -193,7 +212,6 @@ class Page extends BaseModel implements HasMedia
             $this->deleteOption('template_inputs_' . wncms()->getLocale());
         }
     }
-
 
     public function getPageOption($key, $fallback = null)
     {

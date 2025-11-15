@@ -43,17 +43,24 @@ trait PackageMethods
         // Ensure base structure
         $paths = $packageFiles ?? [];
 
-        // ✅ Directly store everything — no model_map or manager_map
+        // Directly store everything — no model_map or manager_map
         $this->packages[$packageId] = [
-            'info'        => $packageFiles['info']        ?? [],
-            'base'        => $paths['base']        ?? base_path(),
-            'models'      => $paths['models']      ?? [],
-            'managers'    => $paths['managers']    ?? [],
+            'info' => $packageFiles['info']        ?? [],
+            'base' => $paths['base']        ?? base_path(),
+            'models' => $paths['models']      ?? [],
+            'managers' => $paths['managers']    ?? [],
             'controllers' => $paths['controllers'] ?? [],
-            'menus'       => $packageFiles['menus']       ?? [],
+            'menus' => $packageFiles['menus']       ?? [],
             'permissions' => $packageFiles['permissions'] ?? [],
-            'seeders'     => $packageFiles['seeders']     ?? [],
+            'seeders' => $packageFiles['seeders']     ?? [],
         ];
+
+        // Register models to wncms
+        foreach ($this->packages[$packageId]['models'] as $alias => $class) {
+            if (class_exists($class)) {
+                wncms()->registerModel($class);
+            }
+        }
 
         /**
          * ===============================
@@ -70,9 +77,9 @@ trait PackageMethods
 
         if (!empty($menus)) {
             $this->packageMenus[$packageId] = [
-                'title'      => $this->translatePackageInfo($packageFiles['info']['name'] ?? ucfirst($packageId), $packageId),
-                'icon'       => $icon,
-                'menus'      => $menus,
+                'title' => $this->translatePackageInfo($packageFiles['info']['name'] ?? ucfirst($packageId), $packageId),
+                'icon' => $icon,
+                'menus' => $menus,
                 'permission' => $packageFiles['permissions'][0] ?? null,
             ];
         }
@@ -178,7 +185,7 @@ trait PackageMethods
                     $perm = $group['permission'] ?? $permission;
                     if (!$perm || ($user && Gate::allows($perm, $user))) {
                         $items[] = [
-                            'name'  => $group['name'] ?? ucfirst($packageId),
+                            'name' => $group['name'] ?? ucfirst($packageId),
                             'route' => $group['route'],
                         ];
 
@@ -194,7 +201,7 @@ trait PackageMethods
                         $perm = $subItem['permission'] ?? null;
                         if (!$perm || ($user && Gate::allows($perm, $user))) {
                             $items[] = [
-                                'name'  => $subItem['name'] ?? ucfirst($packageId),
+                                'name' => $subItem['name'] ?? ucfirst($packageId),
                                 'route' => $subItem['route'] ?? null,
                             ];
 
@@ -211,10 +218,10 @@ trait PackageMethods
             }
 
             $result[] = [
-                'title'      => $title,
-                'icon'       => $icon,
-                'items'      => $items,
-                'is_active'  => $isActive,
+                'title' => $title,
+                'icon' => $icon,
+                'items' => $items,
+                'is_active' => $isActive,
             ];
         }
 
@@ -360,7 +367,7 @@ trait PackageMethods
         $migrationPath = "{$basePath}/database/migrations";
         if (is_dir($migrationPath)) {
             Artisan::call('migrate', [
-                '--path'  => str_replace(base_path() . '/', '', $migrationPath),
+                '--path' => str_replace(base_path() . '/', '', $migrationPath),
                 '--force' => true,
             ]);
         }
@@ -398,12 +405,12 @@ trait PackageMethods
         $package = Package::updateOrCreate(
             ['package_id' => $packageId],
             [
-                'name'        => $info['name'] ?? ucfirst($packageId),
+                'name' => $info['name'] ?? ucfirst($packageId),
                 'description' => $info['description'] ?? '',
-                'version'     => $info['version'] ?? '1.0.0',
-                'author'      => $info['author'] ?? '',
-                'path'        => $basePath,
-                'status'      => 'active',
+                'version' => $info['version'] ?? '1.0.0',
+                'author' => $info['author'] ?? '',
+                'path' => $basePath,
+                'status' => 'active',
             ]
         );
 

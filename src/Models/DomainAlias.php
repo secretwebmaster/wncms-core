@@ -9,6 +9,13 @@ class DomainAlias extends Model
 {
     use HasFactory;
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Propertyies
+     * ----------------------------------------------------------------------------------------------------
+     */
+    public static $modelKey = 'domain_alias';
+
     protected $guarded = [];
 
     public const ICONS = [
@@ -20,6 +27,11 @@ class DomainAlias extends Model
         'create',
     ];
 
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     * Relationships
+     * ----------------------------------------------------------------------------------------------------
+     */
     public function website()
     {
         return $this->belongsTo(wncms()->getModelClass('website'));
