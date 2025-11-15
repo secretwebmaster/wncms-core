@@ -5,7 +5,6 @@ namespace Wncms\Models;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Wncms\Tags\Tag as WncmsTag;
-use Illuminate\Support\Facades\Route;
 
 //TODO: Pending merge to HasTags
 class Tag extends WncmsTag implements HasMedia
@@ -49,11 +48,11 @@ class Tag extends WncmsTag implements HasMedia
      * Relationships
      * ----------------------------------------------------------------------------------------------------
      */
-    public function posts()
-    {
-        return $this->morphedByMany(wncms()->getModelClass('post'), 'taggable');
-    }
-
+    // public function posts()
+    // {
+    //     return $this->morphedByMany(wncms()->getModelClass('post'), 'taggable');
+    // }
+    
     public function keywords()
     {
         return $this->hasMany(wncms()->getModelClass('tag_keyword'));
@@ -70,7 +69,6 @@ class Tag extends WncmsTag implements HasMedia
     public function getUrlAttribute(): ?string
     {
         try {
-            if (! function_exists('wncms')) return null;
             return wncms()->tag()->getUrl($this) ?: null;
         } catch (\Throwable $e) {
             report($e);
@@ -119,36 +117,5 @@ class Tag extends WncmsTag implements HasMedia
         }
 
         return $descendantsAndSelf;
-    }
-
-    /**
-     * Generate URL for a tag based on its type (key) and meta.
-     *
-     * @param  \Wncms\Models\Tag|\Wncms\Tags\Tag  $tag
-     */
-    public function getUrl($tag): string
-    {
-        if (empty($tag) || empty($tag->type)) {
-            return 'javascript:;';
-        }
-
-        $entry = $this->getTagMetaByKey($tag->type);
-        if (! $entry) {
-            return 'javascript:;';
-        }
-
-        $meta      = $entry['meta'];
-        $routeName = $meta['route'] ?? null;
-        $short     = $meta['short'] ?? null;
-
-        if (! $routeName || ! function_exists('wncms_route_exists') || ! wncms_route_exists($routeName)) {
-            return 'javascript:;';
-        }
-
-        // Common parameter pattern; you can adjust if needed
-        return route($routeName, [
-            'type' => $short,
-            'slug' => $tag->slug,
-        ]);
     }
 }
