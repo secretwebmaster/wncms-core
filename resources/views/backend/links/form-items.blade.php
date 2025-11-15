@@ -119,11 +119,11 @@
         </div>
     </div>
 
-    {{-- order --}}
+    {{-- sort --}}
     <div class="row mb-3">
-        <label class="col-lg-3 col-form-label fw-bold fs-6" for="order">@lang('wncms::word.order')</label>
+        <label class="col-lg-3 col-form-label fw-bold fs-6" for="sort">@lang('wncms::word.sort')</label>
         <div class="col-lg-9 fv-row">
-            <input id="order" type="number" name="order" class="form-control form-control-sm" value="{{ old('order', $link->order ?? null) }}"/>
+            <input id="sort" type="number" name="sort" class="form-control form-control-sm" value="{{ old('sort', $link->sort ?? null) }}"/>
         </div>
     </div>
 

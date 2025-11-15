@@ -79,10 +79,10 @@
                             <input type="text" name="remark" class="form-control form-control-sm" value="{{ old('remark', $page->remark) }}" />
                         </div>
 
-                        {{-- order --}}
+                        {{-- sort --}}
                         <div class="form-item mb-3">
-                            <label class="form-label fw-bold fs-6">@lang('wncms::word.order')</label>
-                            <input type="number" name="order" class="form-control form-control-sm" value="{{ old('order', $page->order) }}" />
+                            <label class="form-label fw-bold fs-6">@lang('wncms::word.sort')</label>
+                            <input type="number" name="sort" class="form-control form-control-sm" value="{{ old('sort', $page->sort) }}" />
                         </div>
 
                         {{-- content --}}

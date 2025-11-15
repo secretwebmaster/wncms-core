@@ -14,7 +14,7 @@
         <td>@lang('wncms::word.' . $child->type)</td>
         <td class="@if($level < 2)text-info @endif" title="{{ $child->description }}">{{ $level === 1 ? "├─" : str_repeat('├─', $level)}} {{ $child->name }}</td>
         <td>{{ $child->slug }}</td>
-        <td>{{ $child->order_column }}</td>
+        <td>{{ $child->sort }}</td>
         <td>{{ $child->links_count }}</td>
         <td><span class="badge badge-secondary text-gray-600">{{ $child->parent?->name }}</span></td>
         <td>{{ $child->getFirstMediaUrl('child_image')}}</td>

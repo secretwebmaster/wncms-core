@@ -12,15 +12,15 @@ return [
 
     'welcome' => [
         'templateTitle' => 'WNCMS Installation Wizard',
-        'title'   => 'WNCMS Installation Wizard',
+        'title' => 'WNCMS Installation Wizard',
         'message' => 'Simple and Fast Installation',
-        'next'    => 'Start Installation',
+        'next' => 'Start Installation',
     ],
 
     'requirements' => [
         'templateTitle' => 'Step 1 | Environment Requirements',
         'title' => 'Environment Requirements',
-        'next'    => 'Check Permissions',
+        'next' => 'Check Permissions',
     ],
 
     'permissions' => [
@@ -174,12 +174,12 @@ return [
         'title' => 'WNCMS Updater',
 
         'welcome' => [
-            'title'   => 'Welcome to the Updater',
+            'title' => 'Welcome to the Updater',
             'message' => 'Welcome to the update wizard.',
         ],
 
         'overview' => [
-            'title'   => 'Overview',
+            'title' => 'Overview',
             'message' => 'There is 1 update. | There are :number updates.',
             'install_updates' => 'Install Updates',
         ],

@@ -178,7 +178,7 @@
                                     <span>{{ $link->clicks ?? 0 }}</span>
                                     @endif
                                 </td>
-                                <td><input type="text" class="link-order-input" value="{{ $link->order }}"></td>
+                                <td><input type="text" class="link-order-input" value="{{ $link->sort }}"></td>
                                 <td>{{ $link->remark }}</td>
                                 <td class="mw-200px text-truncate" title="{{ $link->url }}">{{ $link->url }}</td>
                                 <td>{{ $link->expired_at }}</td>
@@ -243,7 +243,7 @@
             // console.log(linkOrders);
 
             $.ajax({
-                url: "{{ route('links.bulk_update_order') }}",
+                url: "{{ route('links.bulk_update_sort') }}",
                 method: "POST",
                 data: {
                     _token: "{{ csrf_token() }}",

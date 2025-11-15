@@ -9,8 +9,7 @@
             <th>@lang('wncms::word.tag')</th>
         </thead>
         <tbody>
-
-            @foreach($posts = $wncms->post()->getList(['page_size'=>5,'count'=>24,'sequence'=>'asc', 'page_name'=> 'post-page','cache' => true]) as $post)
+            @foreach($posts = $wncms->post()->getList(['page_size'=>5,'count'=>24,'direction'=>'asc', 'page_name'=> 'post-page','cache' => true]) as $post)
             <tr>
                 <td>{{ $post->id }}</td>
                 <td><img class="post-thumbnail" src="{{ $post->thumbnail }}" alt=""></td>

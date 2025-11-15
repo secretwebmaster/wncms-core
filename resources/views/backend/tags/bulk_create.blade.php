@@ -36,7 +36,7 @@
                                 <li>格式:
                                     <p>
                                         分類名稱|代稱|類型|描述|父分類名稱|圖標|排序<br>
-                                        name|slug|type|description|parentName|icon|order_column<br><br>
+                                        name|slug|type|description|parentName|icon|sort<br><br>
 
                                         name | 必填 | 應為字符串<br>
                                         slug | 可選 | 默認 = 隨機唯壹的8位字母和數字組合<br>
@@ -44,7 +44,7 @@
                                         description | 可選 | 默認 = null<br>
                                         parentName | 可選 | 默認 = null<br>
                                         icon | 可選 | 默認 = null<br>
-                                        order_column | 可選 | 默認 = null<br>
+                                        sort | 可選 | 默認 = null<br>
                                     </p>
                                 </li>
                                 <li>例子:

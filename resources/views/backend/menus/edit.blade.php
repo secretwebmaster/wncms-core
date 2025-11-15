@@ -300,7 +300,7 @@
     $(document).ready(function(){
 
             //獲取menu_items轉為json
-            var current_menu = @json($menu->menu_items()->whereNull('parent_id')->with('children','children.children')->orderBy('order','asc')->get()->append('thumbnail'));
+            var current_menu = @json($menu->menu_items()->whereNull('parent_id')->with('children','children.children')->orderBy('sort','asc')->get()->append('thumbnail'));
 
             //Initialize Nestable
             $('#nestable-json').nestable({

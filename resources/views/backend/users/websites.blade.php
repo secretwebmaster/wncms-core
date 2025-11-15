@@ -37,20 +37,20 @@
 
                         {{-- 排序依據 --}}
                         <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                            <select name="order" class="form-select form-select-sm">
-                                <option value="">@lang('wncms::word.select_order')</option>
-                                @foreach($orders as $order)
-                                    <option value="{{ $order }}" @if($order == request()->order) selected @endif>@lang('wncms::word.' . $order)</option>
+                            <select name="sort" class="form-select form-select-sm">
+                                <option value="">@lang('wncms::word.select_sort')</option>
+                                @foreach($sorts as $sort)
+                                    <option value="{{ $sort }}" @if($sort == request()->sort) selected @endif>@lang('wncms::word.' . $sort)</option>
                                 @endforeach
                             </select>
                         </div>
 
-                        {{-- 大小 --}}
+                        {{-- 排序方向 --}}
                         <div class="col-6 col-md-auto mb-3 ms-0 ms-md-2">
-                            <select name="sort" class="form-select form-select-sm">
+                            <select name="direction" class="form-select form-select-sm">
                                 <option value="">@lang('wncms::word.select_sort')</option>
-                                @foreach(['asc','desc'] as $sort)
-                                    <option value="{{ $sort }}" @if($sort == request()->sort) selected @endif>@lang('wncms::word.sort_by_'. $sort)</option>
+                                @foreach(['asc','desc'] as $direction)
+                                    <option value="{{ $direction }}" @if($direction == request()->direction) selected @endif>@lang('wncms::word.sort_by_'. $direction)</option>
                                 @endforeach
                             </select>
                         </div>

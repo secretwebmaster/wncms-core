@@ -118,6 +118,6 @@
 <div class="row mb-3">
     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.order')</label>
     <div class="col-lg-9 fv-row">
-        <input type="text" name="order_column" class="form-control form-control-sm" value="{{ $tag->order_column ?? old('order_column') }}" />
+        <input type="text" name="sort" class="form-control form-control-sm" value="{{ $tag->sort ?? old('sort') }}" />
     </div>
 </div>

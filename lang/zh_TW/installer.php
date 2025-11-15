@@ -12,15 +12,15 @@ return [
 
     'welcome' => [
         'templateTitle' => '文尼CMS安裝向導',
-        'title'   => '文尼CMS安裝向導',
+        'title' => '文尼CMS安裝向導',
         'message' => '簡單且快速安裝',
-        'next'    => '開始安裝',
+        'next' => '開始安裝',
     ],
 
     'requirements' => [
         'templateTitle' => '步驟 1 | 環境要求',
         'title' => '環境要求',
-        'next'    => '檢查權限',
+        'next' => '檢查權限',
     ],
 
     'permissions' => [
@@ -174,12 +174,12 @@ return [
         'title' => '文尼CMS更新程序',
 
         'welcome' => [
-            'title'   => '欢迎使用更新程序',
+            'title' => '欢迎使用更新程序',
             'message' => '欢迎使用更新向导。',
         ],
 
         'overview' => [
-            'title'   => '概览',
+            'title' => '概览',
             'message' => '有 1 个更新。|有 :number 个更新。',
             'install_updates' => '安装更新',
         ],

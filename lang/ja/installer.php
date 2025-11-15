@@ -12,15 +12,15 @@ return [
 
     'welcome' => [
         'templateTitle' => '文尼CMSインストーラー',
-        'title'   => '文尼CMSインストーラー',
+        'title' => '文尼CMSインストーラー',
         'message' => '簡単で迅速なインストール',
-        'next'    => 'インストールを開始',
+        'next' => 'インストールを開始',
     ],
 
     'requirements' => [
         'templateTitle' => 'ステップ 1 | 環境要件',
         'title' => '環境要件',
-        'next'    => '権限を確認',
+        'next' => '権限を確認',
     ],
 
     'permissions' => [
@@ -174,12 +174,12 @@ return [
         'title' => '文尼CMSアップデーター',
 
         'welcome' => [
-            'title'   => 'アップデーターへようこそ',
+            'title' => 'アップデーターへようこそ',
             'message' => 'アップデートウィザードへようこそ。',
         ],
 
         'overview' => [
-            'title'   => '概要',
+            'title' => '概要',
             'message' => '1 件の更新があります。|:number 件の更新があります。',
             'install_updates' => '更新をインストール',
         ],

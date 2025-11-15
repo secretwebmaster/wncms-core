@@ -1472,7 +1472,7 @@ $words = [
     'one_click_status_description' => '啟用: 正常顯示<br><br>置頂:會顯示於其所屬分類中的前排位置，優先於沒有置頂的連結，如同為置頂連結，則以人工排序大至小排列<br><br>暫停: 前台所有頁面不顯示，用於標記短暫下架，例如廣告商忘記續費<br><br>封锁: 前台所有頁面不顯示，用於標記永久下架，例如友站私自下連<br><br>關閉: 列表不顯示，詳細頁顯示但不附外連，純粹保留頁面，保存SEO效果，用於標記已失效的網址<br><br>等待中: 前台所有頁面不顯示，用於標記用戶提交，等待站長審查的連結(開發中)',
     'permanent' => '永久',
     'closed' => '關閉',
-    'sort' => '順位',
+    'sort' => '排序',
     'data_length_should_be_less_than' => '資料長度需少於 :count 個字元',
     'copy_invite_message_script' => '複製邀請對話內容',
     'invite_message_script' => '邀請對話內容',
@@ -2195,6 +2195,9 @@ $words = [
     'view' => '查看',
     'package_is_not_activated' => '套件 :package_id 未啟用',
     'multi_website' => '多網站模式',
+    'sort_direction' => '排序方向',
+    'comment' => '評論',
+    'tag_keyword' => '標籤關鍵字',
 ];
 
 $locale = basename(__DIR__);

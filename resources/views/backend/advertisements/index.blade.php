@@ -140,7 +140,7 @@
                             <td>{{ $advertisement->click_count }}</td>
                             @endif
 
-                            <td>{{ $advertisement->order }}</td>
+                            <td>{{ $advertisement->sort }}</td>
                             <td>{{ $advertisement->cta_text }}</td>
                             <td>@include('wncms::common.table_url', ['url' => $advertisement->url])</td>
                             <td>{{ $advertisement->cta_text_2 }}</td>

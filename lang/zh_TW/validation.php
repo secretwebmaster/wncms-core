@@ -13,15 +13,15 @@ return [
     'numeric' => ':attribute 必須是數字。',
     'min' => [
         'numeric' => ':attribute 必須大於或等於 :min。',
-        'string'  => ':attribute 至少需有 :min 個字元。',
+        'string' => ':attribute 至少需有 :min 個字元。',
     ],
     'max' => [
         'numeric' => ':attribute 不可大於 :max。',
-        'string'  => ':attribute 不可超過 :max 個字元。',
+        'string' => ':attribute 不可超過 :max 個字元。',
     ],
     'between' => [
         'numeric' => ':attribute 必須介於 :min 至 :max 之間。',
-        'string'  => ':attribute 字數需介於 :min 至 :max 之間。',
+        'string' => ':attribute 字數需介於 :min 至 :max 之間。',
     ],
     'in' => ':attribute 的值無效。',
     'not_in' => '所選的 :attribute 無效。',

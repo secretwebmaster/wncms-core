@@ -32,7 +32,7 @@
                     <td>{{ $faq->tagsWithType('faq_tag')->pluck('name')->implode(',') }}</td>
                     <td>{{ $faq->label }}</td>
                     <td>{{ $faq->remark }}</td>
-                    <td>{{ $faq->order }}</td>
+                    <td>{{ $faq->sort }}</td>
                     <td>{{ $faq->is_pinned }}</td>
                     <td>{{ $faq->created_at }}</td>
                     <td>{{ $faq->updated_at }}</td>

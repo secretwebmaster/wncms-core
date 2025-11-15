@@ -427,7 +427,7 @@
                             @endif
 
                             <td>@include('wncms::common.table_is_active', ['model' => $post, 'active_column' => 'is_pinned'])</td>
-                            <td>{{ $post->order }}</td>
+                            <td>{{ $post->sort }}</td>
 
                             <td>{{ $post->published_at }}</td>
                             

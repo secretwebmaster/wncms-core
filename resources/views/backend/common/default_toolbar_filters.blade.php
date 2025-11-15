@@ -37,7 +37,7 @@
 )
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="website" class="form-select form-select-sm">
-            <option value="">@lang('wncms::word.select_website')</option>
+            <option value="">@lang('wncms::word.select_item', ['item_name' => __('wncms::word.website')])</option>
             @foreach($websites as $_website)
                 <option value="{{ $_website->id }}" @selected(wncms()->isSelectedWebsite($_website))>{{ $_website->domain }}</option>
             @endforeach
@@ -45,25 +45,25 @@
     </div>
 @endif
 
-{{-- 排序依據 order --}}
-@if(empty($hideToolbarOrderFiller) && !empty($orders))
+{{-- 排序依據 sort --}}
+@if(empty($hideToolbarSortFiller) && !empty($sorts))
     <div class="col-6 col-md-auto mb-3 ms-0">
-        <select name="order" class="form-select form-select-sm">
-            <option value="">@lang('wncms::word.select_order')</option>
-            @foreach($orders as $order)
-                <option value="{{ $order }}" @if($order == request()->order) selected @endif>@lang('wncms::word.' . $order)</option>
+        <select name="sort" class="form-select form-select-sm">
+            <option value="">@lang('wncms::word.select_item', ['item_name' => __('wncms::word.sort')])</option>
+            @foreach($sorts as $sort)
+                <option value="{{ $sort }}" @if($sort == request()->sort) selected @endif>@lang('wncms::word.' . $sort)</option>
             @endforeach
         </select>
     </div>
 @endif
 
-{{-- 大小 sort --}}
-@if(empty($hideToolbarOrderFiller) && empty($hideToolbarSortFiller) && !empty($orders))
+{{-- 排序方向 direction --}}
+@if(empty($hideToolbarSortFiller) && empty($hideToolbarDirectionFiller) && !empty($sorts))
     <div class="col-6 col-md-auto mb-3 ms-0">
-        <select name="sort" class="form-select form-select-sm">
-            <option value="">@lang('wncms::word.select_sort')</option>
-            @foreach(['asc','desc'] as $sort)
-                <option value="{{ $sort }}" @if($sort == request()->sort) selected @endif>@lang('wncms::word.sort_by_'. $sort)</option>
+        <select name="direction" class="form-select form-select-sm">
+            <option value="">@lang('wncms::word.select_item', ['item_name' => __('wncms::word.sort_direction')])</option>
+            @foreach(['asc','desc'] as $direction)
+                <option value="{{ $direction }}" @if($direction == request()->direction) selected @endif>@lang('wncms::word.sort_by_'. $direction)</option>
             @endforeach
         </select>
     </div>

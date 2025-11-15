@@ -143,7 +143,7 @@
                                 <td>@lang('wncms::word.' . $parent->type)</td>
                                 <td class="mw-200px text-truncate text-info fw-bold" title="{{ $parent->description }}">{{ $parent->name }}</td>
                                 <td class="mw-200px text-truncate">{{ $parent->slug }}</td>
-                                <td>{{ $parent->order_column }}</td>
+                                <td>{{ $parent->sort }}</td>
                                 <td>{{ $parent->models_count }}</td>
                                 <td>{{ $parent->parent?->name }}</td>
                                 <td>{{ $parent->getFirstMediaUrl('parent_image')}}</td>
