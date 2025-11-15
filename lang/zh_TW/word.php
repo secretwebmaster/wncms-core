@@ -2198,6 +2198,9 @@ $words = [
     'sort_direction' => '排序方向',
     'comment' => '評論',
     'tag_keyword' => '標籤關鍵字',
+    'page_category' => '頁面分類',
+    'page_tag' => '頁面標籤',
+    'tag_group' => '標籤群組',
 ];
 
 $locale = basename(__DIR__);
