@@ -121,7 +121,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::patch('{id}', 'update')->where('id', '[0-9]+')->middleware('can:link_edit')->name('links.update');
         Route::delete('{id}', 'destroy')->where('id', '[0-9]+')->middleware('can:link_delete')->name('links.destroy');
         Route::post('bulk_delete', 'bulk_delete')->middleware('can:link_bulk_delete')->name('links.bulk_delete');
-        Route::post('bulk_update_order', 'bulk_update_order')->middleware('can:link_edit')->name('links.bulk_update_order');
+        Route::post('bulk_update_sort', 'bulk_update_sort')->middleware('can:link_edit')->name('links.bulk_update_sort');
     });
     
     //menu

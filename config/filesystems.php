@@ -58,22 +58,22 @@ return [
 
         'media' => [
             'driver' => 'local',
-            'root'   => public_path('media'),
-            'url'    => env('APP_URL') . '/media',
+            'root' => public_path('media'),
+            'url' => env('APP_URL') . '/media',
         ],
 
         'themes' => [
             'driver' => 'local',
-            'root'   => public_path('themes'),
-            'url'    => env('APP_URL') . '/themes',
+            'root' => public_path('themes'),
+            'url' => env('APP_URL') . '/themes',
             'visibility' => 'public',
             'throw' => false,
         ],
 
         'plugins' => [
             'driver' => 'local',
-            'root'   => public_path('plugins'),
-            'url'    => env('APP_URL') . '/plugins',
+            'root' => public_path('plugins'),
+            'url' => env('APP_URL') . '/plugins',
             'visibility' => 'public',
             'throw' => false,
         ],

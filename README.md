@@ -4,10 +4,12 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 
 ## 更新日誌
 ### v6.0.0-alpha1 2025-11-11
+- Relocate class locations
 - Added `public/themes` and `public/plugins` to filesystems config. Removed wncms-core Plugin dir.
 - Fix typo pageNmae to pageName
 - Change theme structure
 - Fix some route errors where id is not passed
+- Rename `order` field to `sort` and rename `$sequence` to `$direction` to prevent future conflict to other packages
 
 ### v5.5.6 2025-09-09
 
