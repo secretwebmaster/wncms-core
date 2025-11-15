@@ -66,8 +66,29 @@ abstract class BaseModel extends Model implements BaseModelContract
 
     public static function getTagMeta(): array
     {
-        return static::$tagMetas ?? [];
+        $raw = static::$tagMetas ?? [];
+
+        if (empty($raw)) {
+            return [];
+        }
+
+        $package = static::getPackageId();
+        $modelClass = static::class;
+
+        $metas = [];
+
+        foreach ($raw as $meta) {
+            $metas[] = array_merge($meta, [
+                'model' => $modelClass,
+                'model_key' => static::getModelKey(),
+                'package' => $package,
+                'label' => $package . "::word." . $meta['key'],
+            ]);
+        }
+
+        return $metas;
     }
+
 
     /**
      * Boot logic executed after model is initialized.
