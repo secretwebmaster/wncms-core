@@ -29,13 +29,26 @@ class Post extends BaseModel implements HasMedia
     protected $guarded = [];
 
     protected $casts = [
-        'published_at'=>'datetime',
-        'expired_at'=>'datetime'
+        'published_at' => 'datetime',
+        'expired_at' => 'datetime'
+    ];
+
+    protected static array $tagMetas = [
+        [
+            'key'   => 'post_category',
+            'short' => 'category',
+            'route' => 'frontend.posts.tag',
+        ],
+        [
+            'key'   => 'post_tag',
+            'short' => 'tag',
+            'route' => 'frontend.posts.tag',
+        ],
     ];
 
     protected $removeViewsOnDelete = true;
 
-    protected $translatable = ['title','excerpt','keywords','content','label'];
+    protected $translatable = ['title', 'excerpt', 'keywords', 'content', 'label'];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-pencil'
@@ -44,7 +57,7 @@ class Post extends BaseModel implements HasMedia
     public const IGNORED_LOCALIZED_PATH_KEYWORDS = [
         'storage',
     ];
-    
+
     public const SORTS = [
         'sort',
         'view_today',
@@ -57,19 +70,19 @@ class Post extends BaseModel implements HasMedia
         'created_at',
         'updated_at',
     ];
-    
+
     public const STATUSES = [
         'published',
         'drafted',
         'trashed',
     ];
-    
+
     public const VISIBILITIES = [
         'public',
         'member',
         'admin',
     ];
-    
+
     /**
      * ----------------------------------------------------------------------------------------------------
      * Contracts
@@ -106,15 +119,15 @@ class Post extends BaseModel implements HasMedia
 
     public function getIntroAttribute()
     {
-        if(gto('post_excerpt_length') === 0 || gto('post_excerpt_length') === "0"){
+        if (gto('post_excerpt_length') === 0 || gto('post_excerpt_length') === "0") {
             return "";
-        }elseif(is_numeric(gto('post_excerpt_length'))){
+        } elseif (is_numeric(gto('post_excerpt_length'))) {
             $limit = gto('post_excerpt_length');
-        }else{
+        } else {
             $limit = 200;
         }
 
-        return !empty($this->excerpt) ? str()->limit($this->excerpt, $limit, '..') : str()->limit(str_replace("&nbsp;", '', strip_tags($this->content)), $limit, '..') ;
+        return !empty($this->excerpt) ? str()->limit($this->excerpt, $limit, '..') : str()->limit(str_replace("&nbsp;", '', strip_tags($this->content)), $limit, '..');
     }
 
     /**
@@ -124,17 +137,17 @@ class Post extends BaseModel implements HasMedia
      */
     public function getPostCategoriesAttribute()
     {
-        return $this->tags->where('type','post_category');
+        return $this->tags->where('type', 'post_category');
     }
 
     public function getPostCategoryArrayAttribute()
     {
-        return $this->tags->where('type','post_category')->pluck('name', 'id')->toArray();
+        return $this->tags->where('type', 'post_category')->pluck('name', 'id')->toArray();
     }
 
     public function getPostTagsAttribute()
     {
-        return $this->tags->where('type','post_tag');
+        return $this->tags->where('type', 'post_tag');
     }
 
     public function getSingleUrlAttribute()
@@ -144,19 +157,19 @@ class Post extends BaseModel implements HasMedia
 
     public function getFakeViewTotalAttribute()
     {
-        if(empty(gto('fake_views'))) return $this->view_total ?? 0;
+        if (empty(gto('fake_views'))) return $this->view_total ?? 0;
 
         // Define some variables to make the formula more complex
         $fake_view_factor_view_total = gto('fake_view_factor_view_total', 37);
         $fake_view_factor_id = gto('fake_view_factor_id', 77);
         $fake_view_factor_title  = gto('fake_view_factor_title', 1107);
-        
+
         // Apply a custom mathematical formula to the original view_total
         $fakeViewTotal = ($fake_view_factor_view_total * $this->view_total) + ($fake_view_factor_id * $this->id) + ($fake_view_factor_title  * strlen($this->title));
-        
+
         // Ensure the generated value is always positive or zero
         $fakeViewTotal = ceil(max(0, $fakeViewTotal));
-        
+
         return $fakeViewTotal;
     }
 
@@ -190,15 +203,15 @@ class Post extends BaseModel implements HasMedia
     public function getPrevious()
     {
         $website = wncms()->website()->getCurrent();
-        if(!$website) return;
-        return $this->where('id', '<', $this->id)->whereRelation('websites', 'websites.id', $website->id )->orderBy('id','desc')->first();
+        if (!$website) return;
+        return $this->where('id', '<', $this->id)->whereRelation('websites', 'websites.id', $website->id)->orderBy('id', 'desc')->first();
     }
- 
+
     public function getNext()
     {
         $website = wncms()->website()->getCurrent();
-        if(!$website) return;
-        return $this->where('id', '>', $this->id)->whereRelation('websites', 'websites.id', $website->id )->orderBy('id','asc')->first();
+        if (!$website) return;
+        return $this->where('id', '>', $this->id)->whereRelation('websites', 'websites.id', $website->id)->orderBy('id', 'asc')->first();
     }
 
     public function getRelated(
@@ -208,8 +221,7 @@ class Post extends BaseModel implements HasMedia
         $sort = 'id',
         $direction = 'desc',
         $status = 'published',
-    )
-    {
+    ) {
         return wncms()->post()->getRelated($this, [
             'tag_type' => $tagType,
             'count' => $count,
@@ -219,17 +231,17 @@ class Post extends BaseModel implements HasMedia
             'status' => $status,
         ]);
     }
-    
+
     //Base
     public function getTagAttributeArray($type = 'post_category', $attribute = "name")
     {
         $shouldAuth = false;
         $cacheKey = wncms()->cache()->createKey("wncms_post", __FUNCTION__, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()), $this->id);
-        $cacheTags = ['posts','tags'];
+        $cacheTags = ['posts', 'tags'];
         $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
         // wncms()->cache()->clear($cacheKey, $cacheTags);
-        
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use($type, $attribute){
+
+        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($type, $attribute) {
             return $this->tagsWithType($type)->pluck($attribute)->toArray();
         });
     }
@@ -259,7 +271,7 @@ class Post extends BaseModel implements HasMedia
     public function getTagNameWithWrapper($type = 'post_category', $prefix = "", $suffix = "")
     {
         $html = "";
-        foreach($this->getTagNameArray($type) as $tagName){
+        foreach ($this->getTagNameArray($type) as $tagName) {
             $html .= $prefix . $tagName . $suffix;
         }
         return $html;
@@ -268,8 +280,8 @@ class Post extends BaseModel implements HasMedia
     public function getTagNameWitHtmlTag($type = 'post_category', $htmlTag = "span", $class = "", $id = "")
     {
         $html = "";
-        foreach($this->getTagNameArray($type) as $tagName){
-            $html .= "<{$htmlTag}" . (!empty($class) ? " class=\"{$class}\"" : '') . (!empty($id) ? " id=\"{$id}\"" : '') .">" . $tagName . "</{$htmlTag}>";
+        foreach ($this->getTagNameArray($type) as $tagName) {
+            $html .= "<{$htmlTag}" . (!empty($class) ? " class=\"{$class}\"" : '') . (!empty($id) ? " id=\"{$id}\"" : '') . ">" . $tagName . "</{$htmlTag}>";
         }
         return $html;
     }
@@ -281,11 +293,11 @@ class Post extends BaseModel implements HasMedia
         $method = "getCategoriesWithSiblings";
         $shouldAuth = false;
         $cacheKey = wncms()->cache()->createKey("wncms_post", $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()));
-        $cacheTags = ['posts','tags'];
+        $cacheTags = ['posts', 'tags'];
         $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
         // wncms()->cache()->clear($cacheKey, $cacheTags);
 
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function (){
+        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () {
             // Get the categories related to the post
             $categories = $this->postCategories;
 
@@ -323,7 +335,7 @@ class Post extends BaseModel implements HasMedia
             // Check if the image URL is already a localized path or contains ignored keywords
             if ($this->containsIgnoredKeywords($imageUrl)) {
                 // Skip this image, as it's already localized or contains ignored keywords
-                continue; 
+                continue;
             }
 
             // Check if the image URL exists
@@ -331,20 +343,20 @@ class Post extends BaseModel implements HasMedia
                 // The image URL doesn't exist, so skip it
                 continue;
             }
-            
+
 
             // Download the image from the web (you may want to add error handling)
             $imageContents = file_get_contents($imageUrl);
 
             // Convert the image to .webp format
-            if(gss('convert_thumbnail_to_webp')){
+            if (gss('convert_thumbnail_to_webp')) {
                 $imageContents = $this->convertToWebp($imageContents);
                 $extension = 'webp';
-            }else{
+            } else {
                 $extension = pathinfo($imageUrl, PATHINFO_EXTENSION);
             }
 
-            $fileName = Str::random(16); 
+            $fileName = Str::random(16);
 
 
             // Store the image in the media library using Spatie with the original file name
