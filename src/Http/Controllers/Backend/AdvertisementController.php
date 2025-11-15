@@ -32,21 +32,20 @@ class AdvertisementController extends BackendController
             });
         }
 
-        if (in_array($request->order, $this->modelClass::ORDERS)) {
-            $q->orderBy($request->order, in_array($request->sort, ['asc', 'desc']) ? $request->sort : 'desc');
+        if (in_array($request->sort, $this->modelClass::SORTS)) {
+            $q->orderBy($request->sort, in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc');
         }
 
         $q->with(['media']);
 
-        $advertisements = $q->paginate($request->page_size ?? 20);
+        $q->orderBy('id', 'desc');
 
-        $websites = wncms()->website()->getList();
+        $advertisements = $q->paginate($request->page_size ?? 20);
 
         return $this->view('backend.advertisements.index', [
             'page_title' => wncms_model_word('advertisement', 'management'),
             'advertisements' => $advertisements,
-            'websites' => $websites,
-            'orders' => $this->modelClass::ORDERS,
+            'sorts' => $this->modelClass::SORTS,
             'statuses' => $this->modelClass::STATUSES,
             'positions' => $this->modelClass::POSITIONS,
         ]);
@@ -94,7 +93,6 @@ class AdvertisementController extends BackendController
             'name' => $request->name,
             'type' => $request->type,
             'position' => $request->position,
-            'order' => $request->position,
             'cta_text' => $request->cta_text,
             'url' => $request->url,
             'cta_text_2' => $request->cta_text_2,
@@ -104,7 +102,7 @@ class AdvertisementController extends BackendController
             'background_color' => $request->background_color,
             'code' => $request->code,
             'style' => $request->style,
-            'order' => $request->order,
+            'sort' => $request->sort,
             'contact' => $request->contact,
         ]);
 
@@ -175,7 +173,7 @@ class AdvertisementController extends BackendController
             'name' => $request->name,
             'type' => $request->type,
             'position' => $request->position,
-            'order' => $request->order,
+            'sort' => $request->sort,
             'cta_text' => $request->cta_text,
             'url' => $request->url,
             'cta_text_2' => $request->cta_text_2,
