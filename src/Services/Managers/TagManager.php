@@ -162,18 +162,6 @@ class TagManager extends ModelManager
     }
 
     //TODO: Add cache support and allow to disable
-    public function getTypes(array|string|null $tagIds = null): array
-    {
-        $q = $this->query()->select('type');
-
-        if (!empty($tagIds)) {
-            $tagIds = is_array($tagIds) ? $tagIds : explode(',', $tagIds);
-            $q->whereIn('id', $tagIds);
-        }
-
-        return $q->distinct()->pluck('type')->toArray();
-    }
-
     public function getTagKeywordList(string $tagType = 'post_category', $column = 'id'): array
     {
         $tags = $this->getList([
@@ -244,32 +232,17 @@ class TagManager extends ModelManager
             return 'javascript:;';
         }
 
-        // Split type: e.g. product_category
-        $segments = explode('_', $tag->type);
-        if (count($segments) < 2) {
-            return 'javascript:;';
-        }
+        $meta = collect($this->getAllTagTypes())->where('key', $tag->type)->first();
 
-        [$modelKey, $key] = $segments;
+        // if($tag->type == 'post_category') {
+        //     dd($meta['route'], wncms_route_exists($meta['route']));
+        // }
 
-        // Get model class dynamically
-        $modelClass = wncms()->getModelClass($modelKey);
-        if (!class_exists($modelClass)) {
-            return 'javascript:;';
-        }
-
-        $instance = new $modelClass();
-        $packageId = method_exists($modelClass, 'getPackageId')
-            ? $modelClass::getPackageId()
-            : null;
-
-        // Determine route from model tagFormats
-        $routeName = $instance->tagFormats[$tag->type]
-            ?? "frontend." . str($modelKey)->plural() . ".tag";
-
-        // Generate URL if route exists
-        if (wncms_route_exists($routeName)) {
-            return route($routeName, ['type' => $key, 'slug' => $tag->slug]);
+        if (!empty($meta['route']) && wncms_route_exists($meta['route'])) {
+            return route($meta['route'], [
+                'type' => $meta['short'],
+                'slug' => $tag->slug,
+            ]);
         }
 
         return 'javascript:;';
@@ -281,6 +254,9 @@ class TagManager extends ModelManager
 
         $metas = [];
         foreach ($models as $model) {
+            if (!method_exists($model, 'getTagMeta')) {
+                continue;
+            }
             $meta = $model::getTagMeta();
             if (!empty($meta)) {
                 $metas = array_merge($metas, $meta);
@@ -319,59 +295,40 @@ class TagManager extends ModelManager
         return implode($implode, $values);
     }
 
+    public function getTagTypeLabel(string $modelClass, string $tagType): string
+    {
+        // modelClass must exist
+        if (!class_exists($modelClass)) {
+            return ucfirst(str_replace('_', ' ', $tagType));
+        }
 
-    /**
-     * Get a human-readable label for a tag type key, e.g. 'product_category'.
-     *
-     * Rule:
-     * 1. Try "{$packageId}::word.{$modelKey}_{$short}"
-     * 2. Try "wncms::word.{$modelKey}_{$short}"
-     * 3. Try "wncms::word.{$short}"
-     * 4. Fallback ucfirst($short)
-     */
-    // public function getTypeLabel(string $typeKey, ?string $locale = null): string
-    // {
-    //     try {
-    //         $entry = $this->getTagMetaByKey($typeKey);
-    //         if (! $entry) {
-    //             return ucfirst($typeKey);
-    //         }
+        // retrieve package and metas from model
+        $packageId = $modelClass::getPackageId();
+        $metas = $modelClass::getTagMeta();
+        $meta = collect($metas)->firstWhere('key', $tagType);
 
-    //         $modelClass = $entry['model'];
-    //         $meta       = $entry['meta'];
-    //         $short      = $meta['short'] ?? $typeKey;
+        // if no meta found → fallback
+        if (!$meta) {
+            return ucfirst(str_replace('_', ' ', $tagType));
+        }
 
-    //         $modelKey  = method_exists($modelClass, 'getModelKey') ? $modelClass::getModelKey() : class_basename($modelClass);
-    //         $packageId = method_exists($modelClass, 'getPackageId') ? $modelClass::getPackageId() : null;
+        // 1. Primary translation: <package>::word.<product_tag>
+        if ($packageId) {
+            $translated = __("{$packageId}::word.{$tagType}");
+            if ($translated !== "{$packageId}::word.{$tagType}") {
+                return $translated;
+            }
+        }
 
-    //         // 1. Package-specific translation
-    //         if ($packageId) {
-    //             $key        = "{$packageId}::word.{$modelKey}_{$short}";
-    //             $translated = __($key, locale: $locale);
-    //             if ($translated !== $key) {
-    //                 return $translated;
-    //             }
-    //         }
+        // 2. Secondary translation: <package>::word.<tag>
+        if ($packageId && !empty($meta['short'])) {
+            $translated = __("{$packageId}::word.{$meta['short']}");
+            if ($translated !== "{$packageId}::word.{$meta['short']}") {
+                return $translated;
+            }
+        }
 
-    //         // 2. Core translation: wncms::word.product_category
-    //         $coreKey      = "wncms::word.{$modelKey}_{$short}";
-    //         $coreLabel    = __($coreKey, locale: $locale);
-    //         if ($coreLabel !== $coreKey) {
-    //             return $coreLabel;
-    //         }
-
-    //         // 3. Fallback using generic subtype word
-    //         $subKey       = "wncms::word.{$short}";
-    //         $subLabel     = __($subKey, locale: $locale);
-    //         if ($subLabel !== $subKey) {
-    //             return $subLabel;
-    //         }
-
-    //         // Final fallback
-    //         return ucfirst($short);
-    //     } catch (\Throwable $e) {
-    //         report($e);
-    //         return ucfirst($typeKey);
-    //     }
-    // }
+        // 3. Final fallback: human readable text
+        return ucfirst(str_replace('_', ' ', $tagType));
+    }
 }
