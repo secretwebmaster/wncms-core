@@ -91,14 +91,14 @@
                 </a>
             </div>
 
-            @foreach(wncms()->tag()->getTypes() as $tag_type)
+            {{-- @foreach(wncms()->tag()->getTypes() as $tag_type)
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('tags.index') && in_array($tag_type, request()->route()->parameters)) active @endif" href="{{ route('tags.index' , ['type'=>$tag_type]) }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
                     <span class="menu-title fw-bold">{{ wncms_tag_word($tag_type) }}</span>
                 </a>
             </div>
-            @endforeach
+            @endforeach --}}
 
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('tags.create')) active @endif" href="{{ route('tags.create') }}">
