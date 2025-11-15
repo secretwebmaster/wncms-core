@@ -81,6 +81,7 @@ class WncmsServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'wncms');
         $this->loadTranslationsFrom(__DIR__ . '/../../lang', 'wncms');
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+        $this->registerModels();
 
         // Console commands & publishable files
         if ($this->app->runningInConsole()) {
@@ -207,13 +208,24 @@ class WncmsServiceProvider extends ServiceProvider
         }
     }
 
-    public function registerModelTagMeta()
+    protected function registerModels(): void
     {
-        $models = [
-            // 'model_key' => ModelClass::class,
-            'post' => \Wncms\Models\Post::class,
-            'page' => \Wncms\Models\Page::class,
-        ];
-        wncms()->tag()->registerPackageModels($models);
+        // 1. Register all WNCMS core models
+        foreach (glob(WNCMS_CORE_PATH . 'src/Models/*.php') as $file) {
+            $class = 'Wncms\\Models\\' . basename($file, '.php');
+
+            if (class_exists($class)) {
+                wncms()->registerModel($class);
+            }
+        }
+
+        // 2. Register all App\Models (user overrides)
+        foreach (glob(app_path('Models') . '/*.php') as $file) {
+            $class = 'App\\Models\\' . basename($file, '.php');
+
+            if (class_exists($class)) {
+                wncms()->registerModel($class);
+            }
+        }
     }
 }
