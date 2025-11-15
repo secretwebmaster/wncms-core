@@ -3,9 +3,8 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class DomainAlias extends Model
+class DomainAlias extends BaseModel
 {
     use HasFactory;
 
@@ -20,11 +19,6 @@ class DomainAlias extends Model
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-cube'
-    ];
-
-    public const ROUTES = [
-        'index',
-        'create',
     ];
 
     /**
