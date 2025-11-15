@@ -138,6 +138,13 @@ try {
         });
     }
 
+    // add group column to tags table
+    Schema::table('tags', function (Blueprint $table) {
+        if (!Schema::hasColumn('tags', 'group')) {
+            $table->string('group')->nullable()->after('type');
+        }
+    });
+
     uss('core_version', $thisVersion);
     info("completed update_{$thisVersion}.php");
 } catch (Exception $e) {
