@@ -26,10 +26,23 @@ class Advertisement extends BaseModel implements HasMedia
     protected $guarded = [];
 
     protected $casts = [
-        'expired_at'=>'datetime'
+        'expired_at' => 'datetime'
     ];
 
-    protected $translatable = ['name','description','cta_text','cta_text_2'];
+    protected static array $tagMetas = [
+        [
+            'key'   => 'advertisement_category',
+            'short' => 'category',
+            'route' => '',
+        ],
+        [
+            'key'   => 'advertisement_tag',
+            'short' => 'tag',
+            'route' => '',
+        ],
+    ];
+
+    protected $translatable = ['name', 'description', 'cta_text', 'cta_text_2'];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-rectangle-ad'
@@ -84,7 +97,7 @@ class Advertisement extends BaseModel implements HasMedia
         'paused',
         'suspended',
     ];
-    
+
     public const TYPES = [
         'text',
         'image',
@@ -114,4 +127,3 @@ class Advertisement extends BaseModel implements HasMedia
         return $this->external_thumbnail;
     }
 }
-
