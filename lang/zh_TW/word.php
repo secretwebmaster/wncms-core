@@ -2201,6 +2201,32 @@ $words = [
     'page_category' => '頁面分類',
     'page_tag' => '頁面標籤',
     'tag_group' => '標籤群組',
+    'bulk_tag_placeholder' =>
+    "父分類A|parent-a|post_category|父分類A的描述|0|0|0\n" .
+        "子分類A1|child-a1|post_category|子分類A1的描述|父分類A|0|0\n" .
+        "子分類A2|child-a2|post_category|子分類A2的描述|父分類A|0|0\n" .
+        "父分類B|parent-b|post_category|父分類B的描述|0|0|0\n" .
+        "子分類B1|child-b1|post_category|子分類B1的描述|父分類B|0|0\n" .
+        "子分類B2|child-b2|post_category|子分類B2的描述|父分類B|0|0",
+    'tag_keyword_bulk_create_format_simple' => '格式為: 分類名|代稱|描述',
+    'tag_keyword_bulk_create_required_optional' => '分類名為必填，代稱及描述選填',
+    'tag_keyword_bulk_create_one_per_line' => '一行一個',
+    'tag_keyword_bulk_create_full_format' => '格式:',
+    'tag_keyword_bulk_create_format_line1' => '分類名稱|代稱|類型|描述|父分類名稱|圖標|排序',
+    'tag_keyword_bulk_create_format_line2' => 'name|slug|type|description|parentName|icon|sort',
+    'tag_keyword_bulk_create_field_name' => 'name | 必填 | 應為字符串',
+    'tag_keyword_bulk_create_field_slug' => 'slug | 可選 | 默認 = 隨機唯壹的8位字母和數字組合',
+    'tag_keyword_bulk_create_field_type' => 'type | 可選 | 默認 = "post_category"',
+    'tag_keyword_bulk_create_field_description' => 'description | 可選 | 默認 = null',
+    'tag_keyword_bulk_create_field_parent' => 'parentName | 可選 | 默認 = null',
+    'tag_keyword_bulk_create_field_icon' => 'icon | 可選 | 默認 = null',
+    'tag_keyword_bulk_create_field_sort' => 'sort | 可選 | 默認 = null',
+    'tag_keyword_bulk_create_example' => '例子:',
+    'tag_keyword_bulk_create_example_1' => '分類1|代稱01|描述01',
+    'tag_keyword_bulk_create_example_2' => '分類2|代稱02|描述03',
+    'tag_keyword_bulk_create_example_3' => '分類3|代稱03',
+    'tag_keyword_bulk_create_example_4' => '分類4||描述04',
+
 ];
 
 $locale = basename(__DIR__);

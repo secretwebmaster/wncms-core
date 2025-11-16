@@ -17,7 +17,7 @@
                         <select name="type" class="form-select form-select-sm">
                             <option value="all">@lang('wncms::word.tag_type')</option>
                             @foreach($tagTypes as $tagType)
-                                <option value="{{ $tagType['slug'] }}" @if($tagType['slug'] == request()->type) selected @endif>{{ $tagType['name'] }}</option>
+                                <option value="{{ $tagType['key'] }}" @if($tagType['key'] == request()->type) selected @endif>{{ __($tagType['label']) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -60,7 +60,7 @@
     <div class="card card-flush rounded overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle text-nowrap mb-0 border border-2 border-dark">
+                <table class="table table-xs table-bordered table-hover align-middle text-nowrap mb-0 border border-2 border-dark">
                     <thead class="table-dark">
                         <tr class="text-start fw-bold gs-0">
                             <th class="w-10px pe-2">

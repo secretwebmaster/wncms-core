@@ -30,33 +30,36 @@
 
                         <div class="alert alert-info">
                             <ul class="mb-0">
-                                <li>格式為: 分類名|代稱|描述</li>
-                                <li>分類名為必填，代稱及描述選填</li>
-                                <li>一行一個</li>
-                                <li>格式:
-                                    <p>
-                                        分類名稱|代稱|類型|描述|父分類名稱|圖標|排序<br>
-                                        name|slug|type|description|parentName|icon|sort<br><br>
+                                <li>{{ __('wncms::word.tag_keyword_bulk_create_format_simple') }}</li>
+                                <li>{{ __('wncms::word.tag_keyword_bulk_create_required_optional') }}</li>
+                                <li>{{ __('wncms::word.tag_keyword_bulk_create_one_per_line') }}</li>
 
-                                        name | 必填 | 應為字符串<br>
-                                        slug | 可選 | 默認 = 隨機唯壹的8位字母和數字組合<br>
-                                        type | 可選 | 默認 = "post_category"<br>
-                                        description | 可選 | 默認 = null<br>
-                                        parentName | 可選 | 默認 = null<br>
-                                        icon | 可選 | 默認 = null<br>
-                                        sort | 可選 | 默認 = null<br>
+                                <li>
+                                    {{ __('wncms::word.tag_keyword_bulk_create_full_format') }}
+                                    <p>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_format_line1') }}<br>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_format_line2') }}<br><br>
+
+                                        {{ __('wncms::word.tag_keyword_bulk_create_field_name') }}<br>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_field_slug') }}<br>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_field_type') }}<br>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_field_description') }}<br>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_field_parent') }}<br>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_field_icon') }}<br>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_field_sort') }}<br>
                                     </p>
                                 </li>
-                                <li>例子:
+
+                                <li>
+                                    {{ __('wncms::word.tag_keyword_bulk_create_example') }}
                                     <p>
-                                        分類1|代稱01|描述01<br>
-                                        分類2|代稱02|描述03<br>
-                                        分類3|代稱03<br>
-                                        分類4||描述04<br>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_example_1') }}<br>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_example_2') }}<br>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_example_3') }}<br>
+                                        {{ __('wncms::word.tag_keyword_bulk_create_example_4') }}<br>
                                     </p>
                                 </li>
                             </ul>
-
                         </div>
 
 

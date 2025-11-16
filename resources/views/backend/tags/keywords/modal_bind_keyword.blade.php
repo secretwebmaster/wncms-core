@@ -1,4 +1,3 @@
-@dd($binding_model)
 <button type="button" class="btn btn-sm px-2 py-1 btn-dark fw-bold" data-bs-toggle="modal" data-bs-target="#modal_update_keyword_{{ $binding_model->id }}">@lang('wncms::word.edit_keyword')</button>
 <div class="modal fade" tabindex="-1" id="modal_update_keyword_{{ $binding_model->id }}">
     <div class="modal-dialog">

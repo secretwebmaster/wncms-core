@@ -234,12 +234,7 @@ class TagController extends BackendController
 
     public function bulk_create()
     {
-        $placeholder = "測試分類1|slug01|post_category|描述1|0|0|0";
-        $placeholder .= "\r\n測試分類2|slug02|post_category|描述2|測試分類1|0|0";
-        $placeholder .= "\r\n測試分類2|slug02|post_category|描述2|測試分類1|0|0";
-        $placeholder .= "\r\n測試分類2|slug02|post_category|描述2|測試分類1|0|0";
-        $placeholder .= "\r\n測試分類2|slug02|post_category|描述2|測試分類1|0|0";
-        $placeholder .= "\r\n測試分類2|slug02|post_category|描述2|測試分類1|0|0";
+        $placeholder = __('wncms::word.bulk_tag_placeholder');
 
         $this->flush();
 
@@ -359,9 +354,13 @@ class TagController extends BackendController
         ]);
     }
 
-    public function update_keyword(Request $request, Tag $tag)
+    public function update_keyword(Request $request, $id)
     {
         $keywordsToUpdate = collect(json_decode($request->tag_keywords, true))->pluck('name')->toArray();
+        $tag = $this->modelClass::find($id);
+        if (!$tag) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+        }
 
         foreach ($keywordsToUpdate as $keywordName) {
             $tag->keywords()->updateOrCreate(['name' => $keywordName]);

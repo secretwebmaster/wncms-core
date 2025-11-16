@@ -52,7 +52,7 @@ class Tag extends WncmsTag implements HasMedia
     // {
     //     return $this->morphedByMany(wncms()->getModelClass('post'), 'taggable');
     // }
-    
+
     public function keywords()
     {
         return $this->hasMany(wncms()->getModelClass('tag_keyword'));
