@@ -16,14 +16,14 @@
         {{-- CSS --}}
         <link rel="shortcut icon" type="images/x-icon" href="{{ $website->site_favicon ?: asset('wncms/images/logos/favicon.png') }}" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" referrerpolicy="no-referrer" />
-        <link rel="stylesheet" type="text/css" href="{{ asset("themes/default/css/style.css?v=") . wncms_get_version() }}" />
+        <link rel="stylesheet" type="text/css" href="{{ asset("themes/default/css/style.css") . wncms()->addVersion('css') }}" />
 
         @stack('head_css')
         <style>{!! gto('head_css') !!}</style>
 
         {{-- JS --}}
         @stack('head_js')
-        <script src="{{ asset('wncms/js/cookie.js?v=') . wncms_get_version() }}"></script>
+        <script src="{{ asset('wncms/js/cookie.js') . wncms()->addVersion('js') }}"></script>
         {!! $website->head_code !!}
     </head>
 
@@ -42,8 +42,8 @@
 
         {{-- JS --}}
         @stack('foot_js')
-        <script src="{{ asset('wncms/js/jquery.min.js?v=' . wncms_get_version()) }}"></script>
-        <script src="{{ asset('wncms/js/lazysizes.min.js?v=' . wncms_get_version()) }}"></script>
+        <script src="{{ asset('wncms/js/jquery.min.js' . wncms()->addVersion('js')) }}"></script>
+        <script src="{{ asset('wncms/js/lazysizes.min.js' . wncms()->addVersion('js')) }}"></script>
         {!! $website->body_code !!}
         {!! $website->analytics !!}
 

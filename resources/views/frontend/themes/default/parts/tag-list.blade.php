@@ -1,5 +1,5 @@
 <h2>{{ wncms_model_word('tag', 'index') }}</h2>
-<div class="tabs">
+<div class="tabs flex-wrap">
     @foreach(wncms()->tag()->getAllTagTypes() as $type)
     <button class="tab-link @if($loop->index == 0) active @endif" onclick="openTab(event, '{{ $type['key'] }}')">{{ wncms()->tag()->getTagTypeLabel($type['model'], $type['key']) }}</button>
     @endforeach

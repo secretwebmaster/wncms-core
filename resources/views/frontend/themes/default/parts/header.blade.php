@@ -33,11 +33,13 @@
 
     .user-menu ul{
         display: flex;
+        flex-wrap:wrap;
         padding: 0;
     }
     .user-menu ul li{
         list-style: none;
         margin-right: 5px;
+        margin-bottom: 5px;
     }
     .user-menu ul a{
         text-decoration: none;
@@ -49,6 +51,13 @@
         transition: background-color 0.3s, color 0.3s;
     }
 </style>
+
+{{-- Logo --}}
+<div>
+    <a href="{{route('frontend.pages.home')}}">
+        <img src="{{ $website->site_logo ?: asset('wncms/images/logos/logo_black.png') }}" alt="LOGO" class="logo">
+    </a>
+</div>
 
 <div class="language-switcher-wrapper">
     <ul class="language-switcher-item-list">
@@ -64,6 +73,7 @@
     <ul class="">
         {{-- User menu --}}
         @auth
+        <li><a href="{{ route('frontend.pages.home') }}">@lang('wncms::word.homepage')</a></li>
         <li><a href="{{ route('frontend.users.dashboard') }}">@lang('wncms::word.dashboard')</a></li>
         <li><a href="{{ route('frontend.users.profile') }}">@lang('wncms::word.my_account')</a></li>
         
@@ -83,7 +93,4 @@
         @endauth
     </ul>
 </div>
-
-{{-- Logo --}}
-<div><img src="{{ $website->site_logo ?: asset('wncms/images/logos/logo_black.png') }}" alt="LOGO" class="logo"></div>
 
