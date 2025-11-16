@@ -35,7 +35,7 @@ class Update extends Command
         if (!$currentVersion) {
             // $this->error('Unable to determine the current version. Aborting.');
             // return Command::FAILURE;
-            $currentVersion = '0.0.0';
+            $currentVersion = config('installer.version');
         }
         $this->info("Current version: {$currentVersion}");
 
