@@ -1,23 +1,32 @@
 @php
-    $value = $model->{$column} instanceof \Carbon\Carbon
-        ? $model->{$column}
-        : \Carbon\Carbon::parse($model->{$column});
+    $raw = $model->{$column};
+
+    if (empty($raw)) {
+        $value = null;
+    } elseif ($raw instanceof \Carbon\Carbon) {
+        $value = $raw;
+    } else {
+        $value = \Carbon\Carbon::parse($raw);
+    }
 @endphp
 
-@if($column == 'expired_at')
-    @if($value->lt(now()))
+
+@if (is_null($value))
+    <span class="text-muted"></span>
+
+@elseif ($column == 'expired_at')
+    @if ($value->lt(now()))
         <span class="text-danger fw-bold">{{ $value }}</span>
-    @elseif($value->between(now(), now()->addDays($warning_days ?? 3)))
+    @elseif ($value->between(now(), now()->addDays($warning_days ?? 3)))
         <span class="text-warning fw-bold">{{ $value }}</span>
     @else
         <span>{{ $value }}</span>
     @endif
+
 @else
-    {{-- Today --}}
-    @if($value->isToday())
+    @if ($value->isToday())
         <span class="text-danger fw-bold">{{ $value }}</span>
-    {{-- Recent days --}}
-    @elseif($value->gt(now()->subDays($warning_days ?? 3)))
+    @elseif ($value->gt(now()->subDays($warning_days ?? 3)))
         <span class="text-warning fw-bold">{{ $value }}</span>
     @else
         <span>{{ $value }}</span>

@@ -49,7 +49,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     Route::prefix('advertisements')->controller(AdvertisementController::class)->group(function () {
         Route::get('/', 'index')->middleware('can:advertisement_index')->name('advertisements.index');
         Route::get('/create', 'create')->middleware('can:advertisement_create')->name('advertisements.create');
-        Route::get('/clone/{id}', 'clone')->middleware('can:advertisement_clone')->name('advertisements.clone');
+        Route::get('/clone/{id}', 'create')->middleware('can:advertisement_clone')->name('advertisements.clone');
         Route::get('/create/{id}', 'create')->middleware('can:advertisement_clone')->name('advertisements.clone');
         Route::get('/{id}/edit', 'edit')->middleware('can:advertisement_edit')->name('advertisements.edit');
         Route::post('/store', 'store')->middleware('can:advertisement_create')->name('advertisements.store');
