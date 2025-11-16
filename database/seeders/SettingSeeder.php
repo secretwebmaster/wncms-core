@@ -13,12 +13,11 @@ class SettingSeeder extends Seeder
      */
     public function run(): void
     {
-        foreach($this->default_settings() as $key => $value){
+        foreach ($this->default_settings() as $key => $value) {
             Setting::updateOrCreate(
-                ['key'=>$key],
-                ['value'=>$value],
+                ['key' => $key],
+                ['value' => $value],
             );
-
         }
     }
 
@@ -29,7 +28,7 @@ class SettingSeeder extends Seeder
             'check_beta_functions' => '0',
             'data_cache_time' => '3600',
             'live_data_cache_time' => null,
-            'active_models' => '["Advertisement","Menu","Page","Post","Link","Setting","Tag","User]',
+            'active_models' => '["Advertisement","Menu","Page","Post","Link","Setting","Tag","User"]',
             'request_timeout' => '60',
             'cache_view_count' => 1,
             'enable_cache' => 1,
