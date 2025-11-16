@@ -74,7 +74,10 @@ class Install extends Command
         {--pusher_app_key=}
         {--pusher_app_secret=}
         {--multi_website}
-        {--force_https}';
+        {--force_https}
+        {--site_name=}
+        {--domain=}
+        {--theme=default}';
 
     /**
      * Command description.
@@ -156,6 +159,10 @@ class Install extends Command
 
             'multi_website' => $options['multi_website'] ? '1' : null,
             'force_https' => $options['force_https'] ? '1' : null,
+
+            'site_name' => $options['site_name'],
+            'domain' => $options['domain'],
+            'theme' => $options['theme'] ?: 'default',
         ];
         $this->info('Step 4: Installation input mapped');
 
@@ -205,6 +212,49 @@ class Install extends Command
         $this->info('Step 5.10: Cache cleared and installation finalized');
 
         $this->info('WNCMS installation completed successfully.');
+
+        // Step 6: Optional website creation
+        if (!empty($input['domain'])) {
+
+            $this->info('Step 6: Creating website model...');
+
+            $siteName = $input['site_name'] ?: $input['domain'];
+            $theme = $input['theme'] ?: 'default';
+
+            $websiteModel = wncms()->getModelClass('website');
+
+            $exists = $websiteModel::where('domain', $input['domain'])->first();
+            if ($exists) {
+                $this->info("Website {$input['domain']} already exists. Skipping creation.");
+            } else {
+                $website = $websiteModel::create([
+                    'site_name' => $siteName,
+                    'domain' => $input['domain'],
+                    'theme' => $theme,
+                ]);
+
+                $this->info("Website created with name {$siteName}, domain {$input['domain']}, theme {$theme}");
+
+                // Add default theme options
+                $defaultOptions = config("theme.{$theme}.default");
+                foreach ($defaultOptions ?? [] as $key => $value) {
+                    $website->theme_options()->firstOrCreate(
+                        [
+                            'theme' => $theme,
+                            'key' => $key,
+                        ],
+                        [
+                            'value' => $value,
+                        ]
+                    );
+                }
+
+                $this->info("Default theme options added for {$theme}");
+            }
+        } else {
+            $this->info('Step 6: No domain set. Website model creation skipped.');
+        }
+
         return Command::SUCCESS;
     }
 }
