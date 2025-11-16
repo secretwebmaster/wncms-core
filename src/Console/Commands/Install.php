@@ -3,12 +3,9 @@
 namespace Wncms\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Exception;
 use Wncms\Services\Installer\InstallerManager;
-use Illuminate\Support\Str;
 
-class InstallWncmsCommand extends Command
+class Install extends Command
 {
     /**
      * The name and signature of the console command.
@@ -98,8 +95,9 @@ class InstallWncmsCommand extends Command
         $dbName = $this->argument('db_name');
         $dbUser = $this->argument('db_user');
         $dbPass = $this->argument('db_pass');
+        $this->info('Step 1: CLI arguments loaded');
 
-        // Step 2: Validate required inputs (unchanged)
+        // Step 2: Validate required inputs
         $requiredFields = [
             'db_connection' => $dbConnection,
             'db_host' => $dbHost,
@@ -118,9 +116,11 @@ class InstallWncmsCommand extends Command
             $this->error('Database port must be numeric');
             return Command::FAILURE;
         }
+        $this->info('Step 2: Required parameters validated');
 
         // Step 3: Collect optional options
         $options = $this->options();
+        $this->info('Step 3: CLI options collected');
 
         // Step 4: Map CLI input → InstallerManager input
         $input = [
@@ -157,24 +157,52 @@ class InstallWncmsCommand extends Command
             'multi_website' => $options['multi_website'] ? '1' : null,
             'force_https' => $options['force_https'] ? '1' : null,
         ];
+        $this->info('Step 4: Installation input mapped');
 
         $installer = new InstallerManager;
 
-        // Step 5: Install WNCMS using InstallerManager
+        // Step 5.1: Test DB connection
         if (!$installer->checkDatabaseConnection($input)) {
             $this->error('Database connection failed');
             return Command::FAILURE;
         }
+        $this->info('Step 5.1: Database connection verified');
 
+        // Step 5.2: Write ENV
         $installer->writeEnvFile($input);
+        $this->info('Step 5.2: .env file written');
+
+        // Step 5.3: Generate app key
         $installer->generateAppKey();
+        $this->info('Step 5.3: APP_KEY generated');
+
+        // Step 5.4: Setup database (SQL import or migrate)
         $installer->runDatabaseSetup();
+        $this->info('Step 5.4: Database migration and seeding completed');
+
+        // Step 5.5: Publish assets
         $installer->publishAssets();
+        $this->info('Step 5.5: Vendor assets published');
+
+        // Step 5.6: Install custom language files
         $installer->installCustomLangFiles();
+        $this->info('Step 5.6: Custom language files installed');
+
+        // Step 5.7: Install custom route files
         $installer->installCustomRouteFiles();
+        $this->info('Step 5.7: Custom route files installed');
+
+        // Step 5.8: Update system settings (locale, multi-site, https)
         $installer->updateSystemSettings($input);
+        $this->info('Step 5.8: System settings saved');
+
+        // Step 5.9: Mark installed
         $installer->markInstalled();
+        $this->info('Step 5.9: Installation marker created');
+
+        // Step 5.10: Final cleanup
         $installer->finalize();
+        $this->info('Step 5.10: Cache cleared and installation finalized');
 
         $this->info('WNCMS installation completed successfully.');
         return Command::SUCCESS;
