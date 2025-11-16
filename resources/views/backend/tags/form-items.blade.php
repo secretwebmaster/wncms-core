@@ -15,6 +15,7 @@
     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.tag_group')</label>
     <div class="col-lg-9 fv-row">
         <select name="group" class="form-select form-select-sm" required>
+            <option value="">@lang('wncms::word.please_select')</option>
             @foreach($modelGroups as $group)
             <option value="{{ $group }}" @if($group==($tag->group ?? request()->group)) selected @endif>
                 {{ $group }}

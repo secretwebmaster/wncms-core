@@ -15,7 +15,13 @@ class TagController extends BackendController
     {
         $q = $this->modelClass::query();
 
-        $selectedType = $type ?? $request->type ?? 'post_category';
+        $selectedType = $request->type;
+        if(empty($selectedType)) {
+            $currentParam = $request->all();
+            $currentParam['type'] = 'post_category';
+            return redirect()->route('tags.index', $currentParam);
+        }
+
         if ($selectedType != 'all') {
             $q->where('type', $selectedType);
             $related_model_plural_name = explode("_", $selectedType)[0] ?? '';
@@ -310,7 +316,15 @@ class TagController extends BackendController
     {
         $q = $this->modelClass::query();
 
-        $selectedType = $type ?? $request->type ?? 'post_category';
+        $selectedType = $type ?? $request->type;
+
+        if (empty($selectedType)) {
+            $currentParam = $request->all();
+            $currentParam['type'] = 'post_category';
+            return redirect()->route('tags.keywords.index', $currentParam);
+        }
+
+
         if ($selectedType != 'all') {
             $q->where('type', $selectedType);
         }
