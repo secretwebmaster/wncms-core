@@ -37,11 +37,11 @@ abstract class ModelManager
 
         // if (empty($id) && empty($slug)) return null;
 
-        $func = function () use ($id, $name, $slug, $withs, $wheres) {
+        $func = function () use ($id, $name, $slug, $withs, $wheres, $options) {
             $modelClass = $this->getModelClass();
             $q = $modelClass::query();
 
-            if (!empty($withs)) {
+        if (!empty($withs)) {
                 $q->with($withs);
             }
 
@@ -60,6 +60,8 @@ abstract class ModelManager
             if (!empty($name)) {
                 $q->where('name', $name);
             }
+
+            $this->applyExtraFilters($q, $options);
 
             return $q->first();
         };
@@ -412,6 +414,17 @@ abstract class ModelManager
     }
 
     /**
+     * Apply extra filters based on options.
+     * 
+     * @param Builder $q
+     * @param array $options
+     */
+    protected function applyExtraFilters($q, array $options): void
+    {
+        // default: nothing
+    }
+
+    /**
      * Finalize the result: apply pagination, limits, or fetch all.
      * 
      * @param Builder $q
@@ -555,42 +568,5 @@ abstract class ModelManager
         }
 
         return $select;
-    }
-
-    /**
-     * Get all allowed tag types for model.
-     *
-     * Reads from the model (so other packages can extend via HasTags),
-     * then formats each tag into a clean, structured array for frontend usage.
-     */
-    public function getAllowedTagTypes(): array
-    {
-        $modelClass = $this->getModelClass();
-        $instance = new $modelClass();
-
-        if (!method_exists($instance, 'getAllowedTagTypes')) {
-            return [];
-        }
-
-        $allowedTagTypes = $instance->getAllowedTagTypes();
-
-        if (empty($allowedTagTypes) || !is_array($allowedTagTypes)) {
-            return [];
-        }
-
-        // Transform each allowed tag into a structured array
-        return collect($allowedTagTypes)->map(function ($key) {
-
-            $modelKey = $this->getModelKey();
-            $packageKey = $this->getPackageKey();
-            $key = str($key)->replace($modelKey . '_', '')->toString();
-            $full = $modelKey . '_' . $key;
-
-            return [
-                'full' => $full, // full tag type. e.g. product_category
-                'key' => $key, // readable key. e.g. category  
-                'label' => __($packageKey . '::word.' . $full), // localized label e.g. Product Category
-            ];
-        })->values()->toArray();
     }
 }
