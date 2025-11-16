@@ -78,6 +78,8 @@ class InstallController extends Controller
     {
         parse_str($request->formData, $input);
 
+        $input = $this->installer->normalizeInput($input);
+
         // validate env rules
         $rules = config('installer.environment.form.rules');
         $messages = [

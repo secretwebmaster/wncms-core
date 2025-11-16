@@ -11,6 +11,58 @@ use Str;
 class InstallerManager
 {
     /**
+     * Normalize and validate environment input.
+     * Ensures all values are safe, non-empty (when required),
+     * and boolean values become '1' or '0'.
+     */
+    public function normalizeInput(array $input): array
+    {
+        return [
+
+            'database_connection' => $input['database_connection'] ?: 'mysql',
+            'database_hostname' => $input['database_hostname'] ?: '127.0.0.1',
+            'database_port' => is_numeric($input['database_port'] ?? null) ? $input['database_port'] : '3306',
+            'database_name' => $input['database_name'] ?: 'wncms',
+            'database_username' => $input['database_username'] ?: 'root',
+            'database_password' => $input['database_password'] ?? '',
+
+            'app_name' => $input['app_name'] ?: 'WNCMS',
+            'app_url' => $input['app_url'] ?: 'http://localhost',
+            'app_locale' => $input['app_locale'] ?: 'en',
+            'environment' => $input['environment'] ?: 'production',
+
+            'debug' => filter_var($input['debug'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false',
+            'log' => $input['log'] ?: 'daily',
+            'broadcast_driver' => $input['broadcast_driver'] ?: 'log',
+            'cache_store' => $input['cache_store'] ?: 'file',
+            'session_driver' => $input['session_driver'] ?: 'file',
+            'queue_connection' => $input['queue_connection'] ?: 'sync',
+
+            'redis_hostname' => $input['redis_hostname'] ?: '127.0.0.1',
+            'redis_password' => $input['redis_password'] ?? '',
+            'redis_port' => is_numeric($input['redis_port'] ?? null) ? $input['redis_port'] : '6379',
+
+            'mail_driver' => $input['mail_driver'] ?: 'smtp',
+            'mail_host' => $input['mail_host'] ?: 'localhost',
+            'mail_port' => is_numeric($input['mail_port'] ?? null) ? $input['mail_port'] : '587',
+            'mail_username' => $input['mail_username'] ?? '',
+            'mail_password' => $input['mail_password'] ?? '',
+            'mail_encryption' => $input['mail_encryption'] ?: 'tls',
+
+            'pusher_app_id' => $input['pusher_app_id'] ?? '',
+            'pusher_app_key' => $input['pusher_app_key'] ?? '',
+            'pusher_app_secret' => $input['pusher_app_secret'] ?? '',
+
+            'multi_website' => filter_var($input['multi_website'] ?? false, FILTER_VALIDATE_BOOLEAN) ? '1' : '0',
+            'force_https' => filter_var($input['force_https'] ?? false, FILTER_VALIDATE_BOOLEAN) ? '1' : '0',
+
+            'site_name' => $input['site_name'] ?: 'WNCMS Site',
+            'domain' => $input['domain'] ?: 'localhost',
+            'theme' => $input['theme'] ?: 'default',
+        ];
+    }
+
+    /**
      * Validate database connection using provided input.
      */
     public function checkDatabaseConnection(array $input): bool
@@ -40,7 +92,6 @@ class InstallerManager
             return false;
         }
     }
-
 
     /**
      * Write the .env file with installer input data.
@@ -99,7 +150,6 @@ class InstallerManager
         }
     }
 
-
     /**
      * Generate the APP_KEY (same as controller).
      */
@@ -108,7 +158,6 @@ class InstallerManager
         Artisan::call('key:generate', ['--force' => true]);
         info('generated key');
     }
-
 
     /**
      * Run SQL import if exists, otherwise migrate:fresh --seed.
@@ -147,7 +196,6 @@ class InstallerManager
         info('Completed fallback migrations + seeders.');
     }
 
-
     /**
      * Publish required WNCMS assets.
      */
@@ -158,7 +206,6 @@ class InstallerManager
 
         info('assets published');
     }
-
 
     /**
      * Install custom language files (custom.php for every lang).
@@ -185,7 +232,6 @@ class InstallerManager
             }
         }
     }
-
 
     /**
      * Install custom route template files.
@@ -214,7 +260,6 @@ class InstallerManager
             }
         }
     }
-
     /**
      * Update WNCMS system settings in DB.
      * Includes: locale, multi_website, force_https, version.
@@ -243,7 +288,6 @@ class InstallerManager
         uss('core_version', $version);
     }
 
-
     /**
      * Mark WNCMS installation completed.
      */
@@ -265,7 +309,6 @@ class InstallerManager
 
         return $message;
     }
-
 
     /**
      * Final cleanup after installation.

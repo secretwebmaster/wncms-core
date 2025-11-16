@@ -168,6 +168,9 @@ class Install extends Command
 
         $installer = new InstallerManager;
 
+        // Prepare and normalize input
+        $input = $installer->normalizeInput($input);
+
         // Step 5.1: Test DB connection
         if (!$installer->checkDatabaseConnection($input)) {
             $this->error('Database connection failed');
