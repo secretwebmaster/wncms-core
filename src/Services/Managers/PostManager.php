@@ -58,6 +58,7 @@ class PostManager extends ModelManager
         $tags = $options['tags'] ?? [];
         $tagType = $options['tag_type'] ?? 'post_category';
         $keywords = $options['keywords'] ?? [];
+        $searchFields = $options['search_fields'] ?? ['title', 'label', 'excerpt', 'content'];
         $count = $options['count'] ?? 0;
         $offset = $options['offset'] ?? 0;
         $sort = $options['sort'] ?? 'id';
@@ -79,7 +80,7 @@ class PostManager extends ModelManager
 
         $this->applyWiths($q, array_merge(['media', 'comments', 'tags', 'translations'], $withs));
         $this->applyTagFilter($q, $tags, $tagType);
-        $this->applyKeywordFilter($q, $keywords, ['title', 'label', 'excerpt', 'content']);
+        $this->applyKeywordFilter($q, $keywords, $searchFields);
 
         $this->applyWhereConditions($q, $wheres);
         $this->applyIds($q, 'posts.id', $ids);

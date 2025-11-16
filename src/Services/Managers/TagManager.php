@@ -54,6 +54,15 @@ class TagManager extends ModelManager
         return $query->first();
     }
 
+    protected function applyExtraFilters($q, array $options): void
+    {
+        $type = $options['type'] ?? null;
+
+        if (!empty($type)) {
+            $q->where('type', $type);
+        }
+    }
+
     /**
      * Build the base query for retrieving a list of tags.
      *
