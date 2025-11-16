@@ -5,6 +5,7 @@ namespace Wncms\Http\Controllers\Backend;
 use Wncms\Services\Installer\DatabaseManager;
 use Wncms\Services\Installer\PermissionChecker;
 use Wncms\Services\Installer\RequirementChecker;
+use Wncms\Services\Installer\InstallerManager;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Validator;
