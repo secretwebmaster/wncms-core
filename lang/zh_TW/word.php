@@ -2180,7 +2180,7 @@ $words = [
     'edit_comment' => '編輯評論',
     'write_a_comment' => '寫下你的評論...',
 
-    // 6.0.0
+    // 6.0.0 alpha1-3
     'package_activated' => '套件已啟用',
     'package_activated_with_name' => '套件 :name 已啟用',
     'package_deactivated' => '套件已停用',
@@ -2226,6 +2226,11 @@ $words = [
     'tag_keyword_bulk_create_example_2' => '分類2|代稱02|描述03',
     'tag_keyword_bulk_create_example_3' => '分類3|代稱03',
     'tag_keyword_bulk_create_example_4' => '分類4||描述04',
+
+    // 6.0.0 alpha4
+    'domain_alias' => '域名別名',
+    'menu_item' => '菜單項目',
+    'traffic_summary' => '流量總結',
 
 ];
 

@@ -84,7 +84,7 @@ if (!function_exists('wncms_get_model_names')) {
 
             return [
                 'model_name' => class_basename($modelName),
-                'name_key' => defined(get_class($model) . '::NAME_KEY') ? $model::NAME_KEY : null,
+                'model_key' => property_exists($model, 'modelKey') ? $model::$modelKey : null,
                 'model_name_with_namespace' => $modelName,
                 'priority' => property_exists($model, 'menuPriority') ? $model->menuPriority : 0,
                 'routes' => defined($modelName . "::ROUTES") ? $modelName::ROUTES : null,
