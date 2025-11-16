@@ -2148,6 +2148,85 @@ $words = [
     'show_credits' => 'クレジットを表示',
     'field_should_be_integer' => ':field_name は整数である必要があります。',
     'alphabetic' => 'アルファベット',
+
+    // 5.5.3
+    'core_version' => 'コアバージョン',
+
+    // 5.5.4
+    'discounts' => '割引',
+    'ended_at' => '終了時間',
+    'percentage' => 'パーセンテージ',
+    'fixed' => '固定',
+
+    // 5.5.5
+    'slug_already_exists' => 'スラッグが既に存在します',
+    'tools' => 'ツール',
+    'fix_permission' => 'パーミッション修復',
+    'fix_permission_description' => 'ファイルが root:root として作成された場合、所有者を www:www に手動で戻してください。',
+    'fix_permission_warning' => 'サイトのルートディレクトリで次のコマンドを実行してください:',
+    'fix_permission_run_as_root' => 'root ユーザーで実行してください。',
+    'run_fix_permission' => 'コマンドを表示',
+    'close' => '閉じる',
+    'clear_cache' => 'キャッシュをクリア',
+    'clear_cache_description' => 'システムキャッシュを素早くクリアし、最新設定とデータを反映します。',
+    'clear_cache_button' => 'キャッシュをクリア',
+    'clear_cache_warning' => 'この操作はすべてのキャッシュを削除します。',
+    'clear_cache_be_careful' => '特に大規模サイトでは一時的にパフォーマンスに影響する可能性がありますので注意してください。',
+    'developer_mode' => '開発者モード',
+    'developer_mode_description' => '有効にすると追加の開発者オプションとヒントが表示されます。',
+    'developer_setting' => '開発者設定',
+    'comment_count' => 'コメント数: :count',
+    'add_comment' => 'コメントを追加',
+    'edit_comment' => 'コメントを編集',
+    'write_a_comment' => 'コメントを書く...',
+
+    // 6.0.0
+    'package_activated' => 'パッケージが有効化されました',
+    'package_activated_with_name' => 'パッケージ :name が有効化されました',
+    'package_deactivated' => 'パッケージが無効化されました',
+    'package_deactivated_with_name' => 'パッケージ :name が無効化されました',
+    'package' => 'パッケージ',
+    'deactivate_package' => 'パッケージを無効化',
+    'deactivate_package_confirmation' => 'この操作によりパッケージ :package_name が無効化され、関連データが削除される可能性があります。再度有効化してもデータは復元されません。続行しますか？',
+    'deactivate_and_delete_data' => '無効化してデータを削除',
+    'fail_to_submit' => '送信に失敗しました',
+    'installed' => 'インストール済み',
+    'successfully_installed' => 'インストール成功',
+    'view' => '表示',
+    'package_is_not_activated' => 'パッケージ :package_id は有効化されていません',
+    'multi_website' => 'マルチサイトモード',
+    'sort_direction' => '並び順',
+    'comment' => 'コメント',
+    'tag_keyword' => 'タグキーワード',
+    'page_category' => 'ページカテゴリー',
+    'page_tag' => 'ページタグ',
+    'tag_group' => 'タググループ',
+    'bulk_tag_placeholder' =>
+    "親カテゴリA|parent-a|post_category|親カテゴリAの説明|0|0|0\n" .
+        "子カテゴリA1|child-a1|post_category|子カテゴリA1の説明|親カテゴリA|0|0\n" .
+        "子カテゴリA2|child-a2|post_category|子カテゴリA2の説明|親カテゴリA|0|0\n" .
+        "親カテゴリB|parent-b|post_category|親カテゴリBの説明|0|0|0\n" .
+        "子カテゴリB1|child-b1|post_category|子カテゴリB1の説明|親カテゴリB|0|0\n" .
+        "子カテゴリB2|child-b2|post_category|子カテゴリB2の説明|親カテゴリB|0|0",
+    'tag_keyword_bulk_create_format_simple' => '形式: 名称|スラッグ|説明',
+    'tag_keyword_bulk_create_required_optional' => '名称は必須、スラッグと説明は任意',
+    'tag_keyword_bulk_create_one_per_line' => '1行に1つ',
+    'tag_keyword_bulk_create_full_format' => '形式:',
+    'tag_keyword_bulk_create_format_line1' => '名称|スラッグ|タイプ|説明|親名称|アイコン|並び順',
+    'tag_keyword_bulk_create_format_line2' => 'name|slug|type|description|parentName|icon|sort',
+    'tag_keyword_bulk_create_field_name' => 'name | 必須 | 文字列',
+    'tag_keyword_bulk_create_field_slug' => 'slug | 任意 | デフォルト = ランダム8文字',
+    'tag_keyword_bulk_create_field_type' => 'type | 任意 | デフォルト = "post_category"',
+    'tag_keyword_bulk_create_field_description' => 'description | 任意 | デフォルト = null',
+    'tag_keyword_bulk_create_field_parent' => 'parentName | 任意 | デフォルト = null',
+    'tag_keyword_bulk_create_field_icon' => 'icon | 任意 | デフォルト = null',
+    'tag_keyword_bulk_create_field_sort' => 'sort | 任意 | デフォルト = null',
+    'tag_keyword_bulk_create_example' => '例:',
+    'tag_keyword_bulk_create_example_1' => 'カテゴリ1|slug01|説明01',
+    'tag_keyword_bulk_create_example_2' => 'カテゴリ2|slug02|説明03',
+    'tag_keyword_bulk_create_example_3' => 'カテゴリ3|slug03',
+    'tag_keyword_bulk_create_example_4' => 'カテゴリ4||説明04',
+
 ];
 
 $locale = basename(__DIR__);

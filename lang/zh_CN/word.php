@@ -2148,6 +2148,85 @@ $words = [
     'show_credits' => '显示积分',
     'field_should_be_integer' => ':field_name 必须是整数。',
     'alphabetic' => '字母',
+
+    // 5.5.3
+    'core_version' => '核心版本',
+
+    // 5.5.4
+    'discounts' => '折扣',
+    'ended_at' => '结束时间',
+    'percentage' => '百分比',
+    'fixed' => '固定',
+
+    // 5.5.5
+    'slug_already_exists' => '代称(slug)已存在',
+    'tools' => '工具',
+    'fix_permission' => '修复权限',
+    'fix_permission_description' => '如果有文件被创建成 root:root，可以手动将所有者重设为 www:www。',
+    'fix_permission_warning' => '请在网站根目录下执行以下指令：',
+    'fix_permission_run_as_root' => '请以 root 用户身份执行此指令。',
+    'run_fix_permission' => '显示指令',
+    'close' => '关闭',
+    'clear_cache' => '清除缓存',
+    'clear_cache_description' => '快速清除系统缓存，确保最新设置与数据即时生效。',
+    'clear_cache_button' => '清除缓存',
+    'clear_cache_warning' => '此操作将清除所有缓存！',
+    'clear_cache_be_careful' => '请谨慎操作，特别是在大型线上网站上，可能会造成瞬时性能影响。',
+    'developer_mode' => '开发者模式',
+    'developer_mode_description' => '启用后会显示额外的开发者选项与提示。',
+    'developer_setting' => '开发者设置',
+    'comment_count' => '评论数: :count',
+    'add_comment' => '添加评论',
+    'edit_comment' => '编辑评论',
+    'write_a_comment' => '写下你的评论...',
+
+    // 6.0.0
+    'package_activated' => '套件已启用',
+    'package_activated_with_name' => '套件 :name 已启用',
+    'package_deactivated' => '套件已停用',
+    'package_deactivated_with_name' => '套件 :name 已停用',
+    'package' => '套件',
+    'deactivate_package' => '停用套件',
+    'deactivate_package_confirmation' => '此操作将停用套件 :package_name，可能会移除相关数据，再次启用无法恢复数据，确定继续吗？',
+    'deactivate_and_delete_data' => '停用并删除数据',
+    'fail_to_submit' => '提交失败',
+    'installed' => '已安装',
+    'successfully_installed' => '安装成功',
+    'view' => '查看',
+    'package_is_not_activated' => '套件 :package_id 未启用',
+    'multi_website' => '多网站模式',
+    'sort_direction' => '排序方向',
+    'comment' => '评论',
+    'tag_keyword' => '标签关键字',
+    'page_category' => '页面分类',
+    'page_tag' => '页面标签',
+    'tag_group' => '标签群组',
+    'bulk_tag_placeholder' =>
+    "父分类A|parent-a|post_category|父分类A的描述|0|0|0\n" .
+        "子分类A1|child-a1|post_category|子分类A1的描述|父分类A|0|0\n" .
+        "子分类A2|child-a2|post_category|子分类A2的描述|父分类A|0|0\n" .
+        "父分类B|parent-b|post_category|父分类B的描述|0|0|0\n" .
+        "子分类B1|child-b1|post_category|父分类B1的描述|父分类B|0|0\n" .
+        "子分类B2|child-b2|post_category|父分类B2的描述|父分类B|0|0",
+    'tag_keyword_bulk_create_format_simple' => '格式: 分类名|代称|描述',
+    'tag_keyword_bulk_create_required_optional' => '分类名必填，代称与描述选填',
+    'tag_keyword_bulk_create_one_per_line' => '一行一个',
+    'tag_keyword_bulk_create_full_format' => '完整格式:',
+    'tag_keyword_bulk_create_format_line1' => '分类名称|代称|类型|描述|父分类名称|图标|排序',
+    'tag_keyword_bulk_create_format_line2' => 'name|slug|type|description|parentName|icon|sort',
+    'tag_keyword_bulk_create_field_name' => 'name | 必填 | 字符串',
+    'tag_keyword_bulk_create_field_slug' => 'slug | 可选 | 默认 = 随机唯一8位字母数字',
+    'tag_keyword_bulk_create_field_type' => 'type | 可选 | 默认 = "post_category"',
+    'tag_keyword_bulk_create_field_description' => 'description | 可选 | 默认 = null',
+    'tag_keyword_bulk_create_field_parent' => 'parentName | 可选 | 默认 = null',
+    'tag_keyword_bulk_create_field_icon' => 'icon | 可选 | 默认 = null',
+    'tag_keyword_bulk_create_field_sort' => 'sort | 可选 | 默认 = null',
+    'tag_keyword_bulk_create_example' => '示例:',
+    'tag_keyword_bulk_create_example_1' => '分类1|代称01|描述01',
+    'tag_keyword_bulk_create_example_2' => '分类2|代称02|描述03',
+    'tag_keyword_bulk_create_example_3' => '分类3|代称03',
+    'tag_keyword_bulk_create_example_4' => '分类4||描述04',
+
 ];
 
 $locale = basename(__DIR__);

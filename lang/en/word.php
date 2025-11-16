@@ -2148,6 +2148,85 @@ $words = [
     'show_credits' => 'Show Credits',
     'field_should_be_integer' => ':field_name must be an integer.',
     'alphabetic' => 'Alphabetic',
+
+    // 5.5.3
+    'core_version' => 'Core Version',
+
+    // 5.5.4
+    'discounts' => 'Discounts',
+    'ended_at' => 'End Time',
+    'percentage' => 'Percentage',
+    'fixed' => 'Fixed',
+
+    // 5.5.5
+    'slug_already_exists' => 'Slug already exists',
+    'tools' => 'Tools',
+    'fix_permission' => 'Fix Permission',
+    'fix_permission_description' => 'If files are created as root:root, manually reset the owner to www:www.',
+    'fix_permission_warning' => 'Run the following command in your site root:',
+    'fix_permission_run_as_root' => 'Run this command as the root user.',
+    'run_fix_permission' => 'Show Command',
+    'close' => 'Close',
+    'clear_cache' => 'Clear Cache',
+    'clear_cache_description' => 'Quickly clear system cache to ensure the latest settings and data take effect.',
+    'clear_cache_button' => 'Clear Cache',
+    'clear_cache_warning' => 'This action will clear all caches.',
+    'clear_cache_be_careful' => 'Operate carefully, especially on large production sites where performance may be briefly affected.',
+    'developer_mode' => 'Developer Mode',
+    'developer_mode_description' => 'Displays additional developer options and hints when enabled.',
+    'developer_setting' => 'Developer Settings',
+    'comment_count' => 'Comments: :count',
+    'add_comment' => 'Add Comment',
+    'edit_comment' => 'Edit Comment',
+    'write_a_comment' => 'Write your comment...',
+
+    // 6.0.0
+    'package_activated' => 'Package activated',
+    'package_activated_with_name' => 'Package :name activated',
+    'package_deactivated' => 'Package deactivated',
+    'package_deactivated_with_name' => 'Package :name deactivated',
+    'package' => 'Package',
+    'deactivate_package' => 'Deactivate Package',
+    'deactivate_package_confirmation' => 'This will deactivate package :package_name. Related data may be removed. Re-enabling will not restore data. Continue?',
+    'deactivate_and_delete_data' => 'Deactivate and Delete Data',
+    'fail_to_submit' => 'Failed to submit',
+    'installed' => 'Installed',
+    'successfully_installed' => 'Installed successfully',
+    'view' => 'View',
+    'package_is_not_activated' => 'Package :package_id is not activated',
+    'multi_website' => 'Multi-Website Mode',
+    'sort_direction' => 'Sort Direction',
+    'comment' => 'Comment',
+    'tag_keyword' => 'Tag Keyword',
+    'page_category' => 'Page Category',
+    'page_tag' => 'Page Tag',
+    'tag_group' => 'Tag Group',
+    'bulk_tag_placeholder' =>
+    "Parent A|parent-a|post_category|Description of Parent A|0|0|0\n" .
+        "Child A1|child-a1|post_category|Description of Child A1|Parent A|0|0\n" .
+        "Child A2|child-a2|post_category|Description of Child A2|Parent A|0|0\n" .
+        "Parent B|parent-b|post_category|Description of Parent B|0|0|0\n" .
+        "Child B1|child-b1|post_category|Description of Child B1|Parent B|0|0\n" .
+        "Child B2|child-b2|post_category|Description of Child B2|Parent B|0|0",
+    'tag_keyword_bulk_create_format_simple' => 'Format: name|slug|description',
+    'tag_keyword_bulk_create_required_optional' => 'Name required, slug and description optional',
+    'tag_keyword_bulk_create_one_per_line' => 'One per line',
+    'tag_keyword_bulk_create_full_format' => 'Format:',
+    'tag_keyword_bulk_create_format_line1' => 'name|slug|type|description|parentName|icon|sort',
+    'tag_keyword_bulk_create_format_line2' => 'name|slug|type|description|parentName|icon|sort',
+    'tag_keyword_bulk_create_field_name' => 'name | required | string',
+    'tag_keyword_bulk_create_field_slug' => 'slug | optional | default = unique random 8 chars',
+    'tag_keyword_bulk_create_field_type' => 'type | optional | default = "post_category"',
+    'tag_keyword_bulk_create_field_description' => 'description | optional | default = null',
+    'tag_keyword_bulk_create_field_parent' => 'parentName | optional | default = null',
+    'tag_keyword_bulk_create_field_icon' => 'icon | optional | default = null',
+    'tag_keyword_bulk_create_field_sort' => 'sort | optional | default = null',
+    'tag_keyword_bulk_create_example' => 'Examples:',
+    'tag_keyword_bulk_create_example_1' => 'Category 1|slug01|Description 01',
+    'tag_keyword_bulk_create_example_2' => 'Category 2|slug02|Description 03',
+    'tag_keyword_bulk_create_example_3' => 'Category 3|slug03',
+    'tag_keyword_bulk_create_example_4' => 'Category 4||Description 04',
+
 ];
 
 $locale = basename(__DIR__);
