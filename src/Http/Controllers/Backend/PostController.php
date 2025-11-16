@@ -124,7 +124,7 @@ class PostController extends BackendController
             'status' => $request->input('status'),
             'visibility' => $request->input('visibility'),
             'external_thumbnail' => $request->input('external_thumbnail'),
-            'slug' => wncms_get_unique_slug('posts', 'slug', 8, 'lower'),
+            'slug' => $request->input('slug', wncms()->getUniqueSlug('posts')),
             'title' => $request->input('title'),
             'label' => $request->input('label'),
             'excerpt' => $request->input('excerpt'),
@@ -176,7 +176,7 @@ class PostController extends BackendController
 
     public function show($slug)
     {
-        dd('Show is disabled in backedn. Preview in frontend instead.');
+        dd('Show is disabled in backend. Preview in frontend instead.');
         // $post = $this->modelClass::where('slug', $slug)->first();
         // if (!$post) return redirect()->route('frontend.pages.home');
         // return $this->view('wncms::frontend.themes.default.posts.single', [

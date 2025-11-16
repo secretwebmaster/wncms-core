@@ -347,26 +347,6 @@ if (!function_exists('wncms_get_referer')) {
     }
 }
 
-if (!function_exists('wncms_get_unique_slug')) {
-    function wncms_get_unique_slug($table, $column, $length = 8, $case = null)
-    {
-        $slug = str()->random($length);
-        if ($case == 'upper') {
-            $slug = strtoupper($slug);
-        } elseif ($case == 'lower') {
-            $slug = strtolower($slug);
-        }
-
-        $duplicated = DB::table($table)->where($column, $slug)->first();
-        if (!$duplicated) {
-            return $slug;
-        } else {
-            // TODO: set retry limit to avoid infinite loop in short length slug
-            return wncms_get_unique_slug($table, $column, $length, $case);
-        }
-    }
-}
-
 if (!function_exists('wncms_generate_url_with_query')) {
     function wncms_generate_url_with_query($url, $params)
     {

@@ -83,16 +83,17 @@ class PageController extends BackendController
         }
 
         $page = $user->pages()->create([
-            'status' => $request->status,
-            'visibility' => $request->visibility,
-            'title' => $request->title,
-            'slug' => $request->slug ?? wncms_get_unique_slug('posts', 'slug', 6),
-            'remark' => $request->remark,
-            'content' => $request->content,
-            'type' => $request->type ?? 'plain',
-            'is_locked' => $request->is_locked == 1 ? true : false,
-            'blade_name' => $request->blade_name,
+            'status' => $request->input('status'),
+            'visibility' => $request->input('visibility'),
+            'title' => $request->input('title'),
+            'slug' => $request->input('slug', wncms()->getUniqueSlug('pages')),
+            'remark' => $request->input('remark'),
+            'content' => $request->input('content'),
+            'type' => $request->input('type', 'plain'),
+            'is_locked' => $request->boolean('is_locked'),
+            'blade_name' => $request->input('blade_name'),
         ]);
+
 
         // options
         if ($request->has('options')) {
@@ -188,9 +189,9 @@ class PageController extends BackendController
             $page = new $this->modelClass;
         }
 
-        if(gss('multi_website')){
+        if (gss('multi_website')) {
             $available_templates = collect(config("theme." . $page->website?->theme . ".templates"));
-        }else{
+        } else {
             $available_templates = collect(config("theme." . wncms()->website()->get()?->theme . ".templates"));
         }
 
@@ -246,20 +247,18 @@ class PageController extends BackendController
             ]
         );
 
-        // TODO: Handle order
-        // dd($request->inputs, $inputs);
-
         $page->update([
-            'status' => $request->status,
-            'visibility' => $request->visibility,
-            'title' => $request->title,
-            'slug' => $request->slug ?? wncms_get_unique_slug('posts', 'slug', 6),
-            'remark' => $request->remark,
-            'content' => $request->content,
-            'type' => $request->type ?? 'plain',
-            'is_locked' => $request->is_locked == 1 ? true : false,
-            'blade_name' => $request->blade_name,
+            'status' => $request->input('status'),
+            'visibility' => $request->input('visibility'),
+            'title' => $request->input('title'),
+            'slug' => $request->input('slug', wncms()->getUniqueSlug('pages')),
+            'remark' => $request->input('remark'),
+            'content' => $request->input('content'),
+            'type' => $request->input('type', 'plain'),
+            'is_locked' => $request->boolean('is_locked'),
+            'blade_name' => $request->input('blade_name'),
         ]);
+
 
         if ($page->type == 'template' && !empty($page->blade_name) && !empty($request->inputs)) {
             $page->savePageOption($request);

@@ -91,7 +91,7 @@ class PostController extends ApiController
             'status' => $request->input('status', 'published'),
             'visibility' => $request->input('visibility', 'public'),
             'external_thumbnail' => $request->input('external_thumbnail'),
-            'slug' => $request->input('slug', wncms_get_unique_slug('posts', 'slug', 6)),
+            'slug' => $request->input('slug', wncms()->getUniqueSlug('posts')),
             'title' => $request->input('title'),
             'label' => $request->input('label'),
             'excerpt' => $request->input('excerpt'),
