@@ -41,7 +41,7 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     Route::prefix('post')->controller(PostController::class)->group(function () {
         Route::get('rank', 'rank')->name('posts.rank');
         Route::get('rank/{period}', 'rank')->name('posts.rank.period');
-        Route::get('search/{keyword}', 'search_result')->name('posts.search_result');
+        Route::get('search/{keyword}', 'result')->name('posts.search.result');
         Route::post('search', 'search')->name('posts.search');
         // Route::get('category/{tagName?}', 'category')->name('posts.category');
         // Route::get('tag/{tagName?}', 'tag')->name('posts.tag');

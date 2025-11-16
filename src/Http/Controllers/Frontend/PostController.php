@@ -45,14 +45,13 @@ class PostController extends FrontendController
 
         // fetch tag by slug or name in current locale
         $tag = wncms()->tag()->get([
-            'type' => $type,
-            'slug' => $slug,     // slug or name (ModelManager handles both)
-            'name' => $slug,     // allow name match as well
+            'type'  => $tagType,
+            'wheres' => [fn($q) => $q->where('slug', $slug)->orWhere('name', $slug)],
             'cache' => true,
         ]);
 
         if (!$tag) {
-            return redirect()->route('frontend.posts.search_result', [
+            return redirect()->route('frontend.posts.search.result', [
                 'keyword' => $slug
             ]);
         }
@@ -66,7 +65,6 @@ class PostController extends FrontendController
             'tag_type' => $tagType,
         ]);
 
-
         return $this->view("frontend.themes.{$this->theme}.posts.archive", [
             'pageTitle' => __('wncms::word.latest_tag_models', [
                 'tagName' => $slug,
@@ -79,7 +77,6 @@ class PostController extends FrontendController
         ]);
     }
 
-
     /**
      * Search request via POST.
      */
@@ -89,7 +86,7 @@ class PostController extends FrontendController
             return back()->withErrors(['message' => __('wncms::word.keyword_is_empty')]);
         }
 
-        return redirect()->route('frontend.posts.search_result', [
+        return redirect()->route('frontend.posts.search.result', [
             'keyword' => $request->keyword,
         ]);
     }
@@ -97,13 +94,14 @@ class PostController extends FrontendController
     /**
      * Search results.
      */
-    public function search_result(Request $request, string $keyword)
+    public function result(Request $request, string $keyword)
     {
-        $posts = wncms()->post()->search(
-            keyword: $keyword,
-            pageSize: gto('archive_post_count', 10),
-            page: $request->page,
-        );
+        $posts = wncms()->post()->getList([
+            'keywords' => $keyword,
+            'search_fields' => gto('post_search_fields', ['title']),
+            'page_size' => gto('archive_post_count', 10),
+            'page' => $request->page,
+        ]);
 
         return $this->view("frontend.themes.{$this->theme}.posts.search", [
             'pageTitle' => __('wncms::word.search_result_of', ['keyword' => $keyword]),
