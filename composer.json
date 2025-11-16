@@ -47,6 +47,7 @@
     "extra": {
         "laravel": {
             "providers": [
+                "Wncms\\Tags\\TagsServiceProvider",
                 "Wncms\\Providers\\WncmsServiceProvider",
                 "Wncms\\Providers\\EventServiceProvider",
                 "Wncms\\Providers\\HelpersProvider",
