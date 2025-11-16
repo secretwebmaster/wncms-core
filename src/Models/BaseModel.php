@@ -3,11 +3,11 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Wncms\Contracts\BaseModelContract;
+use Wncms\Interfaces\BaseModelInterface;
 use Wncms\Tags\HasTags;
 use Wncms\Traits\HasMultisite;
 
-abstract class BaseModel extends Model implements BaseModelContract
+abstract class BaseModel extends Model implements BaseModelInterface
 {
     use HasMultisite;
     use HasTags;

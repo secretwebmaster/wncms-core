@@ -89,16 +89,16 @@ return [
             ['type' => 'switch', 'name' => 'localize_post_image'],
         ]
     ],
-    'api' => [
-        'tab_name' => 'api',
-        'tab_content' => [
-            ['type' => 'switch', 'name' => 'enable_api_access'],
-            ['type' => 'switch', 'name' => 'enable_api_post_index'],
-            ['type' => 'switch', 'name' => 'enable_api_post_store'],
-            ['type' => 'switch', 'name' => 'enable_api_post_show'],
-            ['type' => 'switch', 'name' => 'enable_api_tag_store'],
-        ]
-    ],
+    // 'api' => [
+    //     'tab_name' => 'api',
+    //     'tab_content' => [
+    //         ['type' => 'switch', 'name' => 'enable_api_access'],
+    //         ['type' => 'switch', 'name' => 'enable_api_post_index'],
+    //         ['type' => 'switch', 'name' => 'enable_api_post_store'],
+    //         ['type' => 'switch', 'name' => 'enable_api_post_show'],
+    //         ['type' => 'switch', 'name' => 'enable_api_tag_store'],
+    //     ]
+    // ],
     'content' => [
         'tab_name' => 'content',
         'tab_content' => [

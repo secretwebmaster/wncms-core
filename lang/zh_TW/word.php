@@ -2231,6 +2231,21 @@ $words = [
     'domain_alias' => '域名別名',
     'menu_item' => '菜單項目',
     'traffic_summary' => '流量總結',
+    'enable_api_post_index' => '啟用文章索引API',
+    'enable_api_post_store' => '啟用文章創建API',
+    'enable_api_post_show' => '啟用文章詳情API',
+    'enable_api_tag_store' => '啟用標籤創建API',
+    'model' => '模型',
+    'enable' => '啟用',
+    'disable' => '停用',
+    'actions' => '操作',
+    'wncms_api_post_index' => '列表',
+    'wncms_api_post_store' => '創建',
+    'wncms_api_post_update' => '更新',
+    'wncms_api_post_delete' => '刪除',
+    'index' => '列表',
+    'store' => '創建',
+    'others' => '其他',
 
 ];
 

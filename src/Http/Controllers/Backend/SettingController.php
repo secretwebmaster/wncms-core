@@ -12,36 +12,73 @@ class SettingController extends Controller
 {
     public function index(Request $request)
     {
-        if($request->has('developer_mode')){
-            if($request->developer_mode === '1'){
-                uss('developer_mode', '1');
-            }elseif($request->developer_mode === '0'){
-                uss('developer_mode', '0');
-            }
+        if ($request->has('developer_mode')) {
+            uss('developer_mode', $request->developer_mode === '1' ? '1' : '0');
             return redirect()->route('settings.index');
         }
 
-        //check if there is system update
-        $settings = Setting::pluck('value','key')->toArray();
+        $settings = Setting::pluck('value', 'key')->toArray();
+        $availableSettings = array_merge(config('wncms-system-settings'), config('wncms.custom-settings') ?? []);
 
-        $availableSettings = array_merge(config('wncms-system-settings'), (config('wncms.custom-settings') ?? []));
-        return $this->view('wncms::backend.admin.settings',[
+        // Determine active tab
+        $firstTabName = collect($availableSettings)
+            ->firstWhere(fn($t) => !empty($t['tab_name']) && !empty($t['tab_content']))['tab_name'] ?? null;
+
+        $activeTab = $request->tab ?? old('active_tab') ?? $firstTabName;
+
+        // API model processing
+        $apiModels = [];
+        $allActions = [];
+
+        foreach (wncms()->getModels() as $modelClass) {
+
+            if (!in_array(\Wncms\Interfaces\ApiModelInterface::class, class_implements($modelClass))) {
+                continue;
+            }
+
+            $modelKey = $modelClass::$modelKey ?? strtolower(class_basename($modelClass));
+            $routes = $modelClass::getApiRoutes();
+
+            $apiModels[$modelKey] = [
+                'class' => $modelClass,
+                'routes' => $routes,
+            ];
+
+            foreach ($routes as $route) {
+                $allActions[$route['action']] = $route['action'];
+            }
+        }
+
+        $commonActions = ['index', 'store', 'update', 'delete'];
+        $otherActions  = array_diff($allActions, $commonActions);
+
+        sort($commonActions);
+        sort($otherActions);
+
+        $modelDisplayList = wncms_get_model_names();
+
+        return $this->view('wncms::backend.admin.settings.index', [
             'settings' => $settings,
             'page_title' => __('wncms::word.setting'),
             'availableSettings' => $availableSettings,
+            'activeTab' => $activeTab,
+            'apiModels' => $apiModels,
+            'commonActions' => $commonActions,
+            'otherActions' => $otherActions,
+            'modelDisplayList' => $modelDisplayList,
         ]);
     }
 
     public function update(Request $request)
     {
-        foreach($request->settings as $key => $value){
+        foreach ($request->settings as $key => $value) {
             uss($key, $value);
         }
 
         //特別處理項目
-        if($request->active_models){
+        if ($request->active_models) {
             uss('active_models', json_encode($request->active_models));
-        }else{
+        } else {
             uss('active_models', "{}");
         }
 
@@ -51,14 +88,14 @@ class SettingController extends Controller
     public function smtp_test(Request $request)
     {
         info($request->all());
-        if(empty($request->recipient)){
+        if (empty($request->recipient)) {
             return response()->json([
                 'status' => 'fail',
                 'message' => __('wncms::word.recipient_is_not_set'),
             ]);
         }
 
-        if(filter_var($request->recipient, FILTER_VALIDATE_EMAIL) === false){
+        if (filter_var($request->recipient, FILTER_VALIDATE_EMAIL) === false) {
             return response()->json([
                 'status' => 'fail',
                 'message' => __('wncms::word.please_enter_a_valid_email'),
@@ -88,13 +125,13 @@ class SettingController extends Controller
         ];
 
         // append new quick link
-        if(!in_array($quickLinkData, $quickLinks)){
+        if (!in_array($quickLinkData, $quickLinks)) {
             $quickLinks[] = $quickLinkData;
         }
 
         // save quick links
         uss('quick_links', json_encode($quickLinks));
-        
+
         return back()->withMessage(__('wncms::word.successfully_updated'));
     }
 
@@ -102,21 +139,21 @@ class SettingController extends Controller
     {
         $quickLinkStr = gss('quick_links');
         $quickLinks = json_decode($quickLinkStr, true) ?? [];
-    
+
         $quickLinkData = [
             'route' => $request->route,
             'url' => $request->url,
         ];
-    
+
         $quickLinks = array_filter($quickLinks, function ($quickLink) use ($quickLinkData) {
             return !(
                 ($quickLink['route'] ?? null) === $quickLinkData['route'] ||
                 ($quickLink['url'] ?? null) === $quickLinkData['url']
             );
         });
-    
+
         uss('quick_links', json_encode(array_values($quickLinks)));
-    
+
         return back()->withMessage(__('wncms::word.successfully_updated'));
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace Wncms\Contracts;
+namespace Wncms\Interfaces;
 
-interface BaseModelContract
+interface BaseModelInterface
 {
     /**
      * Short model key used in tag types.

@@ -10,14 +10,17 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Str;
 use Wncms\Traits\HasComments;
 use Wncms\Translatable\Traits\HasTranslations;
+use Wncms\Interfaces\ApiModelInterface;
+use Wncms\Traits\HasApi;
 
-class Post extends BaseModel implements HasMedia
+class Post extends BaseModel implements HasMedia, ApiModelInterface
 {
     use HasFactory;
     use InteractsWithMedia;
     use SoftDeletes;
     use HasTranslations;
     use HasComments;
+    use HasApi;
 
     /**
      * ----------------------------------------------------------------------------------------------------
@@ -49,6 +52,31 @@ class Post extends BaseModel implements HasMedia
     protected $removeViewsOnDelete = true;
 
     protected $translatable = ['title', 'excerpt', 'keywords', 'content', 'label'];
+
+    protected static bool $hasApi = true;
+
+    protected static array $apiRoutes = [
+        [
+            'name' => 'api.v1.posts.index',
+            'key' => 'wncms_api_post_index',
+            'action' => 'index',
+        ],
+        [
+            'name' => 'api.v1.posts.store',
+            'key' => 'wncms_api_post_store',
+            'action' => 'store',
+        ],
+        [
+            'name' => 'api.v1.posts.update',
+            'key' => 'wncms_api_post_update',
+            'action' => 'update',
+        ],
+        [
+            'name' => 'api.v1.posts.delete',
+            'key' => 'wncms_api_post_delete',
+            'action' => 'delete',
+        ],
+    ];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-pencil'
