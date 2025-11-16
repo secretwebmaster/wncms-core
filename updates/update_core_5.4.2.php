@@ -17,9 +17,11 @@ try{
     //     '--path' => 'vendor/secretwebmaster/wncms-core/database/migrations',
     //     '--force' => true,
     // ]);
-    Schema::table('links', function (Blueprint $table) {
-        $table->text('description')->nullable()->change();
-    });
+    if(Schema::hasTable('links')){
+        Schema::table('links', function (Blueprint $table) {
+            $table->text('description')->nullable()->change();
+        });
+    }
 
     // update existing database
 
