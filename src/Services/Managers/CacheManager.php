@@ -86,31 +86,54 @@ class CacheManager
             'domain' => $domain ?? 'global',
         ];
 
-        // Normalize and flatten args
+        // Special handling for wheres
+        if (isset($args['wheres'])) {
+            $wheres = $args['wheres'];
+            unset($args['wheres']);
+
+            // SUPER SIMPLE HASH
+            $args['wheres_hash'] = md5(var_export($wheres, true));
+        }
+
+        // Normalize other args
         $argStrings = array_map(function ($arg) {
-            if (empty($arg)) {
-                return '0';
-            } elseif (is_scalar($arg)) {
-                return (string) $arg;
-            } elseif (is_array($arg)) {
-                ksort($arg);
-                return json_encode($arg);
-            } elseif ($arg instanceof Model) {
-                return $arg->getKey();
-            } else {
-                return 'unknown';
+            if ($arg === null) {
+                return 'null';
             }
+
+            if (is_scalar($arg)) {
+                return (string) $arg;
+            }
+
+            if ($arg instanceof Model) {
+                return 'model:' . $arg->getKey();
+            }
+
+            if (is_array($arg)) {
+                ksort($arg);
+                return 'array:' . md5(json_encode($arg));
+            }
+
+            if ($arg instanceof \Closure) {
+                // normalize closures too
+                $ref = new \ReflectionFunction($arg);
+                $signature = $ref->getFileName() . ':' . $ref->getStartLine() . ':' . $ref->getEndLine();
+                return 'closure:' . md5($signature);
+            }
+
+            return gettype($arg);
         }, $args);
 
         $keyParts['args'] = implode('_', $argStrings);
 
-        // Optional: page number from request
+        // Include page number for pagination caches
         if (request()->has('page')) {
             $keyParts['page'] = 'page_' . request()->get('page');
         }
 
         return md5(implode('_', $keyParts));
     }
+
 
     /**
      * Use remember pattern with optional cache tags.
