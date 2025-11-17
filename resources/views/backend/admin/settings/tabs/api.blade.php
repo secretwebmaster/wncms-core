@@ -1,3 +1,11 @@
+@php
+$authModes = [
+    '' => __('wncms::word.api_auth_none'),
+    'simple' => __('wncms::word.api_auth_simple'),
+    'basic' => __('wncms::word.api_auth_basic'),
+];
+@endphp
+
 <div class="tab-pane fade {{ $activeTab === 'api_access' ? 'show active' : '' }}" id="tab_api_access" role="tabpanel">
     <div class="card">
         <div class="collapse show">
@@ -26,26 +34,18 @@
                             <tr class="fw-bold text-center">
 
                                 {{-- Model --}}
-                                <th class="text-start api-col-model">
-                                    @lang('wncms::word.model')
-                                </th>
+                                <th class="text-start api-col-model">@lang('wncms::word.model')</th>
 
                                 {{-- Enable model --}}
-                                <th class="api-col-fixed">
-                                    @lang('wncms::word.enable')
-                                </th>
+                                <th class="api-col-fixed">@lang('wncms::word.enable')</th>
 
                                 {{-- Common actions --}}
                                 @foreach($commonActions as $action)
-                                <th class="api-col-fixed">
-                                    {{ __('wncms::word.' . $action) }}
-                                </th>
+                                <th class="api-col-fixed">{{ __('wncms::word.' . $action) }}</th>
                                 @endforeach
 
                                 {{-- Others --}}
-                                <th class="api-col-grow w-100">
-                                    @lang('wncms::word.others')
-                                </th>
+                                <th class="api-col-grow w-100">@lang('wncms::word.others')</th>
 
                                 {{-- Row select-all --}}
                                 <th class="api-col-fixed">
@@ -73,67 +73,83 @@
                                 <td class="fw-bold">@lang('wncms::word.' . $modelKey)</td>
 
                                 {{-- Enable model API --}}
-                                @php
-                                $enableKey = 'enable_api_' . $modelKey;
-                                @endphp
+                                @php $enableKey = 'enable_api_' . $modelKey; @endphp
                                 <td class="text-center api-checkbox-cell">
                                     <div class="form-check form-check-sm form-check-custom">
                                         <input type="hidden" name="settings[{{ $enableKey }}]" value="0">
-                                        <input class="form-check-input api-checkbox api-row-{{ $modelKey }}-checkbox"
-                                            type="checkbox"
-                                            name="settings[{{ $enableKey }}]"
-                                            value="1"
-                                            {{ ($settings[$enableKey] ?? false) ? 'checked' : '' }}>
+                                        <input class="form-check-input api-checkbox api-row-{{ $modelKey }}-checkbox" type="checkbox" name="settings[{{ $enableKey }}]" value="1" {{ ($settings[$enableKey] ?? false) ? 'checked' : '' }}>
                                     </div>
                                 </td>
 
                                 {{-- COMMON ACTIONS --}}
                                 @foreach($commonActions as $action)
-                                @php
-                                $route = $routeByAction->get($action);
-                                @endphp
-
+                                @php $route = $routeByAction->get($action); @endphp
                                 <td class="text-center api-checkbox-cell">
                                     @if($route)
-                                    @php
-                                    $key = $route['key'];
-                                    $label = $modelClass::getApiLabel($route);
-                                    @endphp
+                                        @php
+                                        $key = $route['key'];
+                                        $label = $modelClass::getApiLabel($route);
+                                        $authKey = $key . '_should_auth';
+                                        @endphp
 
-                                    <div class="form-check form-check-sm form-check-custom">
-                                        <input type="hidden" name="settings[{{ $key }}]" value="0">
-                                        <input class="form-check-input api-checkbox api-row-{{ $modelKey }}-checkbox" type="checkbox" name="settings[{{ $key }}]" value="1" title="{{ $label }}" {{ ($settings[$key] ?? false) ? 'checked' : '' }}>
-                                        @if(!empty($settings['show_developer_hints']))
-                                        <label class="ms-2 text-secondary">{{ $key }}</label>
-                                        @endif
-                                    </div>
+                                        <div class="d-flex align-items-center">
+
+                                            {{-- Enable --}}
+                                            <div class="form-check form-check-sm form-check-custom me-2">
+                                                <input type="hidden" name="settings[{{ $key }}]" value="0">
+                                                <input class="form-check-input api-checkbox api-row-{{ $modelKey }}-checkbox" type="checkbox" name="settings[{{ $key }}]" value="1" title="{{ $label }}" {{ ($settings[$key] ?? false) ? 'checked' : '' }}>
+                                                @if(!empty($settings['show_developer_hints']))
+                                                <label class="ms-2 text-secondary">{{ $key }}</label>
+                                                @endif
+                                            </div>
+
+                                            {{-- Auth mode --}}
+                                            <select name="settings[{{ $authKey }}]" class="form-select form-select-sm w-auto">
+                                                @foreach($authModes as $mode => $text)
+                                                    <option value="{{ $mode }}" @if(($settings[$authKey] ?? '') === $mode) selected @endif>{{ $text }}</option>
+                                                @endforeach
+                                            </select>
+
+                                        </div>
+
                                     @else
-                                    <span class="text-muted"></span>
+                                        <span class="text-muted"></span>
                                     @endif
                                 </td>
                                 @endforeach
 
                                 {{-- OTHER ACTIONS --}}
                                 <td class="text-start api-checkbox-cell">
-                                    @php
-                                    $otherRouteList = array_filter($routes, fn($r) => !in_array($r['action'], $commonActions));
-                                    @endphp
+                                    @php $otherRouteList = array_filter($routes, fn($r) => !in_array($r['action'], $commonActions)); @endphp
 
                                     @if(empty($otherRouteList))
-                                    <span class="text-muted">-</span>
+                                        <span class="text-muted">-</span>
                                     @else
-                                    @foreach($otherRouteList as $route)
-                                    @php
-                                    $key = $route['key'];
-                                    $label = $modelClass::getApiLabel($route);
-                                    @endphp
+                                        @foreach($otherRouteList as $route)
+                                        @php
+                                        $key = $route['key'];
+                                        $label = $modelClass::getApiLabel($route);
+                                        $authKey = $key . '_should_auth';
+                                        @endphp
 
-                                    <div class="form-check form-check-sm form-check-custom mb-1">
-                                        <input type="hidden" name="settings[{{ $key }}]" value="0">
-                                        <input class="form-check-input api-checkbox api-row-{{ $modelKey }}-checkbox" type="checkbox" value="1" {{ ($settings[$key] ?? false) ? 'checked' : '' }}>
-                                        <label class="form-check-label ms-1">{{ $label }}</label>
-                                    </div>
-                                    @endforeach
+                                        <div class="d-flex align-items-center mb-1">
+
+                                            {{-- Enable --}}
+                                            <div class="form-check form-check-sm form-check-custom me-2">
+                                                <input type="hidden" name="settings[{{ $key }}]" value="0">
+                                                <input class="form-check-input api-checkbox api-row-{{ $modelKey }}-checkbox" type="checkbox" name="settings[{{ $key }}]" value="1" {{ ($settings[$key] ?? false) ? 'checked' : '' }}>
+                                                <label class="form-check-label ms-1">{{ $label }}</label>
+                                            </div>
+
+                                            {{-- Auth mode --}}
+                                            <select name="settings[{{ $authKey }}]" class="form-select form-select-sm w-auto">
+                                                @foreach($authModes as $mode => $text)
+                                                    <option value="{{ $mode }}" @if(($settings[$authKey] ?? '') === $mode) selected @endif>{{ $text }}</option>
+                                                @endforeach
+                                            </select>
+
+                                        </div>
+                                        @endforeach
                                     @endif
                                 </td>
 
@@ -159,18 +175,15 @@
 
 @push('foot_js')
 <script>
-    // Global select/unselect ALL checkboxes in the table
     $('.check_all_api_global').on('change', function() {
         var checked = $(this).is(':checked');
         $('.api-checkbox').prop('checked', checked);
         $('.check_all_api_row').prop('checked', checked);
     });
 
-    // Per-row select/unselect ALL checkboxes for that model
     $('.check_all_api_row').on('change', function() {
         var row = $(this).data('target-row');
         var checked = $(this).is(':checked');
-
         $('.api-row-' + row + '-checkbox').prop('checked', checked);
     });
 </script>

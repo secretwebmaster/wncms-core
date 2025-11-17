@@ -12,7 +12,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
     // Menus
     Route::prefix('menus')->name('menus.')->controller(MenuController::class)->group(function () {
-        Route::post('index', 'index')->name('index');
+        Route::post('/', 'index')->name('index');
         Route::post('store', 'store')->name('store');
         Route::post('sync', 'sync')->name('sync');
         Route::post('{id}', 'show')->name('show');
@@ -20,21 +20,23 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
     // Pages
     Route::prefix('pages')->name('pages.')->controller(PageController::class)->group(function () {
-        Route::post('index', 'index')->name('index');
+        Route::post('/', 'index')->name('index');
         Route::post('store', 'store')->name('store');
         Route::post('{id}', 'show')->name('show');
     });
 
     // Posts
     Route::prefix('posts')->name('posts.')->controller(PostController::class)->group(function () {
-        Route::post('index', 'index')->name('index');
+        Route::match(['GET', 'POST'], '/', 'index')->name('index');
         Route::post('store', 'store')->name('store');
-        Route::post('{id}', 'show')->name('show');
+        Route::post('update/{slug}', 'update')->name('update');
+        Route::post('delete/{slug}', 'delete')->name('delete');
+        Route::match(['GET', 'POST'], '{slug}', 'show')->name('show');
     });
 
     // Tags
     Route::prefix('tags')->name('tags.')->controller(TagController::class)->group(function () {
-        Route::post('index', 'index')->name('index');
+        Route::post('/', 'index')->name('index');
         Route::post('exist', 'exist')->name('exist');
         Route::post('store', 'store')->name('store');
     });

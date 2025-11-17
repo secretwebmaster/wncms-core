@@ -4,64 +4,77 @@ namespace Wncms\Http\Controllers\Api\V1;
 
 use Wncms\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class ApiController extends Controller
 {
-    public function __construct()
+    /**
+     * Unified success response
+     */
+    protected function success($data = [], string $message = 'success', int $code = 200, array $extra = [])
     {
-        $this->middleware(function ($request, $next) {
-            if (!gss('enable_api_access')) {
-                return response()->json([
-                    'status' => 403,
-                    'message' => 'API access is disabled',
-                ], 403);
-            }
-
-            return $next($request);
-        });
+        return response()->json([
+            'code' => $code,
+            'status' => 'success',
+            'message' => $message,
+            'data' => $data,
+            'extra' => $extra,
+        ]);
     }
 
     /**
-     * Check whether a specific API feature is enabled.
+     * Unified fail response
      */
-    protected function checkApiEnabled(string $key): ?JsonResponse
+    protected function fail(string $message = 'fail', int $code = 400, array $extra = [], $data = [])
+    {
+        return response()->json([
+            'code' => $code,
+            'status' => 'fail',
+            'message' => $message,
+            'data' => $data,
+            'extra' => $extra,
+        ]);
+    }
+
+    /**
+     * Check if API feature is enabled
+     */
+    protected function checkEnabled(string $key)
     {
         if (!gss($key)) {
-            return response()->json([
-                'status' => 403,
-                'message' => "API feature '{$key}' is disabled",
-            ], 403);
+            return $this->fail("API feature '{$key}' is disabled", 403);
         }
         return null;
     }
 
     /**
-     * Authenticate via api_token and return the user model.
-     * If invalid, it returns a JSON response immediately.
+     * Auth handler
      */
-    protected function authenticateByApiToken(Request $request): JsonResponse|\Illuminate\Contracts\Auth\Authenticatable
+    protected function checkAuthSetting(string $baseKey, Request $request)
     {
-        $token = $request->input('api_token');
+        $mode = gss($baseKey . '_should_auth'); // '' | simple | basic
 
-        if (empty($token)) {
-            return response()->json([
-                'status' => 'fail',
-                'message' => 'Missing api_token',
-            ], 401);
+        if (empty($mode)) {
+            return ['user' => null];
         }
 
-        $userModel = wncms()->getModelClass('user');
-        $user = $userModel::where('api_token', $token)->first();
+        if ($mode === 'simple') {
+            $token = $request->input('api_token');
 
-        if (!$user) {
-            return response()->json([
-                'status' => 'fail',
-                'message' => 'Invalid token',
-            ], 401);
+            if (empty($token)) {
+                return ['error' => $this->fail('Missing api_token', 401)];
+            }
+
+            $userModel = wncms()->getModelClass('user');
+            $user = $userModel::where('api_token', $token)->first();
+
+            if (!$user) {
+                return ['error' => $this->fail('Invalid api_token', 401)];
+            }
+
+            auth()->login($user);
+            return ['user' => $user];
         }
 
-        auth()->login($user);
-        return $user;
+        return ['error' => $this->fail("Unsupported auth mode: {$mode}", 403)];
     }
 }

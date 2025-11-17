@@ -2246,6 +2246,9 @@ $words = [
     'index' => '列表',
     'store' => '創建',
     'others' => '其他',
+    'api_auth_none' => '無',
+    'api_auth_simple' => 'API Token',
+    'api_auth_basic' => 'Basic',
 
 ];
 

@@ -2,11 +2,9 @@
 
 namespace Wncms\Http\Resources;
 
-use Illuminate\Http\Resources\Json\JsonResource;
-
-class PostResource extends JsonResource
+class PostResource extends BaseResource
 {
-    public function toArray($request)
+    public function toArray($request): array
     {
         return [
             'id' => $this->id,

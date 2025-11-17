@@ -62,6 +62,11 @@ class Post extends BaseModel implements HasMedia, ApiModelInterface
             'action' => 'index',
         ],
         [
+            'name' => 'api.v1.posts.show',
+            'key' => 'wncms_api_post_show',
+            'action' => 'show',
+        ],
+        [
             'name' => 'api.v1.posts.store',
             'key' => 'wncms_api_post_store',
             'action' => 'store',

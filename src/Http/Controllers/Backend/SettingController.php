@@ -49,11 +49,31 @@ class SettingController extends Controller
             }
         }
 
-        $commonActions = ['index', 'store', 'update', 'delete'];
-        $otherActions  = array_diff($allActions, $commonActions);
+        // Desired forced positions
+        $forceFirst = 'index';
+        $forceLast  = 'delete';
 
-        sort($commonActions);
-        sort($otherActions);
+        // Action ordering
+        $commonActionsOriginal = ['index', 'show', 'store', 'update', 'delete'];
+
+        $commonActions = [];
+
+        if (in_array($forceFirst, $commonActionsOriginal)) {
+            $commonActions[] = $forceFirst;
+        }
+
+        foreach ($commonActionsOriginal as $action) {
+            if (!in_array($action, [$forceFirst, $forceLast])) {
+                $commonActions[] = $action;
+            }
+        }
+
+        if (in_array($forceLast, $commonActionsOriginal)) {
+            $commonActions[] = $forceLast;
+        }
+
+        // Other actions (not in common list), maintain original order
+        $otherActions = array_diff($allActions, $commonActionsOriginal);
 
         $modelDisplayList = wncms_get_model_names();
 
@@ -68,6 +88,7 @@ class SettingController extends Controller
             'modelDisplayList' => $modelDisplayList,
         ]);
     }
+
 
     public function update(Request $request)
     {
