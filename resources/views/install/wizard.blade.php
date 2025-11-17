@@ -48,7 +48,7 @@
                 @endif
             </div>
 
-            <input type="hidden" name="environment" value="production">
+            <input type="hidden" name="app_env" value="production">
             <input type="hidden" name="app_debug" value="false">
             <input type="hidden" name="app_log_level" value="{{ old('app_log_level','info') }}">
 
@@ -69,7 +69,8 @@
                 <label for="app_locale">@lang('wncms::word.language')</label>
                 <select name="app_locale" id="app_locale" class="form-select">
                     @foreach($languages as $locale => $props)
-                    <option value="{{ $locale }}" {{ app()->getLocale() == $locale ? 'selected' : '' }}>
+                    <option value="{{ $locale }}"
+                        {{ old('app_locale', app()->getLocale()) == $locale ? 'selected' : '' }}>
                         {{ $props['native'] }} ({{ strtoupper($locale) }})
                     </option>
                     @endforeach
@@ -130,13 +131,13 @@
 
             <input type="hidden" name="queue_connection" value="sync">
 
-            <div class="form-group {{ $errors->has('redis_hostname') ? ' has-error ' : '' }}">
-                <label for="redis_hostname">@lang('wncms::installer.environment.wizard.form.app_tabs.redis_host')</label>
-                <input type="text" name="redis_hostname" id="redis_hostname" value="127.0.0.1" placeholder="@lang('wncms::installer.environment.wizard.form.app_tabs.redis_host')" />
-                @if ($errors->has('redis_hostname'))
+            <div class="form-group {{ $errors->has('redis_host') ? ' has-error ' : '' }}">
+                <label for="redis_host">@lang('wncms::installer.environment.wizard.form.app_tabs.redis_host')</label>
+                <input type="text" name="redis_host" id="redis_host" value="127.0.0.1" placeholder="@lang('wncms::installer.environment.wizard.form.app_tabs.redis_host')" />
+                @if ($errors->has('redis_host'))
                 <span class="error-block">
                     <i class="fa fa-fw fa-exclamation-triangle" aria-hidden="true"></i>
-                    {{ $errors->first('redis_hostname') }}
+                    {{ $errors->first('redis_host') }}
                 </span>
                 @endif
             </div>
