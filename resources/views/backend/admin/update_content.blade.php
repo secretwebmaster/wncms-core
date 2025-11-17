@@ -1,4 +1,4 @@
-<div class="container mb-3 mx-0 p-0 shadow-sm rounded bg-white">
+<div class="container mb-3 mx-0 p-0 shadow-sm rounded">
 
     {{-- Empty placeholder --}}
     @for($i=0;$i<5;$i++)
@@ -155,7 +155,7 @@
                 case "test":
                     return "warning";
                 default:
-                    return "secondary";
+                    return "gray-600";
             }
         }
     });
