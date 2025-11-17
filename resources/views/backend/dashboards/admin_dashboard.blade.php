@@ -10,7 +10,7 @@
             @include('wncms::backend.parts.message')
 
             @includeIf('backend.dashboards.custom_admin_dashboard_items')
-            
+
             @if(empty(gss('hide_default_admin_dashboard_items')))
                 <div class="col-12 col-md-6">
                     <div class="row">
@@ -58,16 +58,21 @@
                                 </div>
                             </a>
                         </div>
+
+                        {{-- WNCMS Dashboard Widgets --}}
+                        {{-- @if(!empty($widgets))
+                            @foreach($widgets as $widget)
+                                @include($widget['view'], $widget['data'])
+                            @endforeach
+                        @endif --}}
+                        @widget('wncms.backend.admin.dashboard.widgets')
                     </div>
                 </div>
             @endif
-
-            @if(empty(gss('hide_system_update_log')))
-
             
+            @if(empty(gss('hide_system_update_log')))
                 <div class="col-12 col-md-6">
                     <div style="max-height: 80vh;overflow-y: scroll;">
-                        
                         @include('wncms::backend.admin.update_content')
                     </div>
                 </div>

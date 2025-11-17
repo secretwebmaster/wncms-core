@@ -46,6 +46,9 @@ class WncmsServiceProvider extends ServiceProvider
         // Ensure fallback and DB-based system settings
         $this->loadSystemSettings();
 
+        // Register ViewServiceProvider
+        $this->app->register(\Wncms\Providers\ViewServiceProvider::class);
+
         // Third-party providers
         $this->app->register(\Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class);
     }

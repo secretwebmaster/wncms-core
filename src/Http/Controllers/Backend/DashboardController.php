@@ -36,7 +36,6 @@ class DashboardController extends Controller
                 'post_count' => $post_count,
                 'user_count' => $user_count,
                 'website_count' => $website_count,
-
             ]);
         }
 
