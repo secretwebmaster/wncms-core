@@ -1,10 +1,132 @@
-# Wncms Introduction
+# Changelog
 
-Demo: [demo.wncms.cc](https://demo.wncms.cc)
+## v6.0.0 2025-11-18
 
-## Changelog
+-   Official release
 
-### v5.5.5 2025-09-08
+## v6.0.0-alpha3 2025-11-16
+
+-   Add auth modes, unify responses, expand Post API (index/store/show/update/delete), update settings UI and routes
+-   Minor backend style fix
+-   Introduce universal view widget injection system
+-   Move API model logic from blade to controller and clean up display_model block
+-   Improve responsive layout, add flex utilities, update asset versioning, and optimize header/tag-list UI
+-   Fix typo in SettingSeeder
+-   Add normalizeInput() and apply unified validation for CLI and wizard installer
+-   Allow creating website model after installation via CLI
+-   Set default version from config file instead of 0.0.0
+-   Add model translation to system setting models
+-   Add Link model and remove Website model from default setting
+-   Add site_name, domain, theme options to CLI installer and auto-create website after installation
+-   Fix InstallerManager not found
+-   Unify browser and CLI installation flow using InstallerManager and add CLI installer command
+-   Wrap links table alter inside Schema::hasTable check
+-   Add dynamic search_fields to PostManager and implement type filter in TagManager
+-   Add applyExtraFilters hook and remove deprecated getAllowedTagTypes
+-   Improve cache key generation with wheres hashing and closure normalization
+-   Rename search_result to result and update route names
+-   Bump installer version to 6.0.0
+-   Test including package service provider first
+-   Correct advertisement clone route mapping and prevent null dates being parsed as today
+-   Add please_select option and ensure default type redirects to post_category in TagController
+-   Add zh_CN, en, ja translations for recent version updates
+-   Remove old helper wncms_get_unique_slug and use wncms()->getUniqueSlug() instead
+-   Add bulk-create translations, update Blade views, fix keyword update logic and tag relationship
+-   Add tag group column migration to update_core_6.0.0
+-   Migrate to TagMeta-based type system, improve URL generation and label support
+-   Cleanup formatting in PostManager buildListQuery
+-   Add getModelByKey helper for resolving model instances dynamically
+-   Auto-register core and app models for TagMeta and manager resolution
+-   Remove obsolete Tag::getUrl logic and rely on TagManager for URL generation
+-   Add tagMeta definitions, unify formatting, and improve tag/category helpers for posts
+-   Add tagMeta definitions for page_category and page_tag
+-   Convert Package model to extend BaseModel
+-   Add tagMeta definitions for link_category and link_tag
+-   Convert DomainAlias to extend BaseModel for consistency
+-   Expand BaseModel getTagMeta to include package, model_key and label metadata
+-   Add tagMeta definitions for advertisement_category and advertisement_tag
+-   Update post category/tag URLs in sitemap to use new {type}/{slug} form
+-   Rewrite post tag handling for unified {type}/{slug} route structure
+-   Update TagController to use new TagMeta, group selector, and cleaned type handling
+-   Update MenuController to use model-based TagMeta scanning and unified tagTypeArr structure
+-   Migrate post tag routes to unified /{type}/{slug} structure
+-   Migrate frontend blog and post views to new /{type}/{slug} route
+-   Update tag index view to use new tag type metadata and reposition toolbar buttons
+-   Add tag group field and auto-selection logic in tag form-items view
+-   Remove obsolete tag type listing from admin sidebar
+-   Update backend menu edit view to use new tag meta structure and improved accordion UI
+-   Add hide flags and clean up backend default toolbar buttons
+-   Adjust col-form-label padding for improved form alignment
+-   Add page_category, page_tag and tag_group translations
+-   Add contracts and override auth foundation
+-   Add product tag Blade template to default theme
+-   Normalize spacing in TestCase middleware alias definitions
+-   Add static $modelKey to all models and unify model metadata
+-   Move route and order constants to new SORTS structure
+-   Add tag meta support, unified tag URL resolution, and improved getUrl() flow
+-   Improve BaseModel properties, tag metadata, modelKey enforcement, casting and labels
+-   Rewrite Tag model URL logic to use TagManager
+-   Update all managers to use sort + direction
+-   Update LinkManager and TagManager ordering and column logic
+-   Add registerModel() and getModels() to model system
+-   Register TagManager in service provider and add model tagMeta registration
+-   Normalize spacing and section headers in all models
+-   Update migration script to rename order → sort across all tables
+-   Replace all order/order_column handling with unified sort/direction in controllers and requests
+-   Replace all request accessors with ->input() for consistency
+-   Normalize controller formatting across API, Auth, Backend and Frontend
+-   Update Post and Link CRUD to use sort field
+-   Update menu builder ordering to use sort
+-   Improve TagController validation and sorting logic
+-   Standardize update status spacing
+-   Update BannerFormRequest to use sort instead of order
+-   Normalize spacing in installer language files
+-   Fix Japanese, Simplified Chinese and Traditional Chinese sort-related terms
+-   Replace order fields with sort in backend blades
+-   Update toolbar filters to use sort/direction
+-   Update bulk-update link route to bulk_update_sort
+-   Adjust menu and tag templates to use updated function names
+-   Add new frontend tag list demo for product category
+-   Replace all order/order_column fields with sort in migrations
+-   Remove deprecated tag migrations
+-   Cleanup migration formatting
+-   Normalize helper params: order/sequence → sort/direction
+-   Improve model discovery; skip abstract classes
+-   Add deprecated notice to search keyword helper
+-   Remove unused menu helper file
+-   Update changelog text in config
+-   Bump wncms-translatable to ^1.3.0
+-   Add theme/plugin filesystem paths
+-   Normalize config array formatting
+-   Fix installer locale key alignment
+-   Update backend link sorting route to use sort
+
+## v6.0.0-alpha2 2025-11-12
+
+-   Fix theme asset not publishing to new theme dir
+-   Rename most theme directory to themes and add missing migration file for direct installation
+-   Update dependency
+-   Remove storage:link during installation
+-   Check wncms installation state in FrontendController
+
+## v6.0.0-alpha1 2025-11-11
+
+-   Temporarily remove SQL dump from installation
+-   Keep config file inside core package instead of user root
+-   Disable auto-publishing of config file during installation
+-   Remove symlink and exec requirements from installation
+-   Release v6.0.0-alpha1
+-   Move WncmsModel to Wncms\Models\Base
+-   Re-organize Wncms.php
+-   Fix SitemapController error when model not found
+-   Remove banner-related routes
+-   Update backend default toolbar button blade to support custom prefix label
+-   Add disabling cache option to TagManager getTagifyDropdownItems
+-   Add BaseResource for API output
+-   Fix return back() not keeping repeater items
+-   Add wncms()->displayPrice($number) with right-trimmed zeros
+
+## v5.5.5 2025-09-08
 
 -   Update AdvertisementManager to extend ModelManager
 -   Remove duplicated translation migration file
@@ -24,7 +146,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Fix backend permission edit page error
 -   Prepare backend UI for API usage logging
 
-### v5.5.4 2025-08-18
+## v5.5.4 2025-08-18
 
 -   Fix translation issue when saving tags, update dependency **wncms-translatable**
 -   Fix multiple validation and data passing issues in **UserController** (`profile` page missing `$user`, wrong password validation rules/messages, incorrect `withError()` usage, optimized `profile` update)
@@ -32,7 +154,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Update **Controller stub** files to fit new structure
 -   Fix backend controller route errors
 
-### v5.5.3 2025-08-17
+## v5.5.3 2025-08-17
 
 -   Fix issue where submitting Checkbox sends NULL value
 -   Beta version: compatibility for multi-module multisite
@@ -41,12 +163,12 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Rename WnModelTraits to WnModelTrait
 -   Beta version: add HasMultisite trait
 
-### v5.5.2 2025-07-20
+## v5.5.2 2025-07-20
 
 -   Add frontend link page and LinkController
 -   Update dependency wncms-tags > 1.6.1
 
-### v5.5.0 2025-07-19
+## v5.5.0 2025-07-19
 
 -   Replaced `getVersion()` with `addVersion()` in some backend Blade views
 -   Added `isActiveRoutes()` helper
@@ -76,7 +198,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Updated controller stub to include `order by id desc`
 -   Improved backend website edit view; added domain alias sorting
 
-### v5.4.3 2025-07-17
+## v5.4.3 2025-07-17
 
 -   Backend link routes accept id instead of auto resolving model. Allow to use custom Link model.
 -   BackendController now become abstract class to maintain standard
@@ -91,7 +213,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Add abstract getModelClass() method to BackendController
 -   Remove AnalyticController
 
-### v5.4.0 2025-05-01
+## v5.4.0 2025-05-01
 
 -   Fix issue where Card model status was not found
 -   Add dropdown list to select website model when `multi_website` is enabled
@@ -128,7 +250,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Separate user login and admin login pages
 -   Update Post API
 
-### v5.3.0 2025-03-30
+## v5.3.0 2025-03-30
 
 -   Header website links display according to multisite setting
 -   Fix advertisement model not updating order field
@@ -143,7 +265,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Add bulk model update button blade that can be included in backend index
 -   Update Link model backend. Allow bulk update status and order
 
-### v5.2.0 2025-02-04
+## v5.2.0 2025-02-04
 
 -   Add Translations
 -   Code clean up
@@ -153,20 +275,20 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Fetch posts of first website model if no model is found by current domain. Allow order by random to query result
 -   Eagar load tranlsations of website model
 
-### v5.1.3 2025-02-04
+## v5.1.3 2025-02-04
 
 -   Add translations
 
-### v5.1.2 2025-02-04
+## v5.1.2 2025-02-04
 
 -   Improve backend quick link saving logic. Save url instead of route name to avoid missing parameters
 -   Add website id to backend theme option page title
 
-### v5.1.1 2025-01-28
+## v5.1.1 2025-01-28
 
 -   Update all gss version to core_version
 
-### v5.1.0 2025-01-28
+## v5.1.0 2025-01-28
 
 -   Fixed more issues where menu item data could not be saved
 -   Removed the `required` class from nullable fields
@@ -176,7 +298,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Preloaded the translations of the `Post` model and allowed the `order` variable to be set to random
 -   Made the `Link` model translatable
 
-### v5.0.0 2025-01-27
+## v5.0.0 2025-01-27
 
 -   Fixed incorrect route order on the user page
 -   Added functions in the `Credit` model to add or retrieve credit amounts
@@ -189,7 +311,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Allowed `gto()` to be configured to fall back when the value is empty
 -   Added CRUD (Create, Read, Update, Delete) functionality for frontend posts
 
-### v4.5.0 2024-09-30
+## v4.5.0 2024-09-30
 
 -   Fix paginated url is cached with locale
 -   Add plugin system
@@ -197,7 +319,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Update Tests.
 -   Add LOCALIZATION_HIDE_DEFAULT_LOCALE env variable
 
-### v4.4.0 2024-09-18
+## v4.4.0 2024-09-18
 
 -   Added an update notification function to the backend.
 -   Updated model creation functions to ensure compatibility with custom models and controllers.
@@ -209,7 +331,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Introduced a command to update settings.
 -   Added a Theme Controller.
 
-### v4.3.0 2024-09-14
+## v4.3.0 2024-09-14
 
 -   Tested new installation process
 -   Stopped tracking the vendor directory
@@ -233,7 +355,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Renamed Traits. Fixed installation errors. Added forced HTTPS compatibility
 -   Checked for the existence of custom language files before requirements
 
-### v4.2.0 2024-09-13
+## v4.2.0 2024-09-13
 
 -   Removed WnTagTraits.php
 -   Added translations when generating demo post content
@@ -241,7 +363,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Added more translations
 -   Fixed error when adding a second site
 
-### v4.1.0 2024-09-07
+## v4.1.0 2024-09-07
 
 -   Added forced HTTPS option
 -   Minor fixes
@@ -257,9 +379,9 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Added disable user registration feature
 -   Set theme to null instead of default on site edit page
 
-### v4.0.0 2024-08-03
+## v4.0.0 2024-08-03
 
-#### New
+### New
 
 -   PHP requirement upgraded from 7.2+ to 8.2+
 -   Laravel 10 -> 11
@@ -267,13 +389,13 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Updated all composer dependencies
 -   Added database prefix to avoid table name conflicts with MySQL reserved keywords
 
-#### Fixes
+### Fixes
 
 -   Fixed error on navigation panel/xxxx page when CMS is not installed
 -   Fixed php artisan migrate:fresh not working
 -   Fixed page controller error when $request-input is null
 
-#### Optimizations
+### Optimizations
 
 -   Merged old migrations and renamed migration files
 -   Renamed database column external_image -> external_thumbnail
@@ -282,7 +404,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Added space after all // comments. For example // Good and //Bad
 -   Rewrote login logic in wncms.js and AuthenticatedSessionController
 
-#### Removed
+### Removed
 
 -   Removed vendor directory to reduce package size. Packages will be downloaded during installation
 -   Removed global function wn(), replaced with wncms()
@@ -290,9 +412,9 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Removed analysis helper to avoid performance issues. Replaced with third-party analysis tools
 -   Removed wncms_get_theme_options() helper function. Use $website->get_options() in models
 
-### v3.2.1 2024-05-19
+## v3.2.1 2024-05-19
 
-#### New
+### New
 
 -   Added several flag SVGs
 -   Added more translation fields
@@ -300,28 +422,28 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Added menu checks for non-admin permissions in backend
 -   Reserved 1 proxy Dashboard for future development
 
-#### Fixes
+### Fixes
 
 -   Fixed some case errors
 
-#### Optimizations
+### Optimizations
 
 -   common.table_status.blade.php can now determine more statuses, added custom features
 
-### v3.2.0 2024-03-14
+## v3.2.0 2024-03-14
 
-#### Fixes
+### Fixes
 
 -   Fixed site_name null error during new version installation
 
-#### Optimizations
+### Optimizations
 
 -   Updated installation process
 -   Treated api_token requests as logged in
 
-### v3.1.15 2024-03-12
+## v3.1.15 2024-03-12
 
-#### New
+### New
 
 -   Added API for Page module
 -   Added API for Menu module
@@ -331,12 +453,12 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Optimized theme settings to differentiate between 0 and unset
 -   Added one-click complex menu feature
 
-#### Fixes
+### Fixes
 
 -   Fixed current_url item cache issue in contact form
 -   Fixed button text not displaying on form submission failure
 
-#### Optimizations
+### Optimizations
 
 -   Planning to remove getFirstCategory() from Post module, use getFirstTag('post_category') instead
 -   Optimized mobile backend UI
@@ -347,15 +469,15 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Display related module counts in backend Tags
 -   All Helpers default to no pagination $pageSize = 0
 
-### v3.1.14 2023-12-17
+## v3.1.14 2023-12-17
 
-#### New
+### New
 
 -   Added bulk copy post functionality
 
-### v3.1.13 2023-12-12
+## v3.1.13 2023-12-12
 
-#### New
+### New
 
 -   Added toolbar to module list to hide certain default buttons, e.g., 'hideToolbarStatusFiller' => true to hide status filter dropdown
 -   Added js event for contact form submissions, configurable for success and failure
@@ -363,42 +485,42 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Added export functionality to backend contact form (XLSX/CSV)
 -   Added translation fields
 
-#### Fixes
+### Fixes
 
 -   Fixed issue with decimal numbers in fake views
 
-#### Optimizations
+### Optimizations
 
 -   Adjusted some backend UI elements
 
-### v3.1.12 2023-12-11
+## v3.1.12 2023-12-11
 
-#### New
+### New
 
 -   Added automatic conversion to webp when uploading cover images in system settings
 -   Added ExtraAttribute feature to modules, use getExtraAttribute() and saveExtraAttribute()
 
-#### Fixes
+### Fixes
 
 -   Fixed occasional duplicate display of switch descriptions in theme settings
 
-### v3.1.11 2023-12-08
+## v3.1.11 2023-12-08
 
-#### New
+### New
 
 -   Added more translation fields
 
-#### Fixes
+### Fixes
 
 -   Fixed issue with theme setting images not displaying if they have parentheses ()
 
-#### Optimizations
+### Optimizations
 
 -   Added support for utm parameters to pages other than landing pages
 
-### v3.1.10 2023-12-08
+## v3.1.10 2023-12-08
 
-#### New
+### New
 
 -   Contact form supports adjusting field order
 -   Added several system settings, including super admin recipient email address
@@ -407,58 +529,58 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Contact form now supports single and multiple selections
 -   Contact form now checks if all required fields are filled
 
-#### Fixes
+### Fixes
 
 -   Fixed mobile theme setting layout issues with long site names
 -   Fixed bulk delete issue in some modules
 -   Fixed article trash not updating status
 
-#### Optimizations
+### Optimizations
 
 -   Updated default email template to support HTML
 
-### v3.1.9 2023-12-06
+## v3.1.9 2023-12-06
 
-#### New
+### New
 
 -   Added style.css and main.js for Starter theme
 
-#### Fixes
+### Fixes
 
 -   Fixed issue with some theme page components not loading
 
-#### Optimizations
+### Optimizations
 
 -   When fetching posts, if excluded category IDs are specified, include posts without categories
 -   Updated form system to use new template calling method $wncms->contact_form()->render(), directly generating form structure
 -   Updated FAQ module to include more fields and sorting options
 
-### v3.1.8 2023-11-29
+## v3.1.8 2023-11-29
 
-#### New
+### New
 
 -   Added json-id structure
 
-### v3.1.7 2023-11-21
+## v3.1.7 2023-11-21
 
-#### New
+### New
 
 -   Optimized mobile UI for backend
 -   Uploaded image modules now support more image types
 -   Added one-click import of default theme settings
 
-#### Fixes
+### Fixes
 
 -   Fixed issue where article limit was less than pagination number, causing possible display issues
 
-#### Optimizations
+### Optimizations
 
 -   Upgraded text editor in theme settings
 -   Updated translation fields
 
-### v3.1.6 2023-11-17
+## v3.1.6 2023-11-17
 
-#### New
+### New
 
 -   Bulk assign articles to sites feature
 -   Added click event logging with [wncms-click] attribute
@@ -467,9 +589,9 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Added system setting for view count and visit cooldown interval, configurable to 60 minutes or 1440 minutes, or custom minute input
 -   Added multiple filter conditions to ad positions
 
-### v3.1.5 2023-11-16
+## v3.1.5 2023-11-16
 
-#### New
+### New
 
 -   Menu items can now have descriptions
 -   [Developer] Added Widget system for creating Page templates, increasing reusability
@@ -479,11 +601,11 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Added one-click demo post generation feature for development convenience
 -   [Developer] Added fourth common abbreviation function gpto (getPageTemplateOption) for retrieving individual page parameters
 
-#### Fixes
+### Fixes
 
 -   Fixed Ajax contact form return message, changed "Successfully created" to "Successfully submitted"
 
-#### Optimizations
+### Optimizations
 
 -   Changed page group option field from json type to text type to prevent auto-sorting
 -   Modified single-page load order to template > plain > static, redirect to homepage if none exist
@@ -491,9 +613,9 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Fixed mobile backend theme settings styles
 -   [Developer] Significantly revised backend input.blade.php logic in preparation for visual editor
 
-### v3.1.4 2023-11-04
+## v3.1.4 2023-11-04
 
-#### Added
+### Added
 
 -   [Developer] Added $wncms parameter in templates, equivalent to $wn
 -   [Developer] Added wncms()->paginateWithLimit() method to solve the issue of paginate not working with limit
@@ -503,19 +625,19 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   [Developer] Added $wn->addVersion(), no need to add '?v=' . $wn->getVersion() in templates, new feature output already includes ?v=
 -   Introduced applicaion/ld+json option, can be pushed to <head>
 
-#### Fixed
+### Fixed
 
 -   Fixed issue where some pages did not load content after the 3.1.3 update
 
-#### Optimized
+### Optimized
 
 -   Default theme `<title>` changed from `<Home>` to website name
 -   Optimized prompt for adding same-name permissions, no longer an error but a notification of existing duplicate items
 -   [Developer] Renamed statistics section in front-end views: get_view -> get, record_like -> like, record_view -> record
 
-### v3.1.3 2023-10-31
+## v3.1.3 2023-10-31
 
-#### Added
+### Added
 
 -   Updated backend menu module icons
 -   Added domain extraction from text
@@ -534,7 +656,7 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   [Developer] MenuHelper added theme_page link output, similar to external_link
 -   Added one-click ad copy function
 
-#### Fixed
+### Fixed
 
 -   [Developer] Fixed issue with overwritten Stub files after updating Laravel version, causing module generator templates to revert
 -   Fixed backend member page errors
@@ -542,19 +664,19 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Fixed issues with some modules not having initial permissions for administrators
 -   Fixed potential sorting issues after updating menu items
 
-#### Optimized
+### Optimized
 
 -   [Developer] Optimized link extraction from fields, optional to retain www, wncms()->getDomainFromString($string, $includePort = true, $preserveWWW = false)
 
-### v3.1.2 2023-10-28
+## v3.1.2 2023-10-28
 
-#### Added
+### Added
 
 -   Used new Redis cache library, allowing individual tag clearing
 -   Added one-click cache clearing feature in the backend
 -   [Developer] Added method to get domain+port from String, wncms()->getDomainFromString()
 
-#### Optimized
+### Optimized
 
 -   [Developer] Refactored code
 -   [Developer] Updated Theme helper to not be affected by cache settings, still applies data cache time even if cache is disabled, default 3600 seconds, to prevent multiple database requests for theme settings after cache is disabled
@@ -564,9 +686,9 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Updated article API
 -   Updated WNCMS installer, simplified process
 
-### v3.1.1 2023-10-20
+## v3.1.1 2023-10-20
 
-#### Added
+### Added
 
 -   Redesigned installation process, simpler and faster
 -   [Developer] Updated tagify field in Starter to allow toggling switch search
@@ -574,26 +696,26 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   [Developer] Developers can customize member homepage items
 -   Added more translation fields
 
-#### Fixed
+### Fixed
 
 -   Fixed issue with some modules not clearing tags
 
-#### Optimized
+### Optimized
 
 -   [Developer] Refactored backend Sidebar Model, developers can customize backend Model menu order by modifying $menuPriority property in Model
 -   [Developer] Updated controller.model.stub
 -   Rewritten member registration logic
 
-### v3.0.8 2023-10-18
+## v3.0.8 2023-10-18
 
-#### Added
+### Added
 
 -   [Developer] Updated Wncms core class to allow arbitrary parameter setting $wn->anything = 'something';
 -   [Developer] Updated Wncms core class for more efficient reuse of Helper Classes
 
-### v3.0.7 2023-10-17
+## v3.0.7 2023-10-17
 
-#### Added
+### Added
 
 -   Added bulk processing functionality to contact form, allowing batch marking as read, unread, or replied
 -   Added site-wide caching
@@ -601,15 +723,15 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   Started adding data quantity information to some backend pages, such as total number and currently displayed data
 -   Added ad module
 
-#### Optimized
+### Optimized
 
 -   Updated Ajax button data submission mode
 -   Optimized system settings cache
 -   Upgraded TinyMCE editor, using Cloudflare CDN
 
-### v3.0.6 2023-10-09
+## v3.0.6 2023-10-09
 
-#### Added
+### Added
 
 -   Added more translation fields
 -   [Developer] Added table_url Blade view
@@ -617,39 +739,39 @@ Demo: [demo.wncms.cc](https://demo.wncms.cc)
 -   [Developer] Added re-manufacture button to starter/index.blade.php view
 -   [Developer] Added WnTagTraits feature to Tag module with getAvailableTypes() to retrieve taxonomy list ['post_tag', 'video_category', etc]
 
-### v3.0.5 2023-10-07
+## v3.0.5 2023-10-07
 
-#### Added
+### Added
 
 -   Checked if custom modules exist (Custom{Model}Traits.php)
 
-### v3.0.4 2023-10-07
+## v3.0.4 2023-10-07
 
-#### Fixed
+### Fixed
 
 -   Fixed minor issues with some modules
 
-#### Optimized
+### Optimized
 
 -   Optimized backend UI
 
-### v3.0.3 2023-10-06
+## v3.0.3 2023-10-06
 
-#### Optimized
+### Optimized
 
 -   Updated article module, fixed member permission issues
 -   Moved Trait directory to Ap directory
 
-### v3.0.2 2023-09-30
+## v3.0.2 2023-09-30
 
-#### Added
+### Added
 
 -   Added Page type (Plain text type, template created by editor, template provided by theme)
 
-### 2.0.0 2021-07-28
+## 2.0.0 2021-07-28
 
 -   New version release! (Related update logs are archived)
 
-### 1.0.0 2019-03-01
+## 1.0.0 2019-03-01
 
 -   Initial version release (Related update logs are archived)
