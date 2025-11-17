@@ -2250,6 +2250,9 @@ $words = [
     'api_auth_simple' => 'API Token',
     'api_auth_basic' => 'Basic',
 
+    // 6.0.1
+    'multi_website_hint' => '您可以在此處管理多個網站。',
+
 ];
 
 $locale = basename(__DIR__);

@@ -22,9 +22,9 @@ class Install extends Command
      *   --app_name=
      *   --app_url=
      *   --locale=
-     *   --environment=
-     *   --debug=
-     *   --log=
+     *   --app_env=
+     *   --app_debug=
+     *   --app_log_level=
      *   --broadcast_driver=
      *   --cache_store=
      *   --session_driver=
@@ -53,10 +53,10 @@ class Install extends Command
         {db_pass}
         {--app_name=}
         {--app_url=}
-        {--locale=}
-        {--environment=}
-        {--debug=}
-        {--log=}
+        {--app_locale=}
+        {--app_env=}
+        {--app_debug=}
+        {--app_log_level=}
         {--broadcast_driver=}
         {--cache_store=}
         {--session_driver=}
@@ -136,15 +136,15 @@ class Install extends Command
 
             'app_name' => $options['app_name'],
             'app_url' => $options['app_url'],
-            'app_locale' => $options['locale'],
-            'environment' => $options['environment'],
-            'debug' => $options['debug'],
-            'log' => $options['log'],
+            'app_locale' => $options['app_locale'],
+            'app_env' => $options['app_env'],
+            'app_debug' => $options['app_debug'],
+            'app_log_level' => $options['app_log_level'],
             'broadcast_driver' => $options['broadcast_driver'],
             'cache_store' => $options['cache_store'],
             'session_driver' => $options['session_driver'],
             'queue_connection' => $options['queue_connection'],
-            'redis_hostname' => $options['redis_host'],
+            'redis_host' => $options['redis_host'],
             'redis_password' => $options['redis_password'],
             'redis_port' => $options['redis_port'],
             'mail_driver' => $options['mail_driver'],

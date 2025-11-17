@@ -28,17 +28,18 @@ class InstallerManager
 
             'app_name' => $input['app_name'] ?: 'WNCMS',
             'app_url' => $input['app_url'] ?: 'http://localhost',
-            'app_locale' => $input['app_locale'] ?: 'en',
-            'environment' => $input['environment'] ?: 'production',
+            'app_locale' => $input['app_locale'] ?: 'zh_TW',
+            'app_env' => $input['app_env'] ?: 'production',
 
-            'debug' => filter_var($input['debug'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false',
-            'log' => $input['log'] ?: 'daily',
+            'app_debug' => filter_var($input['app_debug'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false',
+            'app_log_level' => $input['app_log_level'] ?: 'daily',
+
             'broadcast_driver' => $input['broadcast_driver'] ?: 'log',
             'cache_store' => $input['cache_store'] ?: 'file',
             'session_driver' => $input['session_driver'] ?: 'file',
             'queue_connection' => $input['queue_connection'] ?: 'sync',
 
-            'redis_hostname' => $input['redis_hostname'] ?: '127.0.0.1',
+            'redis_host' => $input['redis_host'] ?: '127.0.0.1',
             'redis_password' => $input['redis_password'] ?? '',
             'redis_port' => is_numeric($input['redis_port'] ?? null) ? $input['redis_port'] : '6379',
 
@@ -100,15 +101,15 @@ class InstallerManager
     {
         $envFileData =
             'APP_NAME=\'' . ($input['app_name'] ?? '') . "'\n" .
-            'APP_ENV=' . ($input['environment'] ?? '') . "\n" .
+            'APP_ENV=' . ($input['app_env'] ?? '') . "\n" .
             'APP_KEY=' . 'base64:' . base64_encode(Str::random(32)) . "\n" .
-            'APP_DEBUG=' . ($input['debug'] ?? '') . "\n" .
+            'APP_DEBUG=' . ($input['app_debug'] ?? '') . "\n" .
             'DEBUGBAR_ENABLED=false' . "\n" .
             'CSS_DEBUG=false' . "\n" .
             'JS_DEBUG=false' . "\n" .
             'APP_VERSION=' . config('installer.version') . "\n" .
             'CUSTOM_VERSION=1' . "\n" .
-            'APP_LOG_LEVEL=' . ($input['log'] ?? '') . "\n" .
+            'APP_LOG_LEVEL=' . ($input['app_log_level'] ?? '') . "\n" .
             'APP_URL=' . ($input['app_url'] ?? '') . "\n\n" .
 
             'APP_MAINTENANCE_DRIVER=file' . "\n\n" .
@@ -127,7 +128,7 @@ class InstallerManager
             'SESSION_DRIVER=' . ($input['session_driver'] ?? '') . "\n" .
             'QUEUE_CONNECTION=' . ($input['queue_connection'] ?? '') . "\n\n" .
 
-            'REDIS_HOST=' . ($input['redis_hostname'] ?? '') . "\n" .
+            'REDIS_HOST=' . ($input['redis_host'] ?? '') . "\n" .
             'REDIS_PASSWORD=' . ($input['redis_password'] ?? '') . "\n" .
             'REDIS_PORT=' . ($input['redis_port'] ?? '') . "\n\n" .
 
