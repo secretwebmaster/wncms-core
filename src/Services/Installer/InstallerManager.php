@@ -19,36 +19,36 @@ class InstallerManager
     {
         return [
 
-            'database_connection' => $input['database_connection'] ?: 'mysql',
-            'database_hostname' => $input['database_hostname'] ?: '127.0.0.1',
+            'database_connection' => $input['database_connection'] ?? 'mysql',
+            'database_hostname' => $input['database_hostname'] ?? '127.0.0.1',
             'database_port' => is_numeric($input['database_port'] ?? null) ? $input['database_port'] : '3306',
-            'database_name' => $input['database_name'] ?: 'wncms',
-            'database_username' => $input['database_username'] ?: 'root',
+            'database_name' => $input['database_name'] ?? 'wncms',
+            'database_username' => $input['database_username'] ?? 'root',
             'database_password' => $input['database_password'] ?? '',
 
-            'app_name' => $input['app_name'] ?: 'WNCMS',
-            'app_url' => $input['app_url'] ?: 'http://localhost',
-            'app_locale' => $input['app_locale'] ?: 'zh_TW',
-            'app_env' => $input['app_env'] ?: 'production',
+            'app_name' => $input['app_name'] ?? 'WNCMS',
+            'app_url' => $input['app_url'] ?? 'http://localhost',
+            'app_locale' => $input['app_locale'] ?? 'zh_TW',
+            'app_env' => $input['app_env'] ?? 'production',
 
             'app_debug' => filter_var($input['app_debug'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false',
-            'app_log_level' => $input['app_log_level'] ?: 'daily',
+            'app_log_level' => $input['app_log_level'] ?? 'daily',
 
-            'broadcast_driver' => $input['broadcast_driver'] ?: 'log',
-            'cache_store' => $input['cache_store'] ?: 'file',
-            'session_driver' => $input['session_driver'] ?: 'file',
-            'queue_connection' => $input['queue_connection'] ?: 'sync',
+            'broadcast_driver' => $input['broadcast_driver'] ?? 'log',
+            'cache_store' => $input['cache_store'] ?? 'file',
+            'session_driver' => $input['session_driver'] ?? 'file',
+            'queue_connection' => $input['queue_connection'] ?? 'sync',
 
-            'redis_host' => $input['redis_host'] ?: '127.0.0.1',
+            'redis_host' => $input['redis_host'] ?? '127.0.0.1',
             'redis_password' => $input['redis_password'] ?? '',
             'redis_port' => is_numeric($input['redis_port'] ?? null) ? $input['redis_port'] : '6379',
 
-            'mail_driver' => $input['mail_driver'] ?: 'smtp',
-            'mail_host' => $input['mail_host'] ?: 'localhost',
+            'mail_driver' => $input['mail_driver'] ?? 'smtp',
+            'mail_host' => $input['mail_host'] ?? 'localhost',
             'mail_port' => is_numeric($input['mail_port'] ?? null) ? $input['mail_port'] : '587',
             'mail_username' => $input['mail_username'] ?? '',
             'mail_password' => $input['mail_password'] ?? '',
-            'mail_encryption' => $input['mail_encryption'] ?: 'tls',
+            'mail_encryption' => $input['mail_encryption'] ?? 'tls',
 
             'pusher_app_id' => $input['pusher_app_id'] ?? '',
             'pusher_app_key' => $input['pusher_app_key'] ?? '',
@@ -57,11 +57,12 @@ class InstallerManager
             'multi_website' => filter_var($input['multi_website'] ?? false, FILTER_VALIDATE_BOOLEAN) ? '1' : '0',
             'force_https' => filter_var($input['force_https'] ?? false, FILTER_VALIDATE_BOOLEAN) ? '1' : '0',
 
-            'site_name' => $input['site_name'] ?: 'WNCMS Site',
-            'domain' => $input['domain'] ?: 'localhost',
-            'theme' => $input['theme'] ?: 'default',
+            'site_name' => $input['site_name'] ?? 'WNCMS Site',
+            'domain' => $input['domain'] ?? 'localhost',
+            'theme' => $input['theme'] ?? 'default',
         ];
     }
+
 
     /**
      * Validate database connection using provided input.

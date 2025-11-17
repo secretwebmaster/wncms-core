@@ -12,7 +12,7 @@ return [
     | by looping through the array and run "extension_loaded" on it.
     |
     */
-    'version'=>'6.0.0',
+    'version'=>'6.0.1',
     'core' => [
         'minPhpVersion' => '8.2.0+',
     ],
@@ -70,8 +70,8 @@ return [
         'form' => [
             'rules' => [
                 'app_name' => 'required|string|max:50',
-                'environment' => 'required|string|max:50',
-                'environment_custom' => 'required_if:environment,other|max:50',
+                'app_env' => 'required|string|max:50',
+                'environment_custom' => 'required_if:app_env,other|max:50',
                 'app_debug' => 'required|string',
                 'app_log_level' => 'required|string|max:50',
                 'app_url' => 'required|url',

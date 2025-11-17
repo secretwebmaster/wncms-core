@@ -8,22 +8,22 @@
 
 ## 特色
 
-- 統一化的 ModelManager 架構
-- 翻譯、標籤、快取與設定核心服務
-- 後台控制器、視圖與開發樣板
-- 主題載入、驗證與配置支援
-- 外掛載入整合
-- API Helper 與 Resource Transformer
-- 安裝流程與環境設定工具
-- 可覆寫模型與管理器的高度擴充架構
+-   統一化的 ModelManager 架構
+-   翻譯、標籤、快取與設定核心服務
+-   後台控制器、視圖與開發樣板
+-   主題載入、驗證與配置支援
+-   外掛載入整合
+-   API Helper 與 Resource Transformer
+-   安裝流程與環境設定工具
+-   可覆寫模型與管理器的高度擴充架構
 
 ## 文件
 
 本套件的文件可於下列位置找到：
 
-- `documentations/readme/` ─ 多語系 README
-- `documentations/change/` ─ 版本更新日誌
-- `documentations/manual/` ─ 其他技術文件
+-   `documentations/readme/` ─ 多語系 README
+-   `documentations/change/` ─ 版本更新日誌
+-   `documentations/manual/` ─ 其他技術文件
 
 ## Demo
 
