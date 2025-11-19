@@ -34,7 +34,8 @@
                         <a class="nav-link @if($loop->iteration == 1) active @endif" 
                             data-bs-toggle="tab" href="#tab_{{ $tab_name }}"
                             data-bs-target="#tab_{{ $tab_name }}"
-                            >@lang("{$_website->theme}.{$tab_name}")</a>
+                            {{-- >@lang("{$_website->theme}.{$tab_name}")</a> --}}
+                            >{{ wncms()->theme()->translate($_website->theme, $tab_name) }}</a>
                     </li>
                 @endforeach
             </ul>

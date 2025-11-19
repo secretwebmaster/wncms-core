@@ -17,7 +17,7 @@ class PageController extends FrontendController
 
         //send to home blade if no custom theme option is found
         return $this->getFrontendPageView(
-            pageName: 'home',
+            pageName: gto('home_page', 'home'),
             params: [
                 'page_title' => $this->website->site_name ?? __('wncms::word.homepage'),
                 'pageId' => 'home',
@@ -138,6 +138,12 @@ class PageController extends FrontendController
      */
     protected function getFrontendPageView($pageName, $params = [], $fallbackPage = "home", $fallbackRoute = null)
     {
+        // check theme path);
+        if (view()->exists("{$this->theme}::pages.{$pageName}")) {
+            return view("{$this->theme}::pages.{$pageName}", $params);
+        }
+
+
         //check if page exists
         if (view()->exists("frontend.themes.{$this->theme}.pages.{$pageName}")) {
             return view("frontend.themes.{$this->theme}.pages.{$pageName}", $params);
@@ -148,16 +154,17 @@ class PageController extends FrontendController
             return view("wncms::frontend.themes.{$this->theme}.pages.{$pageName}", $params);
         }
 
+        // fallback to route if set
         if($fallbackRoute && Wncms::getRoute($fallbackRoute)){
             return redirect()->route($fallbackRoute);
         }
 
-        //redirect to fallback page if not exists
+        // redirect to fallback page if not exists
         if ($fallbackPage) {
             return $this->getFrontendPageView($fallbackPage, $params, null);
         }
 
-        //throw 404 if both pages are not exists
+        // throw 404 if both pages are not exists
         abort(404);
     }
 

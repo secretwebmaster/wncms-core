@@ -46,7 +46,7 @@ class WebsiteController extends BackendController
             $website = new $this->modelClass;
         }
 
-        $themes = wncms()->theme()->getActivatedTheme();
+        $themes = wncms()->theme()->getThemes();
         $websiteCount = $this->modelClass::count();
 
         return $this->view('backend.websites.create', [
@@ -125,7 +125,9 @@ class WebsiteController extends BackendController
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
         }
 
-        $themes = wncms()->theme()->getActivatedTheme();
+        $themes = wncms()->theme()->getThemes();
+
+        // dd($themes);
 
         return $this->view('backend.websites.edit', [
             'page_title' => __('wncms::word.website_management'),

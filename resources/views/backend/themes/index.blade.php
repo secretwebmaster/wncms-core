@@ -74,11 +74,11 @@
                 <table class="table table-sm table-hover align-middle text-nowrap mb-0 table-bordered">
                     <thead class="table-dark">
                         <tr class="text-start fw-bold gs-0">
-                            <th class="w-10px pe-2">
+                            {{-- <th class="w-10px pe-2">
                                 <div class="form-check form-check-sm form-check-custom me-3">
                                     <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
                                 </div>
-                            </th>
+                            </th> --}}
                             <th>@lang('wncms::word.action')</th>
                             <th>@lang('wncms::word.id')</th>
                             <th>@lang('wncms::word.valid_structure')</th>
@@ -103,20 +103,19 @@
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">
                         @foreach($themes as $theme)
                         <tr>
-                            <td>
+                            {{-- <td>
                                 <div class="form-check form-check-sm form-check-custom form-check-solid">
                                     <input class="form-check-input" type="checkbox" value="1" data-model-id="{{ $theme['id'] }}"/>
                                 </div>
-                            </td>
+                            </td> --}}
                             <td>
-                                <!-- Delete Button triggers modal -->
+                                {{-- Delete --}}
+                                @if(!in_array($theme['id'], ['default', 'starter']))
                                 <button type="button" class="btn btn-sm btn-danger fw-bold px-2 py-1"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modal_confirm_delete_theme_{{ $theme['id'] }}">
                                     @lang('wncms::word.delete')
                                 </button>
-
-                                <!-- Confirm Delete Modal -->
                                 <div class="modal fade" id="modal_confirm_delete_theme_{{ $theme['id'] }}" tabindex="-1" aria-labelledby="label_confirm_delete_theme_{{ $theme['id'] }}" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <form action="{{ route('themes.delete', ['themeId' => $theme['id']]) }}" method="POST">
@@ -139,6 +138,7 @@
                                         </form>
                                     </div>
                                 </div>
+                                @endif
                             </td>
                             <td>{{ $theme['id'] }}</td>
                             <td>@include('wncms::common.table_is_active', ['model' => $theme, 'active_column' => 'isValid'])</td>
