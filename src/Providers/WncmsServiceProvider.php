@@ -20,6 +20,10 @@ class WncmsServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        if (!defined('WNCMS_START')) {
+            define('WNCMS_START', true);
+        }
+
         // Facades
         $this->app->singleton('wncms', fn($app) => new \Wncms\Services\Wncms);
         $this->app->singleton('macroable-models', fn($app) => new \Wncms\Services\MacroableModels\MacroableModels);
