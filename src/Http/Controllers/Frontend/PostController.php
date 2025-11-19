@@ -41,7 +41,11 @@ class PostController extends FrontendController
 
         Event::dispatch('wncms.posts.show', $post);
 
-        return $this->view("frontend.themes.{$this->theme}.posts.show", compact('post'));
+        return $this->view(
+            $this->theme . "::posts.show",
+            compact('post'),
+            "frontend.themes.{$this->theme}.posts.show"
+        );
     }
 
     /**
@@ -83,16 +87,20 @@ class PostController extends FrontendController
             'tag_type' => $tagType,
         ]);
 
-        return $this->view("frontend.themes.{$this->theme}.posts.archive", [
-            'pageTitle' => __('wncms::word.latest_tag_models', [
+        return $this->view(
+            $this->theme . "::posts.archive",
+            [
+                'pageTitle' => __('wncms::word.latest_tag_models',  [
+                    'tagName' => $slug,
+                    'modelName' => $modelClass::getModelName(),
+                ]),
                 'tagName' => $slug,
-                'modelName' => $modelClass::getModelName(),
-            ]),
-            'tagName' => $slug,
-            'tagType' => $type,
-            'posts' => $posts,
-            'tag' => $tag,
-        ]);
+                'tagType' => $type,
+                'posts' => $posts,
+                'tag' => $tag,
+            ],
+            "frontend.themes.{$this->theme}.posts.archive"
+        );
     }
 
     /**
@@ -121,11 +129,15 @@ class PostController extends FrontendController
             'page' => $request->page,
         ]);
 
-        return $this->view("frontend.themes.{$this->theme}.posts.search", [
-            'pageTitle' => __('wncms::word.search_result_of', ['keyword' => $keyword]),
-            'posts' => $posts,
-            'keyword' => $keyword,
-        ]);
+        return $this->view(
+            $this->theme . "::posts.search",
+            [
+                'pageTitle' => __('wncms::word.search_result_of', ['keyword' => $keyword]),
+                'posts' => $posts,
+                'keyword' => $keyword,
+            ],
+            "frontend.themes.{$this->theme}.posts.search"
+        );
     }
 
     /**
@@ -148,15 +160,19 @@ class PostController extends FrontendController
             ->limit(gto('video_rank_page_size', 96))
             ->get();
 
-        return $this->view("frontend.themes.{$this->theme}.posts.rank", [
-            'pageTitle' => __('wncms::word.post_rank_of_period', [
-                'period' => __('wncms::word.' . $period),
-            ]),
-            'pageName' => 'post_rank',
-            'modelName' => 'post',
-            'period' => $period,
-            'posts' => $posts,
-        ]);
+        return $this->view(
+            $this->theme . "::posts.rank",
+            [
+                'pageTitle' => __('wncms::word.post_rank_of_period', [
+                    'period' => __('wncms::word.' . $period),
+                ]),
+                'pageName' => 'post_rank',
+                'modelName' => 'post',
+                'period' => $period,
+                'posts' => $posts,
+            ],
+            "frontend.themes.{$this->theme}.posts.rank"
+        );
     }
 
     /**
@@ -200,11 +216,15 @@ class PostController extends FrontendController
 
         $posts = wncms()->post()->getList($options);
 
-        return $this->view("frontend.themes.{$this->theme}.posts.archive", [
-            'page_title' => $pageTitle,
-            'posts' => $posts,
-            'show_post_filter' => true,
-        ]);
+        return $this->view(
+            $this->theme . "::posts.archive",
+            [
+                'page_title' => $pageTitle,
+                'posts' => $posts,
+                'show_post_filter' => true,
+            ],
+            "frontend.themes.{$this->theme}.posts.archive"
+        );
     }
 
     public function create()
@@ -217,13 +237,17 @@ class PostController extends FrontendController
 
         $categories = wncms()->tag()->getList($tagOptions);
 
-        return $this->view("frontend.themes.{$this->theme}.posts.create", [
-            'page_title' => __('wncms::word.post_management'),
-            'statuses' => $this->modelClass::STATUSES,
-            'visibilities' => $this->modelClass::VISIBILITIES,
-            'categories' => $categories,
-            'post' => new $this->modelClass,
-        ]);
+        return $this->view(
+            $this->theme . "::posts.create",
+            [
+                'page_title' => __('wncms::word.post_management'),
+                'statuses' => $this->modelClass::STATUSES,
+                'visibilities' => $this->modelClass::VISIBILITIES,
+                'categories' => $categories,
+                'post' => new $this->modelClass,
+            ],
+            "frontend.themes.{$this->theme}.posts.create"
+        );
     }
 
     public function store(Request $request)
@@ -318,13 +342,17 @@ class PostController extends FrontendController
             'tag_ids' => gto('user_allowed_post_category') ?: null,
         ]);
 
-        return $this->view("frontend.themes.{$this->theme}.posts.edit", [
-            'page_title' => __('wncms::word.post_management'),
-            'statuses' => $this->modelClass::STATUSES,
-            'visibilities' => $this->modelClass::VISIBILITIES,
-            'categories' => $categories,
-            'post' => $post,
-        ]);
+        return $this->view(
+            $this->theme . "::posts.edit",
+            [
+                'page_title' => __('wncms::word.post_management'),
+                'statuses' => $this->modelClass::STATUSES,
+                'visibilities' => $this->modelClass::VISIBILITIES,
+                'categories' => $categories,
+                'post' => $post,
+            ],
+            "frontend.themes.{$this->theme}.posts.edit"
+        );
     }
 
     public function update(Request $request, $id)
