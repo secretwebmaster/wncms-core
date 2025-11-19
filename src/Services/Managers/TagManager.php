@@ -282,26 +282,37 @@ class TagManager extends ModelManager
         }
 
         $meta = $modelClass::getTagMeta();
+        if (empty($meta) || !is_array($meta)) {
+            return [];
+        }
 
-        // Extract values based on $key
+        // Extract the correct field
         if ($key === 'short') {
-            $values = array_map(fn($item) => $item['short'] ?? null, $meta);
+            $values = array_map(fn($i) => $i['short'] ?? null, $meta);
         } elseif ($key === 'route') {
-            $values = array_map(fn($item) => $item['route'] ?? null, $meta);
+            $values = array_map(fn($i) => $i['route'] ?? null, $meta);
         } elseif ($key === 'key') {
-            $values = array_map(fn($item) => $item['key'] ?? null, $meta);
+            $values = array_map(fn($i) => $i['key'] ?? null, $meta);
         } else {
-            // return the raw meta array
+            // Unknown key → return raw meta
             return $meta;
         }
 
-        // Handle implode behavior
-        if ($implode === false || $implode === '') {
+        // Clean null values
+        $values = array_values(array_filter($values));
+
+        // If no implode → return array
+        if ($implode === false) {
             return $values;
         }
 
-        // Implode using the supplied string
-        return implode($implode, $values);
+        // If implode is string → always return string
+        if (is_string($implode)) {
+            return count($values) ? implode($implode, $values) : '';
+        }
+
+        // If implode something else (rare use-case)
+        return $values;
     }
 
     public function getTagTypeLabel(string $modelClass, string $tagType): string
@@ -339,5 +350,15 @@ class TagManager extends ModelManager
 
         // 3. Final fallback: human readable text
         return ucfirst(str_replace('_', ' ', $tagType));
+    }
+
+    public function getTagTypesForRoute($modelClass)
+    {
+        // Get types as a pipe-separated string
+        $types = $this->getTagTypes($modelClass, 'short', '|');
+
+        // If empty, return a safe dummy string so the route still compiles
+        // This ensures Symfony gets a valid regex
+        return $types ?: 'NO_AVAILABLE_TAG_TYPES';
     }
 }

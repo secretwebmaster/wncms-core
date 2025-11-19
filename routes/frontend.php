@@ -39,6 +39,7 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
 
     //post
     Route::prefix('post')->controller(PostController::class)->group(function () {
+        Route::get('/', 'index')->name('posts.index');
         Route::get('rank', 'rank')->name('posts.rank');
         Route::get('rank/{period}', 'rank')->name('posts.rank.period');
         Route::get('search/{keyword}', 'result')->name('posts.search.result');
@@ -46,9 +47,9 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         // Route::get('category/{tagName?}', 'category')->name('posts.category');
         // Route::get('tag/{tagName?}', 'tag')->name('posts.tag');
         // Route::get('{tagType}/{tagName?}', 'archive')->name('posts.archive');
-        Route::get('{type}/{slug}', [PostController::class, 'tag'])
-            ->where('type', wncms()->tag()->getTagTypes(wncms()->getModelClass('post'), 'short', '|'))
-            ->name('posts.tag');
+        // Route::get('{type}/{slug}', [PostController::class, 'tag'])
+        //     ->where('type', wncms()->tag()->getTagTypes(wncms()->getModelClass('post'), 'short', '|'))
+        //     ->name('posts.tag');
 
         Route::get('list/{name?}/{period?}', 'post_list')->where('name', 'hot|new|like|fav')->where('period', 'today|yesterday|week|month')->name('posts.list');
 
@@ -59,9 +60,7 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
             Route::post('update/{post}', 'update')->name('posts.update');
         });
 
-
-
-        Route::get('{slug}', 'single')->name('posts.single');
+        Route::get('{slug}', 'show')->name('posts.show');
     });
 
     //sitemap

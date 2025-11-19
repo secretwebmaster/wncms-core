@@ -11,19 +11,37 @@ use CyrildeWit\EloquentViewable\Support\Period;
 
 class PostController extends FrontendController
 {
+    public function index(Request $request)
+    {
+        $posts = wncms()->post()->getList([
+            'count' => gto('post_limit', 0),
+            'page' => $request->page,
+            'page_size' => gto('post_page_size', 10),
+        ]);
+
+        return $this->view(
+            $this->theme . "::posts.index",
+            [
+                'pageTitle' => __('wncms::word.all_posts'),
+                'posts' => $posts,
+            ],
+            "frontend.themes.{$this->theme}.posts.index",
+        );
+    }
+
     /**
      * Show a single post by slug.
      */
-    public function single(string $slug)
+    public function show(string $slug)
     {
         $post = wncms()->post()->get(['slug' => $slug, 'withs' => ['media', 'user', 'tags', 'comments']]);
         if (!$post) {
             return redirect()->route('frontend.pages.blog');
         }
 
-        Event::dispatch('wncms.posts.single', $post);
+        Event::dispatch('wncms.posts.show', $post);
 
-        return $this->view("frontend.themes.{$this->theme}.posts.single", compact('post'));
+        return $this->view("frontend.themes.{$this->theme}.posts.show", compact('post'));
     }
 
     /**
