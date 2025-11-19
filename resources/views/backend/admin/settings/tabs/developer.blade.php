@@ -1,8 +1,8 @@
 @if(gss('developer_mode'))
-<div class="tab-pane fade" id="tab_developer" role="tabpanel">
+<div class="tab-pane fade {{ $activeTab === 'developer' ? 'show active' : '' }}" id="tab_developer" role="tabpanel">
     <div class="card">
         <div class="collapse show">
-            <div class="card-body border-top p-6">
+            <div class="card-body border border-dark border-5 rounded p-6">
 
                 {{-- developer_mode switch --}}
                 <div class="row mb-1">

@@ -9,7 +9,7 @@ $authModes = [
 <div class="tab-pane fade {{ $activeTab === 'api_access' ? 'show active' : '' }}" id="tab_api_access" role="tabpanel">
     <div class="card">
         <div class="collapse show">
-            <div class="card-body border-top p-6">
+            <div class="card-body border border-dark border-5 rounded p-6">
 
                 {{-- Global API Access Switch --}}
                 <div class="row mb-3">
@@ -54,12 +54,10 @@ $authModes = [
                                         <label class="ms-2">@lang('wncms::word.select_all')</label>
                                     </div>
                                 </th>
-
                             </tr>
                         </thead>
 
                         <tbody>
-
                             @foreach($apiModels as $modelKey => $model)
                             @php
                             $modelClass = $model['class'];
@@ -161,9 +159,7 @@ $authModes = [
                                 </td>
 
                             </tr>
-
                             @endforeach
-
                         </tbody>
                     </table>
                 </div>

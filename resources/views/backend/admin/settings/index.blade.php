@@ -23,7 +23,7 @@
                     <div class="tab-pane fade {{ $isActive ? 'show active' : '' }}" id="tab_{{ $nav_tab['tab_name'] }}" role="tabpanel">
                         <div class="card">
                             <div class="collapse show">
-                                <div class="card-body border-top p-6">
+                                <div class="card-body border border-dark border-5 rounded p-6">
 
                                     @foreach($nav_tab['tab_content'] as $tab_content_index => $tab_content)
 
