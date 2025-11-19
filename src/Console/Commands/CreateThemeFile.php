@@ -24,6 +24,8 @@ class CreateThemeFile extends Command
 
     public function handle()
     {
+        dd('please use the new wncms:create-theme command');
+        
         $themeName = $this->argument('themeName');
         
         if (empty($themeName)) {
