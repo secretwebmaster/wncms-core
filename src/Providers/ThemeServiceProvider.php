@@ -21,8 +21,8 @@ class ThemeServiceProvider extends ServiceProvider
             return;
         }
 
-        if (!defined('WNCMS_THEME_INIT')) {
-            define('WNCMS_THEME_INIT', true);
+        if (!defined('WNCMS_THEME_START')) {
+            define('WNCMS_THEME_START', true);
         }
 
         // Detect current website
@@ -53,6 +53,8 @@ class ThemeServiceProvider extends ServiceProvider
 
         // Load functions.php
         $this->loadThemeFunctions($themePath);
+
+        view()->share('themeId', $themeId);
     }
 
     /**
