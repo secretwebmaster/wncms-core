@@ -134,8 +134,8 @@
                             {{-- <td>{{ $page->website?->domain }}</td> --}}
                             <td>@include('wncms::common.table_status', ['model' => $page])</td>
                             <td><img class="lazyload mw-100px rounded" src="{{ $page->thumbnail }}" alt=""></td>
-                            {{-- <td class="mw-400px text-truncate"><a href="{{ $wncms->getRoute('frontend.pages.single', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td> --}}
-                            <td class="mw-400px text-truncate"><a href="{{ route('frontend.pages.single', ['slug' => $page->slug]) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td>
+                            {{-- <td class="mw-400px text-truncate"><a href="{{ $wncms->getRoute('frontend.pages.show', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td> --}}
+                            <td class="mw-400px text-truncate"><a href="{{ route('frontend.pages.show', ['slug' => $page->slug]) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td>
                             <td>{{ $page->visibility }}</td>
                             <td>{{ $page->template }}</td>
                             <th title="@foreach(json_decode($page->attribute, true) ?? [] as $key => $value){{ $key }}: {{ $value }}&#10;@endforeach">@if($page->attribute && $page->attribute != "[]")@lang('wncms::word.hover_to_view')@endif</td>
