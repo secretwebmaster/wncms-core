@@ -1,14 +1,143 @@
 <?php
 
 if (!defined('WNCMS_THEME_START')) {
-    exit('No direct script access allowed');
+    http_response_code(403);
+    exit('403 Forbidden');
 }
 
 /**
- * Demo Theme Config
- * A simple WordPress-like blog theme for WNCMS
+ * ----------------------------------------------------------------------------------------------------
+ * ! Sterter Theme Setting
+ * ----------------------------------------------------------------------------------------------------
+ * 
+ * Available array key names: 
+ *      info
+ *          label
+ *          name
+ *          author
+ *          description
+ *          version
+ *          created_at
+ *          updated_at
+ * 
+ *      option_tabs
+ *          {key_names} => {key_valus}
+ *          label
+ *          align_items_center
+ *          description
+ *          translate_option
+ *          sub_items
+ *          limit
+ *          required
+ *          disabled
+ *          options
+ *          tag_type
+ *          whitelist_tag_only
+ *          repeat
+ *          type
+ *              text
+ *              number
+ *              image
+ *              select
+ *              boolean
+ *              editor
+ *              textarea
+ *              color
+ *              checkbox
+ *              radio
+ *              heading
+ *              sub_heading
+ *              inline
+ *              tagify
+ *              accordion
+ * 
+ *      default
+ *          {key_name} => {key_value}
+ * 
+ * 
+ * 
+ * ----------------------------------------------------------------------------------------------------
+ *  ! Description and format of each key
+ * ----------------------------------------------------------------------------------------------------
+ *  info
+ *      label Theme name display.               | 文尼Starter主題
+ *      name Theme name for sytem use.          | starter                       | Should be the same as all theme path root name
+ *      author Theme author.                    | 文尼先生
+ *      description Theme description.          | 文尼主題最壹款簡潔易用的主題
+ *      version Theme version with 3 numbers.   | 3.0.1
+ *      created_at Date of theme first created  | 2023-01-01
+ *      updated_at Date of theme last updateed  | 2023-12-31
+ * 
+ *  option_tabs
+ *      key_names => nested options array
+ *          Example:
+ *          'general' => [
+ *              [
+ *                  'label'=>'通用',
+ *                  'type'=>'heading',
+ *              ],
+ *              [
+ *                  'label'=>'搜索框文字',
+ *                  'name'=>'search_placeholder',
+ *                  'type'=>'text',
+ *                  'description'=>'搜索框沒有內容時的替代內容',
+ *              ],
+ *          ],
+ * 
+ *          option array
+ *              label               string          | required  |
+ *              name                string          | required  | key which store in database and called in blade file with gto('name')
+ *              align_items_center  boolean         | optional  | To display input fields and label vertically centerd
+ *              description         string          | optional  | Description of the option item below label
+ *              translate_option    boolean         | optional  | Set to false and disable translation. Default is true
+ *              sub_items           array           | optional  |
+ *              limit               integer         | optional  | Limit for multi-selection options such as checkboxes and tagify
+ *              required            boolean         | optional  | Set to required to force user input before submit. Suggest to have a default value
+ *              disabled            boolean         | optional  | Disable input but show the existing value. Suggest to have a default value
+ *              options             array|string    | optional  | Supported value: menus,posts,pages,tags,positions
+ *                  Only required is type = 'select' or 'tagify
+ *                  array use for type = 'select'
+ *                  string use for type = 'tagify'. List of model will be shown in dropdown. Max 100 items will be loaded.
+ *              tag_type            string          | optional  | Use to specify type of Tag model. E.g. post_category. Use when option = 'tags'
+ *              whitelist_tag_only  string          | optional  | Restrict user to input custom tags. Default is true.
+ *              repeat              interger        | optional  | To repeat self option with auto increased index from 1. Only applicable to accordion and inline
+ *              content             array           | optional  | Required for accordion. Sub-items Should use inline 
+ *              type                string          | required  | Specify the input type of the theme options
+ * 
+ *                  text: Simple text input
+ *                  number: Number only
+ *                  image: Upload image, attach to website model and store the generated image url 
+ *                  select: Select input. Require to have field 'options'
+ *                  boolean: 
+ *                  editor: Load TinyMCE editor
+ *                  textarea: 
+ *                  color: 
+ *                  checkbox: (Not availabel yet)
+ *                  radio: (Not availabel yet)
+ *                  heading: Display a text title. No name field is required. Will not store in database. Can have a description
+ *                  sub_heading: Display a text title without background. No name field is required. Will not store in database. Can have a description
+ *                  inline: Display multiple items in same row. Useful when there is data set of text, num, image for the same item, can use repeat
+ *                  tagify: Load tagify. Require to have field 'options'. Required to have 'tag_type' if options is 'tags'
+ *                  accordion: Load item into accordion to avoid scroll party. Can use repeat
+ * 
+ * 
+ *  default
+ *      key_names => value
+ *      Will apply theem default values if a website first time install the theme
+ *      Will reset to these default values if user resets a website
+ * ----------------------------------------------------------------------------------------------------
  */
 
+
+
+
+
+ /** 
+ * ----------------------------------------------------------------------------------------------------
+ * 主題名稱: starter
+ * 適用系統: 文尼CMS v6.0.0+
+ * ----------------------------------------------------------------------------------------------------
+ */
 return [
 
     /**
