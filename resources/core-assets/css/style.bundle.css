@@ -11214,6 +11214,14 @@ textarea.form-control-lg {
   border-radius: 0.475rem !important;
 }
 
+.rounded-3px {
+  border-radius: 3px !important;
+}
+
+.rounded-5px {
+  border-radius: 5px !important;
+}
+
 .rounded-0 {
   border-radius: 0 !important;
 }
