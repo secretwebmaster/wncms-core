@@ -86,13 +86,14 @@ class CacheManager
             'domain' => $domain ?? 'global',
         ];
 
-        // Special handling for wheres
-        if (isset($args['wheres'])) {
-            $wheres = $args['wheres'];
-            unset($args['wheres']);
+        $excludedCacheKey = [
+            'cache',
+        ];
 
-            // SUPER SIMPLE HASH
-            $args['wheres_hash'] = md5(var_export($wheres, true));
+        foreach ($excludedCacheKey as $exclude) {
+            if (isset($args[$exclude])) {
+                unset($args[$exclude]);
+            }
         }
 
         // Normalize other args

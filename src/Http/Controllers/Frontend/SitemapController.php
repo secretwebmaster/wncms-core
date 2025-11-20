@@ -13,7 +13,7 @@ class SitemapController
         $sitemap = Sitemap::create();
         foreach($this->website->posts()->orderBy('id', 'desc')->get() as $post){
             $sitemap
-                ->add(Url::create(route('frontend.posts.single', ['slug' => $post->slug]))
+                ->add(Url::create(route('frontend.posts.show', ['slug' => $post->slug]))
                 ->setLastModificationDate($post->updated_at));
         }
 
@@ -67,7 +67,7 @@ class SitemapController
         foreach($this->website->post()->orderBy('id', 'desc')->get() as $post){
 
             $sitemap
-                ->add(Url::create(route('frontend.posts.single', ['slug' => $post->slug]))
+                ->add(Url::create(route('frontend.posts.show', ['slug' => $post->slug]))
                 ->setLastModificationDate($post->updated_at));
         }
 

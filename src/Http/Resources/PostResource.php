@@ -15,7 +15,7 @@ class PostResource extends BaseResource
             'published_at' => $this->published_at,
             'tags' => $this->tagsWithType('post_tag')->pluck('name'),
             'category' => $this->tagsWithType('post_category')->pluck('name'),
-            'url' => $this->slug ? route('frontend.posts.single', ['slug' => $this->slug]) : null,
+            'url' => $this->slug ? route('frontend.posts.show', ['slug' => $this->slug]) : null,
         ];
     }
 }

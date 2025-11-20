@@ -3,7 +3,6 @@
 namespace Wncms\Http\Controllers\Frontend;
 
 use Illuminate\Support\Facades\Event;
-use Wncms\Facades\Wncms;
 use Wncms\Models\Page;
 
 class PageController extends FrontendController
@@ -38,13 +37,13 @@ class PageController extends FrontendController
      */
     public function blog($posts = null)
     {
-        $posts ??= Wncms::post()->getList([
+        $posts ??= wncms()->post()->getList([
             'count' => 100,
             'page_size' => gto('default_page_size', 10),
         ]);
 
         return $this->getFrontendPageView(
-            pageName: 'blog', 
+            pageName: 'blog',
             params: [
                 'pageTitle' => gto('blog_title', __('wncms::word.latest_posts')),
                 'page' => null,
@@ -62,64 +61,80 @@ class PageController extends FrontendController
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      * ----------------------------------------------------------------------------------------------------
      */
-    public function single($slug = null)
+    public function show($slug = null)
     {
         if (!$slug) return redirect()->route('frontend.pages.home');
 
         //get page model
-        $page = Wncms::page()->get(['slug' => $slug]);
+        $page = wncms()->page()->get(['slug' => $slug]);
+
+        Event::dispatch('wncms.pages.show', $page);
+
+        // check blade
+        if(view()->exists("{$this->theme}::pages." . $slug)) {
+            return view("{$this->theme}::pages." . $slug, [
+                'pageTitle' => $page?->title,
+                'page' => $page,
+            ]);
+        }
 
         //get template
-        if($page){
+        if ($page) {
             // TODO: render page builder
 
             // load theme template with specific name as same as the page slug
-            if($page->type == 'template'){
+            if ($page->type == 'template') {
                 $pageTemplateView = "frontend.themes.{$this->theme}.pages." . $page->blade_name;
                 if (view()->exists($pageTemplateView)) {
                     return view($pageTemplateView, [
-                        'page' => $page,
                         'pageTitle' => $page->title,
+                        'page' => $page,
                     ]);
                 }
             }
 
             // load theme single page template
-            if($page->type == 'plain'){
+            if ($page->type == 'plain') {
                 //get singe view if exist
-                $singlePageView = "frontend.themes.{$this->theme}.pages.single";
-                if (view()->exists($singlePageView)) {
-                    return view($singlePageView, [
-                        'page' => $page,
+                $pageShowView = "frontend.themes.{$this->theme}.pages.show";
+                if (view()->exists($pageShowView)) {
+                    return view($pageShowView, [
                         'pageTitle' => $page->title,
+                        'page' => $page,
                     ]);
                 }
             }
+
+            return $this->view(
+                $this->theme . "::pages.show",
+                [
+                    'pageTitle' => $page?->title,
+                    'page' => $page,
+                ]
+            );
         }
 
-        Event::dispatch('wncms.pages.single', $page);
+        // // page model does not exist. Load default static page
+        // if (view()->exists("wncms::frontend.themes.{$this->theme}.pages." . $slug)) {
+        //     return view("wncms::frontend.themes.{$this->theme}.pages." . $slug, [
+        //         'page' => $page ?? new Page,
+        //         'pageTitle' => $page?->title,
+        //     ]);
+        // }
 
-        // page model does not exist. Load default static page
-        if (view()->exists("wncms::frontend.themes.{$this->theme}.pages." . $slug)) {
-            return view("wncms::frontend.themes.{$this->theme}.pages." . $slug, [
-                'page' => $page ?? new Page,
-                'pageTitle' => $page?->title,
-            ]);
-        }
+        // // load custom static page
+        // if (view()->exists("frontend.themes.{$this->theme}.pages." . $slug)) {
+        //     return view("frontend.themes.{$this->theme}.pages." . $slug, [
+        //         'page' => $page ?? new Page,
+        //         'pageTitle' => $page?->title,
+        //     ]);
+        // }
 
-        // load custom static page
-        if (view()->exists("frontend.themes.{$this->theme}.pages." . $slug)) {
-            return view("frontend.themes.{$this->theme}.pages." . $slug, [
-                'page' => $page ?? new Page,
-                'pageTitle' => $page?->title,
-            ]);
-        }
+        // //TODO:: return to 404 if theme option is set
 
-        //TODO:: return to 404 if theme option is set
+        // //TODO:: return to 404 if global system setting is set
 
-        //TODO:: return to 404 if global system setting is set
-        
-        //return to home if nothing matched
+        // //return to home if nothing matched
         return redirect()->route('frontend.pages.home');
     }
 
@@ -155,7 +170,7 @@ class PageController extends FrontendController
         }
 
         // fallback to route if set
-        if($fallbackRoute && Wncms::getRoute($fallbackRoute)){
+        if ($fallbackRoute && wncms()->getRoute($fallbackRoute)) {
             return redirect()->route($fallbackRoute);
         }
 

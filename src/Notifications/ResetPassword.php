@@ -4,7 +4,6 @@ namespace Wncms\Notifications;
 
 use Illuminate\Auth\Notifications\ResetPassword as BaseResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
-use Wncms\Facades\Wncms;
 
 class ResetPassword extends BaseResetPassword
 {
@@ -31,7 +30,7 @@ class ResetPassword extends BaseResetPassword
             ->line(__('wncms::word.reset_password_disclaimer'));
 
         // Check for a custom view
-        $website = Wncms::website()->get();
+        $website = wncms()->website()->get();
         if ($website && view()->exists("frontend.themes.{$website->theme}.emails.password_reset")) {
             return $mailMessage
             ->subject($website->name . " " . __('wncms::word.reset_password_notification'))

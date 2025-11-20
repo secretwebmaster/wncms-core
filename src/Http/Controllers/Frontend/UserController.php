@@ -434,4 +434,32 @@ class UserController extends FrontendController
             "frontend.themes.{$this->theme}.pages.home",
         );
     }
+
+    // posts by the user
+    public function posts($username)
+    {
+        $modelClass = $this->getModelClass();
+        $user = $modelClass::where('username', $username)->first();
+        if (!$user) {
+            return redirect()->route('frontend.pages.home');
+        }
+
+        $posts = wncms()->post()->getList([
+            'user_id' => $user->id,
+            'status' => 'published',
+            'paginate' => 10,
+        ]);
+
+        dd($posts);
+
+
+        return $this->view(
+            "frontend.themes.{$this->theme}.users.posts",
+            [
+                'posts' => $user ? $user->posts()->paginate(10) : collect([]),
+                'user' => $user,
+            ],
+            'wncms::frontend.themes.default.users.posts',
+        );
+    }
 }

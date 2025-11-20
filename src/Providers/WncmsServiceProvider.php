@@ -8,7 +8,6 @@ use Illuminate\Support\ServiceProvider;
 use Wncms\Exceptions\WncmsExceptionHandler;
 use Illuminate\Support\Facades\File;
 use Illuminate\Foundation\AliasLoader;
-use Wncms\Facades\Wncms;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -149,11 +148,10 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function loadGlobalVariables(): void
     {
-        $wncms = wncms();
-        View::share('wncms', $wncms);
+        View::share('wncms', wncms());
 
         if (function_exists('wncms_is_installed') && wncms_is_installed()) {
-            View::share('website', $wncms->website()->get());
+            View::share('website', wncms()->website()->get());
 
             View::composer('*', function ($view) {
                 if (Route::currentRouteName() && str_starts_with(Route::currentRouteName(), 'frontend.')) {

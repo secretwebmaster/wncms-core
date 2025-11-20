@@ -38,14 +38,14 @@ class LinkController extends FrontendController
         ]);
     }
 
-    public function single($id)
+    public function show($id)
     {
         $link = wncms()->getModelClass('link')::find($id);
         if (!$link) {
             return redirect()->route('frontend.pages.home');
         }
 
-        return $this->view("frontend.themes.{$this->theme}.links.single", [
+        return $this->view("frontend.themes.{$this->theme}.links.show", [
             'link' => $link,
         ]);
     }

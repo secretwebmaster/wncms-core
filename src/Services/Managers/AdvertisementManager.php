@@ -63,6 +63,9 @@ class AdvertisementManager extends ModelManager
                 : (array) $options['positions'];
 
             $q->whereIn('position', $positions);
+        }elseif(isset($options['positions'])) {
+            // Empty positions array means no results
+            $q->whereRaw('0 = 1');
         }
 
 

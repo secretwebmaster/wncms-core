@@ -34,10 +34,24 @@ class PostController extends FrontendController
      */
     public function show(string $slug)
     {
-        $post = wncms()->post()->get(['slug' => $slug, 'withs' => ['media', 'user', 'tags', 'comments']]);
+        $post = wncms()->post()->get([
+            'slug' => $slug,
+            'withs' => [
+                'media',
+                'user' => function ($q) {
+                    $q->with(['media' => function ($m) {
+                        $m->where('collection_name', 'avatar');
+                    }]);
+                },
+                'tags',
+                'comments'
+            ]
+        ]);
         if (!$post) {
             return redirect()->route('frontend.pages.blog');
         }
+
+        // dd($post->user);
 
         Event::dispatch('wncms.posts.show', $post);
 
@@ -67,8 +81,9 @@ class PostController extends FrontendController
 
         // fetch tag by slug or name in current locale
         $tag = wncms()->tag()->get([
-            'type'  => $tagType,
+            'tag_type'  => $tagType,
             'wheres' => [fn($q) => $q->where('slug', $slug)->orWhere('name', $slug)],
+            'salt' => md5("{$tagType}_{$slug}"),
             'cache' => true,
         ]);
 
@@ -82,9 +97,9 @@ class PostController extends FrontendController
             'count' => gto('post_limit', 0),
             'page' => request('page', 0),
             'page_size' => gto('post_page_size', 10),
-            'cache' => false,
             'tags' => [$tag->name],
             'tag_type' => $tagType,
+            'cache' => true,
         ]);
 
         return $this->view(

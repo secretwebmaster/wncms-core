@@ -117,7 +117,7 @@ class ThemeManager
             $type = $ext ? '.' . $ext : '';
 
             if(in_array($type, ['.js', '.css'])) {
-                // keep
+                $type = str_replace('.', '', $type);
             } else {
                 $type = '';
             }

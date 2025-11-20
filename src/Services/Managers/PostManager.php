@@ -72,11 +72,13 @@ class PostManager extends ModelManager
         $select = $options['select'] ?? ['*'];
         $withs = $options['withs'] ?? [];
         $isRandom = $options['is_random'] ?? false;
+        $userId = $options['user_id'] ?? null;
 
         // $pageSize = $options['page_size'] ?? 0;
         // $pageName = $options['page_name'] ?? 'page';
 
         $this->applyWebsiteId($q, $websiteId);
+        $this->applyUserId($q, $userId);
 
         $this->applyWiths($q, array_merge(['media', 'comments', 'tags', 'translations'], $withs));
         $this->applyTagFilter($q, $tags, $tagType);

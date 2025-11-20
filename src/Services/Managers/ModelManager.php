@@ -67,16 +67,8 @@ abstract class ModelManager
         };
 
         if (gss('enable_cache') && $useCache) {
-            $cacheKey = $this->getCacheKey(__METHOD__, [
-                'id' => $id,
-                'slug' => $slug,
-                'withs' => $withs,
-                'wheres' => $wheres,
-            ]);
+            $cacheKey = $this->getCacheKey(__METHOD__, $options);
             $cacheTime = $this->getCacheTime();
-
-            // wncms()->cache()->tags($this->getCacheTag())->forget($cacheKey);
-
             return wncms()->cache()->remember($cacheKey, $cacheTime, $func, $this->getCacheTag());
         }
 
@@ -411,6 +403,18 @@ abstract class ModelManager
         if (gss('multi_website') || in_array($websiteMode, ['single', 'multi'])) {
             $modelClass::applyWebsiteScope($q, $websiteId);
         }
+    }
+
+    /**
+     * Apply user scoping to the query.
+     */
+    protected function applyUserId(Builder $q, ?int $userId = null): void
+    {
+        if (empty($userId)) {
+            return;
+        }
+
+        $q->where('user_id', $userId);
     }
 
     /**

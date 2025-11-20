@@ -183,9 +183,9 @@ class Post extends BaseModel implements HasMedia, ApiModelInterface
         return $this->tags->where('type', 'post_tag');
     }
 
-    public function getSingleUrlAttribute()
+    public function getUrlAttribute()
     {
-        return route('frontend.posts.single', $this->slug);
+        return route('frontend.posts.show', $this->slug);
     }
 
     public function getFakeViewTotalAttribute()

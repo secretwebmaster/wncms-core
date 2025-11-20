@@ -2,7 +2,6 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Facades\Wncms;
 use Illuminate\Http\Request;
 use Wncms\Http\Controllers\Controller;
 
