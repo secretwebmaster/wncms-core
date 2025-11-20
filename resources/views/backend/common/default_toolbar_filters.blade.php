@@ -1,5 +1,10 @@
+{{-- Preserve page parameter --}}
+@if (request()->page)
+    <input type="hidden" name="page" value="{{ request()->page }}">
+@endif
+
 {{-- keyword --}}
-@if(empty($hideToolbarKeywordFiller))
+@if (empty($hideToolbarKeywordFiller))
     <div class="d-flex align-items-center col-12 col-md-auto mb-3 ms-0 me-1">
         <span class="svg-icon svg-icon-1 position-absolute ms-4">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -16,14 +21,13 @@
     <input type="text" name="example_id" value="{{ request()->example_id }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.example_id')" />
 </div> --}}
 
-
 {{-- statuses --}}
-@if(empty($hideToolbarStatusFiller) && !empty($statuses))
+@if (empty($hideToolbarStatusFiller) && !empty($statuses))
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="status" class="form-select form-select-sm">
             <option value="">@lang('wncms::word.select_status')</option>
-            @foreach($statuses as $status)
-                <option value="{{ $status }}" @if($status == request()->status) selected @endif>@lang('wncms::word.' . $status)</option>
+            @foreach ($statuses as $status)
+                <option value="{{ $status }}" @if ($status == request()->status) selected @endif>@lang('wncms::word.' . $status)</option>
             @endforeach
         </select>
     </div>
@@ -31,14 +35,11 @@
 
 {{-- 網站列表 website --}}
 {{-- user $_website to avoid override the globel $website --}}
-@if(
-    (empty($hideToolbarWebsiteFiller) && !empty($websites))
-    || (gss('multi_website') && $websites = wncms()->website()->getList())
-)
+@if ((empty($hideToolbarWebsiteFiller) && !empty($websites)) || (gss('multi_website') && ($websites = wncms()->website()->getList())))
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="website" class="form-select form-select-sm">
             <option value="">@lang('wncms::word.select_item', ['item_name' => __('wncms::word.website')])</option>
-            @foreach($websites as $_website)
+            @foreach ($websites as $_website)
                 <option value="{{ $_website->id }}" @selected(wncms()->isSelectedWebsite($_website))>{{ $_website->domain }}</option>
             @endforeach
         </select>
@@ -46,36 +47,36 @@
 @endif
 
 {{-- 排序依據 sort --}}
-@if(empty($hideToolbarSortFiller) && !empty($sorts))
+@if (empty($hideToolbarSortFiller) && !empty($sorts))
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="sort" class="form-select form-select-sm">
             <option value="">@lang('wncms::word.select_item', ['item_name' => __('wncms::word.sort')])</option>
-            @foreach($sorts as $sort)
-                <option value="{{ $sort }}" @if($sort == request()->sort) selected @endif>@lang('wncms::word.' . $sort)</option>
+            @foreach ($sorts as $sort)
+                <option value="{{ $sort }}" @if ($sort == request()->sort) selected @endif>@lang('wncms::word.' . $sort)</option>
             @endforeach
         </select>
     </div>
 @endif
 
 {{-- 排序方向 direction --}}
-@if(empty($hideToolbarSortFiller) && empty($hideToolbarDirectionFiller) && !empty($sorts))
+@if (empty($hideToolbarSortFiller) && empty($hideToolbarDirectionFiller) && !empty($sorts))
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="direction" class="form-select form-select-sm">
             <option value="">@lang('wncms::word.select_item', ['item_name' => __('wncms::word.sort_direction')])</option>
-            @foreach(['asc','desc'] as $direction)
-                <option value="{{ $direction }}" @if($direction == request()->direction) selected @endif>@lang('wncms::word.sort_by_'. $direction)</option>
+            @foreach (['asc', 'desc'] as $direction)
+                <option value="{{ $direction }}" @if ($direction == request()->direction) selected @endif>@lang('wncms::word.sort_by_' . $direction)</option>
             @endforeach
         </select>
     </div>
 @endif
 
 {{-- 頁面大小 page_size --}}
-@if(empty($hideToolbarPageSizeFiller))
+@if (empty($hideToolbarPageSizeFiller))
     <div class="col-6 col-md-auto mb-3 ms-0">
         <select name="page_size" class="form-select form-select-sm">
             <option value="">@lang('wncms::word.select_count')</option>
-            @foreach($page_siezes ?? [10,20,30,50,80,100,150,200,500] as $page_size)
-                <option value="{{ $page_size }}" @if($page_size == request()->page_size) selected @endif>{{ $page_size }}</option>
+            @foreach ($page_siezes ?? [10, 20, 30, 50, 80, 100, 150, 200, 500] as $page_size)
+                <option value="{{ $page_size }}" @if ($page_size == request()->page_size) selected @endif>{{ $page_size }}</option>
             @endforeach
         </select>
     </div>

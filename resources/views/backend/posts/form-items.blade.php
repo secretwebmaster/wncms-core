@@ -30,18 +30,18 @@
                                     //Tagify
                                     var input = document.querySelector("#post_categories");
                                     var post_categories = @json($post_categories);
-                        
+
                                     console.log(post_categories)
                                     // Initialize Tagify script on the above inputs
-                
+
                                     new Tagify(input, {
                                         whitelist: post_categories,
                                         maxTags: 50,
                                         dropdown: {
-                                            maxItems: 20,           // <- mixumum allowed rendered suggestions
+                                            maxItems: 20, // <- mixumum allowed rendered suggestions
                                             classname: "tagify__inline__suggestions", // <- custom classname for this dropdown, so it could be targeted
-                                            enabled: 0,             // <- show suggestions on focus
-                                            closeOnSelect: false,    // <- do not hide the suggestions dropdown once an item has been selected
+                                            enabled: 0, // <- show suggestions on focus
+                                            closeOnSelect: false, // <- do not hide the suggestions dropdown once an item has been selected
                                             originalInputValueFormat: valuesArr => valuesArr.map(item => item.value).join(',')
                                         }
                                     });
@@ -72,18 +72,18 @@
                                     //Tagify
                                     var input = document.querySelector("#post_tags");
                                     var post_tags = @json($post_tags);
-                        
+
                                     console.log(post_tags)
                                     // Initialize Tagify script on the above inputs
-                
+
                                     new Tagify(input, {
                                         whitelist: post_tags,
                                         maxTags: 50,
                                         dropdown: {
-                                            maxItems: 20,           // <- mixumum allowed rendered suggestions
+                                            maxItems: 20, // <- mixumum allowed rendered suggestions
                                             classname: "tagify__inline__suggestions", // <- custom classname for this dropdown, so it could be targeted
-                                            enabled: 0,             // <- show suggestions on focus
-                                            closeOnSelect: false,    // <- do not hide the suggestions dropdown once an item has been selected
+                                            enabled: 0, // <- show suggestions on focus
+                                            closeOnSelect: false, // <- do not hide the suggestions dropdown once an item has been selected
                                             originalInputValueFormat: valuesArr => valuesArr.map(item => item.value).join(',')
                                         }
                                     });
@@ -186,8 +186,8 @@
                     <label class="form-label required fw-bold fs-6">@lang('wncms::word.status')</label>
                     <select name="status" class="form-select form-select-sm" required>
                         <option value="">@lang('wncms::word.please_select')</option>
-                        @foreach($statuses as $status)
-                        <option value="{{ $status }}" {{ ($status===old('status', $post->status) || empty(old('status')) && $status == 'published') ? 'selected' :'' }}><b>@lang('wncms::word.' . $status)</b></option>
+                        @foreach ($statuses as $status)
+                            <option value="{{ $status }}" {{ $status === old('status', $post->status) || (empty(old('status')) && $status == 'published') ? 'selected' : '' }}><b>@lang('wncms::word.' . $status)</b></option>
                         @endforeach
                     </select>
                 </div>
@@ -197,8 +197,8 @@
                     <label class="form-label required fw-bold fs-6">@lang('wncms::word.visibility')</label>
                     <select name="visibility" class="form-select form-select-sm" required>
                         <option value="">@lang('wncms::word.please_select')</option>
-                        @foreach($visibilities as $visibility)
-                        <option value="{{ $visibility }}" {{ ($visibility===old('visibility', $post->visibility) || empty(old('visibility')) && $visibility == 'public') ? 'selected' :'' }}><b>@lang('wncms::word.' . $visibility)</b></option>
+                        @foreach ($visibilities as $visibility)
+                            <option value="{{ $visibility }}" {{ $visibility === old('visibility', $post->visibility) || (empty(old('visibility')) && $visibility == 'public') ? 'selected' : '' }}><b>@lang('wncms::word.' . $visibility)</b></option>
                         @endforeach
                     </select>
                 </div>
@@ -206,7 +206,7 @@
                 {{-- published_at --}}
                 <div class="form-item mb-3">
                     <label class="form-label required fw-bold fs-6">@lang('wncms::word.published_at')</label>
-                    <input type="text" name="published_at" value="{{ old('published_at', $post->published_at?->format('m/d/Y H:i:s'), now()->format('m/d/Y H:i:s'))  }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_default_now')" id="picker_published_at" />
+                    <input type="text" name="published_at" value="{{ old('published_at', $post->published_at?->format('m/d/Y H:i:s'), now()->format('m/d/Y H:i:s')) }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_default_now')" id="picker_published_at" />
                     <script>
                         window.addEventListener('DOMContentLoaded', (event) => {
                             $("#picker_published_at").daterangepicker({
@@ -214,18 +214,18 @@
                                 // autoApply:true,
                                 singleDatePicker: true,
                                 showDropdowns: true,
-                                drops:'bottom',
+                                drops: 'bottom',
                                 timePicker: true,
                                 timePicker24Hour: true,
                                 timePickerSeconds: true,
                                 minYear: 1901,
-                                maxYear: parseInt(moment().format("YYYY"),12),
+                                maxYear: parseInt(moment().format("YYYY"), 12),
                                 locale: {
                                     cancelLabel: '清空',
                                     applyLabel: '設定',
                                     format: "MM/DD/YYYY hh:mm:ss",
                                 }
-                            }).on("apply.daterangepicker", function (e, picker) {
+                            }).on("apply.daterangepicker", function(e, picker) {
                                 picker.element.val(picker.startDate.format(picker.locale.format));
                             }).on('cancel.daterangepicker', function(e, picker) {
                                 picker.element.val('');
@@ -237,7 +237,7 @@
                 {{-- expired_at --}}
                 <div class="form-item mb-3">
                     <label class="form-label fw-bold fs-6">@lang('wncms::word.expired_at')</label>
-                    <input type="text" name="expired_at" value="{{ old('expired_at', $post->expired_at?->format('m/d/Y H:i:s'), now()->format('m/d/Y H:i:s'))  }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_leave_blank')" id="picker_expired_at" />
+                    <input type="text" name="expired_at" value="{{ old('expired_at', $post->expired_at?->format('m/d/Y H:i:s'), now()->format('m/d/Y H:i:s')) }}" class="form-control form-control-sm" placeholder="@lang('wncms::word.choose_date_or_leave_blank')" id="picker_expired_at" />
                     <script>
                         window.addEventListener('DOMContentLoaded', (event) => {
                             $("#picker_expired_at").daterangepicker({
@@ -245,18 +245,18 @@
                                 // autoApply:true,
                                 singleDatePicker: true,
                                 showDropdowns: true,
-                                drops:'bottom',
+                                drops: 'bottom',
                                 timePicker: true,
                                 timePicker24Hour: true,
                                 timePickerSeconds: true,
                                 minYear: 1901,
-                                maxYear: parseInt(moment().format("YYYY"),12),
+                                maxYear: parseInt(moment().format("YYYY"), 12),
                                 locale: {
                                     cancelLabel: '清空',
                                     applyLabel: '設定',
                                     format: "MM/DD/YYYY hh:mm:ss",
                                 }
-                            }).on("apply.daterangepicker", function (e, picker) {
+                            }).on("apply.daterangepicker", function(e, picker) {
                                 picker.element.val(picker.startDate.format(picker.locale.format));
                             }).on('cancel.daterangepicker', function(e, picker) {
                                 picker.element.val('');
@@ -274,14 +274,14 @@
 
                 {{-- Preview --}}
                 {{-- <div class="mb-3">
-                    @foreach($post->websites as $preview_website)
-                    <div><a href="{{ $wncms->getRoute('frontend.posts.single', ['slug' => $post->slug],false, $preview_website->domain) }}" target="_blank">@lang('wncms::word.preview_on', ['domain' => $preview_website->domain])</a></div>
+                    @foreach ($post->websites as $preview_website)
+                    <div><a href="{{ $wncms->getRoute('frontend.posts.show', ['slug' => $post->slug],false, $preview_website->domain) }}" target="_blank">@lang('wncms::word.preview_on', ['domain' => $preview_website->domain])</a></div>
                     @endforeach
                 </div> --}}
-                @if($post->exists)
-                <div class="mb-3">
-                    <div><a href="{{ route('frontend.posts.single', ['slug' => $post->slug]) }}" target="_blank">@lang('wncms::word.preview')</a></div>
-                </div>
+                @if ($post->exists)
+                    <div class="mb-3">
+                        <div><a href="{{ route('frontend.posts.show', ['slug' => $post->slug]) }}" target="_blank">@lang('wncms::word.preview')</a></div>
+                    </div>
                 @endif
 
             </div>
@@ -293,7 +293,7 @@
                 {{-- website_id --}}
                 {{-- <div class="form-item mb-3">
                     <label class="form-label required fw-bold fs-6">@lang('wncms::word.website')</label>
-                    @foreach($websites as $index => $_website)
+                    @foreach ($websites as $index => $_website)
                     <div class="col-12 col-md-3 mb-1 website_ids_checkbox">
                         <label class="form-check form-check-inline form-check-solid me-5">
                             <input class="form-check-input" name="website_ids[]" type="checkbox" value="{{ $_website->id }}"
@@ -310,8 +310,8 @@
                 <div class="form-item mb-3">
                     <label class="form-label required fw-bold fs-6">@lang('wncms::word.author')</label>
                     <select name="user_id" class="form-select form-select-sm" required>
-                        @foreach($users as $user)
-                        <option value="{{ $user->id }}" @if($user->id == $post->user?->id) selected @endif>#{{ $user->id }} {{ $user->username }}</option>
+                        @foreach ($users as $user)
+                            <option value="{{ $user->id }}" @if ($user->id == $post->user?->id) selected @endif>#{{ $user->id }} {{ $user->username }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -328,21 +328,21 @@
 
             <div class="card-body p-2 p-md-5">
 
-                {{--thumbnail --}}
+                {{-- thumbnail --}}
                 <div class="form-item mb-3">
                     <label class="form-label fw-bold fs-6">@lang('wncms::word.thumbnail')</label>
 
                     <div class="image-input image-input-outline w-100 {{ !empty($post->getFirstMediaUrl('post_thumbnail')) ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ !empty($post->getFirstMediaUrl('post_thumbnail')) ?: asset('wncms/images/placeholders/upload.png') }});background-position:center;">
-                        <div class="image-input-wrapper w-100 h-100" style="background-image:{{ !empty($post->getFirstMediaUrl('post_thumbnail')) ? 'url('. $post->getFirstMediaUrl('post_thumbnail') .')' : 'none' }};aspect-ratio:16/10"></div>
+                        <div class="image-input-wrapper w-100 h-100" style="background-image:{{ !empty($post->getFirstMediaUrl('post_thumbnail')) ? 'url(' . $post->getFirstMediaUrl('post_thumbnail') . ')' : 'none' }};aspect-ratio:16/10"></div>
                         <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change avatar">
                             <i class="fa fa-pencil fs-7"></i>
                             <input type="file" name="post_thumbnail" accept="image/*" />
 
                             <input type="hidden" name="post_thumbnail_remove" />
                         </label>
-                        
-                        @if(!empty($post->exists) && request()->routeIs('posts.clone'))
-                        <input type="hidden" name="post_thumbnail_clone_id" value="{{ $post->getFirstMediaUrl('post_thumbnail') ? $post->getMedia('post_thumbnail')->value('id') : '' }}" />
+
+                        @if (!empty($post->exists) && request()->routeIs('posts.clone'))
+                            <input type="hidden" name="post_thumbnail_clone_id" value="{{ $post->getFirstMediaUrl('post_thumbnail') ? $post->getMedia('post_thumbnail')->value('id') : '' }}" />
                         @endif
 
                         <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="Cancel avatar">
@@ -388,7 +388,7 @@
                     <div class="col-8 d-flex align-items-center">
                         <div class="form-check form-check-custom form-switch fv-row">
                             <input type="hidden" name="is_pinned" value="0">
-                            <input class="form-check-input w-35px h-20px" type="checkbox" name="is_pinned" value="1" {{ old('is_pinned', $post->is_pinned) ? 'checked' : '' }}/>
+                            <input class="form-check-input w-35px h-20px" type="checkbox" name="is_pinned" value="1" {{ old('is_pinned', $post->is_pinned) ? 'checked' : '' }} />
                             <label class="form-check-label"></label>
                         </div>
                     </div>
@@ -400,7 +400,7 @@
                     <div class="col-8 d-flex align-items-center">
                         <div class="form-check form-check-custom form-switch fv-row">
                             <input type="hidden" name="is_recommended" value="0">
-                            <input class="form-check-input w-35px h-20px" type="checkbox" name="is_recommended" value="1" {{ old('is_recommended', $post->is_recommended) ? 'checked' : '' }}/>
+                            <input class="form-check-input w-35px h-20px" type="checkbox" name="is_recommended" value="1" {{ old('is_recommended', $post->is_recommended) ? 'checked' : '' }} />
                             <label class="form-check-label"></label>
                         </div>
                     </div>
@@ -412,7 +412,7 @@
                     <div class="col-8 d-flex align-items-center">
                         <div class="form-check form-check-custom form-switch fv-row">
                             <input type="hidden" name="is_dmca" value="0">
-                            <input class="form-check-input w-35px h-20px" type="checkbox" name="is_dmca" value="1" {{ old('is_dmca', $post->is_dmca) ? 'checked' : '' }}/>
+                            <input class="form-check-input w-35px h-20px" type="checkbox" name="is_dmca" value="1" {{ old('is_dmca', $post->is_dmca) ? 'checked' : '' }} />
                             <label class="form-check-label"></label>
                         </div>
                     </div>
