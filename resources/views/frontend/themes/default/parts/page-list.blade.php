@@ -20,13 +20,13 @@
             <tr>
                 <td>@lang('wncms::word.maintenance')</td>
                 <td>maintenance</td>
-                <td><a href="{{ route('frontend.pages.single', ['slug' => 'maintenance']) }}">{{ route('frontend.pages.single', ['slug' => 'maintenance']) }}</a></td>
+                <td><a href="{{ route('frontend.pages.show', ['slug' => 'maintenance']) }}">{{ route('frontend.pages.show', ['slug' => 'maintenance']) }}</a></td>
             </tr>
             @foreach(wncms()->page()->getList() as $page)
             <tr>
                 <td>{{ $page->title }}</td>
                 <td>{{ $page->slug }}</td>
-                <td><a href="{{ route('frontend.pages.single', ['slug' => $page->slug ]) }}">{{ route('frontend.pages.single', ['slug' => $page->slug ]) }}</a></td>
+                <td><a href="{{ route('frontend.pages.show', ['slug' => $page->slug ]) }}">{{ route('frontend.pages.show', ['slug' => $page->slug ]) }}</a></td>
             </tr>
             @endforeach
         </tbody>

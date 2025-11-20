@@ -44,7 +44,7 @@ $link->getAttribute('title'),
                 'count' => 10,
             ]) as $link)
             <tr>
-                <td><a href="{{ route('frontend.links.single', ['id' => $link->id]) }}">{{ $link->name }}</a></td>
+                <td><a href="{{ route('frontend.links.show', ['id' => $link->id]) }}">{{ $link->name }}</a></td>
                 <td>{{ $link->url }}</td>
             </tr>
             @endforeach

@@ -42,7 +42,7 @@
             @foreach($faqs as $faq)
             <tr>
                 <td>{{ $faq->id }}</td>
-                <td><a href="{{ route('frontend.faqs.single', ['slug' => $faq->slug]) }}">{{ $faq->question }}</a></td>
+                <td><a href="{{ route('frontend.faqs.show', ['slug' => $faq->slug]) }}">{{ $faq->question }}</a></td>
                 <td>
                     @foreach($faq->tagsWithType('faq_tag') as $faqTag)
                     @if($loop->index != 0),@endif

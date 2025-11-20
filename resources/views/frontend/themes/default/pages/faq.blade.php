@@ -27,7 +27,7 @@
                     <td>{{ $faq->website?->domain }}</td>
                     <td>{{ $faq->status }}</td>
                     <td>{{ $faq->slug }}</td>
-                    <td><a href="{{ route('frontend.faqs.single', ['slug' => $faq->slug]) }}">{{ $faq->question }}</a></td>
+                    <td><a href="{{ route('frontend.faqs.show', ['slug' => $faq->slug]) }}">{{ $faq->question }}</a></td>
                     <td>{{ $faq->answer }}</td>
                     <td>{{ $faq->tagsWithType('faq_tag')->pluck('name')->implode(',') }}</td>
                     <td>{{ $faq->label }}</td>

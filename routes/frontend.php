@@ -33,7 +33,7 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     //link
     Route::prefix('link')->controller(LinkController::class)->group(function () {
         Route::get('/', 'index')->name('links.index');
-        Route::get('{id}', 'single')->name('links.single');
+        Route::get('{id}', 'show')->name('links.show');
         Route::get('{tagType}/{slug}', 'archive')->name('links.archive');
     });
 
@@ -47,9 +47,9 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         // Route::get('category/{tagName?}', 'category')->name('posts.category');
         // Route::get('tag/{tagName?}', 'tag')->name('posts.tag');
         // Route::get('{tagType}/{tagName?}', 'archive')->name('posts.archive');
-        // Route::get('{type}/{slug}', [PostController::class, 'tag'])
-        //     ->where('type', wncms()->tag()->getTagTypes(wncms()->getModelClass('post'), 'short', '|'))
-        //     ->name('posts.tag');
+        Route::get('{type}/{slug}', [PostController::class, 'tag'])
+            ->where('type', wncms()->tag()->getTagTypesForRoute(wncms()->getModelClass('post')))
+            ->name('posts.tag');
 
         Route::get('list/{name?}/{period?}', 'post_list')->where('name', 'hot|new|like|fav')->where('period', 'today|yesterday|week|month')->name('posts.list');
 
@@ -70,6 +70,8 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
 
     // user pages
     Route::prefix('user')->controller(UserController::class)->group(function () {
+        Route::get('{username}/posts', 'posts')->name('users.posts');
+
         Route::get('/login', 'show_login')->name('users.login');
         Route::post('/login/submit', 'login')->name('users.login.submit');
         Route::post('/login/ajax', 'login_ajax')->name('users.login.ajax');
@@ -117,5 +119,5 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     }
 
     //page
-    Route::get('page/{slug?}', [PageController::class, 'single'])->name('pages.single');
+    Route::get('page/{slug?}', [PageController::class, 'show'])->name('pages.show');
 });
