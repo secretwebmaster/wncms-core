@@ -1,5 +1,41 @@
 # Changelog
 
+## v6.0.4 2025-11-30
+
+-   Added new **Page Template System** with template registration and template-driven page rendering.
+-   Introduced **Page Builder** UI, including backend controller, views, and content storage model.
+-   Updated starter theme `config.php` to align with new template definitions.
+-   Reorganized and refactored theme option input Blade files for improved structure and extensibility.
+-   Improved MenuManager logic to support template-based navigation behavior.
+
+## v6.0.3 2025-11-20
+
+-   Updated core controllers, resources, models, and managers for more consistent routing, improved data loading, and unified caching logic.
+-   Redesigned backend **Theme Options** UI with tab navigation, refined Pickr behavior, and improved layout.
+-   Major update to starter theme configuration, enhancing structure, security, and documentation.
+-   Added a new default theme blueprint in `resources/themes`.
+-   Improved version builder internals and debugging suffix logic.
+-   Added core constants `WNCMS_START` and `WNCMS_THEME_START`, and ensured `themeId` is globally shared to all views.
+-   Frontend PostController now supports automatic theme namespace fallback.
+-   Replaced old theme creation command with the new `CreateTheme` command.
+-   Fixed route inconsistencies on frontend archive & FAQ pages.
+-   Improved Tagify input behavior and fixed validation logic.
+-   Enhanced backend post index view with bulk clone modal and better column display.
+-   Added rounded-3px and rounded-5px utility CSS classes.
+
+## v6.0.2 2025-11-19
+
+-   Themes can now be loaded directly from the **public/themes** directory.
+-   Improved theme and website handling to support more flexible theme structures.
+-   Added frontend API endpoints for Post index/show with stronger tag regex validation.
+-   Updated settings UI with improved card borders and re-enabled Developer tab.
+
+## v6.0.1 2025-11-18
+
+-   Installer now includes default values for previously missing environment items.
+-   Aligned all installer input names and environment keys for consistency.
+-   Improved `app_locale` select behavior using correct fallback handling.
+
 ## v6.0.0 2025-11-18
 
 -   Official release
