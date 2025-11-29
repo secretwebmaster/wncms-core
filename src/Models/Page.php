@@ -8,6 +8,7 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Wncms\Models\BaseModel;
 use Wncms\Translatable\Traits\HasTranslations;
+use Illuminate\Http\Request;
 
 class Page extends BaseModel implements HasMedia
 {
@@ -233,5 +234,222 @@ class Page extends BaseModel implements HasMedia
         }
 
         return $fallback;
+    }
+
+    /**
+     * Page Builder
+     */
+    public function builderContents()
+    {
+        return $this->hasMany(PageBuilderContent::class, 'page_id')
+            ->orderBy('version', 'asc');
+    }
+
+    public function latestBuilderContent(string $builderType = 'default')
+    {
+        return $this->builderContents()
+            ->where('builder_type', $builderType)
+            ->orderByDesc('version')
+            ->first();
+    }
+
+    public function page_templates()
+    {
+        return $this->hasMany(wncms()->getModelClass('page_template'));
+    }
+
+    /**
+     * Get the template row for the current theme + blade_name.
+     */
+    public function getCurrentTemplateRow()
+    {
+        if (!$this->blade_name || !$this->website) {
+            return null;
+        }
+
+        return $this->page_templates()
+            ->where('theme_id', $this->website->theme)
+            ->where('template_id', $this->blade_name)
+            ->first();
+    }
+
+    /**
+     * Convenient accessor for the decoded template values.
+     */
+    public function getTemplateValues()
+    {
+        $row = $this->getCurrentTemplateRow();
+
+        if (!$row || empty($row->value)) {
+            return [];
+        }
+
+        return is_array($row->value) ? $row->value : json_decode($row->value, true);
+    }
+    protected function processFieldGroup(array $inputs, array $field, string $sectionName, int $accordionIndex = null, int $inlineIndex = null)
+    {
+        $results = [];
+
+        // sortable
+        if (!empty($field['sortable'])) {
+            $sortKey = $field['name'] ?? null;
+            if ($sortKey && !empty($inputs[$sectionName][$sortKey])) {
+                $results[$sortKey] = $inputs[$sectionName][$sortKey];
+            }
+        }
+
+        // inline
+        if (($field['type'] ?? '') === 'inline') {
+            $repeat = $field['repeat'] ?? 1;
+            for ($i = 1; $i <= $repeat; $i++) {
+                foreach ($field['sub_items'] as $sub) {
+                    $key = $sub['name'];
+                    if ($accordionIndex !== null && $repeat > 1) $finalKey = "{$key}_{$accordionIndex}_{$i}";
+                    elseif ($accordionIndex !== null) $finalKey = "{$key}_{$accordionIndex}";
+                    elseif ($repeat > 1) $finalKey = "{$key}_{$i}";
+                    else $finalKey = $key;
+
+                    $val = $inputs[$sectionName][$finalKey] ?? null;
+
+                    // tagify
+                    if (($sub['type'] ?? '') === 'tagify' && !empty($val) && wncms()->isValidTagifyJson($val)) {
+                        $val = implode(',', collect(json_decode($val))->pluck('value')->toArray());
+                    }
+
+                    // image
+                    if (($sub['type'] ?? '') === 'image' && request()->hasFile("template_inputs.{$sectionName}.{$finalKey}")) {
+                        $this->clearMediaCollection("tpl_{$sectionName}_{$finalKey}");
+                        $media = $this->addMediaFromRequest("template_inputs.{$sectionName}.{$finalKey}")
+                            ->toMediaCollection("tpl_{$sectionName}_{$finalKey}");
+                        $val = str_replace(env('APP_URL'), '', $media->getUrl());
+                    }
+
+                    $results[$finalKey] = $val;
+                }
+            }
+            return $results;
+        }
+
+        // accordion
+        if (($field['type'] ?? '') === 'accordion') {
+            $repeat = $field['repeat'] ?? 1;
+            for ($i = 1; $i <= $repeat; $i++) {
+                foreach ($field['content'] as $child) {
+                    $childResults = $this->processFieldGroup($inputs, $child, $sectionName, $i, null);
+                    $results = array_merge($results, $childResults);
+                }
+            }
+            return $results;
+        }
+
+        // normal
+        $name = $field['name'] ?? null;
+        if (!$name) return [];
+
+        $finalKey = $accordionIndex !== null ? "{$name}_{$accordionIndex}" : $name;
+        $val = $inputs[$sectionName][$finalKey] ?? null;
+
+        // tagify
+        if (($field['type'] ?? '') === 'tagify' && !empty($val) && wncms()->isValidTagifyJson($val)) {
+            $val = implode(',', collect(json_decode($val))->pluck('value')->toArray());
+        }
+
+        // image
+        if (($field['type'] ?? '') === 'image' && request()->hasFile("template_inputs.{$sectionName}.{$finalKey}")) {
+            $this->clearMediaCollection("tpl_{$sectionName}_{$finalKey}");
+            $media = $this->addMediaFromRequest("template_inputs.{$sectionName}.{$finalKey}")
+                ->toMediaCollection("tpl_{$sectionName}_{$finalKey}");
+            $val = str_replace(env('APP_URL'), '', $media->getUrl());
+        }
+
+        return [$finalKey => $val];
+    }
+
+
+    /**
+     * MAIN handler
+     */
+    public function saveTemplateInputs(Request $request)
+    {
+        $theme      = wncms()->website()->get()?->theme;
+        $templateId = $this->blade_name;
+
+        $sections = config("theme.{$theme}.templates.{$templateId}.sections", []);
+        $inputs   = $request->input('template_inputs', []);
+
+        $processed = [];
+
+        foreach ($sections as $sectionName => $section) {
+
+            foreach ($section['options'] ?? [] as $option) {
+
+                $chunk = $this->processFieldGroup($inputs, $option, $sectionName);
+
+                foreach ($chunk as $k => $v) {
+                    $processed[$sectionName][$k] = $v;
+                }
+            }
+        }
+
+        $this->savePageTemplateValues([
+            'theme_id'    => $theme,
+            'template_id' => $templateId,
+            'value'       => $processed,
+        ]);
+    }
+
+    /**
+     * Save template values for the current theme + blade_name.
+     */
+    public function savePageTemplateValues(array $data)
+    {
+        return $this->page_templates()->updateOrCreate(
+            [
+                'theme_id'    => $data['theme_id'],
+                'template_id' => $data['template_id'],
+            ],
+            [
+                'value' => $data['value'],
+            ]
+        );
+    }
+
+    public function option(string $key, $default = null)
+    {
+        $theme = wncms()->website()->get()?->theme ?? 'default';
+        $templateId = $this->blade_name;
+
+        $row = $this->page_templates()
+            ->where('theme_id', $theme)
+            ->where('template_id', $templateId)
+            ->first();
+
+        $values = $row?->value ?? [];
+
+
+        foreach (explode('.', $key) as $segment) {
+            if (!is_array($values) || !array_key_exists($segment, $values)) {
+                return $default;
+            }
+            $values = $values[$segment];
+        }
+
+        return $values;
+    }
+
+    
+    public function allOptions()
+    {
+        $theme = wncms()->website()->get()?->theme ?? 'default';
+        $templateId = $this->blade_name;
+
+        $row = $this->page_templates()
+            ->where('theme_id', $theme)
+            ->where('template_id', $templateId)
+            ->first();
+
+        $values = $row?->value ?? [];
+
+        return $values;
     }
 }

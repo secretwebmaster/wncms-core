@@ -17,7 +17,7 @@ return new class extends Migration
                 $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
                 $table->string('status')->default('published'); // published | drafted | trashed 
                 $table->string('visibility')->default('public'); // public | member | admin
-                $table->string('type')->default('plain'); // plain | builder1 | builder2
+                $table->string('type')->default('plain'); // plain | template | builder2
                 $table->string('blade_name')->nullable();
                 $table->string('title')->index();
                 $table->string('slug')->unique();

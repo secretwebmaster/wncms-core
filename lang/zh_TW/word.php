@@ -2253,6 +2253,9 @@ $words = [
     // 6.0.1
     'multi_website_hint' => '您可以在此處管理多個網站。',
 
+    // 6.0.4
+    'no_template_option_found' => '未找到範本選項，請先保存一次',
+
 ];
 
 $locale = basename(__DIR__);

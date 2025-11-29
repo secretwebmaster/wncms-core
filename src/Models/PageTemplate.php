@@ -31,9 +31,9 @@ class PageTemplate extends BaseModel
      * Relationships
      * ----------------------------------------------------------------------------------------------------
      */
-    // public function page()
-    // {
-    //     return $this->belongsTo(wncms()->getModelClass('page'));
-    // }
+    public function page()
+    {
+        return $this->belongsTo(wncms()->getModelClass('page'));
+    }
 
 }

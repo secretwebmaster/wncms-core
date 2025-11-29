@@ -1,13 +1,5 @@
 @extends('wncms::layouts.backend')
 
-@push('head_css')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css" />
-
-{{-- Sortable JS --}}
-<script src="{{ asset('wncms/js/sortable.min.js') }}"></script>
-
-@endpush
-
 @section('content')
 
 @include('wncms::backend.parts.message')
@@ -17,13 +9,12 @@
     @method('PATCH')
 
     @include('wncms::backend.pages.form-items', [
-        'submitLabelText' => __('wncms::word.update'),
-        'available_templates' => $available_templates,
+        'submitLabelText'       => __('wncms::word.update'),
+        'available_templates'   => $available_templates,
+        'page_template_options' => $page_template_options ?? [],
+        'page_template_values'  => $page_template_values ?? [],
     ])
+
 </form>
 
 @endsection
-
-@push('foot_js')
-@include('wncms::common.js.tinymce')
-@endpush

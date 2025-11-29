@@ -22,37 +22,45 @@
             $currentValue = $current_options[$pageWidgetId]['fields'][$option['name']] ?? null;
         }
     }
-
 @endphp
 
-@if ($option['type'] == 'heading' || $option['type'] == 'sub_heading')
-
-    @if ($option['type'] == 'heading')
-
-        <div id="{{ $option['label'] ?? '' }}" class="row mb-3 bg-dark rounded mx-0 @if (($option_index ?? null) !== 0) mt-20 @endif">
-            <h2 class="col-lg-4 col-form-label fw-bold fs-3 text-gray-100 d-inline-block">{{ $option['label'] ?? '' }}</h2>
-            @if (!empty($option['description']))
-                <h6 class="text-muted">{!! $option['description'] !!}</h6>
-            @endif
-        </div>
-    @elseif($option['type'] == 'sub_heading')
-        <div id="{{ $option['label'] ?? '' }}" class="row rounded mw-100 mx-0 mb-3 mt-10">
-            <h3 class="col-lg-4 col-form-label fw-bold fs-2 text-gray-700 text-decoration-underline">{{ $option['label'] ?? '' }}</h3>
-            @if (!empty($option['description']))
-                <h6 class="text-gray-900">{!! $option['description'] !!}</h6>
-            @endif
-        </div>
-
-    @endif
+@if ($option['type'] == 'heading')
+    <div id="{{ $option['label'] ?? '' }}" class="row mb-3 bg-dark rounded mx-0 @if (($option_index ?? null) !== 0) mt-20 @endif">
+        <h2 class="col-lg-4 col-form-label fw-bold fs-3 text-gray-100 d-inline-block">{{ $option['label'] ?? '' }}</h2>
+        @if (!empty($option['description']))
+            <h6 class="text-muted">{!! $option['description'] !!}</h6>
+        @endif
+    </div>
+@elseif($option['type'] == 'sub_heading')
+    <div id="{{ $option['label'] ?? '' }}" class="row rounded mw-100 mx-0 mb-3 mt-10">
+        <h3 class="col-lg-4 col-form-label fw-bold fs-2 text-gray-700 text-decoration-underline">{{ $option['label'] ?? '' }}</h3>
+        @if (!empty($option['description']))
+            <h6 class="text-gray-900">{!! $option['description'] !!}</h6>
+        @endif
+    </div>
 @elseif($option['type'] == 'display_image')
-    <img class="rounded my-3" src="{{ asset($option['path'] ?? 'wncms/images/placeholders/upload.png') }}" style="max-width: 100%;width:{{ $option['width'] ?? '' }};height:{{ $option['height'] ?? '' }}">
+    <div class="row mb-3 mw-100 mx-0">
+        @if (!empty($option['col']))
+            <div class="col-{{ $option['col'] }}">
+                <img class="rounded my-3" src="{{ asset($option['path'] ?? 'wncms/images/placeholders/upload.png') }}" style="max-width: 100%;width:{{ $option['width'] ?? '' }}px;height:{{ $option['height'] ?? '' }}px;">
+            </div>
+        @elseif(!empty($option['width']) || !empty($option['height']))
+            <div>
+                <img class="rounded my-3" src="{{ asset($option['path'] ?? 'wncms/images/placeholders/upload.png') }}" style="width:{{ $option['width'] ?? '' }}px;height:{{ $option['height'] ?? '' }}px;">
+            </div>
+        @else
+            <div>
+                <img class="rounded my-3" src="{{ asset($option['path'] ?? 'wncms/images/placeholders/upload.png') }}" style="max-width: 100%;">
+            </div>
+        @endif
+    </div>
 @elseif($option['type'] == 'hidden')
     <input type="hidden" name="{{ $inputName }}" value="{{ $currentValue }}">
 @elseif($option['type'] == 'inline')
     @if (!empty($option['repeat']))
         @for ($i = 1; $i <= $option['repeat']; $i++)
             @php
-                $suffix = !empty($option['repeat']) ? "_{$i}" : '';
+                $suffix = "_{$i}";
                 $newOption = $option;
                 if (!empty($newOption['sub_items']) && !empty($option['repeat'])) {
                     foreach ($newOption['sub_items'] as &$newOptionSubItem) {
@@ -90,7 +98,6 @@
         </label>
 
         <div class="col-lg-9 @if ($option['type'] == 'boolean') d-flex align-items-center @endif">
-
             @if ($option['type'] == 'text' || $option['type'] == 'number')
 
                 <input type="{{ $option['type'] }}"
@@ -143,8 +150,10 @@
                         @if (empty($option['required']))
                             <option value="">@lang('wncms::word.please_select')</option>
                         @endif
-                        @foreach (wncms_get_pages($website ?? null) as $page)
-                            <option value="{{ $page->id }}" @if ($currentValue == $page->id) selected @endif>{{ $page->title }}</option>
+                        @foreach (wncms()->page()->getList(['website_id' => $website?->id, 'cache' => false]) as $page)
+                            <option value="{{ $page->id }}" @selected($currentValue == $page->id)>
+                                {{ $page->title }}
+                            </option>
                         @endforeach
                     </select>
                 @elseif($option['options'] == 'menus')
@@ -171,7 +180,7 @@
                             </option>
                         @endforeach
                     </select>
-                @elseif($option['options'] == 'contact_forms')
+                    {{-- @elseif($option['options'] == 'contact_forms')
                     <select name="{{ $inputName }}" class="form-select form-select-sm" @disabled(!empty($option['disabled']) || !empty($disabled)) @required(!empty($option['required']))>
                         @if (empty($option['required']))
                             <option value="">@lang('wncms::word.please_select')</option>
@@ -179,7 +188,7 @@
                         @foreach ($wncms->contact_form()->getList() as $contact_form)
                             <option value="{{ $contact_form->id }}" @if ($currentValue == $contact_form->id) selected @endif>{{ $contact_form->name }}</option>
                         @endforeach
-                    </select>
+                    </select> --}}
                 @else
                     <select name="{{ $inputName }}" class="form-select form-select-sm" @disabled(!empty($option['disabled']) || !empty($disabled)) @required(!empty($option['required']))>
                         @if (empty($option['required']))
@@ -258,7 +267,7 @@
                         value="{{ $currentValue }}"
                         placeholder="{{ $option['placeholder'] ?? '' }}"
                         @disabled(!empty($option['disabled']) || !empty($disabled)) />
-                    <div class="colorpicker-input" data-input="inputs[{{ $option['name'] }}]" data-current="{{ $current_options[$option['name']] ?? '#ccc' }}"></div>
+                    <div class="colorpicker-input" data-input="{{ $inputName }}" data-current="{{ $current_options[$option['name']] ?? '#ccc' }}"></div>
                 </div>
             @elseif($option['type'] == 'tagify')
                 @if ($option['options'] == 'tags')
@@ -470,58 +479,80 @@
                         });
                     </script>
                 @elseif($option['options'] == 'menus')
+                    @php
+                        // Load all menus (value = id, name = menu name)
+                        $menus = wncms()
+                            ->menu()
+                            ->getList([], $website?->id)
+                            ->map(function ($menu) {
+                                return ['value' => $menu->id, 'name' => $menu->name];
+                            })
+                            ->toArray();
+
+                        // Convert saved IDs → menu names
+                        $currentMenus = wncms()
+                            ->menu()
+                            ->getList([
+                                'names' => explode(',', $currentValue), // same as posts using explode
+                                'website_id' => $website?->id,
+                                'cache' => false,
+                            ])
+                            ->pluck('name', 'id')
+                            ->toArray();
+
+                        // Display comma-separated menu names
+                        $current_options[$option['name']] = implode(',', $currentMenus);
+
+                    @endphp
+
                     <input id="tagify_{{ $option_index }}"
                         class="form-control form-control-sm p-0"
                         name="{{ $inputName }}"
-                        value="@if (!empty($current_options[$option['name']]) && $current_options[$option['name']]) {{ wncms()->menu()->getList($current_options[$option['name']], $website?->id)->pluck('name')->implode(',') ?? '' }} @endif"
+                        value="{{ $current_options[$option['name']] }}"
                         @if (!empty($option['required'])) required @endif
-                        @if (!empty($option['disabled'])) disabled @endif />
+                        @disabled(!empty($option['disabled']) || !empty($disabled)) />
 
-                        <script type="text/javascript">
-                            window.addEventListener('DOMContentLoaded', (event) => {
-                                //Tagify
-                                var input = document.querySelector("#tagify_{{ $option_index }}");
+                    <script type="text/javascript">
+                        window.addEventListener('DOMContentLoaded', (event) => {
+                            var input = document.querySelector("#tagify_{{ $option_index }}");
+                            var menus = @json($menus);
 
-                                //生成列表
-                                var whitelist = @json(wncms()->menu()->getList([], $website?->id)->map(function ($menu) {
-                                    return ['id' => $menu->id, 'name' => $menu->name];
-                                })->toArray());
+                            // Initialize Tagify (same as posts)
+                            tagify = new Tagify(input, {
+                                whitelist: menus,
+                                enforceWhitelist: {{ isset($option['whitelist_tag_only']) && $option['whitelist_tag_only'] == false ? 'false' : 'true' }},
+                                // skipInvalid: true,
+                                // duplicates: false,
+                                tagTextProp: 'name',
+                                maxTags: {{ $option['limit'] ?? 999 }},
+                                dropdown: {
+                                    maxItems: 100,
+                                    mapValueTo: 'name',
+                                    classname: "tagify__inline__suggestions",
+                                    enabled: 0,
+                                    closeOnSelect: false,
+                                    searchKeys: ['name', 'value'],
+                                },
+                            });
 
-                                // Initialize Tagify script on the above inputs
-                                new Tagify(input, {
-                                    whitelist: whitelist.map(function(menu) {
-                                        return menu.name;
-                                    }),
-                                    enforceWhitelist: true,
-                                    maxTags: {{ $option['limit'] ?? 999 }},
-                                    valueProperty: "id",
-                                    originalInputValueFormat: function(valuesArr) {
-                                        return valuesArr.map(function(item) {
-                                            for (var i = 0; i < whitelist.length; i++) {
-                                                if (whitelist[i].name == item.value) {
-                                                    return whitelist[i].id;
-                                                }
-                                            }
-                                            return null;
-                                        }).join(',');
-                                    },
-                                    dropdown: {
-                                        maxItems: 100, // <- mixumum allowed rendered suggestions
-                                        classname: "tagify__inline__suggestions", // <- custom classname for this dropdown, so it could be targeted
-                                        enabled: 0, // <- show suggestions on focus
-                                        closeOnSelect: false, // <- do not hide the suggestions dropdown once an item has been selected
-                                    },
-                                });
+                            // handle value changes
+                            input.addEventListener('change', function onChange(e) {
+                                console.log(e.target.value);
+                            });
 
-
-                                input.addEventListener('change', onChange);
-
-                                function onChange(e) {
-                                    // outputs a String
-                                    console.log(e.target.value);
+                            // using 3-party script "dragsort"
+                            var dragsort = new DragSort(tagify.DOM.scope, {
+                                selector: '.' + tagify.settings.classNames.tag,
+                                callbacks: {
+                                    dragEnd: onDragEnd
                                 }
                             });
-                        </script>
+
+                            function onDragEnd(elm) {
+                                tagify.updateValueByDOMTags()
+                            }
+                        });
+                    </script>
                 @else
                     <input id="tagify_{{ $option_index }}"
                         class="form-control form-control-sm p-0"
@@ -574,109 +605,162 @@
                     </script>
                 @endif
             @elseif($option['type'] == 'accordion')
+                @php
+                    // Auto-generate a stable accordion key/id if not provided
+                    $accordionKey = $option['id'] ?? ($option['name'] ?? 'acc_' . substr(md5(json_encode($option)), 0, 6));
+
+                    $accordionDomId = $accordionKey . '_' . $randomIdSuffix;
+                @endphp
+
                 @if (!empty($option['repeat']) && $option['repeat'] > 1)
                     <div class="mb-3">
-                        <button type="button" class="btn btn-sm btn-dark fw-bold expand-all-accordion-items" data-target=".accordion_{{ $option['id'] . $randomIdSuffix }}">@lang('wncms::word.expand_all')</button>
-                        <button type="button" class="btn btn-sm btn-dark fw-bold collapse-all-accordion-items" data-target=".accordion_{{ $option['id'] . $randomIdSuffix }}">@lang('wncms::word.collapse_all')</button>
+                        <button type="button"
+                            class="btn btn-sm btn-dark fw-bold expand-all-accordion-items"
+                            data-target=".accordion_{{ $accordionDomId }}">
+                            @lang('wncms::word.expand_all')
+                        </button>
+
+                        <button type="button"
+                            class="btn btn-sm btn-dark fw-bold collapse-all-accordion-items"
+                            data-target=".accordion_{{ $accordionDomId }}">
+                            @lang('wncms::word.collapse_all')
+                        </button>
                     </div>
                 @endif
 
-                <div class="accordion accordion_{{ $option['id'] . $randomIdSuffix }} mb-1" id="{{ $option['id'] . $randomIdSuffix }}">
+                @php
+                    // Load saved order JSON: {"order_3":1,"order_2":2,"order_1":3}
+                    $savedOrder = $current_options[$option['name']] ?? null;
 
-                    @for ($i = 1; $i <= ($option['repeat'] ?? 1); $i++)
+                    if (is_string($savedOrder)) {
+                        $savedOrder = json_decode($savedOrder, true);
+                    }
+
+                    // Build sorted index order: [1 => 3, 2 => 2, 3 => 1]
+                    $itemOrder = [];
+
+                    if (!empty($savedOrder)) {
+                        foreach ($savedOrder as $key => $pos) {
+                            $index = (int) str_replace('order_', '', $key);
+                            $itemOrder[(int) $pos] = $index;
+                        }
+                        ksort($itemOrder);
+                    }
+
+                    $repeat = $option['repeat'] ?? 1;
+
+                    // Default order if not saved
+                    if (empty($itemOrder)) {
+                        $itemOrder = range(1, $repeat);
+                    }
+                @endphp
+
+                <div class="accordion accordion_{{ $accordionDomId }} mb-1"
+                    id="{{ $accordionDomId }}">
+
+                    @foreach ($itemOrder as $i)
                         @php
-                            $suffix = !empty($option['repeat']) ? "_{$i}" : '';
-                            $labelSuffix = !empty($option['repeat']) ? $i : '';
+                            $suffix = "_{$i}"; 
+                            $labelSuffix = $repeat > 1 ? $i : '';
                         @endphp
 
                         <div class="accordion-item">
 
                             @if (!empty($option['sortable']))
-                                <input class="item-order-input" type="hidden" name="{{ $inputNameKey }}[{{ $option['id'] }}_item_order_{{ $i }}]" value="{{ $i }}">
+                                <input class="item-order-input"
+                                    type="hidden"
+                                    name="{{ $inputNameKey }}[{{ $accordionKey }}][order_{{ $i }}]"
+                                    value="{{ $loop->iteration }}">
                             @endif
 
-                            <h2 class="accordion-header" id="{{ $option['id'] . $randomIdSuffix . $suffix }}_header_1">
-                                <button class="accordion-button accordion-handle fs-4 text-gray-800 fw-bold p-3 bg-gray-300" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $option['id'] . $randomIdSuffix . $suffix }}_body_1" aria-expanded="true" aria-controls="{{ $option['id'] . $randomIdSuffix . $suffix }}_body_1">
+                            <h2 class="accordion-header"
+                                id="{{ $accordionDomId . $suffix }}_header">
+
+                                <button class="accordion-button fs-4 text-gray-800 fw-bold p-3 bg-gray-300"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#{{ $accordionDomId . $suffix }}_body"
+                                    aria-expanded="true"
+                                    aria-controls="{{ $accordionDomId . $suffix }}_body">
                                     @if (!empty($option['sortable']))
-                                        <i class="fa-solid fa-bars me-2"></i>
-                                    @endif {{ $option['label'] . $labelSuffix }}
+                                        <i class="fa-solid fa-bars me-2 drag-handle"></i>
+                                    @endif
+                                    {{ $option['label'] . $labelSuffix }}
                                 </button>
+
                             </h2>
 
-                            <div id="{{ $option['id'] . $randomIdSuffix . $suffix }}_body_1" class="accordion-collapse collapse" aria-labelledby="{{ $option['id'] . $randomIdSuffix . $suffix }}_header_1" data-bs-parent="#{{ $option['id'] . $randomIdSuffix }}">
+                            <div id="{{ $accordionDomId . $suffix }}_body"
+                                class="accordion-collapse collapse"
+                                aria-labelledby="{{ $accordionDomId . $suffix }}_header"
+                                data-bs-parent="#{{ $accordionDomId }}">
+
                                 <div class="accordion-body p-3">
-                                    @foreach ($option['content'] as $tabIndex => $tabConten)
+                                    @foreach ($option['content'] as $tabContent)
                                         @php
-                                            //accordion content
-                                            $indexedTabContent = $tabConten;
+                                            $indexed = $tabContent;
 
-                                            if (!empty($indexedTabContent['name'])) {
-                                                $indexedTabContent['name'] .= $suffix;
+                                            if (!empty($indexed['name'])) {
+                                                $indexed['name'] = $indexed['name'] . $suffix;
                                             }
 
-                                            if (!empty($indexedTabContent['sub_items']) && !empty($option['repeat'])) {
-                                                foreach ($indexedTabContent['sub_items'] as &$subItem) {
-                                                    $subItem['name'] .= $suffix;
-                                                    // dd($subItem['name']);
-                                                }
+                                            if (!empty($indexed['sub_items'])) {
+                                                // inline inside accordion: sub_item_name_1  OR sub_item_name_1_2 for repeat
+                                                $indexed['sub_items'] = array_map(function ($sub) use ($suffix) {
+                                                    if (!empty($sub['name'])) {
+                                                        $sub['name'] = $sub['name'] . $suffix;
+                                                    }
+                                                    return $sub;
+                                                }, $indexed['sub_items']);
                                             }
 
-                                            $indexedTabContent['input_name_key'] = $inputNameKey;
+                                            $indexed['input_name_key'] = $inputNameKey;
                                         @endphp
 
                                         @include('wncms::backend.parts.inputs', [
-                                            'option' => $indexedTabContent,
-                                            'isPageTemplateValue' => $isPageTemplateValue ?? false,
-                                            'pageWidgetId' => $pageWidgetId ?? null,
+                                            'option' => $indexed,
+                                            'inputNameKey' => $inputNameKey,
                                         ])
                                     @endforeach
                                 </div>
                             </div>
+
                         </div>
-                    @endfor
+                    @endforeach
 
                     @if (!empty($option['sortable']))
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
-                                // Initialize Sortable for the accordion
-                                new Sortable(document.getElementById('{{ $option['id'] . $randomIdSuffix }}'), {
-                                    handle: '.accordion-header', // Class of the handle for dragging
-                                    animation: 150, // Animation duration in milliseconds
-                                    onEnd: function(evt) {
+                                var accEl = document.getElementById('{{ $accordionDomId }}');
+                                if (!accEl) return;
 
-                                        var itemOrderInput = $(evt.item).find('.item-order-input');
-                                        // console.log("itemOrderInput.length = " + itemOrderInput.length);
+                                new Sortable(accEl, {
+                                    draggable: '.accordion-item',
+                                    handle: '.drag-handle',
+                                    animation: 150,
 
-                                        if (itemOrderInput.length) {
-                                            // console.log('hidden input is found')
-                                            updateHiddenInputValues(evt.from.children);
-                                            // console.log('updated hidden value')
-                                        }
-
-                                        // evt.oldIndex is the old index of the dragged item
-                                        // evt.newIndex is the new index of the dragged item
-
-                                        // Perform actions on change here
-                                        // console.log('Accordion item order changed!');
-                                        // console.log('Old Index:', evt.oldIndex);
-                                        // console.log('New Index:', evt.newIndex);
+                                    onStart: function(evt) {
+                                        let body = evt.item.querySelector('.accordion-collapse');
+                                        if (body) $(body).collapse('show');
                                     },
-                                });
-                            });
 
-                            function updateHiddenInputValues(items) {
-                                console.log(items)
-                                // Update the hidden input values based on the new order
-                                items.forEach(function(item, index) {
-                                    const hiddenInput = item.querySelector('.item-order-input');
-                                    if (hiddenInput) {
-                                        // Update the value of the hidden input based on the new order
-                                        hiddenInput.value = index + 1;
+                                    onEnd: function(evt) {
+                                        updateHiddenInputs(evt.from.children);
                                     }
                                 });
-                            }
+
+                                function updateHiddenInputs(items) {
+                                    Array.prototype.forEach.call(items, function(item, index) {
+                                        var input = item.querySelector('.item-order-input');
+                                        if (input) {
+                                            input.value = index + 1;
+                                        }
+                                    });
+                                }
+                            });
                         </script>
                     @endif
+
                 </div>
 
             @endif
@@ -684,8 +768,6 @@
             @if (!empty($option['description']))
                 <div class="text-muted p-2">{{ $option['description'] }}</div>
             @endif
-
         </div>
     </div>
-
 @endif

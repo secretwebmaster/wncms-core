@@ -33,29 +33,60 @@ class PageController extends BackendController
 
     public function create($id = null)
     {
+        // Load existing page if cloning or editing draft during create
         if ($id) {
             $page = $this->modelClass::find($id);
             if (!$page) {
-                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+                return back()->withMessage(__('wncms::word.model_not_found', [
+                    'model_name' => __('wncms::word.' . $this->singular)
+                ]));
             }
         } else {
             $page = new $this->modelClass;
         }
 
+        // Load users
         if (isAdmin()) {
             $users = wncms()->getModelClass('user')::all();
         } else {
             $users = wncms()->getModelClass('user')::where('id', auth()->id())->get();
         }
 
+        // Load available theme templates
+        if (gss('multi_website')) {
+            $theme = $page->website?->theme ?? wncms()->website()->get()?->theme;
+        } else {
+            $theme = wncms()->website()->get()?->theme;
+        }
+
+        $templateConfig = config("theme.{$theme}.templates", []);
+
+        $available_templates = [];
+        foreach ($templateConfig as $templateId => $templateDef) {
+            $available_templates[] = [
+                'id'         => $templateId,
+                'blade_name' => $templateId,
+                'label'      => $templateDef['label'] ?? $templateId,
+            ];
+        }
+
+        // During create:
+        $page_template_options = [];
+        $page_template_values  = [];
+
         return $this->view('backend.pages.create', [
-            'page_title' => wncms_model_word('page', 'management'),
-            'users' => $users,
-            'sorts' => $this->modelClass::SORTS,
-            'types' => $this->modelClass::TYPES,
-            'statuses' => $this->modelClass::STATUSES,
-            'visibilities' => $this->modelClass::VISIBILITIES,
-            'page' => $page,
+            'page_title'            => wncms_model_word('page', 'management'),
+            'users'                 => $users,
+            'sorts'                 => $this->modelClass::SORTS,
+            'types'                 => $this->modelClass::TYPES,
+            'statuses'              => $this->modelClass::STATUSES,
+            'visibilities'          => $this->modelClass::VISIBILITIES,
+            'page'                  => $page,
+
+            // NEW
+            'available_templates'   => $available_templates,
+            'page_template_options' => $page_template_options,
+            'page_template_values'  => $page_template_values,
         ]);
     }
 
@@ -163,7 +194,7 @@ class PageController extends BackendController
         $this->flush();
 
         return redirect()->route('pages.edit', [
-            'id' => $page->id
+            'id' => $page->id,
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
@@ -174,47 +205,98 @@ class PageController extends BackendController
 
     public function edit($id)
     {
+        // Load users
         if (isAdmin()) {
             $users = wncms()->getModelClass('user')::all();
         } else {
             $users = wncms()->getModelClass('user')::where('id', auth()->id())->get();
         }
 
+        // Load page
         if ($id) {
             $page = $this->modelClass::find($id);
             if (!$page) {
-                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
+                return back()->withMessage(__('wncms::word.model_not_found', [
+                    'model_name' => __('wncms::word.' . $this->singular)
+                ]));
             }
         } else {
             $page = new $this->modelClass;
         }
 
-        if (gss('multi_website')) {
-            $available_templates = collect(config("theme." . $page->website?->theme . ".templates"));
-        } else {
-            $available_templates = collect(config("theme." . wncms()->website()->get()?->theme . ".templates"));
+        $available_templates = [];
+        $page_template_options = [];
+        $page_template_values = [];
+
+        // Handle template config
+        if ($page->type === 'template') {
+
+            if (gss('multi_website')) {
+                $theme = $page->website?->theme ?? wncms()->website()->get()?->theme;
+            } else {
+                $theme = wncms()->website()->get()?->theme;
+            }
+
+            $templateConfig = config("theme.{$theme}.templates", []);
+
+            // Fill dropdown list
+            foreach ($templateConfig as $templateId => $templateDef) {
+                $available_templates[] = [
+                    'id'         => $templateId,
+                    'blade_name' => $templateId,
+                    'label'      => $templateDef['label'] ?? $templateId,
+                ];
+            }
+
+            // Get selected template's grouped options
+            if ($page->blade_name && isset($templateConfig[$page->blade_name])) {
+
+                // Now template is: templates.template1.sections.sectionA.options[]
+                $page_template_options = $templateConfig[$page->blade_name]['sections'] ?? [];
+
+                // Load saved values
+                $row = $page->page_templates()
+                    ->where('theme_id', $theme)
+                    ->where('template_id', $page->blade_name)
+                    ->first();
+
+                $page_template_values = $row?->value ?? [];
+            }
         }
 
+        // dd(
+        //     $templateConfig,
+        //     $page->blade_name,
+        //     $page_template_options,
+        //     $page_template_values,
+        // );
+
         return $this->view('backend.pages.edit', [
-            'page_title' => wncms_model_word('page', 'management'),
-            'page' => $page,
-            'users' => $users,
-            'statuses' => $this->modelClass::STATUSES,
-            'types' => $this->modelClass::TYPES,
-            'visibilities' => $this->modelClass::VISIBILITIES,
-            'available_templates' => $available_templates,
+            'page_title'           => wncms_model_word('page', 'management'),
+            'page'                 => $page,
+            'users'                => $users,
+            'statuses'             => $this->modelClass::STATUSES,
+            'types'                => $this->modelClass::TYPES,
+            'visibilities'         => $this->modelClass::VISIBILITIES,
+            'available_templates'  => $available_templates,
+            'page_template_options' => $page_template_options,
+            'page_template_values' => $page_template_values,
         ]);
     }
 
     public function update(Request $request, $id)
     {
         // dd($request->all());
-
         $page = $this->modelClass::find($id);
         if (!$page) {
-            return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)])]);
+            return redirect()->back()->withInput()->withErrors([
+                'message' => __('wncms::word.model_not_found', [
+                    'model_name' => __('wncms::word.' . $this->singular)
+                ])
+            ]);
         }
 
+        // Locked page checks
         if ($page->is_locked && $request->is_locked) {
             return redirect()->back()->withInput()->withErrors([
                 'message' => __('wncms::word.page_is_lock_please_unlock_and_save_first_to_edit')
@@ -226,66 +308,66 @@ class PageController extends BackendController
             return back()->withMessage(__('wncms::word.page_is_unlocked'));
         }
 
+        // Load user
         if (isAdmin()) {
             $user = wncms()->getModelClass('user')::find($request->user_id) ?? auth()->user();
         } else {
             $user = auth()->user();
         }
 
-        if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
+        if (!$user) {
+            return redirect()->back()->withInput()->withErrors([
+                'message' => __('wncms::word.user_not_found')
+            ]);
+        }
 
-        $request->validate(
-            [
-                // 'title' => 'required|max:255',
-                'status' => 'required',
-                'visibility' => 'required',
-            ],
-            [
-                // 'title.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.title')]),
-                'status.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.status')]),
-                'visibility.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.visibility')]),
-            ]
-        );
+        // Validation
+        $request->validate([
+            'status'     => 'required',
+            'visibility' => 'required',
+        ], [
+            'status.required'     => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.status')]),
+            'visibility.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.visibility')]),
+        ]);
 
+        // Update base fields
         $page->update([
-            'status' => $request->input('status'),
+            'status'     => $request->input('status'),
             'visibility' => $request->input('visibility'),
-            'title' => $request->input('title'),
-            'slug' => $request->input('slug', wncms()->getUniqueSlug('pages')),
-            'remark' => $request->input('remark'),
-            'content' => $request->input('content'),
-            'type' => $request->input('type', 'plain'),
-            'is_locked' => $request->boolean('is_locked'),
+            'title'      => $request->input('title'),
+            'slug'       => $request->input('slug', wncms()->getUniqueSlug('pages')),
+            'remark'     => $request->input('remark'),
+            'content'    => $request->input('content'),
+            'type'       => $request->input('type', 'plain'),
+            'is_locked'  => $request->boolean('is_locked'),
             'blade_name' => $request->input('blade_name'),
         ]);
 
+        // Save grouped template values
+        if ($page->type === 'template' && $page->blade_name && $request->has('template_inputs')) {
 
-        if ($page->type == 'template' && !empty($page->blade_name) && !empty($request->inputs)) {
-            $page->savePageOption($request);
+            $page->saveTemplateInputs($request);
         }
 
-        // options
+        // Save page switches/options
         if ($request->has('options')) {
             $page->setOptions($request->input('options'));
         }
 
-        //thumbnail
+        // Delete thumbnail
         if (!empty($request->page_thumbnail_remove)) {
             $page->clearMediaCollection('page_thumbnail');
         }
 
-        if (!empty($request->page_thumbnail)) {
+        // Upload thumbnail
+        if ($request->hasFile('page_thumbnail')) {
             $page->addMediaFromRequest('page_thumbnail')->toMediaCollection('page_thumbnail');
         }
 
-        $page->savePageOption($request);
-
-        //clear cache
+        // Clear cache
         $this->flush();
 
-        return redirect()->route('pages.edit', [
-            'id' => $page->id
-        ])->withMessage(__('wncms::word.successfully_updated'));
+        return back()->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function get_available_templates(Request $request)

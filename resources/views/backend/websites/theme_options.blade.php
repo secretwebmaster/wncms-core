@@ -9,6 +9,11 @@
     </style>
 @endpush
 
+@push('head_js')
+<script src="{{ asset('wncms/js/sortable.min.js') }}"></script>
+<script src="{{ asset('wncms/js/jquery.dragsort.min.js?v=' . wncms_get_version('js')) }}"></script>
+@endpush
+
 @section('content')
 
     @include('wncms::backend.parts.message')
@@ -127,7 +132,6 @@
 @push('foot_js')
     @include('wncms::common.js.tinymce')
 
-    <script src="{{ asset('wncms/js/jquery.dragsort.min.js?v=' . wncms_get_version('js')) }}"></script>
     <script>
         window.addEventListener('DOMContentLoaded', (event) => {
 
@@ -152,7 +156,6 @@
                     tabTrigger.show()
                 }
             }
-
 
             //color picker
             var input_names = [];

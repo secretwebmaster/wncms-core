@@ -324,6 +324,11 @@ class WebsiteController extends BackendController
             ['id', "<>", $website->id],
         ]);
 
+        // dd(
+        //     $current_options['testing_menus'],
+        //     $current_options['testing_posts'],
+        // );
+
         return $this->view('backend.websites.theme_options', [
             'page_title' => __('wncms::word.theme_options') . " #" . $website->id,
             '_website' => $website,
@@ -351,18 +356,19 @@ class WebsiteController extends BackendController
                 $shouldClearTagCache = true;
             }
 
+            // Handle file uploads
             if ($request->hasFile('inputs.' . $key)) {
                 $website->clearMediaCollection($key);
                 $image = $website->addMediaFromRequest('inputs.' . $key)->toMediaCollection($key);
                 $value = str_replace(env('APP_URL'), '', $image->getUrl());
             }
 
+            // Handle _remove
             if (Str::endswith($key, '_remove') && $value == 1) {
 
                 $file_key = str_replace("_remove", '', $key);
                 $website->clearMediaCollection($file_key);
 
-                //clear value
                 $website->theme_options()->updateOrCreate(
                     [
                         'theme' => $website->theme,
@@ -374,12 +380,17 @@ class WebsiteController extends BackendController
                 );
             } else {
 
+                // Tagify values → extract IDs
                 if (($options->where('name', $key)->first()['type'] ?? null) == 'tagify') {
                     $tagIds = collect(json_decode($value, true))->pluck('value')->toArray();
                     $value = implode(",", $tagIds);
                 }
 
-                //update new value
+                if (is_array($value)) {
+                    $value = json_encode($value, JSON_UNESCAPED_UNICODE);
+                }
+
+                // Save option
                 $website->theme_options()->updateOrCreate(
                     [
                         'theme' => $website->theme,
