@@ -45,16 +45,16 @@ class MenuManager extends ModelManager
         return parent::get($options);
     }
 
-    public function getList(array|string|int|null $names = [], ?int $websiteId = null): Collection|LengthAwarePaginator
-    {
-        $options = [
-            'names' => $names,
-            'website_id' => $websiteId,
-            'cache' => true,
-        ];
+    // public function getList(array|string|int|null $options = []): Collection|LengthAwarePaginator
+    // {
+    //     $options = [
+    //         'names' => $names,
+    //         'website_id' => $websiteId,
+    //         'cache' => true,
+    //     ];
 
-        return parent::getList($options);
-    }
+    //     return parent::getList($options);
+    // }
 
     protected function buildListQuery(array $options): mixed
     {

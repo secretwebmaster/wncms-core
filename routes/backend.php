@@ -9,6 +9,7 @@ use Wncms\Http\Controllers\Backend\DashboardController;
 use Wncms\Http\Controllers\Backend\MenuController;
 use Wncms\Http\Controllers\Backend\ModelController;
 use Wncms\Http\Controllers\Backend\PageController;
+use Wncms\Http\Controllers\Backend\PageBuilderController;
 use Wncms\Http\Controllers\Backend\PermissionController;
 use Wncms\Http\Controllers\Backend\PluginController;
 use Wncms\Http\Controllers\Backend\PostController;
@@ -123,7 +124,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::post('bulk_delete', 'bulk_delete')->middleware('can:link_bulk_delete')->name('links.bulk_delete');
         Route::post('bulk_update_sort', 'bulk_update_sort')->middleware('can:link_edit')->name('links.bulk_update_sort');
     });
-    
+
     //menu
     Route::prefix('menus')->controller(MenuController::class)->group(function () {
         Route::post('/edit_menu_item', 'edit_menu_item')->middleware('can:menu_edit')->name('menus.edit_menu_item');
@@ -145,20 +146,29 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     });
 
     //page
-    Route::prefix('pages')->controller(PageController::class)->group(function () {
-        Route::get('/', 'index')->middleware('can:page_index')->name('pages.index');
-        Route::post('/create_theme_pages', 'create_theme_pages')->middleware('can:page_create')->name('pages.create_theme_pages');
-        Route::get('/create', 'create')->middleware('can:page_create')->name('pages.create');
-        Route::get('/clone/{id}', 'create')->middleware('can:page_clone')->name('pages.clone');
-        Route::get('/{id}/edit', 'edit')->middleware('can:page_edit')->name('pages.edit');
-        Route::get('/{id}', 'show')->middleware('can:page_show')->name('pages.show');
-        Route::post('/store', 'store')->middleware('can:page_create')->name('pages.store');
-        Route::patch('/{id}', 'update')->middleware('can:page_edit')->name('pages.update');
-        Route::delete('/{id}', 'destroy')->middleware('can:page_delete')->name('pages.destroy');
-        Route::post('/templates', 'templates')->middleware('can:page_create')->name('pages.templates');
-        Route::get('/{id}/editor', 'editor')->middleware('can:page_create')->name('pages.editor');
-        Route::post('/widget', 'widget')->middleware('can:page_edit')->name('pages.widget');
-        Route::post('/bulk_delete', 'bulk_delete')->middleware('can:page_bulk_delete')->name('pages.bulk_delete');
+    Route::prefix('pages')->group(function () {
+
+        Route::prefix('{page}/builder')->controller(PageBuilderController::class)->group(function () {
+            Route::get('/editor', 'editor')->middleware('can:page_edit')->name('pages.builder.editor');
+            Route::get('/load', 'load')->middleware('can:page_edit')->name('pages.builder.load');
+            Route::post('/save', 'save')->middleware('can:page_edit')->name('pages.builder.save');
+        });
+
+        Route::controller(PageController::class)->group(function () {
+            Route::get('/', 'index')->middleware('can:page_index')->name('pages.index');
+            Route::post('/create_theme_pages', 'create_theme_pages')->middleware('can:page_create')->name('pages.create_theme_pages');
+            Route::get('/create', 'create')->middleware('can:page_create')->name('pages.create');
+            Route::get('/clone/{id}', 'create')->middleware('can:page_clone')->name('pages.clone');
+            Route::get('/{id}/edit', 'edit')->middleware('can:page_edit')->name('pages.edit');
+            Route::get('/{id}', 'show')->middleware('can:page_show')->name('pages.show');
+            Route::post('/store', 'store')->middleware('can:page_create')->name('pages.store');
+            Route::patch('/{id}', 'update')->middleware('can:page_edit')->name('pages.update');
+            Route::delete('/{id}', 'destroy')->middleware('can:page_delete')->name('pages.destroy');
+            Route::post('/templates', 'templates')->middleware('can:page_create')->name('pages.templates');
+            Route::get('/{id}/editor', 'editor')->middleware('can:page_create')->name('pages.editor');
+            Route::post('/widget', 'widget')->middleware('can:page_edit')->name('pages.widget');
+            Route::post('/bulk_delete', 'bulk_delete')->middleware('can:page_bulk_delete')->name('pages.bulk_delete');
+        });
     });
 
     // package
@@ -339,7 +349,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::post('/{id}/options/clone', 'cloneThemeOptions')->middleware('can:website_edit')->name('websites.theme.clone');
         Route::post('/{id}/options/import_default_option', 'importDefaultOption')->middleware('can:website_edit')->name('websites.theme.import_default_option');
     });
-  
+
     //custom backend route
     if (file_exists(base_path('routes/custom_backend.php'))) {
         include base_path('routes/custom_backend.php');
