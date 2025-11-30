@@ -9,6 +9,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Wncms\Models\BaseModel;
 use Wncms\Translatable\Traits\HasTranslations;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 class Page extends BaseModel implements HasMedia
 {
@@ -287,6 +288,9 @@ class Page extends BaseModel implements HasMedia
         return is_array($row->value) ? $row->value : json_decode($row->value, true);
     }
 
+    /**
+     * Process a field group with specific types
+     */
     protected function processFieldGroup(array $inputs, array $field, string $sectionName, int $accordionIndex = null, int $inlineIndex = null)
     {
         $results = [];
@@ -360,6 +364,60 @@ class Page extends BaseModel implements HasMedia
             return $results;
         }
 
+        // gallery
+        if (($field['type'] ?? '') === 'gallery') {
+
+            $name = $field['name'] ?? null;
+            if (!$name) return [];
+
+            $finalKey = $accordionIndex !== null ? "{$name}_{$accordionIndex}" : $name;
+            $sectionInputs = $inputs[$sectionName] ?? [];
+
+            // 1. existing images
+            $existing = $sectionInputs[$finalKey] ?? [];
+            if (!is_array($existing)) {
+                $existing = empty($existing) ? [] : explode(',', $existing);
+            }
+
+            // 2. remove flags
+            $removeFlags = $sectionInputs[$finalKey . '_remove'] ?? [];
+            if (!is_array($removeFlags)) $removeFlags = [$removeFlags];
+
+            $kept = [];
+            foreach ($existing as $idx => $path) {
+                $flag = $removeFlags[$idx] ?? 0;
+                if (!in_array($flag, ['1', 1, true, 'true'], true)) {
+                    $kept[] = $path; // keep existing
+                }
+            }
+
+            // -------------------------------------------------------------
+            // DELETE removed files physically
+            // -------------------------------------------------------------
+            $collection = "tpl_{$sectionName}_{$finalKey}";
+
+            $allMedia = $this->getMedia($collection);
+            foreach ($allMedia as $media) {
+                $url = parse_url($media->getUrl(), PHP_URL_PATH);
+                if (!in_array($url, $kept, true)) {
+                    $media->delete(); // delete file + DB row
+                }
+            }
+
+            // 3. new uploads
+            $fileKey = "template_inputs.{$sectionName}.{$finalKey}_files";
+            $files = request()->file($fileKey) ?? [];
+
+            foreach ($files as $file) {
+                if ($file instanceof UploadedFile) {
+                    $media = $this->addMedia($file)->toMediaCollection($collection);
+                    $kept[] = parse_url($media->getUrl(), PHP_URL_PATH);
+                }
+            }
+
+            return [$finalKey => $kept];
+        }
+
         // normal field
         $name = $field['name'] ?? null;
         if (!$name) return [];
@@ -398,7 +456,6 @@ class Page extends BaseModel implements HasMedia
 
         return [$finalKey => $val];
     }
-
 
     /**
      * MAIN handler

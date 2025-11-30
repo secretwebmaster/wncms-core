@@ -286,7 +286,10 @@ class PageController extends BackendController
 
     public function update(Request $request, $id)
     {
-        // dd($request->all());
+        // dd(
+        //     $request->all(),
+        //     $request->allFiles()
+        // );
         $page = $this->modelClass::find($id);
         if (!$page) {
             return redirect()->back()->withInput()->withErrors([
@@ -345,7 +348,6 @@ class PageController extends BackendController
 
         // Save grouped template values
         if ($page->type === 'template' && $page->blade_name && $request->has('template_inputs')) {
-
             $page->saveTemplateInputs($request);
         }
 
