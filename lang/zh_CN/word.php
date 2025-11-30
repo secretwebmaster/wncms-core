@@ -2180,7 +2180,7 @@ $words = [
     'edit_comment' => '编辑评论',
     'write_a_comment' => '写下你的评论...',
 
-    // 6.0.0
+    // 6.0.0 alpha1-3
     'package_activated' => '套件已启用',
     'package_activated_with_name' => '套件 :name 已启用',
     'package_deactivated' => '套件已停用',
@@ -2226,6 +2226,38 @@ $words = [
     'tag_keyword_bulk_create_example_2' => '分类2|代称02|描述03',
     'tag_keyword_bulk_create_example_3' => '分类3|代称03',
     'tag_keyword_bulk_create_example_4' => '分类4||描述04',
+
+    // 6.0.0 alpha4
+    'domain_alias' => '域名别名',
+    'menu_item' => '菜单项目',
+    'traffic_summary' => '流量总结',
+    'enable_api_post_index' => '启用文章索引API',
+    'enable_api_post_store' => '启用文章创建API',
+    'enable_api_post_show' => '启用文章详情API',
+    'enable_api_tag_store' => '启用标签创建API',
+    'model' => '模型',
+    'enable' => '启用',
+    'disable' => '停用',
+    'actions' => '操作',
+    'wncms_api_post_index' => '列表',
+    'wncms_api_post_store' => '创建',
+    'wncms_api_post_update' => '更新',
+    'wncms_api_post_delete' => '删除',
+    'index' => '列表',
+    'store' => '创建',
+    'others' => '其他',
+    'api_auth_none' => '无',
+    'api_auth_simple' => 'API Token',
+    'api_auth_basic' => 'Basic',
+
+    // 6.0.1
+    'multi_website_hint' => '您可以在此处管理多个网站。',
+
+    // 6.0.4
+    'no_template_option_found' => '未找到范本选项，请先保存一次',
+
+    // 6.0.5
+    'gallery_drag_or_click' => '拖曳图片至此 或 点击上传',
 
 ];
 

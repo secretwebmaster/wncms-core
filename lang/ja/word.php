@@ -2180,7 +2180,7 @@ $words = [
     'edit_comment' => 'コメントを編集',
     'write_a_comment' => 'コメントを書く...',
 
-    // 6.0.0
+    // 6.0.0 alpha1-3
     'package_activated' => 'パッケージが有効化されました',
     'package_activated_with_name' => 'パッケージ :name が有効化されました',
     'package_deactivated' => 'パッケージが無効化されました',
@@ -2226,6 +2226,38 @@ $words = [
     'tag_keyword_bulk_create_example_2' => 'カテゴリ2|slug02|説明03',
     'tag_keyword_bulk_create_example_3' => 'カテゴリ3|slug03',
     'tag_keyword_bulk_create_example_4' => 'カテゴリ4||説明04',
+
+    // 6.0.0 alpha4
+    'domain_alias' => 'ドメインエイリアス',
+    'menu_item' => 'メニュー項目',
+    'traffic_summary' => 'トラフィック概要',
+    'enable_api_post_index' => '投稿一覧APIを有効化',
+    'enable_api_post_store' => '投稿作成APIを有効化',
+    'enable_api_post_show' => '投稿詳細APIを有効化',
+    'enable_api_tag_store' => 'タグ作成APIを有効化',
+    'model' => 'モデル',
+    'enable' => '有効化',
+    'disable' => '無効化',
+    'actions' => '操作',
+    'wncms_api_post_index' => '一覧',
+    'wncms_api_post_store' => '作成',
+    'wncms_api_post_update' => '更新',
+    'wncms_api_post_delete' => '削除',
+    'index' => '一覧',
+    'store' => '作成',
+    'others' => 'その他',
+    'api_auth_none' => 'なし',
+    'api_auth_simple' => 'APIトークン',
+    'api_auth_basic' => 'Basic',
+
+    // 6.0.1
+    'multi_website_hint' => 'ここで複数のウェブサイトを管理できます。',
+
+    // 6.0.4
+    'no_template_option_found' => 'テンプレートオプションが見つかりません。一度保存してください。',
+
+    // 6.0.5
+    'gallery_drag_or_click' => 'ここに画像をドラッグ、またはクリックしてアップロード',
 
 ];
 

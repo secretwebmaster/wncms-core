@@ -2256,6 +2256,9 @@ $words = [
     // 6.0.4
     'no_template_option_found' => '未找到範本選項，請先保存一次',
 
+    // 6.0.5
+    'gallery_drag_or_click' => '拖曳圖片至此 或 點擊上傳',
+
 ];
 
 $locale = basename(__DIR__);

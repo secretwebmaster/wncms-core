@@ -2180,7 +2180,7 @@ $words = [
     'edit_comment' => 'Edit Comment',
     'write_a_comment' => 'Write your comment...',
 
-    // 6.0.0
+    // 6.0.0 alpha1-3
     'package_activated' => 'Package activated',
     'package_activated_with_name' => 'Package :name activated',
     'package_deactivated' => 'Package deactivated',
@@ -2226,6 +2226,38 @@ $words = [
     'tag_keyword_bulk_create_example_2' => 'Category 2|slug02|Description 03',
     'tag_keyword_bulk_create_example_3' => 'Category 3|slug03',
     'tag_keyword_bulk_create_example_4' => 'Category 4||Description 04',
+
+    // 6.0.0 alpha4
+    'domain_alias' => 'Domain Alias',
+    'menu_item' => 'Menu Item',
+    'traffic_summary' => 'Traffic Summary',
+    'enable_api_post_index' => 'Enable Post Index API',
+    'enable_api_post_store' => 'Enable Post Create API',
+    'enable_api_post_show' => 'Enable Post Detail API',
+    'enable_api_tag_store' => 'Enable Tag Create API',
+    'model' => 'Model',
+    'enable' => 'Enable',
+    'disable' => 'Disable',
+    'actions' => 'Actions',
+    'wncms_api_post_index' => 'List',
+    'wncms_api_post_store' => 'Create',
+    'wncms_api_post_update' => 'Update',
+    'wncms_api_post_delete' => 'Delete',
+    'index' => 'List',
+    'store' => 'Create',
+    'others' => 'Others',
+    'api_auth_none' => 'None',
+    'api_auth_simple' => 'API Token',
+    'api_auth_basic' => 'Basic',
+
+    // 6.0.1
+    'multi_website_hint' => 'You can manage multiple websites here.',
+
+    // 6.0.4
+    'no_template_option_found' => 'No template options found, please save once',
+
+    // 6.0.5
+    'gallery_drag_or_click' => 'Drag images here or click to upload',
 
 ];
 
