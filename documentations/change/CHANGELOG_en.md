@@ -1,5 +1,11 @@
 # Changelog
 
+## v6.0.6 2025-11-30
+
+-   Added backend logic for the page template "gallery upload" feature, supporting add/remove/restore with automatic media sync.
+-   Improved backend gallery UI with live previews, remove/undo toggles, ordering, and clearer interface behavior.
+-   Fixed accordion default-expanded issue and improved storage logic for item ordering.
+
 ## v6.0.5 2025-11-30
 
 -   Fix template image handling
