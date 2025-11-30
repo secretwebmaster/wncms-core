@@ -5,7 +5,6 @@
 @php
     $posts = wncms()->post()->getList([
         'count' => 10,
-        'sort' => 'random',
         'cache' => false
     ]);
 @endphp
