@@ -286,6 +286,7 @@ class Page extends BaseModel implements HasMedia
 
         return is_array($row->value) ? $row->value : json_decode($row->value, true);
     }
+
     protected function processFieldGroup(array $inputs, array $field, string $sectionName, int $accordionIndex = null, int $inlineIndex = null)
     {
         $results = [];
@@ -316,12 +317,29 @@ class Page extends BaseModel implements HasMedia
                         $val = implode(',', collect(json_decode($val))->pluck('value')->toArray());
                     }
 
-                    // image
-                    if (($sub['type'] ?? '') === 'image' && request()->hasFile("template_inputs.{$sectionName}.{$finalKey}")) {
-                        $this->clearMediaCollection("tpl_{$sectionName}_{$finalKey}");
-                        $media = $this->addMediaFromRequest("template_inputs.{$sectionName}.{$finalKey}")
-                            ->toMediaCollection("tpl_{$sectionName}_{$finalKey}");
-                        $val = str_replace(env('APP_URL'), '', $media->getUrl());
+                    // image (upload / remove / keep)
+                    if (($sub['type'] ?? '') === 'image') {
+                        $fileInput = "template_inputs.{$sectionName}.{$finalKey}";
+                        $removeKey = "{$finalKey}_remove";
+
+                        // remove
+                        if (!empty($inputs[$sectionName][$removeKey]) && $inputs[$sectionName][$removeKey] == 1) {
+                            $this->clearMediaCollection("tpl_{$sectionName}_{$finalKey}");
+                            $results[$finalKey] = null;
+                            continue;
+                        }
+
+                        // upload
+                        if (request()->hasFile($fileInput)) {
+                            $this->clearMediaCollection("tpl_{$sectionName}_{$finalKey}");
+                            $media = $this->addMediaFromRequest($fileInput)->toMediaCollection("tpl_{$sectionName}_{$finalKey}");
+                            $val = parse_url($media->getUrl(), PHP_URL_PATH);
+                        }
+                        // keep
+                        else {
+                            $existing = $this->option("{$sectionName}.{$finalKey}");
+                            if ($existing) $val = $existing;
+                        }
                     }
 
                     $results[$finalKey] = $val;
@@ -342,7 +360,7 @@ class Page extends BaseModel implements HasMedia
             return $results;
         }
 
-        // normal
+        // normal field
         $name = $field['name'] ?? null;
         if (!$name) return [];
 
@@ -354,12 +372,28 @@ class Page extends BaseModel implements HasMedia
             $val = implode(',', collect(json_decode($val))->pluck('value')->toArray());
         }
 
-        // image
-        if (($field['type'] ?? '') === 'image' && request()->hasFile("template_inputs.{$sectionName}.{$finalKey}")) {
-            $this->clearMediaCollection("tpl_{$sectionName}_{$finalKey}");
-            $media = $this->addMediaFromRequest("template_inputs.{$sectionName}.{$finalKey}")
-                ->toMediaCollection("tpl_{$sectionName}_{$finalKey}");
-            $val = str_replace(env('APP_URL'), '', $media->getUrl());
+        // image (upload / remove / keep)
+        if (($field['type'] ?? '') === 'image') {
+            $fileInput = "template_inputs.{$sectionName}.{$finalKey}";
+            $removeKey = "{$finalKey}_remove";
+
+            // remove
+            if (!empty($inputs[$sectionName][$removeKey]) && $inputs[$sectionName][$removeKey] == 1) {
+                $this->clearMediaCollection("tpl_{$sectionName}_{$finalKey}");
+                return [$finalKey => null];
+            }
+
+            // upload
+            if (request()->hasFile($fileInput)) {
+                $this->clearMediaCollection("tpl_{$sectionName}_{$finalKey}");
+                $media = $this->addMediaFromRequest($fileInput)->toMediaCollection("tpl_{$sectionName}_{$finalKey}");
+                $val = parse_url($media->getUrl(), PHP_URL_PATH);
+            }
+            // keep
+            else {
+                $existing = $this->option("{$sectionName}.{$finalKey}");
+                if ($existing) $val = $existing;
+            }
         }
 
         return [$finalKey => $val];
@@ -437,7 +471,6 @@ class Page extends BaseModel implements HasMedia
         return $values;
     }
 
-    
     public function allOptions()
     {
         $theme = wncms()->website()->get()?->theme ?? 'default';
