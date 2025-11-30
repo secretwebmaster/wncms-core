@@ -29,6 +29,8 @@ try {
     // drop themes table if exists
     Schema::dropIfExists('themes');
 
+    uss('core_version', $thisVersion);
+    info("completed update_{$thisVersion}.php");
 } catch (Exception $e) {
     info("error when running update_{$thisVersion}.php");
     info("Error: " . $e->getMessage());

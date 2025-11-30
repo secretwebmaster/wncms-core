@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-$thisVersion = '6.0.2';
+$thisVersion = '6.0.4';
 
 // This is a test update to see if version is working
 info("running update_{$thisVersion}.php");
@@ -28,7 +28,9 @@ try {
 
     // drop themes table if exists
     Schema::dropIfExists('themes');
-
+    
+    uss('core_version', $thisVersion);
+    info("completed update_{$thisVersion}.php");
 
 } catch (Exception $e) {
     info("error when running update_{$thisVersion}.php");

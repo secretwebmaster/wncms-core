@@ -11,7 +11,8 @@ $thisVersion = '6.0.3';
 info("running update_{$thisVersion}.php");
 try {
 
-
+    uss('core_version', $thisVersion);
+    info("completed update_{$thisVersion}.php");
 } catch (Exception $e) {
     info("error when running update_{$thisVersion}.php");
     info("Error: " . $e->getMessage());
