@@ -1,5 +1,9 @@
 # Changelog
 
+## v6.0.5 2025-11-30
+
+-   Fix template image handling
+
 ## v6.0.4 2025-11-30
 
 -   Added new **Page Template System** with template registration and template-driven page rendering.
