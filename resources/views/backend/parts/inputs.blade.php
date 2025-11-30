@@ -608,7 +608,6 @@
                 @php
                     // Auto-generate a stable accordion key/id if not provided
                     $accordionKey = $option['id'] ?? ($option['name'] ?? 'acc_' . substr(md5(json_encode($option)), 0, 6));
-
                     $accordionDomId = $accordionKey . '_' . $randomIdSuffix;
                 @endphp
 
@@ -629,14 +628,19 @@
                 @endif
 
                 @php
-                    // Load saved order JSON: {"order_3":1,"order_2":2,"order_1":3}
-                    $savedOrder = $current_options[$option['name']] ?? null;
+                    $accordionKey = $option['id'] ?? ($option['name'] ?? 'acc_' . substr(md5(json_encode($option)), 0, 6));
+                    $accordionDomId = $accordionKey . '_' . $randomIdSuffix;
+
+                    // storage key
+                    $accordionStorageKey = $option['id'] ?? ($option['name'] ?? $accordionKey);
+
+                    // load saved order
+                    $savedOrder = $current_options[$accordionStorageKey] ?? null;
 
                     if (is_string($savedOrder)) {
                         $savedOrder = json_decode($savedOrder, true);
                     }
 
-                    // Build sorted index order: [1 => 3, 2 => 2, 3 => 1]
                     $itemOrder = [];
 
                     if (!empty($savedOrder)) {
@@ -649,7 +653,6 @@
 
                     $repeat = $option['repeat'] ?? 1;
 
-                    // Default order if not saved
                     if (empty($itemOrder)) {
                         $itemOrder = range(1, $repeat);
                     }
@@ -660,7 +663,7 @@
 
                     @foreach ($itemOrder as $i)
                         @php
-                            $suffix = "_{$i}"; 
+                            $suffix = "_{$i}";
                             $labelSuffix = $repeat > 1 ? $i : '';
                         @endphp
 
@@ -676,11 +679,11 @@
                             <h2 class="accordion-header"
                                 id="{{ $accordionDomId . $suffix }}_header">
 
-                                <button class="accordion-button fs-4 text-gray-800 fw-bold p-3 bg-gray-300"
+                                <button class="accordion-button collapsed fs-4 text-gray-800 fw-bold p-3 bg-gray-300"
                                     type="button"
                                     data-bs-toggle="collapse"
                                     data-bs-target="#{{ $accordionDomId . $suffix }}_body"
-                                    aria-expanded="true"
+                                    aria-expanded="false"
                                     aria-controls="{{ $accordionDomId . $suffix }}_body">
                                     @if (!empty($option['sortable']))
                                         <i class="fa-solid fa-bars me-2 drag-handle"></i>
@@ -763,6 +766,147 @@
 
                 </div>
 
+            @elseif($option['type'] == 'gallery')
+                @php
+                    $sectionKey = $inputNameKey;
+                    $fieldKey = $option['name'] ?? 'gallery';
+                    $fieldInputName = "{$sectionKey}[{$fieldKey}]";
+                    $removeInputName = "{$sectionKey}[{$fieldKey}_remove]";
+                    $fileInputName = "{$sectionKey}[{$fieldKey}_files]";
+                    $currentImages = is_array($currentValue) ? $currentValue : (empty($currentValue) ? [] : explode(',', $currentValue));
+                    $galleryId = 'gallery_' . $fieldKey . '_' . $randomIdSuffix;
+                @endphp
+
+                <div class="mb-3">
+                    {{-- existing images --}}
+                    <div id="{{ $galleryId }}_preview" class="d-flex flex-wrap gap-3 mb-3">
+                        @foreach ($currentImages as $idx => $img)
+                            <div class="gallery-item position-relative" data-existing-index="{{ $idx }}">
+                                <img src="{{ $img }}" class="rounded" style="width:{{ $option['width'] }}px;height:{{ $option['height'] }}px;object-fit:cover">
+                                <input type="hidden" name="{{ $fieldInputName }}[]" value="{{ $img }}">
+                                <input type="hidden" name="{{ $removeInputName }}[]" value="0" class="gallery-remove-flag">
+                                <span class="gallery-action-btn btn btn-danger position-absolute top-0 end-0 gallery-remove-existing p-0"><i class="fa-solid fa-xmark pe-0"></i></span>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    {{-- upload area --}}
+                    <div id="{{ $galleryId }}"
+                        class="wncms-gallery-droparea position-relative text-center p-5 w-100 border border-dashed rounded bg-light cursor-pointer">
+                        <div class="text-gray-600">@lang('wncms::word.gallery_drag_or_click')</div>
+                        <input type="file" id="{{ $galleryId }}_input" name="{{ $fileInputName }}[]" accept="image/*" multiple class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer">
+                    </div>
+                </div>
+
+                @push('foot_js')
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+
+                            var preview = document.getElementById('{{ $galleryId }}_preview');
+                            var fileInput = document.getElementById('{{ $galleryId }}_input');
+                            var filesStore = [];
+
+                            // handle existing remove / undo
+                            preview.querySelectorAll('.gallery-remove-existing').forEach(function(btn) {
+                                btn.addEventListener('click', function() {
+                                    var item = this.closest('.gallery-item');
+                                    var flag = item.querySelector('.gallery-remove-flag');
+                                    if (!item || !flag) return;
+
+                                    if (flag.value == "0") {
+                                        // mark as removed
+                                        flag.value = "1";
+                                        item.style.opacity = "0.4";
+                                        item.style.filter = "grayscale(1)";
+                                        this.classList.remove('btn-danger');
+                                        this.classList.add('btn-secondary');
+                                        this.innerHTML = '<i class="fa-solid fa-rotate-left p-0"></i>';
+                                    } else {
+                                        // undo removal
+                                        flag.value = "0";
+                                        item.style.opacity = "1";
+                                        item.style.filter = "none";
+                                        this.classList.remove('btn-secondary');
+                                        this.classList.add('btn-danger');
+                                        this.innerHTML = '<i class="fa-solid fa-xmark pe-0"></i>';
+                                    }
+
+                                });
+                            });
+
+                            // sync file input with JS file store
+                            function syncFileInput() {
+                                var dt = new DataTransfer();
+                                filesStore.forEach(f => dt.items.add(f));
+                                fileInput.files = dt.files;
+                            }
+
+                            // create preview for new uploaded file
+                            function createNewPreview(file) {
+                                var reader = new FileReader();
+                                reader.onload = function(e) {
+
+                                    var div = document.createElement('div');
+                                    div.classList.add('gallery-item', 'position-relative', 'me-2', 'mb-2');
+                                    div.fileObj = file;
+
+                                    div.innerHTML = '<img src="' + e.target.result + '" class="rounded" style="width:{{ $option['width'] }}px;height:{{ $option['height'] }}px;object-fit:cover">' + '<span class="gallery-action-btn btn btn-danger position-absolute top-0 end-0 gallery-remove-new p-0"><i class="fa-solid fa-xmark pe-0"></i></span>';
+
+                                    preview.appendChild(div);
+
+                                    var removeBtn = div.querySelector('.gallery-remove-new');
+
+                                    // toggle remove / undo for new files
+                                    removeBtn.addEventListener('click', function() {
+
+                                        if (!div.classList.contains('marked-for-remove')) {
+
+                                            // mark removed
+                                            div.classList.add('marked-for-remove');
+                                            div.style.opacity = "0.4";
+                                            div.style.filter = "grayscale(1)";
+                                            this.classList.remove('btn-danger');
+                                            this.classList.add('btn-secondary');
+                                            this.innerHTML = '<i class="fa-solid fa-rotate-left p-0"></i>';
+
+                                            // remove the file immediately from filesStore
+                                            filesStore = filesStore.filter(f => f !== div.fileObj);
+                                            syncFileInput();
+
+                                        } else {
+
+                                            // undo removal
+                                            div.classList.remove('marked-for-remove');
+                                            div.style.opacity = "1";
+                                            div.style.filter = "none";
+                                            this.classList.remove('btn-secondary');
+                                            this.classList.add('btn-danger');
+                                            this.innerHTML = '<i class="fa-solid fa-xmark pe-0"></i>';
+
+                                            // re-add file back to filesStore
+                                            filesStore.push(div.fileObj);
+                                            syncFileInput();
+                                        }
+                                    });
+
+                                };
+                                reader.readAsDataURL(file);
+                            }
+
+                            // files selected
+                            fileInput.addEventListener('change', function() {
+                                if (!this.files || !this.files.length) return;
+
+                                Array.prototype.forEach.call(this.files, function(file) {
+                                    filesStore.push(file);
+                                    createNewPreview(file);
+                                });
+
+                                syncFileInput();
+                            });
+                        });
+                    </script>
+                @endpush
             @endif
 
             @if (!empty($option['description']))
