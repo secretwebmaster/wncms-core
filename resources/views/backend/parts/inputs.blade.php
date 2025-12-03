@@ -7,7 +7,7 @@
     if (!empty($has_translation) && !empty($locale_key)) {
         $inputName = "translations[{$inputNameKey}][{$locale_key}][$optionName]";
         $inputNameRemove = "translations[{$inputNameKey}][{$locale_key}][{$optionName}_remove]";
-        //TODO:: get translation value
+        //TODO: get translation value
         $currentValue = !empty($option['name']) ? $current_options[$option['name']] ?? '' : '';
     } else {
         $inputName = "{$inputNameKey}[{$optionName}]";
@@ -71,7 +71,6 @@
 
             <div class="row mb-3 mw-100 mx-0">
                 @foreach ($newOption['sub_items'] ?? [] as $sub_item)
-                    {{-- <div class="col-lg-{{ floor(12 / (count($option['sub_items'] ?? []) ?: 1)) }}"> --}}
                     <div class="col">
                         @include('wncms::backend.parts.inputs', ['option' => $sub_item])
                     </div>
@@ -81,7 +80,6 @@
     @else
         <div class="row mb-3 mw-100 mx-0">
             @foreach ($option['sub_items'] ?? [] as $sub_item)
-                {{-- <div class="col-lg-{{ floor(12 / (count($option['sub_items'] ?? []) ?: 1)) }}"> --}}
                 <div class="col">
                     @include('wncms::backend.parts.inputs', ['option' => $sub_item])
                 </div>
@@ -110,6 +108,9 @@
             @elseif($option['type'] == 'image')
                 <div class="image-input image-input-outline mw-100 {{ !empty($currentValue) ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url('{{ asset('wncms/images/placeholders/upload.png') }}');background-position:center">
                     <div class="image-input-wrapper w-400px h-125px mw-100" style="background-image: {{ !empty($currentValue) ? 'url("' . $currentValue . '")' : 'none' }};background-size: 100% 100%;width:{{ $option['width'] ?? 400 }}px !important;height:{{ $option['height'] ?? 125 }}px !important;"></div>
+                    @if (!empty($currentValue))
+                        <input type="hidden" name="{{ $inputName }}" value="{{ $currentValue }}">
+                    @endif
 
                     @if (empty($option['disabled']) && empty($disabled))
                         <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change avatar">
@@ -180,15 +181,6 @@
                             </option>
                         @endforeach
                     </select>
-                    {{-- @elseif($option['options'] == 'contact_forms')
-                    <select name="{{ $inputName }}" class="form-select form-select-sm" @disabled(!empty($option['disabled']) || !empty($disabled)) @required(!empty($option['required']))>
-                        @if (empty($option['required']))
-                            <option value="">@lang('wncms::word.please_select')</option>
-                        @endif
-                        @foreach ($wncms->contact_form()->getList() as $contact_form)
-                            <option value="{{ $contact_form->id }}" @if ($currentValue == $contact_form->id) selected @endif>{{ $contact_form->name }}</option>
-                        @endforeach
-                    </select> --}}
                 @else
                     <select name="{{ $inputName }}" class="form-select form-select-sm" @disabled(!empty($option['disabled']) || !empty($disabled)) @required(!empty($option['required']))>
                         @if (empty($option['required']))
@@ -319,8 +311,6 @@
                                     console.log(e.target.value);
                                 });
 
-                                // using 3-party script "dragsort"
-                                // https://github.com/yairEO/dragsort
                                 var dragsort = new DragSort(tagify.DOM.scope, {
                                     selector: '.' + tagify.settings.classNames.tag,
                                     callbacks: {
@@ -389,8 +379,6 @@
                                 console.log(e.target.value);
                             });
 
-                            // using 3-party script "dragsort"
-                            // https://github.com/yairEO/dragsort
                             var dragsort = new DragSort(tagify.DOM.scope, {
                                 selector: '.' + tagify.settings.classNames.tag,
                                 callbacks: {
@@ -464,8 +452,6 @@
                                 console.log(e.target.value);
                             });
 
-                            // using 3-party script "dragsort"
-                            // https://github.com/yairEO/dragsort
                             var dragsort = new DragSort(tagify.DOM.scope, {
                                 selector: '.' + tagify.settings.classNames.tag,
                                 callbacks: {
@@ -540,7 +526,6 @@
                                 console.log(e.target.value);
                             });
 
-                            // using 3-party script "dragsort"
                             var dragsort = new DragSort(tagify.DOM.scope, {
                                 selector: '.' + tagify.settings.classNames.tag,
                                 callbacks: {
@@ -589,8 +574,6 @@
                                 console.log(e.target.value);
                             });
 
-                            // using 3-party script "dragsort"
-                            // https://github.com/yairEO/dragsort
                             var dragsort = new DragSort(tagify.DOM.scope, {
                                 selector: '.' + tagify.settings.classNames.tag,
                                 callbacks: {
@@ -643,11 +626,13 @@
 
                     $itemOrder = [];
 
-                    if (!empty($savedOrder)) {
+                    if (!empty($savedOrder) && is_array($savedOrder)) {
                         foreach ($savedOrder as $key => $pos) {
-                            $index = (int) str_replace('order_', '', $key);
-                            $itemOrder[(int) $pos] = $index;
+                            $index = (int) str_replace('order_', '', $key); // order_1 → 1
+                            $itemOrder[(int) $pos] = $index; // position → index
                         }
+
+                        // keep existing order first
                         ksort($itemOrder);
                     }
 
@@ -655,11 +640,22 @@
 
                     if (empty($itemOrder)) {
                         $itemOrder = range(1, $repeat);
+                    } else {
+                        $existingIndexes = array_values($itemOrder);
+
+                        for ($i = 1; $i <= $repeat; $i++) {
+                            if (!in_array($i, $existingIndexes, true)) {
+                                // new index
+                                $itemOrder[] = $i;
+                            }
+                        }
+
+                        // normalize order by index
+                        sort($itemOrder);
                     }
                 @endphp
 
-                <div class="accordion accordion_{{ $accordionDomId }} mb-1"
-                    id="{{ $accordionDomId }}">
+                <div class="accordion accordion_{{ $accordionDomId }} mb-1" id="{{ $accordionDomId }}">
 
                     @foreach ($itemOrder as $i)
                         @php
@@ -670,10 +666,7 @@
                         <div class="accordion-item">
 
                             @if (!empty($option['sortable']))
-                                <input class="item-order-input"
-                                    type="hidden"
-                                    name="{{ $inputNameKey }}[{{ $accordionKey }}][order_{{ $i }}]"
-                                    value="{{ $loop->iteration }}">
+                                <input class="item-order-input" type="hidden" name="{{ $inputNameKey }}[{{ $accordionKey }}][order_{{ $i }}]" value="{{ $loop->iteration }}">
                             @endif
 
                             <h2 class="accordion-header"
@@ -693,10 +686,7 @@
 
                             </h2>
 
-                            <div id="{{ $accordionDomId . $suffix }}_body"
-                                class="accordion-collapse collapse"
-                                aria-labelledby="{{ $accordionDomId . $suffix }}_header"
-                                data-bs-parent="#{{ $accordionDomId }}">
+                            <div id="{{ $accordionDomId . $suffix }}_body" class="accordion-collapse collapse" aria-labelledby="{{ $accordionDomId . $suffix }}_header" data-bs-parent="#{{ $accordionDomId }}">
 
                                 <div class="accordion-body p-3">
                                     @foreach ($option['content'] as $tabContent)
@@ -765,7 +755,6 @@
                     @endif
 
                 </div>
-
             @elseif($option['type'] == 'gallery')
                 @php
                     $sectionKey = $inputNameKey;
@@ -773,29 +762,69 @@
                     $fieldInputName = "{$sectionKey}[{$fieldKey}]";
                     $removeInputName = "{$sectionKey}[{$fieldKey}_remove]";
                     $fileInputName = "{$sectionKey}[{$fieldKey}_files]";
-                    $currentImages = is_array($currentValue) ? $currentValue : (empty($currentValue) ? [] : explode(',', $currentValue));
                     $galleryId = 'gallery_' . $fieldKey . '_' . $randomIdSuffix;
+
+                    // extract values
+                    if (!empty($option['has_text']) || !empty($option['has_url'])) {
+                        // [{image:"", text:"", url:""}]
+                        $currentImages = is_array($currentValue) ? $currentValue : [];
+                    } else {
+                        // ["img1","img2"]
+                        if (is_array($currentValue)) {
+                            $currentImages = $currentValue;
+                        } elseif (!empty($currentValue)) {
+                            $currentImages = explode(',', $currentValue);
+                        } else {
+                            $currentImages = [];
+                        }
+                    }
                 @endphp
 
                 <div class="mb-3">
-                    {{-- existing images --}}
+
+                    {{-- Existing images --}}
                     <div id="{{ $galleryId }}_preview" class="d-flex flex-wrap gap-3 mb-3">
+
                         @foreach ($currentImages as $idx => $img)
+                            @php
+                                $url = is_array($img) ? $img['image'] ?? '' : $img;
+                                $text = is_array($img) ? $img['text'] ?? '' : '';
+                                $link = is_array($img) ? $img['url'] ?? '' : '';
+                            @endphp
+
                             <div class="gallery-item position-relative" data-existing-index="{{ $idx }}">
-                                <img src="{{ $img }}" class="rounded" style="width:{{ $option['width'] }}px;height:{{ $option['height'] }}px;object-fit:cover">
-                                <input type="hidden" name="{{ $fieldInputName }}[]" value="{{ $img }}">
+
+                                <img src="{{ $url }}" class="rounded" style="width:{{ $option['width'] ?? 200 }}px;height:{{ $option['height'] ?? 120 }}px;object-fit:cover">
+
+                                {{-- hidden fields --}}
+                                <input type="hidden" name="{{ $fieldInputName }}[image][]" value="{{ $url }}">
+
+                                @if (!empty($option['has_text']) || !empty($option['has_url']))
+                                    @if (!empty($option['has_text']))
+                                        <input type="text" name="{{ $fieldInputName }}[text][]" class="form-control form-control-sm mt-1" placeholder="Text" value="{{ $text }}">
+                                    @endif
+
+                                    @if (!empty($option['has_url']))
+                                        <input type="text" name="{{ $fieldInputName }}[url][]" class="form-control form-control-sm mt-1" placeholder="URL" value="{{ $link }}">
+                                    @endif
+                                @endif
+
                                 <input type="hidden" name="{{ $removeInputName }}[]" value="0" class="gallery-remove-flag">
-                                <span class="gallery-action-btn btn btn-danger position-absolute top-0 end-0 gallery-remove-existing p-0"><i class="fa-solid fa-xmark pe-0"></i></span>
+
+                                <span class="gallery-remove-existing btn btn-danger position-absolute top-0 end-0 p-0">
+                                    <i class="fa-solid fa-xmark pe-0"></i>
+                                </span>
                             </div>
                         @endforeach
+
                     </div>
 
-                    {{-- upload area --}}
-                    <div id="{{ $galleryId }}"
-                        class="wncms-gallery-droparea position-relative text-center p-5 w-100 border border-dashed rounded bg-light cursor-pointer">
+                    {{-- Upload area --}}
+                    <div id="{{ $galleryId }}" class="wncms-gallery-droparea position-relative text-center p-5 w-100 border border-dashed rounded bg-light cursor-pointer">
                         <div class="text-gray-600">@lang('wncms::word.gallery_drag_or_click')</div>
                         <input type="file" id="{{ $galleryId }}_input" name="{{ $fileInputName }}[]" accept="image/*" multiple class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer">
                     </div>
+
                 </div>
 
                 @push('foot_js')
@@ -806,7 +835,7 @@
                             var fileInput = document.getElementById('{{ $galleryId }}_input');
                             var filesStore = [];
 
-                            // handle existing remove / undo
+                            // remove / undo existing
                             preview.querySelectorAll('.gallery-remove-existing').forEach(function(btn) {
                                 btn.addEventListener('click', function() {
                                     var item = this.closest('.gallery-item');
@@ -814,7 +843,6 @@
                                     if (!item || !flag) return;
 
                                     if (flag.value == "0") {
-                                        // mark as removed
                                         flag.value = "1";
                                         item.style.opacity = "0.4";
                                         item.style.filter = "grayscale(1)";
@@ -822,7 +850,6 @@
                                         this.classList.add('btn-secondary');
                                         this.innerHTML = '<i class="fa-solid fa-rotate-left p-0"></i>';
                                     } else {
-                                        // undo removal
                                         flag.value = "0";
                                         item.style.opacity = "1";
                                         item.style.filter = "none";
@@ -830,83 +857,91 @@
                                         this.classList.add('btn-danger');
                                         this.innerHTML = '<i class="fa-solid fa-xmark pe-0"></i>';
                                     }
-
                                 });
                             });
 
-                            // sync file input with JS file store
                             function syncFileInput() {
                                 var dt = new DataTransfer();
                                 filesStore.forEach(f => dt.items.add(f));
                                 fileInput.files = dt.files;
                             }
 
-                            // create preview for new uploaded file
                             function createNewPreview(file) {
-                                var reader = new FileReader();
-                                reader.onload = function(e) {
 
-                                    var div = document.createElement('div');
-                                    div.classList.add('gallery-item', 'position-relative', 'me-2', 'mb-2');
-                                    div.fileObj = file;
+                                // PREVIEW using object URL (NOT base64)
+                                var objectUrl = URL.createObjectURL(file);
 
-                                    div.innerHTML = '<img src="' + e.target.result + '" class="rounded" style="width:{{ $option['width'] }}px;height:{{ $option['height'] }}px;object-fit:cover">' + '<span class="gallery-action-btn btn btn-danger position-absolute top-0 end-0 gallery-remove-new p-0"><i class="fa-solid fa-xmark pe-0"></i></span>';
+                                var div = document.createElement('div');
+                                div.classList.add('gallery-item', 'position-relative', 'me-2', 'mb-2');
+                                div.fileObj = file;
 
-                                    preview.appendChild(div);
+                                var img = document.createElement('img');
+                                img.src = objectUrl;
+                                img.classList.add('rounded');
+                                img.style.width = "{{ $option['width'] ?? 200 }}px";
+                                img.style.height = "{{ $option['height'] ?? 120 }}px";
+                                img.style.objectFit = "cover";
 
-                                    var removeBtn = div.querySelector('.gallery-remove-new');
+                                div.appendChild(img);
 
-                                    // toggle remove / undo for new files
-                                    removeBtn.addEventListener('click', function() {
+                                // REMOVE BUTTON
+                                var removeBtn = document.createElement('span');
+                                removeBtn.classList.add('gallery-remove-new', 'btn', 'btn-danger', 'position-absolute', 'top-0', 'end-0', 'p-0');
+                                removeBtn.innerHTML = '<i class="fa-solid fa-xmark pe-0"></i>';
 
-                                        if (!div.classList.contains('marked-for-remove')) {
+                                removeBtn.addEventListener('click', function() {
+                                    if (!div.classList.contains('marked-for-remove')) {
+                                        div.classList.add('marked-for-remove');
+                                        div.style.opacity = "0.4";
+                                        div.style.filter = "grayscale(1)";
+                                        this.classList.remove('btn-danger');
+                                        this.classList.add('btn-secondary');
+                                        this.innerHTML = '<i class="fa-solid fa-rotate-left p-0"></i>';
+                                        filesStore = filesStore.filter(f => f !== file);
+                                        syncFileInput();
+                                    } else {
+                                        div.classList.remove('marked-for-remove');
+                                        div.style.opacity = "1";
+                                        div.style.filter = "none";
+                                        this.classList.remove('btn-secondary');
+                                        this.classList.add('btn-danger');
+                                        this.innerHTML = '<i class="fa-solid fa-xmark pe-0"></i>';
+                                        filesStore.push(file);
+                                        syncFileInput();
+                                    }
+                                });
 
-                                            // mark removed
-                                            div.classList.add('marked-for-remove');
-                                            div.style.opacity = "0.4";
-                                            div.style.filter = "grayscale(1)";
-                                            this.classList.remove('btn-danger');
-                                            this.classList.add('btn-secondary');
-                                            this.innerHTML = '<i class="fa-solid fa-rotate-left p-0"></i>';
-
-                                            // remove the file immediately from filesStore
-                                            filesStore = filesStore.filter(f => f !== div.fileObj);
-                                            syncFileInput();
-
-                                        } else {
-
-                                            // undo removal
-                                            div.classList.remove('marked-for-remove');
-                                            div.style.opacity = "1";
-                                            div.style.filter = "none";
-                                            this.classList.remove('btn-secondary');
-                                            this.classList.add('btn-danger');
-                                            this.innerHTML = '<i class="fa-solid fa-xmark pe-0"></i>';
-
-                                            // re-add file back to filesStore
-                                            filesStore.push(div.fileObj);
-                                            syncFileInput();
-                                        }
-                                    });
-
-                                };
-                                reader.readAsDataURL(file);
+                                div.appendChild(removeBtn);
+                                preview.appendChild(div);
                             }
 
-                            // files selected
+
                             fileInput.addEventListener('change', function() {
                                 if (!this.files || !this.files.length) return;
 
-                                Array.prototype.forEach.call(this.files, function(file) {
+                                Array.from(this.files).forEach(function(file) {
                                     filesStore.push(file);
                                     createNewPreview(file);
                                 });
 
                                 syncFileInput();
                             });
+
                         });
                     </script>
                 @endpush
+            @elseif($option['type'] == 'package')
+                {{-- @elseif($option['options'] == 'contact_forms')
+                <select name="{{ $inputName }}" class="form-select form-select-sm" @disabled(!empty($option['disabled']) || !empty($disabled)) @required(!empty($option['required']))>
+                    @if (empty($option['required']))
+                        <option value="">@lang('wncms::word.please_select')</option>
+                    @endif
+                    @foreach ($wncms->contact_form()->getList() as $contact_form)
+                        <option value="{{ $contact_form->id }}" @if ($currentValue == $contact_form->id) selected @endif>{{ $contact_form->name }}</option>
+                    @endforeach
+                </select> --}}
+            @elseif($option['type'] == 'custom')
+                {!! $option['html'] !!}
             @endif
 
             @if (!empty($option['description']))

@@ -16,7 +16,8 @@
         {{-- Mobile Logo --}}
         <div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
             <a href="/" class="d-lg-none">
-                <img alt="Logo" src="{{ asset('wncms/images/logos/logo_black.png') }}" class="h-30px" />
+                <img alt="Logo" src="{{ asset('wncms/images/logos/logo_black.png') }}" class="h-30px backend-logo-dark" />
+                <img alt="Logo" src="{{ asset('wncms/images/logos/logo_white.png') }}" class="h-30px backend-logo-light" />
             </a>
         </div>
 
