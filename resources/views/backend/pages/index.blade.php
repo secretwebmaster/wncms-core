@@ -32,7 +32,7 @@
 
             {{-- Checkboxes --}}
             <div class="d-flex flex-wrap">
-                @foreach(['show_detail'] as $show)
+                @foreach(['show_detail', 'show_thumbnail'] as $show)
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
@@ -100,11 +100,16 @@
                             </th>
                             <th>@lang('wncms::word.action')</th>
                             <th>@lang('wncms::word.id')</th>
+                            @if(request()->show_thumbnail)
+                            <th>@lang('wncms::word.thumbnail')</th>
+                            @endif
+                            <th>@lang('wncms::word.title')</th>
                             <th>@lang('wncms::word.slug')</th>
                             <th>@lang('wncms::word.user')</th>
                             {{-- <th>@lang('wncms::word.website')</th> --}}
                             <th>@lang('wncms::word.status')</th>
-                            <th>@lang('wncms::word.thumbnail')</th>
+
+                            
                             <th>@lang('wncms::word.title')</th>
                             <th>@lang('wncms::word.visibility')</th>
                             <th>@lang('wncms::word.template')</th>
@@ -129,18 +134,21 @@
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$page , 'route' => route('pages.destroy' , $page)])
                             </td>
                             <td>{{ $page->id }}</td>
+                            @if(request()->show_thumbnail)
+                            <td><img class="lazyload mw-80px rounded" src="{{ $page->thumbnail }}" alt=""></td>
+                            @endif
+                            <td>{{ $page->title }}@if($website->homepage == $page->id) <i class="fas fa-home" title="@lang('wncms::word.homepage')"></i>@endif</td>
                             <td>{{ $page->slug }}</td>
                             <td>{{ $page->user?->username }}</td>
                             {{-- <td>{{ $page->website?->domain }}</td> --}}
                             <td>@include('wncms::common.table_status', ['model' => $page])</td>
-                            <td><img class="lazyload mw-100px rounded" src="{{ $page->thumbnail }}" alt=""></td>
                             {{-- <td class="mw-400px text-truncate"><a href="{{ $wncms->getRoute('frontend.pages.show', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td> --}}
                             <td class="mw-400px text-truncate"><a href="{{ route('frontend.pages.show', ['slug' => $page->slug]) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td>
                             <td>{{ $page->visibility }}</td>
                             <td>{{ $page->template }}</td>
                             <th title="@foreach(json_decode($page->attribute, true) ?? [] as $key => $value){{ $key }}: {{ $value }}&#10;@endforeach">@if($page->attribute && $page->attribute != "[]")@lang('wncms::word.hover_to_view')@endif</td>
                             <td>{{ $page->remark }}</td>
-                            <td>{{ $page->is_locked }}</td>
+                            <td>@include('wncms::common.table_is_active', ['model' => $page, 'attribute' => 'is_locked'])</td>
                             <td>{{ $page->created_at }}</td>
                         <tr>
                         @endforeach

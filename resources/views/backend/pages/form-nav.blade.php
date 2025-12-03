@@ -20,7 +20,7 @@
                     data-bs-target="#pills-template-options"
                     type="button"
                     role="tab">
-                @lang('wncms::word.theme_template_options')
+                @lang('wncms::word.page_template_options')
             </button>
         </li>
     @endif

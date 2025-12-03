@@ -1,13 +1,13 @@
-{{-- Main Tab Content --}}
+{{-- Main tab --}}
 <div class="tab-content" id="pills-tabContent">
 
-    {{-- BASIC TAB --}}
+    {{-- Baic tab --}}
     <div class="tab-pane fade show {{ $activeTab == 'pills-basic' || !$activeTab ? 'active' : '' }}" id="pills-basic">
 
         <div class="card">
-            <div class="card-header border-0 cursor-pointer px-3 px-md-9">
+            <div class="card-header border-0 cursor-pointer px-3 px-md-9 bg-dark">
                 <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">
+                    <h3 class="fw-bolder m-0 d-block d-md-flex align-items-center text-gray-100">
                         {{ $page->exists ? wncms_model_word('page', 'edit') : wncms_model_word('page', 'create') }}
                     </h3>
                 </div>
@@ -37,7 +37,7 @@
                     <select name="type" class="form-select form-select-sm">
                         <option value="">@lang('wncms::word.please_select')</option>
                         @foreach ($types ?? [] as $type)
-                            <option value="{{ $type }}" {{ $type === old('type', $page->type) ? 'selected' : '' }}>
+                            <option value="{{ $type }}" @selected($type === old('type', $page->type) || (!old('type') && ! $page->type && $type=='plain'))>
                                 @lang('wncms::word.' . $type)
                             </option>
                         @endforeach
@@ -52,11 +52,11 @@
                 @if ($page->type == 'template')
                     <div class="form-item mb-3">
                         <label class="form-label fw-bold fs-6">
-                            @lang('wncms::word.available_theme_template')
+                            @lang('wncms::word.available_page_templates')
                         </label>
 
                         <select name="blade_name" class="form-select form-select-sm" required>
-                            <option value="">@lang('wncms::word.not_using_theme_template')</option>
+                            <option value="">@lang('wncms::word.please_select_page_template')</option>
 
                             @foreach ($available_templates ?? [] as $tpl)
                                 <option value="{{ $tpl['blade_name'] }}"
@@ -96,7 +96,7 @@
         </div>
     </div>
 
-    {{-- TEMPLATE OPTIONS TAB --}}
+    {{-- Template options tab --}}
     @if ($page->type == 'template')
         <div class="tab-pane fade {{ $activeTab == 'pills-template-options' ? 'show active' : '' }}" id="pills-template-options">
 
@@ -133,7 +133,7 @@
         </div>
     @endif
 
-    {{-- BUILDER TAB --}}
+    {{-- Builder tab --}}
     @if ($page->type == 'builder')
         <div class="alert alert-info">Builder mode is under development.</div>
     @endif

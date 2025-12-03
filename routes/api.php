@@ -12,10 +12,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
     // Menus
     Route::prefix('menus')->name('menus.')->controller(MenuController::class)->group(function () {
-        Route::post('/', 'index')->name('index');
+        Route::match(['GET', 'POST'], '/', 'index')->name('index');
         Route::post('store', 'store')->name('store');
         Route::post('sync', 'sync')->name('sync');
-        Route::post('{id}', 'show')->name('show');
+        Route::match(['GET', 'POST'], '{id}', 'show')->name('show');
     });
 
     // Pages

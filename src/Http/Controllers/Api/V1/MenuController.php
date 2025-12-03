@@ -6,7 +6,7 @@ use Wncms\Http\Controllers\Controller;
 use Wncms\Models\User;
 use Http;
 use Illuminate\Http\Request;
-
+use Wncms\Http\Resources\MenuResource;
 
 class MenuController extends Controller
 {
@@ -95,7 +95,8 @@ class MenuController extends Controller
 
     public function show(Request $request, $id)
     {
-        $menu = wncms()->menu()->get($id);
-        return $menu;
+        $menu = wncms()->menu()->get(['id' => $id]);
+        // dd($menu);
+        return MenuResource::make($menu);
     }
 }

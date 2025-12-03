@@ -41,6 +41,8 @@ class PageController extends BackendController
                     'model_name' => __('wncms::word.' . $this->singular)
                 ]));
             }
+
+            $page->slug = $page->slug . '-' . time();
         } else {
             $page = new $this->modelClass;
         }
@@ -64,9 +66,9 @@ class PageController extends BackendController
         $available_templates = [];
         foreach ($templateConfig as $templateId => $templateDef) {
             $available_templates[] = [
-                'id'         => $templateId,
+                'id' => $templateId,
                 'blade_name' => $templateId,
-                'label'      => $templateDef['label'] ?? $templateId,
+                'label' => $templateDef['label'] ?? $templateId,
             ];
         }
 
@@ -74,24 +76,46 @@ class PageController extends BackendController
         $page_template_options = [];
         $page_template_values  = [];
 
-        return $this->view('backend.pages.create', [
-            'page_title'            => wncms_model_word('page', 'management'),
-            'users'                 => $users,
-            'sorts'                 => $this->modelClass::SORTS,
-            'types'                 => $this->modelClass::TYPES,
-            'statuses'              => $this->modelClass::STATUSES,
-            'visibilities'          => $this->modelClass::VISIBILITIES,
-            'page'                  => $page,
+        // cloning existing page with template
+        if ($id && $page->type === 'template') {
 
-            // NEW
-            'available_templates'   => $available_templates,
+            $blade = $page->blade_name;
+
+            if ($blade && isset($templateConfig[$blade])) {
+
+                // Load grouped options (sections)
+                $page_template_options = $templateConfig[$blade]['sections'] ?? [];
+
+                // Load saved values from page_templates table
+                $row = $page->page_templates()
+                    ->where('theme_id', $theme)
+                    ->where('template_id', $blade)
+                    ->first();
+
+                // Clone values
+                $page_template_values = $row?->value ?? [];
+            }
+        }
+
+        // dd($page_template_options, $page_template_values);
+
+        return $this->view('backend.pages.create', [
+            'page_title' => wncms_model_word('page', 'management'),
+            'users'     => $users,
+            'sorts'     => $this->modelClass::SORTS,
+            'types'     => $this->modelClass::TYPES,
+            'statuses'  => $this->modelClass::STATUSES,
+            'visibilities' => $this->modelClass::VISIBILITIES,
+            'page'      => $page,
+            'available_templates' => $available_templates,
             'page_template_options' => $page_template_options,
-            'page_template_values'  => $page_template_values,
+            'page_template_values' => $page_template_values,
         ]);
     }
 
     public function store(Request $request)
     {
+        // dd($request->all(), $request->allFiles());
         $user = wncms()->getModelClass('user')::find($request->user_id) ?? auth()->user();
         if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
 
@@ -117,80 +141,39 @@ class PageController extends BackendController
             'status' => $request->input('status'),
             'visibility' => $request->input('visibility'),
             'title' => $request->input('title'),
-            'slug' => $request->input('slug', wncms()->getUniqueSlug('pages')),
+            'slug' => $request->input('slug') ?? wncms()->getUniqueSlug('pages'),
             'remark' => $request->input('remark'),
             'content' => $request->input('content'),
-            'type' => $request->input('type', 'plain'),
+            'type' => $request->input('type') ?: 'plain',
             'is_locked' => $request->boolean('is_locked'),
             'blade_name' => $request->input('blade_name'),
         ]);
 
-
-        // options
+        // page options
         if ($request->has('options')) {
             $page->setOptions($request->input('options'));
         }
 
-        //thumbnail
+        // thumbnail remove
         if (!empty($request->page_thumbnail_remove)) {
             $page->clearMediaCollection('page_thumbnail');
         }
 
-        if (!empty($request->page_thumbnail)) {
+        // thumbnail upload
+        if ($request->hasFile('page_thumbnail')) {
             $page->addMediaFromRequest('page_thumbnail')->toMediaCollection('page_thumbnail');
         }
 
-        $page->savePageOption($request);
-        // $inputs = [];
-        // // dd($request->inputs);
-        // $pageWidgetOrder = 0;
-        // if(!empty($request->inputs)){
-        //     foreach($request->inputs as $pageWidgetId => $valueArr){
-        //         foreach($valueArr as $key => $value){
+        // save template inputs (NEW)
+        if (
+            $page->type === 'template'
+            && $page->blade_name
+            && $request->has('template_inputs')
+        ) {
+            $page->saveTemplateInputs($request);
+        }
 
-        //             //set id
-        //             $inputs[$pageWidgetId]['pageWidgetId'] = $pageWidgetId;
-
-        //             //set order
-        //             $inputs[$pageWidgetId]['pageWidgetOrder'] = $pageWidgetOrder;
-
-        //             //set field values
-        //             $inputs[$pageWidgetId]['fields'][$key] = $value;
-
-        //             if(str()->endswith($key, '_remove')){
-
-        //                 $file_key = str_replace("_remove" , '', $key);
-        //                 if($value == 1){
-        //                     $page->clearMediaCollection($file_key);
-        //                     unset($inputs[$pageWidgetId][$file_key]);
-        //                 }else{
-        //                     $inputs[$pageWidgetId]['fields'][$file_key] = $page->getPageTemplateOption($pageWidgetId, $file_key);
-        //                 }
-
-        //                 //do nnt need to save key with _remove
-        //                 unset($inputs[$pageWidgetId]['fields'][$key]);
-        //             }
-
-        //             if($request->hasFile("inputs.{$pageWidgetId}.{$key}")){
-        //                 $collection = "{$pageWidgetId}_{$key}";
-        //                 $page->clearMediaCollection($collection);
-        //                 $image = $page->addMediaFromRequest("inputs.{$pageWidgetId}.{$key}")->toMediaCollection($collection);
-        //                 $value = str_replace(env('APP_URL') , '' ,$image->getUrl());
-        //                 $inputs[$pageWidgetId]['fields'][$key] = $value;
-        //             }
-
-        //         }
-
-        //         $pageWidgetOrder++;
-        //     }
-        // }
-
-        // $page->update([
-        //     'options' => !empty($request->inputs) ? [wncms()->getLocale() => $inputs] : null,
-        // ]);
-
-
-        //clear cache
+        // clear cache
         $this->flush();
 
         return redirect()->route('pages.edit', [
@@ -242,9 +225,9 @@ class PageController extends BackendController
             // Fill dropdown list
             foreach ($templateConfig as $templateId => $templateDef) {
                 $available_templates[] = [
-                    'id'         => $templateId,
+                    'id' => $templateId,
                     'blade_name' => $templateId,
-                    'label'      => $templateDef['label'] ?? $templateId,
+                    'label' => $templateDef['label'] ?? $templateId,
                 ];
             }
 
@@ -271,14 +254,16 @@ class PageController extends BackendController
         //     $page_template_values,
         // );
 
+        // dd($page->option('gallery_images'));
+
         return $this->view('backend.pages.edit', [
-            'page_title'           => wncms_model_word('page', 'management'),
-            'page'                 => $page,
-            'users'                => $users,
-            'statuses'             => $this->modelClass::STATUSES,
-            'types'                => $this->modelClass::TYPES,
-            'visibilities'         => $this->modelClass::VISIBILITIES,
-            'available_templates'  => $available_templates,
+            'page_title' => wncms_model_word('page', 'management'),
+            'page'     => $page,
+            'users'    => $users,
+            'statuses' => $this->modelClass::STATUSES,
+            'types'    => $this->modelClass::TYPES,
+            'visibilities' => $this->modelClass::VISIBILITIES,
+            'available_templates' => $available_templates,
             'page_template_options' => $page_template_options,
             'page_template_values' => $page_template_values,
         ]);
@@ -326,23 +311,23 @@ class PageController extends BackendController
 
         // Validation
         $request->validate([
-            'status'     => 'required',
+            'status' => 'required',
             'visibility' => 'required',
         ], [
-            'status.required'     => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.status')]),
+            'status.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.status')]),
             'visibility.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.visibility')]),
         ]);
 
         // Update base fields
         $page->update([
-            'status'     => $request->input('status'),
+            'status' => $request->input('status'),
             'visibility' => $request->input('visibility'),
-            'title'      => $request->input('title'),
-            'slug'       => $request->input('slug', wncms()->getUniqueSlug('pages')),
-            'remark'     => $request->input('remark'),
-            'content'    => $request->input('content'),
-            'type'       => $request->input('type', 'plain'),
-            'is_locked'  => $request->boolean('is_locked'),
+            'title' => $request->input('title'),
+            'slug' => $request->input('slug') ?? wncms()->getUniqueSlug('pages'),
+            'remark' => $request->input('remark'),
+            'content' => $request->input('content'),
+            'type' => $request->input('type') ?? $page->type ?? 'plain',
+            'is_locked' => $request->boolean('is_locked'),
             'blade_name' => $request->input('blade_name'),
         ]);
 

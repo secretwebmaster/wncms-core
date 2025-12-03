@@ -291,7 +291,7 @@ class Page extends BaseModel implements HasMedia
     /**
      * Process a field group with specific types
      */
-    protected function processFieldGroup(array $inputs, array $field, string $sectionName, int $accordionIndex = null, int $inlineIndex = null)
+    protected function processFieldGroup(array $inputs, array $field, string $sectionName, ?int $accordionIndex = null, ?int $inlineIndex = null)
     {
         $results = [];
 
@@ -373,49 +373,83 @@ class Page extends BaseModel implements HasMedia
             $finalKey = $accordionIndex !== null ? "{$name}_{$accordionIndex}" : $name;
             $sectionInputs = $inputs[$sectionName] ?? [];
 
-            // 1. existing images
-            $existing = $sectionInputs[$finalKey] ?? [];
-            if (!is_array($existing)) {
-                $existing = empty($existing) ? [] : explode(',', $existing);
+            $hasText = !empty($field['has_text']);
+            $hasUrl  = !empty($field['has_url']);
+
+            // --------------------------------------------
+            // 1. Load existing items from request
+            // --------------------------------------------
+            $existing = [];
+            $images   = $sectionInputs[$finalKey]['image'] ?? [];
+
+            foreach ($images as $i => $img) {
+                if (!$img) continue;
+
+                $existing[] = [
+                    'image' => $img,
+                    'text'  => $hasText ? ($sectionInputs[$finalKey]['text'][$i] ?? '') : '',
+                    'url'   => $hasUrl  ? ($sectionInputs[$finalKey]['url'][$i]  ?? '') : '',
+                ];
             }
 
-            // 2. remove flags
+            // --------------------------------------------
+            // 2. Apply remove flags
+            // --------------------------------------------
             $removeFlags = $sectionInputs[$finalKey . '_remove'] ?? [];
-            if (!is_array($removeFlags)) $removeFlags = [$removeFlags];
 
             $kept = [];
-            foreach ($existing as $idx => $path) {
-                $flag = $removeFlags[$idx] ?? 0;
-                if (!in_array($flag, ['1', 1, true, 'true'], true)) {
-                    $kept[] = $path; // keep existing
+            foreach ($existing as $i => $item) {
+                if (!isset($removeFlags[$i]) || $removeFlags[$i] == 0) {
+                    $kept[] = $item;
                 }
             }
 
-            // -------------------------------------------------------------
-            // DELETE removed files physically
-            // -------------------------------------------------------------
+            // --------------------------------------------
+            // 3. Spatie delete removed items
+            // --------------------------------------------
             $collection = "tpl_{$sectionName}_{$finalKey}";
 
-            $allMedia = $this->getMedia($collection);
-            foreach ($allMedia as $media) {
+            foreach ($this->getMedia($collection) as $media) {
                 $url = parse_url($media->getUrl(), PHP_URL_PATH);
-                if (!in_array($url, $kept, true)) {
-                    $media->delete(); // delete file + DB row
+
+                $stillExists = collect($kept)->contains(fn($x) => $x['image'] === $url);
+
+                if (!$stillExists) {
+                    $media->delete();
                 }
             }
 
-            // 3. new uploads
+            // --------------------------------------------
+            // 4. New uploads → append
+            // --------------------------------------------
             $fileKey = "template_inputs.{$sectionName}.{$finalKey}_files";
             $files = request()->file($fileKey) ?? [];
 
             foreach ($files as $file) {
                 if ($file instanceof UploadedFile) {
                     $media = $this->addMedia($file)->toMediaCollection($collection);
-                    $kept[] = parse_url($media->getUrl(), PHP_URL_PATH);
+                    $url = parse_url($media->getUrl(), PHP_URL_PATH);
+
+                    $kept[] = [
+                        'image' => $url,
+                        'text'  => $hasText ? '' : '',
+                        'url'   => $hasUrl  ? '' : '',
+                    ];
                 }
             }
 
-            return [$finalKey => $kept];
+            // --------------------------------------------
+            // 5. Normalize final structure
+            // --------------------------------------------
+            $normalized = collect($kept)
+                ->filter(fn($x) => !empty($x['image']))
+                ->unique('image')
+                ->values()
+                ->toArray();
+
+            return [
+                $finalKey => $normalized
+            ];
         }
 
         // normal field
