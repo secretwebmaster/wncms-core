@@ -29,7 +29,7 @@ class Update extends Command
         $this->info('Starting WNCMS update process.');
 
         $product = $this->argument('product');
-    
+
         // Step 1: Get the user's current version
         $currentVersion = gss("{$product}_version");
         if (!$currentVersion) {
@@ -83,7 +83,14 @@ class Update extends Command
 
             if ($response->ok()) {
                 $result = $response->json();
-                return $result['data'][$product]['versions'];
+                $versions = $result['data'][$product]['versions'] ?? [];
+
+                // Sort by semantic version including alpha/beta
+                usort($versions, function ($a, $b) {
+                    return version_compare($a, $b);
+                });
+
+                return $versions;
             }
 
             $this->error('Failed to fetch available versions: ' . $response->status());
@@ -94,6 +101,7 @@ class Update extends Command
         return [];
     }
 
+
     /**
      * Filter updates that are later than the current version.
      *
@@ -103,9 +111,13 @@ class Update extends Command
      */
     protected function filterUpdates($currentVersion, $availableVersions)
     {
-        return array_filter($availableVersions, function ($version) use ($currentVersion) {
+        $updates = array_filter($availableVersions, function ($version) use ($currentVersion) {
             return version_compare($version, $currentVersion, '>');
         });
+
+        usort($updates, 'version_compare');
+
+        return $updates;
     }
 
     /**
