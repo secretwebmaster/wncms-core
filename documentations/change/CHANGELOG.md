@@ -1,5 +1,25 @@
 # 更新日誌
 
+## v6.0.7 2025-12-03
+
+-   新增後台網站編輯頁的首頁頁面 ID 設定欄位
+-   前台 PageController 支援依頁面 ID 載入首頁，不再強制使用 home.blade.php
+-   改進頁面複製邏輯，自動產生唯一 slug 並複製範本選項
+-   新增 MenuResource 與 MenuItemResource，改善 API 結構並支援 Next.js 使用
+-   Menus API 端點支援 GET 與 POST 請求
+-   改進頁面列表（Pages index）介面：新增縮圖顯示開關、首頁小圖示、鎖定狀態顯示
+-   修正圖庫上傳功能：新增圖片的移除/復原動作無法正常運作問題
+-   重寫圖庫欄位邏輯：統一資料格式、避免重複圖片、改善移除與上傳流程
+-   新增圖庫文字與連結欄位（has_text、has_url）功能
+-   修正圖片欄位在未重新上傳時，原有的 hidden input 會遺失的問題
+-   改善後台 UI：統一深色標題列、深色/淺色 LOGO 自動切換、調整間距
+-   更新 Starter 主題設定文件，完整補充所有欄位類型說明
+-   新增 Starter 主題示範：heading、sub_heading、inline、accordion、display_image、custom HTML 等
+-   新增 Template 1 範例版型，示範多區塊、多欄位類型
+-   改進頁面範本系統：複製頁面時正確載入範本選項、優化預覽行為
+-   修正頁面類型、狀態、可見性預設選取邏輯
+-   更新 PostResource：新增 content 輸出，並使用統一的縮圖欄位存取
+
 ## v6.0.6 2025-11-30
 
 -   新增頁面模板「圖庫上傳」後端邏輯，支援新增、刪除、復原並自動同步媒體庫。

@@ -1,5 +1,25 @@
 # 更新日志
 
+## v6.0.7 2025-12-03
+
+-   后台网站编辑页面新增首页页面 ID 输入栏位
+-   前台 PageController 现在可根据页面 ID 加载首页，不再固定使用 home.blade.php
+-   改进页面克隆逻辑：自动生成唯一 slug，并复制模板选项
+-   新增 MenuResource 与 MenuItemResource，优化 API 输出并适配 Next.js
+-   Menus API 端点现已支持 GET 与 POST 请求
+-   改进页面列表（Pages index）界面：新增缩略图开关、首页图标、锁定状态显示
+-   修复图库上传中新增图片的移除与恢复按钮无效问题
+-   重写图库字段逻辑：统一数据结构、避免重复图片、改善删除与上传流程
+-   新增图库文字与链接字段（has_text、has_url）
+-   修复图片字段在未上传新文件时，原本 hidden input 值会丢失的问题
+-   改善后台 UI：统一深色标题栏、深浅色 LOGO 自动切换、界面间距优化
+-   更新 Starter 主题配置说明，完整补充所有字段类型文档
+-   新增 Starter 主题示例：heading、sub_heading、inline、accordion、display_image、custom HTML 等
+-   新增 Template 1 示例模板，展示多区块、多字段类型
+-   改进页面模板系统：克隆页面时正确加载模板选项，预览逻辑更完善
+-   修正页面类型、状态、可见性默认选项逻辑
+-   更新 PostResource：新增 content 字段，并统一缩略图取值方式
+
 ## v6.0.6 2025-11-30
 
 -   新增页面模板「图库上传」后端逻辑，支持新增、删除、恢复并自动同步媒体库。

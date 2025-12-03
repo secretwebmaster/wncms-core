@@ -1,5 +1,25 @@
 # Changelog
 
+## v6.0.7 2025-12-03
+
+-   Added homepage selector to Website model and backend edit page
+-   Updated frontend PageController to load homepage by page ID instead of forcing home.blade.php
+-   Improved page cloning logic with auto-generated slug and template option copying
+-   Added MenuResource & MenuItemResource for API output and Next.js compatibility
+-   Updated menus API endpoints to support GET and POST
+-   Improved Pages index view (show_thumbnail toggle, homepage icon indicator, is_locked badge)
+-   Fixed gallery upload remove/undo behavior for newly added images
+-   Rewrote gallery field logic to normalize output and prevent duplicated images
+-   Added support for gallery text and URL fields (has_text, has_url)
+-   Fixed image field hidden input not preserved when no new file is uploaded
+-   Improved backend UI: unified dark headers, theme-aware logos (dark/light), spacing fixes
+-   Updated starter theme config guide with full documentation of field types
+-   Added new starter theme demo sections (heading, sub_heading, inline, accordion, display_image, custom HTML)
+-   Added Template 1 example with multiple sections and all field types
+-   Improved Page Template System: correctly loads template options when cloning, improved preview logic
+-   Fixed default selection logic for page type, status, and visibility
+-   Updated PostResource to include content and use unified thumbnail accessor
+
 ## v6.0.6 2025-11-30
 
 -   Added backend logic for the page template "gallery upload" feature, supporting add/remove/restore with automatic media sync.
