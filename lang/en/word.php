@@ -2259,6 +2259,13 @@ $words = [
     // 6.0.5
     'gallery_drag_or_click' => 'Drag images here or click to upload',
 
+    // 6.0.7
+    'please_enter_homepage_id' => 'Please enter the page ID',
+    'no_packages_found' => 'No packages found',
+    'page_template_options' => 'Page template options',
+    'available_page_templates' => 'Available page templates',
+    'please_select_page_template' => 'Please select a page template',
+
 ];
 
 $locale = basename(__DIR__);

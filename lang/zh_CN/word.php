@@ -2259,6 +2259,13 @@ $words = [
     // 6.0.5
     'gallery_drag_or_click' => '拖曳图片至此 或 点击上传',
 
+    // 6.0.7
+    'please_enter_homepage_id' => '请输入页面ID',
+    'no_packages_found' => '未找到套餐',
+    'page_template_options' => '页面模板选项',
+    'available_page_templates' => '可用页面模板',
+    'please_select_page_template' => '请选择页面模板',
+
 ];
 
 $locale = basename(__DIR__);

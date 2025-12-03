@@ -12,10 +12,10 @@
             <div class="card-title m-0">
                 <h3 class="fw-bolder m-0 d-block d-md-flex align-items-center">
                     <span class="text-gray-100">@lang('wncms::word.edit_website')</span>
-                    <div class="d-block d-md-flex">
-                        <a href="{{ wncms_add_https($website->domain) }}" target="_blank" class="btn btn-sm btn-info fw-bold ms-0 ms-md-3">@lang('wncms::word.current_website'): {{ $website->site_name }} ({{ $website->domain }})</a>
-                    </div>
                 </h3>
+                <div class="d-none d-md-flex">
+                    <a href="{{ wncms_add_https($website->domain) }}" target="_blank" class="btn btn-sm btn-info fw-bold ms-0 ms-md-3">@lang('wncms::word.current_website'): {{ $website->site_name }} ({{ $website->domain }})</a>
+                </div>
                 <div class="card-toolbar flex-row-fluid justify-content-end text-nowrap ms-3">
                     <a href="{{ route('websites.theme.options', $website) }}" class="btn btn-sm btn-light fw-bold">@lang('wncms::word.switch_to_theme_options')</a>
                 </div>
@@ -66,8 +66,8 @@
                 </div>
 
                 {{-- Theme --}}
-                <div class="row mb-6">
-                    <label class="col-lg-3 col-form-label  fw-bold fs-6">@lang('wncms::word.theme')</label>
+                <div class="row mb-1">
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.theme')</label>
                     <div class="col-lg-9 fv-row">
                         <select name="theme" class="form-select form-select-sm">
                             <option value="">@lang('wncms::word.please_select_theme')</option>
@@ -75,6 +75,14 @@
                             <option value="{{ $theme }}" {{ $theme === ($website->theme ?? old('theme')) ? 'selected' : '' }}><b>{{ $theme }}</b></option>
                             @endforeach
                         </select>
+                    </div>
+                </div>
+                
+                {{-- homepage --}}
+                <div class="row mb-1">
+                    <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.homepage')</label>
+                    <div class="col-lg-9 fv-row">
+                        <input type="text" name="homepage" class="form-control form-control-sm" value="{{ $website->homepage ?? old('homepage') }}" placeholder="@lang('wncms::word.please_enter_homepage_id')"/>
                     </div>
                 </div>
 

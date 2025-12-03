@@ -14,6 +14,18 @@ class PageController extends FrontendController
     {
         //get theme option to get custom home page
 
+        // get website setting
+        $homePageId = $this->website->homepage ?? null;
+        if ($homePageId) {
+
+            // load page by id
+            $page = wncms()->page()->get(['id' => $homePageId]);
+
+            if ($page) {
+                return $this->show($page->slug);
+            }
+        }
+
         //send to home blade if no custom theme option is found
         return $this->getFrontendPageView(
             pageName: gto('home_page', 'home'),
@@ -70,6 +82,11 @@ class PageController extends FrontendController
 
         // Load page
         $page = wncms()->page()->get(['slug' => $slug]);
+
+        // if id is same as homepage, redirect to home route
+        if ($this->website->homepage && $page && $page->id == $this->website->homepage && request()->routeIs('frontend.pages.show')) {
+            return redirect()->route('frontend.pages.home');
+        }
 
         // Fire event
         Event::dispatch('wncms.pages.show', $page);

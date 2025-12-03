@@ -2259,6 +2259,13 @@ $words = [
     // 6.0.5
     'gallery_drag_or_click' => '拖曳圖片至此 或 點擊上傳',
 
+    // 6.0.7
+    'please_enter_homepage_id' => '請輸入頁面ID',
+    'no_packages_found' => '未找到套件',
+    'page_template_options' => '頁面範本選項',
+    'available_page_templates' => '可用頁面範本',
+    'please_select_page_template' => '請選擇頁面範本',
+
 ];
 
 $locale = basename(__DIR__);

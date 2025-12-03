@@ -256,6 +256,7 @@ class WebsiteController extends BackendController
         $website->update([
             'site_name' => $request->site_name,
             'theme' => $request->theme,
+            'homepage' => $request->homepage,
             'meta_verification' => $request->meta_verification,
             'site_slogan' => $request->site_slogan,
             'site_seo_description' => $request->site_seo_description,

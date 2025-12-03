@@ -24,17 +24,14 @@ return new class extends Migration
                 $table->string('site_slogan')->nullable();
                 $table->string('site_seo_keywords')->nullable();
                 $table->string('site_seo_description')->nullable();
-
                 $table->string('theme')->nullable();
+                $table->string('homepage')->nullable();
                 $table->string('remark')->nullable();
-
                 $table->text('meta_verification')->nullable();
                 $table->text('head_code')->nullable();
                 $table->text('body_code')->nullable();
                 $table->text('analytics')->nullable();
-
                 $table->string('license')->nullable();
-
                 $table->boolean('enabled_page_cache')->default(false);
                 $table->boolean('enabled_data_cache')->default(true);
 

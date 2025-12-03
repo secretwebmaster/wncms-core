@@ -2259,6 +2259,13 @@ $words = [
     // 6.0.5
     'gallery_drag_or_click' => 'ここに画像をドラッグ、またはクリックしてアップロード',
 
+    // 6.0.7
+    'please_enter_homepage_id' => 'ページIDを入力してください',
+    'no_packages_found' => 'パッケージが見つかりません',
+    'page_template_options' => 'ページテンプレート設定',
+    'available_page_templates' => '利用可能なページテンプレート',
+    'please_select_page_template' => 'ページテンプレートを選択してください',
+    
 ];
 
 $locale = basename(__DIR__);
