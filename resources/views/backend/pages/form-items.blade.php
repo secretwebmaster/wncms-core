@@ -30,6 +30,15 @@
         .gallery-action-btn i {
             font-size: 14px;
         }
+
+        .gallery-remove-existing,
+        .gallery-remove-new {
+            aspect-ratio: 1;
+            width: 25px;
+            align-items: center;
+            justify-content: center;
+            margin:5px;
+        }
     </style>
 @endpush
 
