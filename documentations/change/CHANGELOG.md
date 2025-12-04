@@ -1,5 +1,16 @@
 # 更新日誌
 
+## v6.0.9 2025-12-04
+
+-   統一 Gallery 欄位結構為 image[]、text[]、url[]、remove[]、file[]，完全移除舊的 \_remove 與 \_files 格式
+-   重寫後台 Gallery UI（inputs.blade.php）：新增 text/url 欄位、移除/還原按鈕、拖曳外觀優化、更穩定的 preview 行為
+-   修正主題選項頁（theme option）無法取得上傳檔案的問題，改用 request()->file() 正確讀取 file[]
+-   重寫 WebsiteController@updateThemeOptions：圖片不會消失、移除/新增完整運作、避免覆蓋錯誤
+-   重寫 WebsiteController@editThemeOptions：正確解析 JSON 結構並還原成前端需要的格式
+-   重寫 Page 模型的 processFieldGroup() gallery 區塊，支援新格式並統一與主題選項邏輯
+-   增強 createtheme 指令：顯示建立的檔案與資料夾、改善 starter 複製路徑判斷
+-   增加 Tagify maxTags 至 999，避免後台限制不必要錯誤
+
 ## v6.0.8 2025-12-03
 
 -   改進更新系統版本排序機制，使用 `version_compare` 正確處理 alpha/beta 版本
