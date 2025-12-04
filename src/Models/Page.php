@@ -371,61 +371,54 @@ class Page extends BaseModel implements HasMedia
             if (!$name) return [];
 
             $finalKey = $accordionIndex !== null ? "{$name}_{$accordionIndex}" : $name;
-            $sectionInputs = $inputs[$sectionName] ?? [];
+            $group = $inputs[$sectionName][$finalKey] ?? [];
 
             $hasText = !empty($field['has_text']);
             $hasUrl  = !empty($field['has_url']);
 
-            // --------------------------------------------
-            // 1. Load existing items from request
-            // --------------------------------------------
+            // load existing images from form
             $existing = [];
-            $images   = $sectionInputs[$finalKey]['image'] ?? [];
+            $images = $group['image'] ?? [];
 
             foreach ($images as $i => $img) {
                 if (!$img) continue;
 
                 $existing[] = [
                     'image' => $img,
-                    'text'  => $hasText ? ($sectionInputs[$finalKey]['text'][$i] ?? '') : '',
-                    'url'   => $hasUrl  ? ($sectionInputs[$finalKey]['url'][$i]  ?? '') : '',
+                    'text'  => $hasText ? ($group['text'][$i] ?? '') : '',
+                    'url'   => $hasUrl  ? ($group['url'][$i]  ?? '') : '',
                 ];
             }
 
-            // --------------------------------------------
-            // 2. Apply remove flags
-            // --------------------------------------------
-            $removeFlags = $sectionInputs[$finalKey . '_remove'] ?? [];
-
+            // apply remove flags
+            $removeFlags = $group['remove'] ?? [];
             $kept = [];
+
             foreach ($existing as $i => $item) {
-                if (!isset($removeFlags[$i]) || $removeFlags[$i] == 0) {
+                if (!isset($removeFlags[$i]) || (int)$removeFlags[$i] === 0) {
                     $kept[] = $item;
                 }
             }
 
-            // --------------------------------------------
-            // 3. Spatie delete removed items
-            // --------------------------------------------
+            // delete removed media from spatie
             $collection = "tpl_{$sectionName}_{$finalKey}";
-
             foreach ($this->getMedia($collection) as $media) {
                 $url = parse_url($media->getUrl(), PHP_URL_PATH);
 
-                $stillExists = collect($kept)->contains(fn($x) => $x['image'] === $url);
+                $stillExists = collect($kept)->contains(function ($x) use ($url) {
+                    return $x['image'] === $url;
+                });
 
                 if (!$stillExists) {
                     $media->delete();
                 }
             }
 
-            // --------------------------------------------
-            // 4. New uploads → append
-            // --------------------------------------------
-            $fileKey = "template_inputs.{$sectionName}.{$finalKey}_files";
+            // handle new uploads
+            $fileKey = "template_inputs.{$sectionName}.{$finalKey}.file";
             $files = request()->file($fileKey) ?? [];
 
-            foreach ($files as $file) {
+            foreach (is_array($files) ? $files : [$files] as $file) {
                 if ($file instanceof UploadedFile) {
                     $media = $this->addMedia($file)->toMediaCollection($collection);
                     $url = parse_url($media->getUrl(), PHP_URL_PATH);
@@ -438,12 +431,9 @@ class Page extends BaseModel implements HasMedia
                 }
             }
 
-            // --------------------------------------------
-            // 5. Normalize final structure
-            // --------------------------------------------
+            // normalize output
             $normalized = collect($kept)
                 ->filter(fn($x) => !empty($x['image']))
-                ->unique('image')
                 ->values()
                 ->toArray();
 

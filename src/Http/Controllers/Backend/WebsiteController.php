@@ -3,6 +3,7 @@
 namespace Wncms\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 
 class WebsiteController extends BackendController
@@ -307,28 +308,63 @@ class WebsiteController extends BackendController
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
         }
 
-        //load theme files
+        // load option config
         $option_tabs = config('theme.' . ($website->theme ?? 'default') . '.option_tabs');
 
+        // flatten all option definitions
+        $configs = $option_tabs;
+        $keyToSearch = 'name';
+        $allOptions = collect($this->findParentArrays($configs, $keyToSearch));
+
+        // load stored values
         $current_options = $website->theme_options()
             ->where('theme', $website->theme)
             ->get()
-            ->mapWithKeys(function ($option) {
-                // Get the translation for the current locale
-                $translatedValue = $option->getTranslation('value', app()->getLocale());
-                return [$option->key => $translatedValue];
+            ->mapWithKeys(function ($option) use ($allOptions) {
+
+                // get translated raw value
+                $value = $option->getTranslation('value', app()->getLocale());
+
+                // find field config
+                $config = $allOptions->firstWhere('name', $option->key);
+                $type = $config['type'] ?? null;
+
+                // decode gallery json
+                if ($type === 'gallery' && is_string($value)) {
+
+                    // decode json to array
+                    $decoded = json_decode($value, true);
+
+                    // ensure proper structure for inputs.blade.php
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+
+                        $clean = [];
+
+                        foreach ($decoded as $item) {
+                            if (!is_array($item)) continue;
+
+                            $clean[] = [
+                                'image' => $item['image'] ?? '',
+                                'text'  => $item['text'] ?? '',
+                                'url'   => $item['url'] ?? '',
+                            ];
+                        }
+
+                        $value = $clean;
+                    }
+                }
+
+                return [$option->key => $value];
             })
             ->toArray();
 
+        // load other websites with same theme
         $websites = wncms()->website()->getList(wheres: [
             ['theme', $website->theme],
             ['id', "<>", $website->id],
         ]);
 
-        // dd(
-        //     $current_options['testing_menus'],
-        //     $current_options['testing_posts'],
-        // );
+        // dd($current_options);
 
         return $this->view('backend.websites.theme_options', [
             'page_title' => __('wncms::word.theme_options') . " #" . $website->id,
@@ -341,67 +377,138 @@ class WebsiteController extends BackendController
 
     public function updateThemeOptions(Request $request, $id)
     {
+        // dd($request->all());
         $website = $this->modelClass::find($id);
         if (!$website) {
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
         }
 
         $shouldClearTagCache = false;
+
         $configs = config('theme.' . $website->theme . ".option_tabs");
         $keyToSearch = 'name';
         $options = collect($this->findParentArrays($configs, $keyToSearch));
 
-        foreach ($request->inputs as $key => $value) {
+        $inputs = $request->input('inputs', []);
+
+        foreach ($inputs as $key => $group) {
+
+            // find field config
+            $config = $options->firstWhere('name', $key);
+            $type = $config['type'] ?? null;
 
             if (strpos($key, 'categories') !== false) {
                 $shouldClearTagCache = true;
             }
 
-            // Handle file uploads
-            if ($request->hasFile('inputs.' . $key)) {
-                $website->clearMediaCollection($key);
-                $image = $website->addMediaFromRequest('inputs.' . $key)->toMediaCollection($key);
-                $value = str_replace(env('APP_URL'), '', $image->getUrl());
-            }
+            // gallery
+            if ($type === 'gallery') {
 
-            // Handle _remove
-            if (Str::endswith($key, '_remove') && $value == 1) {
+                // load flags
+                $hasText = !empty($config['has_text']);
+                $hasUrl  = !empty($config['has_url']);
 
-                $file_key = str_replace("_remove", '', $key);
-                $website->clearMediaCollection($file_key);
+                // load existing non-file values
+                $images = $group['image'] ?? [];
+                $texts  = $group['text']  ?? [];
+                $urls   = $group['url']   ?? [];
+                $remove = $group['remove'] ?? [];
 
+                // build existing items
+                $existing = [];
+                foreach ($images as $i => $img) {
+                    if (!$img) continue;
+
+                    $existing[] = [
+                        'image' => $img,
+                        'text'  => $hasText ? ($texts[$i] ?? '') : '',
+                        'url'   => $hasUrl  ? ($urls[$i]  ?? '') : '',
+                    ];
+                }
+
+                // apply remove flags
+                $kept = [];
+                foreach ($existing as $i => $item) {
+                    if (!isset($remove[$i]) || (int)$remove[$i] === 0) {
+                        $kept[] = $item;
+                    }
+                }
+
+                // delete removed spatie media
+                foreach ($website->getMedia($key) as $media) {
+                    $url = parse_url($media->getUrl(), PHP_URL_PATH);
+
+                    $exists = collect($kept)->contains(function ($x) use ($url) {
+                        return $x['image'] === $url;
+                    });
+
+                    if (!$exists) {
+                        $media->delete();
+                    }
+                }
+
+                // load uploaded files from request
+                $files = $request->file("inputs.{$key}.file") ?? [];
+                if (!is_array($files)) {
+                    $files = $files ? [$files] : [];
+                }
+                
+                // append uploaded images
+                foreach ($files as $file) {
+                    if ($file instanceof UploadedFile) {
+                        $media = $website->addMedia($file)->toMediaCollection($key);
+                        $url = parse_url($media->getUrl(), PHP_URL_PATH);
+
+                        $kept[] = [
+                            'image' => $url,
+                            'text'  => $hasText ? '' : '',
+                            'url'   => $hasUrl  ? '' : '',
+                        ];
+                    }
+                }
+
+                // normalize structure
+                $normalized = collect($kept)
+                    ->filter(fn($x) => !empty($x['image']))
+                    ->values()
+                    ->toArray();
+
+                // save option
                 $website->theme_options()->updateOrCreate(
                     [
                         'theme' => $website->theme,
-                        'key' => $file_key,
+                        'key'   => $key,
                     ],
                     [
-                        'value' => null
+                        'value' => json_encode($normalized, JSON_UNESCAPED_UNICODE),
                     ]
                 );
-            } else {
 
-                // Tagify values → extract IDs
-                if (($options->where('name', $key)->first()['type'] ?? null) == 'tagify') {
-                    $tagIds = collect(json_decode($value, true))->pluck('value')->toArray();
-                    $value = implode(",", $tagIds);
-                }
-
-                if (is_array($value)) {
-                    $value = json_encode($value, JSON_UNESCAPED_UNICODE);
-                }
-
-                // Save option
-                $website->theme_options()->updateOrCreate(
-                    [
-                        'theme' => $website->theme,
-                        'key' => $key,
-                    ],
-                    [
-                        'value' => $value
-                    ]
-                );
+                continue;
             }
+
+
+            // tagify
+            if ($type === 'tagify' && is_string($group) && wncms()->isValidTagifyJson($group)) {
+                $ids = collect(json_decode($group, true))->pluck('value')->toArray();
+                $group = implode(',', $ids);
+            }
+
+            // normal array field
+            if (is_array($group)) {
+                $group = json_encode($group, JSON_UNESCAPED_UNICODE);
+            }
+
+            // save option
+            $website->theme_options()->updateOrCreate(
+                [
+                    'theme' => $website->theme,
+                    'key' => $key,
+                ],
+                [
+                    'value' => $group,
+                ]
+            );
         }
 
         if ($shouldClearTagCache) {
