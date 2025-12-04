@@ -226,7 +226,7 @@
 
                 new Tagify(input, {
                     whitelist: starter_tags,
-                    maxTags: 10,
+                    maxTags: 999,
                     tagTextProp: 'value',
                     dropdown: {
                         maxItems: 20,           // <- mixumum allowed rendered suggestions
