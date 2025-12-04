@@ -7,11 +7,52 @@
             font-weight: bold
         }
     </style>
+
+    <style>
+        .wncms-gallery-droparea {
+            display: block;
+            background: #f8f9fa;
+            border: 2px dashed #ced4da;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all .2s ease;
+        }
+
+        .wncms-gallery-droparea:hover {
+            background: #eef1f4;
+            border-color: #999;
+        }
+
+        .gallery-action-btn {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 4px;
+            margin-right: 4px;
+            border-radius: 6px;
+        }
+
+        .gallery-action-btn i {
+            font-size: 14px;
+        }
+
+        .gallery-remove-existing,
+        .gallery-remove-new {
+            aspect-ratio: 1;
+            width: 25px;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+        }
+    </style>
 @endpush
 
 @push('head_js')
-<script src="{{ asset('wncms/js/sortable.min.js') }}"></script>
-<script src="{{ asset('wncms/js/jquery.dragsort.min.js?v=' . wncms_get_version('js')) }}"></script>
+    <script src="{{ asset('wncms/js/sortable.min.js') }}"></script>
+    <script src="{{ asset('wncms/js/jquery.dragsort.min.js?v=' . wncms_get_version('js')) }}"></script>
 @endpush
 
 @section('content')

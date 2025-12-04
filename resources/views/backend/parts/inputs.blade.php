@@ -759,24 +759,38 @@
                 @php
                     $sectionKey = $inputNameKey;
                     $fieldKey = $option['name'] ?? 'gallery';
-                    $fieldInputName = "{$sectionKey}[{$fieldKey}]";
-                    $removeInputName = "{$sectionKey}[{$fieldKey}_remove]";
-                    $fileInputName = "{$sectionKey}[{$fieldKey}_files]";
+
+                    // Base name: all sub keys are under this
+                    // e.g. template_inputs[hero][gallery1][image][]
+                    // or  inputs[homepage_gallery][image][]
+                    $fieldBaseName = "{$sectionKey}[{$fieldKey}]";
+
                     $galleryId = 'gallery_' . $fieldKey . '_' . $randomIdSuffix;
 
-                    // extract values
-                    if (!empty($option['has_text']) || !empty($option['has_url'])) {
-                        // [{image:"", text:"", url:""}]
-                        $currentImages = is_array($currentValue) ? $currentValue : [];
-                    } else {
-                        // ["img1","img2"]
-                        if (is_array($currentValue)) {
-                            $currentImages = $currentValue;
-                        } elseif (!empty($currentValue)) {
-                            $currentImages = explode(',', $currentValue);
-                        } else {
-                            $currentImages = [];
+                    $currentImages = [];
+
+                    if (is_array($currentValue)) {
+                        foreach ($currentValue as $item) {
+                            if (is_array($item)) {
+                                $currentImages[] = [
+                                    'image' => $item['image'] ?? '',
+                                    'text' => $item['text'] ?? '',
+                                    'url' => $item['url'] ?? '',
+                                ];
+                            } elseif (is_string($item)) {
+                                $currentImages[] = [
+                                    'image' => $item,
+                                    'text' => '',
+                                    'url' => '',
+                                ];
+                            }
                         }
+                    } elseif (!empty($currentValue) && is_string($currentValue)) {
+                        $currentImages[] = [
+                            'image' => $currentValue,
+                            'text' => '',
+                            'url' => '',
+                        ];
                     }
                 @endphp
 
@@ -797,19 +811,19 @@
                                 <img src="{{ $url }}" class="rounded" style="width:{{ $option['width'] ?? 200 }}px;height:{{ $option['height'] ?? 120 }}px;object-fit:cover">
 
                                 {{-- hidden fields --}}
-                                <input type="hidden" name="{{ $fieldInputName }}[image][]" value="{{ $url }}">
+                                <input type="hidden" name="{{ $fieldBaseName }}[image][]" value="{{ $url }}">
 
                                 @if (!empty($option['has_text']) || !empty($option['has_url']))
                                     @if (!empty($option['has_text']))
-                                        <input type="text" name="{{ $fieldInputName }}[text][]" class="form-control form-control-sm mt-1" placeholder="Text" value="{{ $text }}">
+                                        <input type="text" name="{{ $fieldBaseName }}[text][]" class="form-control form-control-sm mt-1" placeholder="Text" value="{{ $text }}">
                                     @endif
 
                                     @if (!empty($option['has_url']))
-                                        <input type="text" name="{{ $fieldInputName }}[url][]" class="form-control form-control-sm mt-1" placeholder="URL" value="{{ $link }}">
+                                        <input type="text" name="{{ $fieldBaseName }}[url][]" class="form-control form-control-sm mt-1" placeholder="URL" value="{{ $link }}">
                                     @endif
                                 @endif
 
-                                <input type="hidden" name="{{ $removeInputName }}[]" value="0" class="gallery-remove-flag">
+                                <input type="hidden" name="{{ $fieldBaseName }}[remove][]" value="0" class="gallery-remove-flag">
 
                                 <span class="gallery-remove-existing btn btn-danger position-absolute top-0 end-0 p-0">
                                     <i class="fa-solid fa-xmark pe-0"></i>
@@ -822,7 +836,7 @@
                     {{-- Upload area --}}
                     <div id="{{ $galleryId }}" class="wncms-gallery-droparea position-relative text-center p-5 w-100 border border-dashed rounded bg-light cursor-pointer">
                         <div class="text-gray-600">@lang('wncms::word.gallery_drag_or_click')</div>
-                        <input type="file" id="{{ $galleryId }}_input" name="{{ $fileInputName }}[]" accept="image/*" multiple class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer">
+                        <input type="file" id="{{ $galleryId }}_input" name="{{ $fieldBaseName }}[file][]" accept="image/*" multiple class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer">
                     </div>
 
                 </div>
@@ -862,7 +876,9 @@
 
                             function syncFileInput() {
                                 var dt = new DataTransfer();
-                                filesStore.forEach(f => dt.items.add(f));
+                                filesStore.forEach(function(f) {
+                                    dt.items.add(f);
+                                });
                                 fileInput.files = dt.files;
                             }
 
@@ -884,7 +900,26 @@
 
                                 div.appendChild(img);
 
-                                // REMOVE BUTTON
+                                // text input
+                                @if (!empty($option['has_text']))
+                                    var textInput = document.createElement('input');
+                                    textInput.type = 'text';
+                                    textInput.name = '{{ $fieldBaseName }}[text][]';
+                                    textInput.classList.add('form-control', 'form-control-sm', 'mt-1');
+                                    textInput.placeholder = '{{ __('wncms::word.text') }}';
+                                    div.appendChild(textInput);
+                                @endif
+
+                                // url input
+                                @if (!empty($option['has_url']))
+                                    var urlInput = document.createElement('input');
+                                    urlInput.type = 'text';
+                                    urlInput.name = '{{ $fieldBaseName }}[url][]';
+                                    urlInput.classList.add('form-control', 'form-control-sm', 'mt-1');
+                                    urlInput.placeholder = '{{ __('wncms::word.url') }}';
+                                    div.appendChild(urlInput);
+                                @endif
+
                                 var removeBtn = document.createElement('span');
                                 removeBtn.classList.add('gallery-remove-new', 'btn', 'btn-danger', 'position-absolute', 'top-0', 'end-0', 'p-0');
                                 removeBtn.innerHTML = '<i class="fa-solid fa-xmark pe-0"></i>';
@@ -897,7 +932,9 @@
                                         this.classList.remove('btn-danger');
                                         this.classList.add('btn-secondary');
                                         this.innerHTML = '<i class="fa-solid fa-rotate-left p-0"></i>';
-                                        filesStore = filesStore.filter(f => f !== file);
+                                        filesStore = filesStore.filter(function(f) {
+                                            return f !== file;
+                                        });
                                         syncFileInput();
                                     } else {
                                         div.classList.remove('marked-for-remove');
@@ -914,7 +951,6 @@
                                 div.appendChild(removeBtn);
                                 preview.appendChild(div);
                             }
-
 
                             fileInput.addEventListener('change', function() {
                                 if (!this.files || !this.files.length) return;
