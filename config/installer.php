@@ -12,7 +12,7 @@ return [
     | by looping through the array and run "extension_loaded" on it.
     |
     */
-    'version'=>'6.0.8',
+    'version'=>'6.0.9',
     'core' => [
         'minPhpVersion' => '8.2.0+',
     ],
