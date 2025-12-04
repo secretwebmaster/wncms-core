@@ -19,24 +19,40 @@ class CreateTheme extends Command
             return;
         }
 
-        // get starter path 
+        // starter path (inside vendor/secretwebmaster/wncms-core/resources/themes/starter)
         $starterPath = dirname(__DIR__, 3) . '/resources/themes/starter';
+
         if (!File::exists($starterPath)) {
             $this->error("Starter theme not found at {$starterPath}");
             return;
         }
 
-        // get target path
+        // target path (public/themes/{themeName})
         $targetPath = public_path("themes/{$themeName}");
+
         if (File::exists($targetPath)) {
             $this->error("Theme '{$themeName}' already exists at {$targetPath}");
             return;
         }
 
-        // create theme directory
+        // copy entire starter directory
         File::copyDirectory($starterPath, $targetPath);
 
-        // copy starter files
         $this->info("Theme '{$themeName}' created successfully.");
+        $this->info("Created theme directory: {$targetPath}");
+
+        // list all created files and directories
+        $all = File::allFiles($targetPath);
+        $dirs = File::directories($targetPath);
+
+        $this->info("Directories created:");
+        foreach ($dirs as $d) {
+            $this->info(" - {$d}");
+        }
+
+        $this->info("Files created:");
+        foreach ($all as $file) {
+            $this->info(" - {$file->getPathname()}");
+        }
     }
 }
