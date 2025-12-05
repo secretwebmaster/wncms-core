@@ -41,7 +41,7 @@ abstract class ModelManager
             $modelClass = $this->getModelClass();
             $q = $modelClass::query();
 
-        if (!empty($withs)) {
+            if (!empty($withs)) {
                 $q->with($withs);
             }
 
@@ -102,8 +102,32 @@ abstract class ModelManager
      */
     public function getList(array $options = []): mixed
     {
+        // User preference: cache or not
         $useCache = $options['cache'] ?? true;
 
+        // Detect random mode
+        $isRandom = $options['is_random'] ?? false;
+
+        // Determine cache time based on random rules
+        // Rule:
+        // - is_random && cache=false  → no cache
+        // - is_random && cache=true   → cached normally
+        // - is_random && cache not set → cached normally (default)
+        // - non-random uses existing global cache logic
+        if ($isRandom) {
+            if ($useCache === false) {
+                // Completely disable cache for this random query
+                $cacheTime = 0;
+            } else {
+                // Random but cached (default)
+                $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
+            }
+        } else {
+            // Normal ordering — same as before
+            $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
+        }
+
+        // Create cache key
         $cacheKey = wncms()->cache()->createKey(
             $this->cacheKeyPrefix,
             'getList',
@@ -112,18 +136,18 @@ abstract class ModelManager
             wncms()->website()->get()?->url
         );
 
-        $isRandom = $options['is_random'] ?? false;
-        $cacheTime = $isRandom ? 0 : (gss('enable_cache') ? gss('data_cache_time') : 0);
-
+        // Query callback
         $callback = function () use ($options) {
             $q = $this->buildListQuery($options);
             return $this->finalizeResult($q, $options);
         };
 
+        // Run with or without cache
         return $useCache
             ? wncms()->cache()->remember($cacheKey, $cacheTime, $callback, $this->getCacheTag())
             : $callback();
     }
+
 
     /**
      * Get the count of models based on provided options.
