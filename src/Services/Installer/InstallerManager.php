@@ -43,7 +43,7 @@ class InstallerManager
             'redis_password' => $input['redis_password'] ?? '',
             'redis_port' => is_numeric($input['redis_port'] ?? null) ? $input['redis_port'] : '6379',
 
-            'mail_driver' => $input['mail_driver'] ?? 'smtp',
+            'mail_driver' => $input['mail_driver'] ?? 'log',
             'mail_host' => $input['mail_host'] ?? 'localhost',
             'mail_port' => is_numeric($input['mail_port'] ?? null) ? $input['mail_port'] : '587',
             'mail_username' => $input['mail_username'] ?? '',
