@@ -77,17 +77,18 @@
                 <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6">
                     @foreach ($option_tabs ?? [] as $tab_name => $options)
                         <li class="nav-item">
-                            <a class="nav-link @if ($loop->iteration == 1) active @endif"
+                            <a class="nav-link {{ ($activeTab === $tab_name || (is_null($activeTab) && $loop->first)) ? 'active' : '' }}"
                                 data-bs-toggle="tab" href="#tab_{{ $tab_name }}"
-                                data-bs-target="#tab_{{ $tab_name }}"
-                                {{-- >@lang("{$_website->theme}.{$tab_name}")</a> --}}>{{ wncms()->theme()->translate($_website->theme, $tab_name) }}</a>
+                                data-bs-target="#tab_{{ $tab_name }}">
+                                {{ wncms()->theme()->translate($_website->theme, $tab_name) }}
+                            </a>
                         </li>
                     @endforeach
                 </ul>
 
                 <div class="tab-content">
                     @foreach ($option_tabs ?? [] as $tab_name => $options)
-                        <div class="tab-pane fade @if ($loop->iteration == 1) show active @endif" id="tab_{{ $tab_name }}" role="tabpanel">
+                        <div class="tab-pane fade{{ ($activeTab === $tab_name || (is_null($activeTab) && $loop->first)) ? 'show active' : '' }}" id="tab_{{ $tab_name }}" role="tabpanel">
                             @foreach ($options as $option_index => $option)
                                 @include('wncms::backend.parts.inputs', [
                                     'website' => $_website,
@@ -294,19 +295,37 @@
     </script>
 
     <script>
-        window.addEventListener('DOMContentLoaded', (event) => {
+        window.addEventListener('DOMContentLoaded', () => {
 
-            const hash = window.location.hash;
-            if (hash && document.querySelector('[data-bs-target="' + hash + '"]')) {
-                const triggerEl = document.querySelector('[data-bs-target="' + hash + '"]');
-                const tab = new bootstrap.Tab(triggerEl);
-                tab.show();
-            }
-
+            // When user clicks a tab
             $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
-                const id = $(e.target).attr('data-bs-target');
-                history.replaceState(null, null, id);
+                const id = $(e.target).attr('data-bs-target'); // "#tab_xxx"
+                const tabName = id.replace('#tab_', '');
+
+                // Update URL query string
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', tabName);
+                history.replaceState(null, '', url.toString());
+
+                // Update form action
+                const form = document.querySelector('form.form');
+                if (form) {
+                    const formUrl = new URL(form.action, window.location.origin);
+                    formUrl.searchParams.set('tab', tabName);
+                    form.action = formUrl.toString();
+                }
             });
+
+            // On page load, if ?tab exists → update form action
+            const currentTab = new URLSearchParams(window.location.search).get('tab');
+            if (currentTab) {
+                const form = document.querySelector('form.form');
+                if (form) {
+                    const formUrl = new URL(form.action, window.location.origin);
+                    formUrl.searchParams.set('tab', currentTab);
+                    form.action = formUrl.toString();
+                }
+            }
 
         });
     </script>

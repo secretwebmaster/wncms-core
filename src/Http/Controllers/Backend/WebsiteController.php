@@ -364,14 +364,13 @@ class WebsiteController extends BackendController
             ['id', "<>", $website->id],
         ]);
 
-        // dd($current_options);
-
         return $this->view('backend.websites.theme_options', [
             'page_title' => __('wncms::word.theme_options') . " #" . $website->id,
             '_website' => $website,
             'websites' => $websites,
             'option_tabs' => $option_tabs,
             'current_options' => $current_options,
+            'activeTab' => request()->input('tab'),
         ]);
     }
 
@@ -452,7 +451,7 @@ class WebsiteController extends BackendController
                 if (!is_array($files)) {
                     $files = $files ? [$files] : [];
                 }
-                
+
                 // append uploaded images
                 foreach ($files as $file) {
                     if ($file instanceof UploadedFile) {
@@ -517,7 +516,12 @@ class WebsiteController extends BackendController
 
         wncms()->cache()->flush(['websites', 'pages']);
 
-        return redirect()->route('websites.theme.options', $website);
+        $tab = $request->query('tab');
+
+        return redirect()->route('websites.theme.options', [
+            'id' => $website,
+            'tab' => $tab
+        ]);
     }
 
     public function cloneThemeOptions(Request $request, $id)
@@ -555,7 +559,7 @@ class WebsiteController extends BackendController
 
         wncms()->cache()->flush(['page', 'websites']);
 
-        return redirect()->route('websites.theme.options', $website);
+        return back()->withMessage(__('wncms::word.successfully_cloned'));
     }
 
     public function findParentArrays($array, $keyToSearch)
