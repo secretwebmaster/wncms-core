@@ -2271,6 +2271,11 @@ $words = [
     'select_columns_to_display' => '選擇要顯示的欄位',
     'show_all' => '全部顯示',
     'hide_all' => '全部隱藏',
+    'handling_link_tags' => '處理連結標籤',
+    'set_is_pinned' => '設置置頂',
+    'set_not_pinned' => '取消置頂',
+    'enter_url_to_generate_affiliate_link' => '輸入原始網址以生成推廣連結',
+    'affiliate_url' => '推廣連結',
 
 ];
 

@@ -2266,6 +2266,17 @@ $words = [
     'available_page_templates' => '可用页面模板',
     'please_select_page_template' => '请选择页面模板',
 
+    // 6.0.10
+    'toggle_columns' => '切换字段',
+    'select_columns_to_display' => '选择要显示的字段',
+    'show_all' => '全部显示',
+    'hide_all' => '全部隐藏',
+    'handling_link_tags' => '处理链接标签',
+    'set_is_pinned' => '设置置顶',
+    'set_not_pinned' => '取消置顶',
+    'enter_url_to_generate_affiliate_link' => '输入原始网址以生成推广链接',
+    'affiliate_url' => '推广链接',
+
 ];
 
 $locale = basename(__DIR__);

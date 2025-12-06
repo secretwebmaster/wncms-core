@@ -1,11 +1,22 @@
 # Changelog
 
-## v6.0.10 2025-12-XX
+## v6.0.10 2025-12-06
 
 -   Added persistent active tab support in Theme Options page; after saving, the interface returns to the previously selected tab.
 -   Set default mailer to log in installer to avoid smtp dsn errors.
 -   Improve random caching logic for getList to support cached and uncached random queries.
 -   Added backend table column toggler (hide/show columns, remember user preference, show number of hidden columns, toggle all on/off).
+-   Added affiliate link generator in Channels page (auto-update slug-based URLs, real-time sync, copy button).
+-   Added bulk update sort+URL for Links (replaced old bulk_update_sort).
+-   Added bulk link tag operations (attach / detach / sync).
+-   Added new translation labels: handling_link_tags, set_is_pinned, set_not_pinned, enter_url_to_generate_affiliate_link, affiliate_url.
+-   Added Link::getImageAttribute() fallback (icon → thumbnail).
+-   Added sorting + missing models into RolesSeeder (alphabetical order).
+-   Improved ModelManager@applyTagFilter to correctly handle Tag models, arrays, mixed tag types, and ensure correct narrowing filter (never return all links by mistake).
+-   Improved LinkController@bulk_delete to redirect back instead of index page.
+-   Improved installer: added APP_LOCALE output in generated .env.
+-   Improved backend Links + Channels UI: fixed indentation, updated bulk buttons, added new buttons (pinned / tag modal).
+-   Added update_core_6.0.10.php update script.
 
 ## v6.0.9 2025-12-04
 

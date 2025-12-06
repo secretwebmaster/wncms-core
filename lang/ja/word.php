@@ -2265,7 +2265,18 @@ $words = [
     'page_template_options' => 'ページテンプレート設定',
     'available_page_templates' => '利用可能なページテンプレート',
     'please_select_page_template' => 'ページテンプレートを選択してください',
-    
+
+    // 6.0.10
+    'toggle_columns' => '列を切り替える',
+    'select_columns_to_display' => '表示する列を選択',
+    'show_all' => 'すべて表示',
+    'hide_all' => 'すべて非表示',
+    'handling_link_tags' => 'リンクタグを処理',
+    'set_is_pinned' => 'ピン留めに設定',
+    'set_not_pinned' => 'ピン留めを解除',
+    'enter_url_to_generate_affiliate_link' => '元のURLを入力してアフィリエイトリンクを生成',
+    'affiliate_url' => 'アフィリエイトURL',
+
 ];
 
 $locale = basename(__DIR__);

@@ -2266,6 +2266,17 @@ $words = [
     'available_page_templates' => 'Available page templates',
     'please_select_page_template' => 'Please select a page template',
 
+    // 6.0.10
+    'toggle_columns' => 'Toggle Columns',
+    'select_columns_to_display' => 'Select Columns to Display',
+    'show_all' => 'Show All',
+    'hide_all' => 'Hide All',
+    'handling_link_tags' => 'Handle Link Tags',
+    'set_is_pinned' => 'Set as Pinned',
+    'set_not_pinned' => 'Unset Pinned',
+    'enter_url_to_generate_affiliate_link' => 'Enter original URL to generate affiliate link',
+    'affiliate_url' => 'Affiliate URL',
+
 ];
 
 $locale = basename(__DIR__);
