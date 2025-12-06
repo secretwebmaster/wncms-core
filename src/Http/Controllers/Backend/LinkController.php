@@ -205,25 +205,140 @@ class LinkController extends BackendController
             ->withMessage(__('wncms::word.successfully_updated'));
     }
 
-    public function bulk_update_sort(Request $request)
+    /**
+     * Bulk update link sort and url
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function bulk_update(Request $request)
     {
         $count = 0;
-        foreach ($request->data as $linkData) {
-            $link = $this->modelClass::find($linkData['id']);
-            if ($link && $link->sort != $linkData['sort']) {
-                $link->update(['sort' => $linkData['sort']]);
-                $count++;
-            } else {
-                info("link not found");
+
+        foreach ($request->data as $item) {
+            $link = $this->modelClass::find($item['id']);
+
+            if (!$link) {
+                continue;
             }
+
+            $updateData = [];
+
+            // update sort if changed
+            if (isset($item['sort']) && $link->sort != $item['sort']) {
+                $updateData['sort'] = $item['sort'];
+            }
+
+            // update url if changed
+            if (isset($item['url']) && $link->url != $item['url']) {
+                $updateData['url'] = $item['url'];
+            }
+
+            // skip only when both unchanged
+            if (empty($updateData)) {
+                continue;
+            }
+
+            // perform update
+            $link->update($updateData);
+            $count++;
+        }
+
+        if ($count > 0) {
+            wncms()->cache()->flush(['links']);
         }
 
         return response()->json([
             'status' => 'success',
             'message' => __('wncms::word.successfully_updated_count', ['count' => $count]),
-            'data' => [
-                'count' => $count
-            ]
+            'data' => ['count' => $count]
         ]);
+    }
+
+    public function bulk_sync_tags(Request $request)
+    {
+        try {
+            \Log::info($request->all());
+            parse_str($request->formData, $formDataArray);
+            // info($formDataArray);
+
+            if (empty($request->model_ids)) {
+                return response()->json([
+                    'status' => 'fail',
+                    'message' => __('wncms::word.model_ids_are_not_found'),
+                    'restoreBtn' => true,
+                ]);
+            }
+
+            //receive checked ids
+            $links = $this->modelClass::whereIn('id', $request->model_ids)->get();
+            if ($links->isEmpty()) {
+                return response()->json([
+                    'status' => 'fail',
+                    'message' => __('wncms::word.link_is_not_fount'),
+                    'restoreBtn' => true,
+                ]);
+            }
+
+            //get action
+            if (empty($formDataArray['action']) || !in_array($formDataArray['action'], ['sync', 'attach', 'detach'])) {
+                return response()->json([
+                    'status' => 'fail',
+                    'message' => __('wncms::word.action_is_not_found'),
+                    'restoreBtn' => true,
+                ]);
+            }
+
+            $link_categories = collect(json_decode($formDataArray['link_categories'], true))->pluck('name')->toArray();
+            // info($link_categories);
+
+            $link_tags = collect(json_decode($formDataArray['link_tags'], true))->pluck('name')->toArray();
+            // info($link_tags);
+
+            foreach ($links as $link) {
+                if (($formDataArray['action'] == 'sync')) {
+                    if (!empty($link_categories)) {
+                        $link->syncTagsWithType($link_categories, 'link_category');
+                    }
+                    if (!empty($link_tags)) {
+                        $link->syncTagsWithType($link_tags, 'link_tag');
+                    }
+                }
+
+                if (($formDataArray['action'] == 'attach')) {
+                    if (!empty($link_categories)) {
+                        $link->attachTags($link_categories, 'link_category');
+                    }
+                    if (!empty($link_tags)) {
+                        $link->attachTags($link_tags, 'link_tag');
+                    }
+                }
+
+                if (($formDataArray['action'] == 'detach')) {
+                    if (!empty($link_categories)) {
+                        $link->detachTags($link_categories, 'link_category');
+                    }
+                    if (!empty($link_tags)) {
+                        $link->detachTags($link_tags, 'link_tag');
+                    }
+                }
+            }
+
+            wncms()->cache()->flush(['links']);
+
+            return response()->json([
+                'status' => 'success',
+                'title' => __('wncms::word.success'),
+                'message' => __('wncms::word.successfully_updated_all'),
+                'reload' => true,
+            ]);
+        } catch (\Exception $e) {
+            logger()->error($e);
+            return response()->json([
+                'status' => 'fail',
+                'title' => __('wncms::word.failed'),
+                'message' => __('wncms::word.error') . ": " . $e->getMessage(),
+                'restoreBtn' => true,
+            ]);
+        }
     }
 }

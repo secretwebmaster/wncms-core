@@ -1,7 +1,6 @@
 @extends('wncms::layouts.backend')
 
 @section('content')
-
     @include('wncms::backend.parts.message')
 
     {{-- WNCMS toolbar filters --}}
@@ -14,12 +13,12 @@
                 {{-- Add custom toolbar item here --}}
 
                 {{-- exampleItem for example_item --}}
-                {{-- @if(!empty($exampleItems))
+                {{-- @if (!empty($exampleItems))
                     <div class="col-6 col-md-auto mb-3 ms-0">
                         <select name="example_item_id" class="form-select form-select-sm">
                             <option value="">@lang('wncms::word.select')@lang('wncms::word.example_item')</option>
-                            @foreach($exampleItems as $exampleItem)
-                                <option value="{{ $exampleItem->id }}" @if($exampleItem->id == request()->example_item_id) selected @endif>{{ $exampleItem->name }}</option>
+                            @foreach ($exampleItems as $exampleItem)
+                                <option value="{{ $exampleItem->id }}" @if ($exampleItem->id == request()->example_item_id) selected @endif>{{ $exampleItem->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -32,10 +31,10 @@
 
             {{-- Checkboxes --}}
             <div class="d-flex flex-wrap">
-                @foreach(['show_detail'] as $show)
+                @foreach (['show_detail'] as $show)
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
-                            <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
+                            <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if (request()->{$show}) checked @endif />
                             <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
@@ -51,6 +50,12 @@
             @include('wncms::backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'channels',
             ])
+        </div>
+
+        {{-- affiliate link generator --}}
+        <div class="mt-3">
+            <label for="original_url" class="form-label fw-bold">@lang('wncms::word.enter_url_to_generate_affiliate_link')</label>
+            <input type="text" id="original_url" class="form-control form-control-sm" style="max-width:380px;" placeholder="https://wncms.cc">
         </div>
     </div>
 
@@ -77,31 +82,32 @@
                             <th>@lang('wncms::word.name')</th>
                             <th>@lang('wncms::word.slug')</th>
                             <th>@lang('wncms::word.clicks')</th>
+                            <th>@lang('wncms::word.affiliate_url')</th>
                             <th>@lang('wncms::word.contact')</th>
                             <th>@lang('wncms::word.remark')</th>
                             <th>@lang('wncms::word.created_at')</th>
 
-                            @if(request()->show_detail)
-                            <th>@lang('wncms::word.updated_at')</th>
+                            @if (request()->show_detail)
+                                <th>@lang('wncms::word.updated_at')</th>
                             @endif
-                            
                         </tr>
                     </thead>
 
                     {{-- tbody --}}
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">
-                        @foreach($channels as $channel)
+                        @foreach ($channels as $channel)
                             <tr>
                                 {{-- Checkboxes --}}
                                 <td>
                                     <div class="form-check form-check-sm form-check-custom form-check-solid">
-                                        <input class="form-check-input" type="checkbox" value="1" data-model-id="{{ $channel->id }}"/>
+                                        <input class="form-check-input" type="checkbox" value="1" data-model-id="{{ $channel->id }}" />
                                     </div>
                                 </td>
+
                                 {{-- Actions --}}
                                 <td>
-                                    <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('channels.edit' , $channel) }}">@lang('wncms::word.edit')</a>
-                                    @include('wncms::backend.parts.modal_delete' , ['model'=>$channel , 'route' => route('channels.destroy' , $channel), 'btn_class' => 'px-2 py-1'])
+                                    <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('channels.edit', $channel) }}">@lang('wncms::word.edit')</a>
+                                    @include('wncms::backend.parts.modal_delete', ['model' => $channel, 'route' => route('channels.destroy', $channel), 'btn_class' => 'px-2 py-1'])
                                 </td>
 
                                 {{-- Data --}}
@@ -109,14 +115,26 @@
                                 <td>{{ $channel->name }}</td>
                                 <td>{{ $channel->slug }}</td>
                                 <td>{{ $channel->clicks_count }}</td>
+
+                                <td>
+                                    <input type="text" class="affiliate-url" data-slug="{{ $channel->slug }}" style="min-width:260px;">
+                                    <button type="button" class="border-0 bg-transparent p-0 ms-1 text-primary small"
+                                        btn-copy-to-clipboard
+                                        data-original-text="@lang('wncms::word.copy')"
+                                        data-copied-text="@lang('wncms::word.copied')"
+                                        data-value="">
+                                        @lang('wncms::word.copy')
+                                    </button>
+                                </td>
+
                                 <td>{{ $channel->contact }}</td>
                                 <td>{{ $channel->remark }}</td>
                                 <td>{{ $channel->created_at }}</td>
-                                
-                                @if(request()->show_detail)
-                                <td>{{ $channel->updated_at }}</td>
+
+                                @if (request()->show_detail)
+                                    <td>{{ $channel->updated_at }}</td>
                                 @endif
-                                
+
                             <tr>
                         @endforeach
                     </tbody>
@@ -130,22 +148,66 @@
     @include('wncms::backend.common.showing_item_of_total', ['models' => $channels])
 
     {{-- Pagination --}}
-    {{-- <div class="mt-5">
+    <div class="mt-5">
         {{ $channels->withQueryString()->links() }}
-    </div> --}}
-
+    </div>
 @endsection
 
 @push('foot_js')
     <script>
         //修改checkbox時直接提交
-        $('.model_index_checkbox').on('change', function(){
-            if($(this).is(':checked')){
+        $('.model_index_checkbox').on('change', function() {
+            if ($(this).is(':checked')) {
                 $(this).val('1');
             } else {
                 $(this).val('0');
             }
             $(this).closest('form').submit();
-        })
+        });
+
+            //affiliate generator: update all affiliate-url inputs when original_url changes
+        $('#original_url').on('input', function() {
+            let original = $(this).val().trim();
+
+            $('.affiliate-url').each(function() {
+                let slug = $(this).data('slug');
+                let affUrl = '';
+
+                if (original === '') {
+                    affUrl = '';
+                } else if (original.includes('?')) {
+                    affUrl = original + '&channel=' + slug;
+                } else {
+                    affUrl = original + '?channel=' + slug;
+                }
+
+                // update input value
+                $(this).val(affUrl);
+
+                // sync copy button data-value and cached data
+                let btn = $(this).closest('td').find('[btn-copy-to-clipboard]');
+                btn.attr('data-value', affUrl);
+                btn.data('value', affUrl);
+            });
+        });
+
+        //when user manually edits one affiliate-url, keep its button in sync
+        $(document).on('input', '.affiliate-url', function() {
+            let val = $(this).val();
+            let btn = $(this).closest('td').find('[btn-copy-to-clipboard]');
+            btn.attr('data-value', val);
+            btn.data('value', val);
+        });
+
+        //before copying, ensure latest value and allow re-copy by restoring text
+        $(document).on('click', '[btn-copy-to-clipboard]', function() {
+            let btn = $(this);
+            let input = btn.closest('td').find('.affiliate-url');
+            let val = input.val();
+
+            // final sync just before copy
+            btn.attr('data-value', val);
+            btn.data('value', val);
+        });
     </script>
 @endpush

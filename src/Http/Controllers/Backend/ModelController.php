@@ -55,7 +55,7 @@ class ModelController extends Controller
 
     public function bulk_delete(Request $request)
     {
-        info($request->all());
+        // info($request->all());
         $modelName = Str::studly($request->model);
         $model = new ("Wncms\Models\\$modelName");
         $tableName = $model->getTable();
