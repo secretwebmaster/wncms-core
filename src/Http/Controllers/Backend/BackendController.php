@@ -174,8 +174,7 @@ abstract class BackendController extends Controller
 
         $this->flush();
 
-        return redirect()->route($this->plural . '.index')
-            ->withMessage(__('wncms::word.successfully_deleted'));
+        return back()->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     /**
