@@ -16,7 +16,6 @@
 -   优化 LinkController@bulk_delete，删除后改为返回上一页。
 -   安装器改进：新增 APP_LOCALE 到生成的 .env。
 -   优化后台 Links 与 Channels UI：修正缩排、更新批量按钮、新增置顶与标签操作面板。
--   新增 update_core_6.0.10.php 更新脚本。
 
 ## v6.0.7 2025-12-03
 

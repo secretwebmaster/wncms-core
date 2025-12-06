@@ -16,7 +16,6 @@
 -   LinkController@bulk_delete を改善し、削除後に一覧ではなく前のページへ戻るよう変更。
 -   インストーラーを改善し、生成される .env に APP_LOCALE を追加。
 -   バックエンド Links と Channels の UI を改善（インデント修正、ボタン追加、ピン留め/タグ操作 UI を追加）。
--   update_core_6.0.10.php 更新スクリプトを追加。
 
 ## v6.0.7 2025-12-03
 
