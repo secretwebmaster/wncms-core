@@ -33,26 +33,50 @@ class ThemeServiceProvider extends ServiceProvider
 
         $themeId = $website->theme ?: 'default';
 
-        // Determine theme path
-        $themePath = public_path("themes/{$themeId}");
+        if (gss('multi_website')) {
+            $themes = wncms()->website()->getList()->pluck('theme')->unique()->toArray();
+            foreach ($themes as $theme) {
+                $themePath = public_path("themes/{$theme}");
+                if (!File::exists($themePath)) {
+                    continue;
+                }
+                $this->loadThemeConfig($theme, $themePath);
 
-        // If theme folder is missing → immediately show inactive theme screen
-        if (!File::exists($themePath)) {
-            $this->showThemeInactiveScreen();
-            return; // STOP further boot process
+                // Load config.php
+                $this->loadThemeConfig($theme, $themePath);
+
+                // Load views
+                $this->loadThemeViews($theme, $themePath);
+
+                // Load translations
+                $this->loadThemeTranslations($theme, $themePath);
+
+                // Load functions.php
+                $this->loadThemeFunctions($themePath);
+            }
+        } else {
+            // Determine theme path
+            $themePath = public_path("themes/{$themeId}");
+
+            // If theme folder is missing → immediately show inactive theme screen
+            if (!File::exists($themePath)) {
+                $this->showThemeInactiveScreen();
+                return; // STOP further boot process
+            }
+
+            // Load config.php
+            $this->loadThemeConfig($themeId, $themePath);
+
+            // Load views
+            $this->loadThemeViews($themeId, $themePath);
+
+            // Load translations
+            $this->loadThemeTranslations($themeId, $themePath);
+
+            // Load functions.php
+            $this->loadThemeFunctions($themePath);
         }
 
-        // Load config.php
-        $this->loadThemeConfig($themeId, $themePath);
-
-        // Load views
-        $this->loadThemeViews($themeId, $themePath);
-
-        // Load translations
-        $this->loadThemeTranslations($themeId, $themePath);
-
-        // Load functions.php
-        $this->loadThemeFunctions($themePath);
 
         view()->share('themeId', $themeId);
     }

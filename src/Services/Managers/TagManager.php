@@ -20,6 +20,17 @@ class TagManager extends ModelManager
         return wncms()->getModelClass('tag');
     }
 
+    public function get($options = []): ?Model
+    {
+        if (!empty($options['type'])) {
+            $options['wheres'][] = ['type', $options['type']];
+            unset($options['type']);
+        }
+
+        return parent::get($options);
+    }
+
+    //% Deprecated: use get()
     public function getByName(string $tagName, ?string $tagType = null, array $withs = [], ?string $locale = null, bool $cache = true)
     {
         $locale ??= LaravelLocalization::getCurrentLocale();
