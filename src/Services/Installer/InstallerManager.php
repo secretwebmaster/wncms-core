@@ -105,6 +105,9 @@ class InstallerManager
             'APP_ENV=' . ($input['app_env'] ?? '') . "\n" .
             'APP_KEY=' . 'base64:' . base64_encode(Str::random(32)) . "\n" .
             'APP_DEBUG=' . ($input['app_debug'] ?? '') . "\n" .
+
+            (isset($input['app_locale']) && $input['app_locale'] !== '' ? 'APP_LOCALE=' . $input['app_locale'] . "\n" : '') .
+
             'DEBUGBAR_ENABLED=false' . "\n" .
             'CSS_DEBUG=false' . "\n" .
             'JS_DEBUG=false' . "\n" .

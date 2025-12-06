@@ -21,7 +21,7 @@ class Install extends Command
      * Optional options:
      *   --app_name=
      *   --app_url=
-     *   --locale=
+     *   --app_locale=
      *   --app_env=
      *   --app_debug=
      *   --app_log_level=
