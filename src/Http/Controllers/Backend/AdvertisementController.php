@@ -88,6 +88,7 @@ class AdvertisementController extends BackendController
         }
 
         $advertisement = $this->modelClass::create([
+            'website_id' => $websiteId,
             'status' => $request->status,
             'expired_at' => $request->expired_at,
             'name' => $request->name,
@@ -108,7 +109,7 @@ class AdvertisementController extends BackendController
 
         if (gss('multi_website')) {
             $websiteId = $request->website_id;
-            if($websiteId){
+            if ($websiteId) {
                 $advertisement->bindWebsites($websiteId);
             }
         }
@@ -162,12 +163,24 @@ class AdvertisementController extends BackendController
     public function update(Request $request, $id)
     {
         // dd($request->all());
+
+        // TODO: remove single model binding
+        if (gss('multi_website')) {
+            $websiteId = $request->website_id;
+        } else {
+            $websiteId = wncms()->website()->get()?->id;
+            if (!$websiteId) {
+                return back()->withMessage(__('wncms::word.website_not_found'));
+            }
+        }
+
         $advertisement = $this->modelClass::find($id);
         if (!$advertisement) {
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.advertisement')]));
         }
 
         $advertisement->update([
+            'website_id' => $websiteId,
             'status' => $request->status,
             'expired_at' => $request->expired_at,
             'name' => $request->name,
@@ -189,7 +202,7 @@ class AdvertisementController extends BackendController
         // multisite
         if (gss('multi_website')) {
             $websiteId = $request->website_id;
-            if($websiteId){
+            if ($websiteId) {
                 $advertisement->bindWebsites($websiteId);
             }
         }
