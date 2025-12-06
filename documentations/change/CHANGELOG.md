@@ -2,10 +2,21 @@
 
 ## v6.0.10 2025-12-XX
 
--   增加主題設定頁分頁記憶，保存後返回當前分頁。
--   安裝器預設將郵件寄送方式改為 log，避免 smtp dsn 錯誤。
--   改進 getList 的隨機快取邏輯，支援有快取與無快取的隨機查詢。
--   新增後台表格欄位切換功能（可隱藏／顯示欄位、記錄使用者偏好、顯示隱藏數量、支援一鍵全選／全隱藏）。
+-   新增主題選項頁「保持上次停留的分頁」功能；儲存後自動回到之前開啟的分頁。
+-   安裝器預設 mailer 設為 log，以避免 SMTP DSN 錯誤。
+-   改良 getList 的隨機快取邏輯，同時支援快取與非快取的隨機查詢。
+-   新增後台表格欄位切換器（顯示/隱藏欄位、記住使用者偏好、顯示隱藏欄位數量、一鍵全顯示/全隱藏）。
+-   Channels 頁新增推廣連結產生器（自動根據 slug 產生 URL、即時同步、可複製按鈕）。
+-   Links 新增排序與 URL 的批次更新（取代舊的 bulk_update_sort）。
+-   新增連結標籤批次處理（attach / detach / sync）。
+-   新增多項翻譯字串：handling_link_tags、set_is_pinned、set_not_pinned、enter_url_to_generate_affiliate_link、affiliate_url。
+-   Link 模型新增 getImageAttribute()（icon → thumbnail 的自動回退）。
+-   RolesSeeder 依字母排序並補上缺少的模型項目。
+-   改良 ModelManager@applyTagFilter，可正確處理 Tag 模型、ID、字串混合輸入，並確保查詢不會誤回傳所有項目。
+-   改良 LinkController@bulk_delete，刪除後改為返回上一頁。
+-   安裝器改良：新增 APP_LOCALE 至產生的 .env。
+-   改善後台 Links 與 Channels UI：修正縮排、更新批次按鈕、新增置頂與標籤操作面板。
+-   新增 update_core_6.0.10.php 更新腳本。
 
 ## v6.0.9 2025-12-04
 

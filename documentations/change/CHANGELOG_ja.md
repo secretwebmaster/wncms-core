@@ -1,5 +1,23 @@
 # 更新履歴
 
+## v6.0.10 2025-12-06
+
+-   テーマオプション画面に「前回選択したタブへ戻る」機能を追加。保存後も最後に開いていたタブへ復帰。
+-   インストーラーのデフォルト mailer を log に設定し、SMTP DSN エラーを回避。
+-   getList のランダムキャッシュ処理を改善し、キャッシュあり・なし両方のランダム取得に対応。
+-   バックエンドにテーブル列トグル機能を追加（列の表示/非表示、ユーザー設定の保持、非表示数の表示、全表示/全非表示の切り替え）。
+-   Channels ページにアフィリエイトリンク生成機能を追加（slug に基づき自動生成、リアルタイム同期、コピー可能）。
+-   Links ページで並び順＋ URL の一括更新を追加（旧 bulk_update_sort を置き換え）。
+-   リンクタグの一括操作（attach / detach / sync）を追加。
+-   新しい翻訳キーを追加：handling_link_tags、set_is_pinned、set_not_pinned、enter_url_to_generate_affiliate_link、affiliate_url。
+-   Link モデルに getImageAttribute() を追加（icon → thumbnail のフォールバック）。
+-   RolesSeeder をアルファベット順で整理し、足りないモデルを追加。
+-   ModelManager@applyTagFilter を改善し、Tag モデル・配列・混在入力を正しく処理し、誤って全件返すことを防止。
+-   LinkController@bulk_delete を改善し、削除後に一覧ではなく前のページへ戻るよう変更。
+-   インストーラーを改善し、生成される .env に APP_LOCALE を追加。
+-   バックエンド Links と Channels の UI を改善（インデント修正、ボタン追加、ピン留め/タグ操作 UI を追加）。
+-   update_core_6.0.10.php 更新スクリプトを追加。
+
 ## v6.0.7 2025-12-03
 
 -   管理画面（Websites 編集）にホームページ ID 入力フィールドを追加

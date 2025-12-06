@@ -1,5 +1,23 @@
 # 更新日志
 
+## v6.0.10 2025-12-06
+
+-   新增主题选项页的「保持上次所在标签」功能；保存后会返回之前打开的标签页。
+-   安装器默认将 mailer 设置为 log，避免出现 SMTP DSN 错误。
+-   优化 getList 的随机缓存逻辑，支持缓存与非缓存的随机查询模式。
+-   新增后台表格字段切换器（显示/隐藏字段、记住用户偏好、显示隐藏数量、一键全显/全隐）。
+-   Channels 页面新增推广链接生成器（基于 slug 自动生成、实时同步、复制按钮）。
+-   Links 页面新增排序与 URL 的批量更新（替换旧的 bulk_update_sort）。
+-   新增链接标签的批量操作（attach / detach / sync）。
+-   新增多条翻译字段：handling_link_tags、set_is_pinned、set_not_pinned、enter_url_to_generate_affiliate_link、affiliate_url。
+-   Link 模型新增 getImageAttribute()（icon → thumbnail 自动回退）。
+-   RolesSeeder 按字母重新排序并补齐缺失的模型。
+-   优化 ModelManager@applyTagFilter，可正确处理 Tag 模型、ID、字符串的混合输入，并保证筛选不会意外返回全部结果。
+-   优化 LinkController@bulk_delete，删除后改为返回上一页。
+-   安装器改进：新增 APP_LOCALE 到生成的 .env。
+-   优化后台 Links 与 Channels UI：修正缩排、更新批量按钮、新增置顶与标签操作面板。
+-   新增 update_core_6.0.10.php 更新脚本。
+
 ## v6.0.7 2025-12-03
 
 -   后台网站编辑页面新增首页页面 ID 输入栏位

@@ -16,7 +16,6 @@
 -   Improved LinkController@bulk_delete to redirect back instead of index page.
 -   Improved installer: added APP_LOCALE output in generated .env.
 -   Improved backend Links + Channels UI: fixed indentation, updated bulk buttons, added new buttons (pinned / tag modal).
--   Added update_core_6.0.10.php update script.
 
 ## v6.0.9 2025-12-04
 
