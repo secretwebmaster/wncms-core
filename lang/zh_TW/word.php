@@ -2266,6 +2266,12 @@ $words = [
     'available_page_templates' => '可用頁面範本',
     'please_select_page_template' => '請選擇頁面範本',
 
+    // 6.0.10
+    'toggle_columns' => '切換欄位',
+    'select_columns_to_display' => '選擇要顯示的欄位',
+    'show_all' => '全部顯示',
+    'hide_all' => '全部隱藏',
+
 ];
 
 $locale = basename(__DIR__);

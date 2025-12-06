@@ -1,5 +1,29 @@
 # Changelog
 
+## v6.0.10 2025-12-XX
+
+-   Added persistent active tab support in Theme Options page; after saving, the interface returns to the previously selected tab.
+-   Set default mailer to log in installer to avoid smtp dsn errors.
+-   Improve random caching logic for getList to support cached and uncached random queries.
+-   Added backend table column toggler (hide/show columns, remember user preference, show number of hidden columns, toggle all on/off).
+
+## v6.0.9 2025-12-04
+
+-   Unified the Gallery field structure to image[], text[], url[], remove[], and file[], fully removing legacy `_remove` and `_files` formats.
+-   Rebuilt the backend Gallery UI (inputs.blade.php): added text/url fields, improved remove/restore buttons, enhanced drag-sort visuals, and stabilized preview behavior.
+-   Fixed Theme Option page file upload handling by switching to request()->file() for correct file[] parsing.
+-   Rewrote WebsiteController@updateThemeOptions: images no longer disappear, add/remove works reliably, and prevents accidental overwrite behavior.
+-   Rewrote WebsiteController@editThemeOptions: correctly parses JSON and restores the structure expected by the frontend.
+-   Rebuilt Page model’s processFieldGroup() Gallery logic to support the new format and stay consistent with Theme Options.
+-   Enhanced wncms:create-theme command: displays created directories/files and improves starter template path detection.
+-   Increased Tagify maxTags to 999 to avoid unnecessary backend limitations.
+
+## v6.0.8 2025-12-03
+
+-   Improved version sorting logic in the update system by using `version_compare` to correctly process alpha/beta versions.
+-   Fixed incorrect ordering of available update versions (now sorted from oldest to newest).
+-   Optimized the Update command’s structure and internal logic.
+
 ## v6.0.7 2025-12-03
 
 -   Added homepage selector to Website model and backend edit page

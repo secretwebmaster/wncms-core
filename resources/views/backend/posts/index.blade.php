@@ -238,44 +238,44 @@
             </div>
 
             {{-- <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#modal_mulk_set_website">@lang('wncms::word.bulk_set_website')</button>
-        <div class="modal fade" tabindex="-1" id="modal_mulk_set_website">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form id="form_bulk_set_website" action="#" method="POST">
-                        <div class="modal-header">
-                            <h3 class="modal-title">@lang('wncms::word.bulk_set_website')</h3>
-                        </div>
-            
-                        <div class="modal-body">
-                            <div class="form-item">
-                                <select name="website_id" id="" class="form-select form-select-sm">
-                                    <option value="">@lang('wncms::word.please_select')</option>
-                                    @foreach ($websites as $_website)
-                                    <option value="{{ $_website->id }}">{{ $_website->domain }}</option>
-                                    @endforeach
-                                </select>
+            <div class="modal fade" tabindex="-1" id="modal_mulk_set_website">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form id="form_bulk_set_website" action="#" method="POST">
+                            <div class="modal-header">
+                                <h3 class="modal-title">@lang('wncms::word.bulk_set_website')</h3>
                             </div>
-                        </div>
-            
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
-                            <button type="button" class="btn btn-primary fw-bold"
-                                wncms-btn-ajax
-                                wncms-get-model-ids
-                                wncms-btn-swal
-                                data-form="form_bulk_set_website"
-                                data-original-text="@lang('wncms::word.submit')"
-                                data-loading-text="@lang('wncms::word.loading').."
-                                data-success-text="@lang('wncms::word.submitted')"
-                                data-fail-text="@lang('wncms::word.fail_to_submit')"
-                                data-route="{{ route('posts.bulk_set_websites') }}"
-                                data-method="POST"
-                            >@lang('wncms::word.submit')</button>
-                        </div>
-                    </form>
+                
+                            <div class="modal-body">
+                                <div class="form-item">
+                                    <select name="website_id" id="" class="form-select form-select-sm">
+                                        <option value="">@lang('wncms::word.please_select')</option>
+                                        @foreach ($websites as $_website)
+                                        <option value="{{ $_website->id }}">{{ $_website->domain }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                <button type="button" class="btn btn-primary fw-bold"
+                                    wncms-btn-ajax
+                                    wncms-get-model-ids
+                                    wncms-btn-swal
+                                    data-form="form_bulk_set_website"
+                                    data-original-text="@lang('wncms::word.submit')"
+                                    data-loading-text="@lang('wncms::word.loading').."
+                                    data-success-text="@lang('wncms::word.submitted')"
+                                    data-fail-text="@lang('wncms::word.fail_to_submit')"
+                                    data-route="{{ route('posts.bulk_set_websites') }}"
+                                    data-method="POST"
+                                >@lang('wncms::word.submit')</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
-        </div> --}}
+            </div> --}}
 
             {{-- one_click_create_demo_posts --}}
             <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#one_click_create_demo_posts">@lang('wncms::word.one_click_create_demo_posts')</button>
@@ -338,6 +338,8 @@
 
                 </div>
             </div>
+
+            @include('wncms::backend.common.hide_columns', ['key' => 'posts'])
 
         </div>
     </div>
