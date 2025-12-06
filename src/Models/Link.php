@@ -80,4 +80,9 @@ class Link extends BaseModel implements HasMedia
         $media = $this->getMedia('link_icon')->first();
         if ($media) return $media->getUrl();
     }
+
+    public function getImageAttribute()
+    {
+        return $this->icon ?? $this->thumbnail;
+    }
 }

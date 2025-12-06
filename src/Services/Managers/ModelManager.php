@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Wncms\Models\Tag;
 
 abstract class ModelManager
 {
@@ -198,64 +199,77 @@ abstract class ModelManager
     }
 
     /**
-     * Apply tag filters to a query.
-     * 
+     * apply tag filters to query
      * @param Builder $q
-     * @param array|string|null $tags
-     * @param string $tagType
+     * @param \Wncms\Models\Tag|array|string|null $tags
+     * @param string|null $tagType
      */
-    protected function applyTagFilter(Builder $q, array|string|null $tags, ?string $tagType = null)
+    protected function applyTagFilter(Builder $q, Tag|array|string|null $tags, ?string $tagType = null)
     {
-        if (empty($tags)) return;
+        // return if empty
+        if ($tags === null || $tags === '' || $tags === []) return;
 
-        if (is_string($tags)) {
-            $tags = explode(',', $tags);
+        // load tag model class from config
+        $tagConfig = config('wncms.models.tag', Tag::class);
+        $tagModelClass = is_array($tagConfig) ? ($tagConfig['class'] ?? Tag::class) : $tagConfig;
+
+        // normalize single tag model
+        if ($tags instanceof Tag || is_a($tags, $tagModelClass)) {
+            $tags = [$tags];
         }
 
+        // normalize string "a,b,c" to ['a','b','c']
+        if (is_string($tags)) {
+            $tags = array_filter(array_map('trim', explode(',', $tags)));
+        }
+
+        // ensure array
+        if (!is_array($tags)) {
+            $tags = [$tags];
+        }
+
+        // fallback type
         $tagType = $tagType ?? $this->defaultTagType;
-
-        //% OLD: handle string format with compatibility
-        //% Depracated after next minor 3 version updates
-        // $tagConfig = config('wncms.models.tag.class', \Wncms\Models\Tag::class);
-        $tagConfig = config('wncms.models.tag', \Wncms\Models\Tag::class);
-        $tagModelClass = is_array($tagConfig) ? ($tagConfig['class'] ?? \Wncms\Models\Tag::class) : $tagConfig;
-
 
         $ids = [];
         $names = [];
 
         foreach ($tags as $tag) {
-            if ($tag instanceof $tagModelClass) {
-                $names[] = $tag->name;
+            // tag model instance or subclass
+            if (is_object($tag) && is_a($tag, $tagModelClass)) {
+                $ids[] = $tag->id;
             } elseif (is_numeric($tag)) {
-                $ids[] = $tag;
-            } elseif (is_string($tag)) {
+                $ids[] = (int) $tag;
+            } elseif (is_string($tag) && $tag !== '') {
                 $names[] = $tag;
             }
         }
 
-        $query = $tagModelClass::query()->where('type', $tagType);
-        $query->where(function ($subq) use ($ids, $names) {
-            if (!empty($ids)) {
-                $subq->orWhereIn('id', $ids);
-            }
-            if (!empty($names)) {
-                $subq->orWhereIn('name', $names);
-            }
-        });
-
-        $tagNames = $query->pluck('name')->toArray();
-
-        if (empty($tagNames)) {
+        // if still nothing valid, force no result instead of everything
+        if (!$ids && !$names) {
             $q->whereNull('id');
             return;
         }
 
-        if (!empty($tagNames)) {
-            $q->where(function ($subq) use ($tagNames, $tagType) {
-                $subq->withAnyTags($tagNames, $tagType);
-            });
+        // fetch tag names for given ids/names and type
+        $query = $tagModelClass::query()->where('type', $tagType);
+        $query->where(function ($sub) use ($ids, $names) {
+            // match ids
+            if ($ids) $sub->orWhereIn('id', $ids);
+            // match names
+            if ($names) $sub->orWhereIn('name', $names);
+        });
+
+        $tagNames = $query->pluck('name')->toArray();
+
+        // no tag names found → force no result
+        if (!$tagNames) {
+            $q->whereNull('id');
+            return;
         }
+
+        // apply tag filter to main query
+        $q->withAnyTags($tagNames, $tagType);
     }
 
     /**
