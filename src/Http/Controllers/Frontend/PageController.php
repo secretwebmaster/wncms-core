@@ -66,16 +66,16 @@ class PageController extends FrontendController
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
-     * Theme single page
-     * ----------------------------------------------------------------------------------------------------
-     * @param string|null $slug Page slug
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
-     * ----------------------------------------------------------------------------------------------------
+     *  Show a single frontend page.
+     *  Resolves custom slug views, template pages, plain pages, fallback views,
+     *  and performs homepage redirection logic.
+     * 
+     *  @param string|null $slug Page slug
+     *  @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function show($slug = null)
+    public function show(?string $slug = null)
     {
-        // Redirect root to home
+        // Redirect when slug is empty
         if (!$slug) {
             return redirect()->route('frontend.pages.home');
         }
@@ -83,7 +83,7 @@ class PageController extends FrontendController
         // Load page
         $page = wncms()->page()->get(['slug' => $slug]);
 
-        // if id is same as homepage, redirect to home route
+        // Redirect if slug matches homepage ID
         if ($this->website->homepage && $page && $page->id == $this->website->homepage && request()->routeIs('frontend.pages.show')) {
             return redirect()->route('frontend.pages.home');
         }
@@ -91,69 +91,62 @@ class PageController extends FrontendController
         // Fire event
         Event::dispatch('wncms.pages.show', $page);
 
-        // Redirect if no page
-        if (!$page) {
-            return redirect()->route('frontend.pages.home');
+        // Page exists
+        if ($page) {
+
+            // Template-based page
+            if ($page->type === 'template') {
+
+                $templateId   = $page->blade_name;
+                $templateView = "{$this->theme}::pages.templates.{$templateId}";
+
+                // Template exists
+                if (view()->exists($templateView)) {
+
+                    // Load template config
+                    $templateConfig  = config("theme.{$this->theme}.templates.{$templateId}", []);
+                    $templateOptions = $templateConfig['sections'] ?? [];
+
+                    // Load template values
+                    $templateValues = optional(
+                        $page->page_templates()->where('theme_id', $this->theme)->where('template_id', $templateId)->first()
+                    )->value ?? [];
+
+                    return view($templateView, [
+                        'pageTitle' => $page->title,
+                        'page'    => $page,
+                        'templateOptions' => $templateOptions,
+                        'templateValues' => $templateValues,
+                    ]);
+                }
+            }
+
+            // Plain page
+            if ($page->type === 'plain') {
+
+                $plainView = "{$this->theme}::pages.show";
+
+                // Render plain page
+                if (view()->exists($plainView)) {
+                    return view($plainView, ['pageTitle' => $page->title, 'page' => $page]);
+                }
+            }
+
+            // Theme show page
+            $singlePageView = "{$this->theme}::pages.show";
+            if (view()->exists($singlePageView)) {
+                return view($singlePageView, ['pageTitle' => $page->title, 'page' => $page]);
+            }
         }
 
-        // Custom override view: pages/{slug}.blade.php
+        // Fallback: pages/{slug}.blade.php exists but DB page missing
         $customPageView = "{$this->theme}::pages.{$slug}";
         if (view()->exists($customPageView)) {
-            return view($customPageView, [
-                'pageTitle' => $page->title,
-                'page'      => $page,
-            ]);
+            return view($customPageView);
         }
 
-        // Template-based page
-        if ($page->type === 'template') {
-
-            $templateId = $page->blade_name;
-
-            // View path: pages/templates/{templateId}.blade.php
-            $templateView = "{$this->theme}::pages.templates.{$templateId}";
-
-            if (view()->exists($templateView)) {
-
-                // Load template structure from theme config
-                $templateConfig   = config("theme.{$this->theme}.templates.{$templateId}", []);
-                $templateOptions  = $templateConfig['sections'] ?? [];
-
-                // Load saved values from DB
-                $pageTemplateValue = $page->page_templates()
-                    ->where('theme_id', $this->theme)
-                    ->where('template_id', $templateId)
-                    ->first();
-
-                $templateValues = $pageTemplateValue?->value ?? [];
-
-                return view($templateView, [
-                    'pageTitle'       => $page->title,
-                    'page'            => $page,
-                    'templateOptions' => $templateOptions,
-                    'templateValues'  => $templateValues,
-                ]);
-            }
-        }
-
-        // Plain page
-        if ($page->type === 'plain') {
-
-            $plainView = "{$this->theme}::pages.show";
-
-            if (view()->exists($plainView)) {
-                return view($plainView, [
-                    'pageTitle' => $page->title,
-                    'page'      => $page,
-                ]);
-            }
-        }
-
-        // Fallback to theme default
-        return $this->view("{$this->theme}::pages.show", [
-            'pageTitle' => $page->title,
-            'page'      => $page,
-        ]);
+        // fallback to home page
+        return redirect()->route('frontend.pages.home');
     }
 
     /**
