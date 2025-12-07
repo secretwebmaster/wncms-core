@@ -6,6 +6,7 @@ use Wncms\Models\Page;
 use Wncms\Models\User;
 use Wncms\Models\Website;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 class PageController extends BackendController
 {
@@ -151,7 +152,9 @@ class PageController extends BackendController
 
         // page options
         if ($request->has('options')) {
-            $page->setOptions($request->input('options'));
+            foreach ($request->options as $key => $value) {
+                $page->setOption($key, $value);
+            }
         }
 
         // thumbnail remove
@@ -234,16 +237,32 @@ class PageController extends BackendController
             // Get selected template's grouped options
             if ($page->blade_name && isset($templateConfig[$page->blade_name])) {
 
-                // Now template is: templates.template1.sections.sectionA.options[]
                 $page_template_options = $templateConfig[$page->blade_name]['sections'] ?? [];
 
-                // Load saved values
-                $row = $page->page_templates()
-                    ->where('theme_id', $theme)
-                    ->where('template_id', $page->blade_name)
-                    ->first();
+                // Load all saved template options from DB
+                $rows = $page->getOptions(scope: 'template', group: $page->blade_name);
 
-                $page_template_values = $row?->value ?? [];
+                $page_template_values = [];
+
+                foreach ($rows as $row) {
+                    $fullKey = $row->key;
+                    $value   = $row->value;
+
+                    // decode json array/object
+                    if (is_string($value) && strlen($value) > 0 && ($value[0] === '[' || $value[0] === '{')) {
+                        $decoded = json_decode($value, true);
+                        if (json_last_error() === JSON_ERROR_NONE) {
+                            $value = $decoded;
+                        }
+                    }
+
+                    if (str_contains($fullKey, '.')) {
+                        [$section, $field] = explode('.', $fullKey, 2);
+                        $page_template_values[$section][$field] = $value;
+                    } else {
+                        $page_template_values[$fullKey] = $value;
+                    }
+                }
             }
         }
 
@@ -265,7 +284,7 @@ class PageController extends BackendController
             'visibilities' => $this->modelClass::VISIBILITIES,
             'available_templates' => $available_templates,
             'page_template_options' => $page_template_options,
-            'page_template_values' => $page_template_values,
+            'page_template_values' => $page_template_values ?? [],
         ]);
     }
 
@@ -331,14 +350,272 @@ class PageController extends BackendController
             'blade_name' => $request->input('blade_name'),
         ]);
 
-        // Save grouped template values
+        // save template values
         if ($page->type === 'template' && $page->blade_name && $request->has('template_inputs')) {
-            $page->saveTemplateInputs($request);
+            $scope = 'template';
+            $group = $page->blade_name;
+
+            $templateInputs = $request->input('template_inputs');
+            $fileInputs     = $request->allFiles()['template_inputs'] ?? [];
+
+            // merge keys from inputs + files
+            foreach ($fileInputs as $sectionKey => $fileSection) {
+                if (!isset($templateInputs[$sectionKey])) {
+                    $templateInputs[$sectionKey] = [];
+                }
+                foreach ($fileSection as $fieldKey => $fileValue) {
+                    if (!array_key_exists($fieldKey, $templateInputs[$sectionKey])) {
+                        $templateInputs[$sectionKey][$fieldKey] = null; // placeholder
+                    }
+                }
+            }
+
+            // Load available theme templates
+            if (gss('multi_website')) {
+                $theme = $page->website?->theme ?? wncms()->website()->get()?->theme;
+            } else {
+                $theme = wncms()->website()->get()?->theme;
+            }
+
+            $templateConfig = config("theme.{$theme}.templates");
+            $templateMap = $this->buildTemplateFieldMap($templateConfig[$page->blade_name]['sections'] ?? []);
+
+            foreach ($templateInputs as $sectionKey => $fields) {
+                foreach ($fields as $key => $value) {
+
+                    // full key
+                    $optionKey = $sectionKey . '.' . $key;
+
+                    // find type
+                    $cfg  = $templateMap[$optionKey] ?? null;
+                    $type = $cfg['type'] ?? null;
+
+                    $mediaCollectionName = $scope . '_' . $group . '_' . $key;
+
+                    $file = $fileInputs[$sectionKey][$key]['file'] ?? null;
+
+                    // image
+                    if ($type === 'image') {
+
+                        $removeFlag = isset($value['remove']) ? (int)$value['remove'] : 0;
+                        $existing   = $value['image'] ?? null;
+                        $file       = $fileInputs[$sectionKey][$key]['file'] ?? null;
+
+                        // remove
+                        if ($removeFlag === 1) {
+                            $page->clearMediaCollection($mediaCollectionName);
+                            $page->deleteOption(scope: $scope, group: $group, key: $optionKey);
+                            continue;
+                        }
+
+                        // new upload
+                        if ($file instanceof UploadedFile) {
+                            $page->clearMediaCollection($mediaCollectionName);
+                            $media = $page->addMedia($file)->toMediaCollection($mediaCollectionName);
+                            $url = parse_url($media->getUrl(), PHP_URL_PATH);
+                            $page->setOption($optionKey, $url, $scope, $group);
+                            continue;
+                        }
+
+                        // no remove, no upload → keep
+                        $page->setOption($optionKey, $existing ?? '', $scope, $group);
+                        continue;
+                    }
+
+                    // accordion (repeat = 1, or repeat = n without sortable)
+                    if ($type === 'accordion' && is_array($value)) {
+
+                        $rows = $value; // example: [0 => [...fields...] ]
+                        $final = [];
+
+                        foreach ($rows as $rowIndex => $rowFields) {
+
+                            if (!is_array($rowFields)) continue;
+
+                            $rowOutput = [];
+
+                            $filesForRow = $fileInputs[$sectionKey][$key][$rowIndex] ?? [];
+
+                            foreach ($rowFields as $fieldKey => $fieldValue) {
+
+                                // detect child config
+                                $childFullKey = $optionKey . '.' . $fieldKey; // example.acc_single.acc_image
+                                $childCfg = $templateMap[$childFullKey] ?? null;
+                                $childType = $childCfg['type'] ?? null;
+
+                                // child IMAGE inside accordion
+                                if ($childType === 'image' && is_array($fieldValue)) {
+
+                                    $removeFlag = (int)($fieldValue['remove'] ?? 0);
+                                    $existing   = $fieldValue['image'] ?? '';
+                                    $fileInner  = $filesForRow[$fieldKey]['file'] ?? null;
+
+                                    // remove
+                                    if ($removeFlag === 1) {
+                                        $rowOutput[$fieldKey] = '';
+                                        continue;
+                                    }
+
+                                    // new upload
+                                    if ($fileInner instanceof UploadedFile) {
+                                        $media = $page->addMedia($fileInner)->toMediaCollection($scope . '_' . $group . '_' . $fieldKey);
+                                        $url = parse_url($media->getUrl(), PHP_URL_PATH);
+                                        $rowOutput[$fieldKey] = $url;
+                                        continue;
+                                    }
+
+                                    // keep existing
+                                    $rowOutput[$fieldKey] = $existing ?: '';
+                                    continue;
+                                }
+
+                                // normal field
+                                $rowOutput[$fieldKey] = $fieldValue;
+                            }
+
+                            $final[] = $rowOutput;
+                        }
+
+                        // save final accordion rows
+                        $page->setOption($optionKey, json_encode($final), $scope, $group);
+                        continue;
+                    }
+
+                    // gallery
+                    if ($type === 'gallery') {
+
+                        // match WebsiteController structure
+                        $hasText = !empty($cfg['has_text']);
+                        $hasUrl  = !empty($cfg['has_url']);
+
+                        // fields come grouped exactly like WebsiteController:
+                        // image[] text[] url[] remove[]
+                        $images = $value['image']  ?? [];
+                        $texts  = $value['text']   ?? [];
+                        $urls   = $value['url']    ?? [];
+                        $remove = $value['remove'] ?? [];
+
+                        // uploaded files
+                        $files = $fileInputs[$sectionKey][$key]['file'] ?? [];
+
+                        $kept = [];
+
+                        // 1) EXISTING IMAGES (same logic as WebsiteController)
+                        foreach ($images as $i => $img) {
+
+                            if (!$img) continue;
+
+                            // remove flag
+                            if (isset($remove[$i]) && (int)$remove[$i] === 1) {
+                                continue;
+                            }
+
+                            $kept[] = [
+                                'image' => $img,
+                                'text'  => $hasText ? ($texts[$i] ?? '') : '',
+                                'url'   => $hasUrl  ? ($urls[$i]  ?? '') : '',
+                            ];
+                        }
+
+                        // 2) DELETE SPATIE MEDIA THAT NO LONGER EXISTS
+                        foreach ($page->getMedia($mediaCollectionName) as $media) {
+
+                            $mediaUrl = parse_url($media->getUrl(), PHP_URL_PATH);
+
+                            $stillExists = collect($kept)->contains(fn($x) => $x['image'] === $mediaUrl);
+
+                            if (!$stillExists) {
+                                $media->delete();
+                            }
+                        }
+
+                        // 3) NEW UPLOADS
+                        foreach ($files as $i => $file) {
+
+                            if ($file instanceof UploadedFile) {
+
+                                $media = $page->addMedia($file)->toMediaCollection($mediaCollectionName);
+                                $url = parse_url($media->getUrl(), PHP_URL_PATH);
+
+                                $lastIndex = count($kept);
+
+                                $kept[] = [
+                                    'image' => $url,
+                                    'text'  => $hasText ? ($texts[$lastIndex] ?? '') : '',
+                                    'url'   => $hasUrl  ? ($urls[$lastIndex]  ?? '') : '',
+                                ];
+                            }
+                        }
+
+                        // 4) SAVE FINAL RESULT
+                        $normalized = collect($kept)
+                            ->filter(fn($x) => !empty($x['image']))
+                            ->values()
+                            ->toArray();
+
+                        // clean inner image value before final json_encode
+                        foreach ($normalized as &$item) {
+
+                            // check if this is a JSON string pretending to be an image
+                            if (is_string($item['image']) && str_starts_with($item['image'], '[')) {
+                                $decoded = json_decode($item['image'], true);
+
+                                if (is_array($decoded) && isset($decoded[0]['image'])) {
+                                    $item['image'] = $decoded[0]['image'];
+                                } else {
+                                    $item['image'] = '';
+                                }
+                            }
+                        }
+
+                        unset($item);
+
+                        $page->setOption($optionKey, json_encode($normalized), $scope, $group);
+
+                        continue;
+                    }
+
+                    if ($type === 'tagify' && is_string($value) && wncms()->isValidTagifyJson($value)) {
+                        $ids = collect(json_decode($value, true))->pluck('value')->toArray();
+                        $value = implode(',', $ids);
+                        $page->setOption($optionKey, $value, $scope, $group);
+                    }
+
+                    if (is_array($value)) {
+
+                        // remove "remove" fields globally
+                        if (isset($value['remove'])) {
+                            unset($value['remove']);
+                        }
+
+                        // remove remove flags inside arrays (e.g. gallery, accordion subfields)
+                        foreach ($value as $k => $v) {
+                            if (is_array($v) && isset($v['remove'])) {
+                                unset($value[$k]['remove']);
+                            }
+                        }
+
+                        $website->setOption(
+                            key: $key,
+                            value: json_encode($data, JSON_UNESCAPED_UNICODE),
+                            scope: $scope,
+                            group: $group
+                        );
+                        continue;
+                    }
+
+
+                    // other types
+                    $page->setOption($optionKey, $value, $scope, $group);
+                }
+            }
         }
 
         // Save page switches/options
         if ($request->has('options')) {
-            $page->setOptions($request->input('options'));
+            foreach ($request->options as $key => $value) {
+                $page->setOption($key, $value);
+            }
         }
 
         // Delete thumbnail
@@ -356,6 +633,45 @@ class PageController extends BackendController
 
         return back()->withMessage(__('wncms::word.successfully_updated'));
     }
+
+    protected function buildTemplateFieldMap(array $templateConfig): array
+    {
+        $map = [];
+
+        foreach ($templateConfig as $sectionKey => $section) {
+            foreach ($section['options'] as $opt) {
+
+                // parent: only add if it really has a name
+                if (!empty($opt['name'])) {
+                    $map[$sectionKey . '.' . $opt['name']] = $opt;
+                }
+
+                // nested sub_items
+                if (!empty($opt['sub_items']) && is_array($opt['sub_items'])) {
+
+                    foreach ($opt['sub_items'] as $sub) {
+
+                        // sub item MUST have name
+                        if (empty($sub['name'])) {
+                            continue; // skip safely
+                        }
+
+                        // parent may NOT have name
+                        if (!empty($opt['name'])) {
+                            // section.parent.child
+                            $map[$sectionKey . '.' . $opt['name'] . '.' . $sub['name']] = $sub;
+                        } else {
+                            // section.child
+                            $map[$sectionKey . '.' . $sub['name']] = $sub;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $map;
+    }
+
 
     public function get_available_templates(Request $request)
     {

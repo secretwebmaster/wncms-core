@@ -107,16 +107,10 @@ class PageController extends FrontendController
                     $templateConfig  = config("theme.{$this->theme}.templates.{$templateId}", []);
                     $templateOptions = $templateConfig['sections'] ?? [];
 
-                    // Load template values
-                    $templateValues = optional(
-                        $page->page_templates()->where('theme_id', $this->theme)->where('template_id', $templateId)->first()
-                    )->value ?? [];
-
                     return view($templateView, [
                         'pageTitle' => $page->title,
                         'page'    => $page,
                         'templateOptions' => $templateOptions,
-                        'templateValues' => $templateValues,
                     ]);
                 }
             }

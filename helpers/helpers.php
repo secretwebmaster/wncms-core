@@ -20,10 +20,10 @@ if (!function_exists('wncms')) {
 if (!function_exists('gss')) {
     function gss($key, $fallback = null, $fromCache = true)
     {
-        try{
+        try {
             return wncms()->setting()->get($key, $fallback, $fromCache);
-        }catch(\Exception $e){
-            if(wncms_is_installed()){
+        } catch (\Exception $e) {
+            if (wncms_is_installed()) {
                 logger()->error("Call gss error. key: $key");
             }
         }
@@ -38,22 +38,41 @@ if (!function_exists('uss')) {
 }
 
 if (!function_exists('gto')) {
+    /**
+     * get theme option or full theme option list
+     */
     function gto($key = null, $fallback = '', $locale = null, $fallbackWhenEmpty = true)
     {
-        return wncms_get_theme_option($key, $fallback, $locale, $fallbackWhenEmpty);
+        // get current website
+        $website = wncms()->website()->get();
+        if (!$website) return $fallback;
+
+        $scope = 'theme';
+        $group = $website->theme;
+        $locale ??= app()->getLocale();
+
+        $cacheKey = "theme_options_{$locale}_" . wncms()->getDomain();
+        $cacheTags = ['websites'];
+        $cacheTime = gss('theme_options_cache_time', 86400);
+        // cache()->tags($cacheTags)->clear($cacheKey);
+
+        $themeptions = wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($website, $scope, $group, $locale) {
+            return $website->getOptions($scope, $group)->pluck('value', 'key')->toArray();
+        });
+
+        // get all theme options
+        if ($key === null) {
+            return $themeptions;
+        }
+
+        if($fallbackWhenEmpty && array_key_exists($key, $themeptions) && empty($themeptions[$key])){
+            return $fallback;
+        }
+
+        return array_key_exists($key, $themeptions) ? $themeptions[$key] : $fallback;
+        // return wncms_get_theme_option($key, $fallback, $locale, $fallbackWhenEmpty);
     }
 }
-
-// if (!function_exists('wn')) {
-//     function wn(?string $model = null)
-//     {
-//         if(!empty($model)){
-//             return wncms()->$model();
-//         }else{
-//             return wncms();
-//         }
-//     }
-// }
 
 if (!function_exists('isAdmin')) {
     /**
@@ -81,33 +100,5 @@ if (!function_exists('isAdmin')) {
         }
 
         return auth()->user()?->hasRole($adminRoles) ? true : false;
-    }
-}
-
-/**
- * -------------------------------
- * % Methods belowing are deprecating soon
- * -------------------------------
- */
-
-if (! function_exists('isActive')) {
-    /**
-     * Set the active class to the current opened menu.
-     *
-     * @param  string|array $route
-     * @param  string       $className
-     * @return string
-     */
-    function isActive($route, $className = 'active')
-    {
-        if (is_array($route)) {
-            return in_array(Route::currentRouteName(), $route) ? $className : '';
-        }
-        if (Route::currentRouteName() == $route) {
-            return $className;
-        }
-        if (strpos(URL::current(), $route)) {
-            return $className;
-        }
     }
 }
