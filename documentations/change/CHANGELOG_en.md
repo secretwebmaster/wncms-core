@@ -1,5 +1,16 @@
 # Changelog
 
+## v6.1.0 2025-12-08
+
+* Integrated new Optionable v2 (scope/group/sort support)
+* Replaced old theme option system with Website HasOptions
+* Rewrote page and theme option saving/loading (backend + frontend)
+* Updated backend inputs system (gallery, inline, repeatable items)
+* Updated starter theme layout and config
+* Added aspect ratio + dimension helpers
+* Updated Page and Website models for new option structure
+
+
 ## v6.0.10 2025-12-06
 
 -   Added persistent active tab support in Theme Options page; after saving, the interface returns to the previously selected tab.
