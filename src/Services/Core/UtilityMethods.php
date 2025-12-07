@@ -113,4 +113,77 @@ trait UtilityMethods
     {
         return rtrim(rtrim(number_format($number, $digits), '0'), '.');
     }
+
+    /**
+     * Normalize a width/height value.
+     *
+     * Supports:
+     *  - int         → "200px"
+     *  - "200px"
+     *  - "50%"
+     *  - "auto"
+     *  - fallback default
+     *
+     * @param mixed $value
+     * @param string $default
+     * @return string
+     */
+    public function normalizeDimension($value, ?string $default = '200px')
+    {
+        if (empty($value)) {
+            return $default;
+        }
+
+        // integer → px
+        if (is_numeric($value)) {
+            return $value . 'px';
+        }
+
+        $value = trim((string) $value);
+
+        // valid px
+        if (preg_match('/^\d+px$/i', $value)) {
+            return $value;
+        }
+
+        // valid percent
+        if (preg_match('/^\d+%$/', $value)) {
+            return $value;
+        }
+
+        // auto is allowed
+        if (strtolower($value) === 'auto') {
+            return 'auto';
+        }
+
+        // fallback
+        return $default;
+    }
+
+    /**
+     * Calculate aspect ratio from string.
+     * 
+     * Examples:
+     * - "16/9"
+     * - "4/3"
+     */
+    public function calculateAspect(?string $aspect): ?array
+    {
+        if (!$aspect || !str_contains($aspect, '/')) {
+            return null;
+        }
+
+        [$w, $h] = explode('/', $aspect);
+
+        if (!is_numeric($w) || !is_numeric($h) || $w == 0 || $h == 0) {
+            return null;
+        }
+
+        return [
+            'w' => (float)$w,
+            'h' => (float)$h,
+            'ratio' => (float)$h / (float)$w,
+            'inverse' => (float)$w / (float)$h
+        ];
+    }
 }
