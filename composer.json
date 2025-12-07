@@ -16,7 +16,7 @@
         "spatie/laravel-permission": "^6.9",
         "secretwebmaster/wncms-tags": "^1.7.0",
         "secretwebmaster/wncms-translatable": "^1.3.1",
-        "secretwebmaster/laravel-optionable": "^1.4.0",
+        "secretwebmaster/laravel-optionable": "^2.0.0",
         "fakerphp/faker": "^1.23"
     },
     "require-dev": {
