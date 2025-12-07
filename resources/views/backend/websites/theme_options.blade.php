@@ -89,12 +89,12 @@
                 <div class="tab-content">
                     @foreach ($option_tabs ?? [] as $tab_name => $options)
                         <div class="tab-pane fade{{ ($activeTab === $tab_name || (is_null($activeTab) && $loop->first)) ? 'show active' : '' }}" id="tab_{{ $tab_name }}" role="tabpanel">
-                            @foreach ($options as $option_index => $option)
+                            @foreach ($options as $optionIndex => $option)
                                 @include('wncms::backend.parts.inputs', [
                                     'website' => $_website,
-                                    'option_index' => $option_index,
+                                    'optionIndex' => $optionIndex,
                                     'option' => $option,
-                                    'current_options' => $current_options,
+                                    'currentOptions' => $currentOptions,
                                 ])
                             @endforeach
                         </div>
