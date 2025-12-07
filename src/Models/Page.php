@@ -356,7 +356,7 @@ class Page extends BaseModel implements HasMedia
         if (($field['type'] ?? '') === 'accordion') {
             $repeat = $field['repeat'] ?? 1;
             for ($i = 1; $i <= $repeat; $i++) {
-                foreach ($field['content'] as $child) {
+                foreach ($field['sub_items']??[] as $child) {
                     $childResults = $this->processFieldGroup($inputs, $child, $sectionName, $i, null);
                     $results = array_merge($results, $childResults);
                 }
@@ -456,27 +456,45 @@ class Page extends BaseModel implements HasMedia
 
         // image (upload / remove / keep)
         if (($field['type'] ?? '') === 'image') {
-            $fileInput = "template_inputs.{$sectionName}.{$finalKey}";
-            $removeKey = "{$finalKey}_remove";
 
-            // remove
-            if (!empty($inputs[$sectionName][$removeKey]) && $inputs[$sectionName][$removeKey] == 1) {
-                $this->clearMediaCollection("tpl_{$sectionName}_{$finalKey}");
+            $group = $inputs[$sectionName][$finalKey] ?? [];
+
+            // normalize structure
+            if (!is_array($group)) {
+                $group = [];
+            }
+
+            // load components
+            $remove = (int)($group['remove'] ?? 0);            // remove flag
+            $file   = $group['file'] ?? null;                 // uploaded file or null
+            $image  = $group['image'] ?? null;                // existing image url
+
+            $collection = "tpl_{$sectionName}_{$finalKey}";
+
+            // remove image
+            if ($remove === 1) {
+                $this->clearMediaCollection($collection);
                 return [$finalKey => null];
             }
 
-            // upload
-            if (request()->hasFile($fileInput)) {
-                $this->clearMediaCollection("tpl_{$sectionName}_{$finalKey}");
-                $media = $this->addMediaFromRequest($fileInput)->toMediaCollection("tpl_{$sectionName}_{$finalKey}");
-                $val = parse_url($media->getUrl(), PHP_URL_PATH);
+            // upload new image
+            if ($file instanceof \Illuminate\Http\UploadedFile) {
+                $this->clearMediaCollection($collection);
+                $media = $this->addMedia($file)->toMediaCollection($collection);
+                $url = parse_url($media->getUrl(), PHP_URL_PATH);
+                return [$finalKey => $url];
             }
-            // keep
-            else {
-                $existing = $this->option("{$sectionName}.{$finalKey}");
-                if ($existing) $val = $existing;
+
+            // keep existing image from form
+            if (!empty($image)) {
+                return [$finalKey => $image];
             }
+
+            // keep existing image from database
+            $existing = $this->option("{$sectionName}.{$finalKey}");
+            return [$finalKey => $existing];
         }
+
 
         return [$finalKey => $val];
     }
@@ -490,12 +508,31 @@ class Page extends BaseModel implements HasMedia
         $templateId = $this->blade_name;
 
         $sections = config("theme.{$theme}.templates.{$templateId}.sections", []);
-        $inputs   = $request->input('template_inputs', []);
+
+        // get normal inputs
+        $inputs = $request->input('template_inputs', []);
+
+        // get uploaded files
+        $files = $request->allFiles()['template_inputs'] ?? [];
+
+        // merge file data into inputs
+        foreach ($files as $sectionName => $fields) {
+            foreach ($fields as $fieldKey => $fileGroup) {
+                // ensure section array exists
+                if (!isset($inputs[$sectionName][$fieldKey])) {
+                    $inputs[$sectionName][$fieldKey] = [];
+                }
+                // merge file keys, such as ['file' => UploadedFile]
+                $inputs[$sectionName][$fieldKey] = array_merge(
+                    $inputs[$sectionName][$fieldKey],
+                    $fileGroup
+                );
+            }
+        }
 
         $processed = [];
 
         foreach ($sections as $sectionName => $section) {
-
             foreach ($section['options'] ?? [] as $option) {
 
                 $chunk = $this->processFieldGroup($inputs, $option, $sectionName);
@@ -529,27 +566,43 @@ class Page extends BaseModel implements HasMedia
         );
     }
 
-    public function option(string $key, $default = null)
+    public function option(string $key, $default = null, $fallbackOnEmptyValue = true)
     {
-        $theme = wncms()->website()->get()?->theme ?? 'default';
+        // $theme = wncms()->website()->get()?->theme ?? 'default';
+        // $templateId = $this->blade_name;
+
+        // $row = $this->page_templates()
+        //     ->where('theme_id', $theme)
+        //     ->where('template_id', $templateId)
+        //     ->first();
+
+        // $values = $row?->value ?? [];
+
+
+        // foreach (explode('.', $key) as $segment) {
+        //     if (!is_array($values) || !array_key_exists($segment, $values)) {
+        //         return $default;
+        //     }
+        //     $values = $values[$segment];
+        // }
+
+        // return $values;
+
+        // get active theme
+        // $theme = wncms()->website()->get()?->theme ?? 'default';
+
+        // template id = blade_name
         $templateId = $this->blade_name;
 
-        $row = $this->page_templates()
-            ->where('theme_id', $theme)
-            ->where('template_id', $templateId)
-            ->first();
 
-        $values = $row?->value ?? [];
-
-
-        foreach (explode('.', $key) as $segment) {
-            if (!is_array($values) || !array_key_exists($segment, $values)) {
-                return $default;
-            }
-            $values = $values[$segment];
-        }
-
-        return $values;
+        // simply call HasOptions::getOption()
+        return $this->getOption(
+            key: $key,
+            scope: 'template',
+            group: $templateId,
+            fallback: $default,
+            fallbackOnEmptyValue: $fallbackOnEmptyValue
+        );
     }
 
     public function allOptions()

@@ -3,6 +3,7 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Secretwebmaster\LaravelOptionable\Traits\HasOptions;
 use Wncms\Models\BaseModel;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -13,6 +14,7 @@ class Website extends BaseModel implements HasMedia
     use HasFactory;
     use InteractsWithMedia;
     use HasTranslations;
+    use HasOptions;
 
     /**
      * ----------------------------------------------------------------------------------------------------
