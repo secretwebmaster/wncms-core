@@ -112,11 +112,11 @@
 
                         <div class="card-body p-2 p-md-5">
 
-                            @foreach ($group['options'] as $option_index => $option)
+                            @foreach ($group['options'] as $optionIndex => $option)
                                 @include('wncms::backend.parts.inputs', [
                                     'option' => $option,
-                                    'option_index' => $option_index,
-                                    'current_options' => $page_template_values[$groupId] ?? [],
+                                    'optionIndex' => $optionIndex,
+                                    'currentOptions' => $page_template_values[$groupId] ?? [],
                                     'inputNameKey' => "template_inputs[$groupId]",
                                 ])
                             @endforeach
