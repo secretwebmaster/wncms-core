@@ -10,6 +10,9 @@ $thisVersion = '6.1.0';
 info("running update_{$thisVersion}.php");
 
 try {
+
+    Artisan::call('migrate', ['--force' => true]);
+
     // migrate theme options to new options table
     if (Schema::hasTable('theme_options')) {
         $themeOptions = DB::table('theme_options')->orderBy('id')->get();
@@ -47,40 +50,60 @@ try {
         }
     }
 
-    // migrate page template blocks to new options table
+    // migrate page template options (correct version)
     if (Schema::hasTable('page_templates')) {
+
         $templates = DB::table('page_templates')->orderBy('id')->get();
 
         foreach ($templates as $row) {
-            // skip if already migrated
-            $exists = DB::table('options')->where([
-                'optionable_type' => 'Wncms\Models\Page',
-                'optionable_id'   => $row->page_id,
-                'scope'           => 'template',
-                'group'           => $row->template_id,
-                'key'             => null,
-                'sort'            => $row->sort,
-            ])->exists();
 
-            if ($exists) {
+            $templateId = $row->template_id;
+            $block = json_decode($row->value, true);
+
+            if (!is_array($block)) {
                 continue;
             }
 
-            // value is json structure for the block
-            $decoded = json_decode($row->value, true);
-            $value = json_last_error() === JSON_ERROR_NONE ? $decoded : $row->value;
+            foreach ($block as $sectionKey => $group) {
 
-            DB::table('options')->insert([
-                'optionable_type' => 'Wncms\Models\Page',
-                'optionable_id'   => $row->page_id,
-                'scope'           => 'template',
-                'group'           => $row->template_id,
-                'key'             => null,
-                'sort'            => $row->sort,
-                'value'           => $value,
-                'created_at'      => now(),
-                'updated_at'      => now(),
-            ]);
+                if (!is_array($group)) {
+                    continue;
+                }
+
+                foreach ($group as $fieldKey => $value) {
+
+                    $key = "{$sectionKey}.{$fieldKey}";
+
+                    $exists = DB::table($optionsTable)->where([
+                        'optionable_type' => 'Wncms\Models\Page',
+                        'optionable_id'   => $row->page_id,
+                        'scope'           => 'template',
+                        'group'           => $templateId,
+                        'key'             => $key,
+                        'sort'            => $row->sort,
+                    ])->exists();
+
+                    if ($exists) {
+                        continue;
+                    }
+
+                    if (is_array($value)) {
+                        $value = json_encode($value, JSON_UNESCAPED_UNICODE);
+                    }
+
+                    DB::table($optionsTable)->insert([
+                        'optionable_type' => 'Wncms\Models\Page',
+                        'optionable_id'   => $row->page_id,
+                        'scope'           => 'template',
+                        'group'           => $templateId,
+                        'key'             => $key,
+                        'sort'            => $row->sort,
+                        'value'           => $value,
+                        'created_at'      => now(),
+                        'updated_at'      => now(),
+                    ]);
+                }
+            }
         }
     }
 
