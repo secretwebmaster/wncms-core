@@ -192,7 +192,7 @@ return [
         'version' => '1.0.0',
         'created_at' => '2025-01-01',
         'updated_at' => '2025-01-01',
-        'starter_url' => '',
+        'demo_url' => '',
     ],
 
     /**
@@ -591,6 +591,15 @@ return [
                 ]
             ],
 
+            // gallery
+            [
+                'label' => '圖片集 Gallery',
+                'name'  => 'test_gallery',
+                'type'  => 'gallery',
+                'width' => 800,
+                'height' => 600,
+            ],
+
         ],
     ],
 
@@ -839,7 +848,7 @@ return [
                             'type'     => 'accordion',
                             'repeat'   => 3,
                             'sortable' => true,
-                            'content'  => [
+                            'sub_items'  => [
                                 ['label' => '巢狀文字', 'name' => 'nest_text', 'type' => 'text'],
                                 [
                                     'label'   => '巢狀 Tagify',

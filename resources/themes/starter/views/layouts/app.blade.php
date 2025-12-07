@@ -13,14 +13,13 @@
         {!! $website->meta_verification !!}
 
         {{-- Favicon --}}
-        <link rel="shortcut icon" type="image/x-icon"
-            href="{{ $website->site_favicon ?: asset('wncms/images/logos/favicon.png') }}">
+        <link rel="shortcut icon" type="image/x-icon" href="{{ $website->site_favicon ?: asset('wncms/images/logos/favicon.png') }}">
 
         {{-- Demo Theme CSS --}}
         <link rel="stylesheet" href="{{ wncms()->theme()->asset($themeId, 'css/style.css') }}">
 
         {{-- Optional FontAwesome --}}
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" referrerpolicy="no-referrer">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" referrerpolicy="no-referrer">
 
         @stack('head_css')
         <style>
@@ -31,33 +30,13 @@
         {!! $website->head_code !!}
     </head>
 
-    <body class="site-body">
+    <body class="@stack('body_class')">
 
         {{-- Header --}}
         @include(wncms()->theme()->view($themeId, 'parts.header'))
 
-        {{-- Flash Messages --}}
-        <div class="flash-wrapper">
-            @include('wncms::common.message')
-        </div>
-
-        {{-- Page Content --}}
-        <main class="container content-wrapper">
-            <div class="layout-grid">
-
-                {{-- Left Content --}}
-                <div class="content-area">
-                    @yield('content')
-                </div>
-
-                {{-- Right: Sidebar --}}
-                <aside class="sidebar-area">
-                    @include(wncms()->theme()->view($themeId, 'parts.sidebar'))
-                </aside>
-
-            </div>
-        </main>
-
+        {{-- Main Content --}}
+        @yield('content')
 
         {{-- Footer --}}
         @include(wncms()->theme()->view($themeId, 'parts.footer'))
