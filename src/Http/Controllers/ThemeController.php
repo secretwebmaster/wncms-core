@@ -14,13 +14,21 @@ class ThemeController
     public function index(Request $request)
     {
         $themes = wncms()->theme()->getThemeMetas(); // ['demo','starter']
+        $invalidThemes = [];
+
+        foreach($themes as $index => $theme) {
+            if(empty($theme['id'])) {
+                $invalidThemes[] = $theme;
+                unset($themes[$index]);
+            }
+        }
 
         return wncms()->view('backend.themes.index', [
             'themes' => $themes,
+            'invalidThemes' => $invalidThemes,
             'page_title' => wncms_model_word('theme', 'management'),
         ]);
     }
-
 
     /**
      * Upload a new theme zip file.
@@ -83,7 +91,6 @@ class ThemeController
         ]);
     }
 
-
     /**
      * Delete a theme folder.
      * But only if NO website uses it.
@@ -108,7 +115,6 @@ class ThemeController
             'message' => __('wncms::word.theme_deleted_successfully'),
         ]);
     }
-
 
     // protected function validateThemeFiles(string $rootPath): array
     // {

@@ -2277,6 +2277,10 @@ $words = [
     'enter_url_to_generate_affiliate_link' => '輸入原始網址以生成推廣連結',
     'affiliate_url' => '推廣連結',
 
+    // 6.1.1
+    'invalid_themes_are_found' => '發現無效主題',
+    'default_theme_cannot_be_deleted' => '無法刪除預設主題',
+
 ];
 
 $locale = basename(__DIR__);

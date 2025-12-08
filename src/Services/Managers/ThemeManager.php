@@ -47,6 +47,7 @@ class ThemeManager
 
         foreach ($themes as $themeId) {
             $configPath = public_path("themes/{$themeId}/config.php");
+            $themePath = public_path("themes/{$themeId}");
             if (File::exists($configPath)) {
                 $config = include $configPath;
                 $metas[$themeId] = $config['info'];
@@ -54,6 +55,7 @@ class ThemeManager
                     $metas[$themeId]['name'] = $metas[$themeId]['name'][app()->getLocale()] ?? $themeId;
                 }
                 $metas[$themeId]['isValid'] = true;
+                $metas[$themeId]['path'] = $themePath;
             } else {
                 $metas[$themeId] = [
                     'id' => $themeId,
@@ -66,12 +68,14 @@ class ThemeManager
                     'updated_at' => null,
                     'demo_url' => null,
                     'isValid' => false,
+                    'path' => $themePath,
                 ];
             }
         }
 
         return $metas;
     }
+
 
     /**
      * Resolve a translation key for the given theme with fallback behavior.
@@ -116,7 +120,7 @@ class ThemeManager
             $ext = pathinfo($path, PATHINFO_EXTENSION);
             $type = $ext ? '.' . $ext : '';
 
-            if(in_array($type, ['.js', '.css'])) {
+            if (in_array($type, ['.js', '.css'])) {
                 $type = str_replace('.', '', $type);
             } else {
                 $type = '';
