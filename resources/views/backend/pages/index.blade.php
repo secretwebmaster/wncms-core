@@ -105,13 +105,20 @@
                             @endif
                             <th>@lang('wncms::word.title')</th>
                             <th>@lang('wncms::word.slug')</th>
+
+                            @if(request()->show_detail)
                             <th>@lang('wncms::word.user')</th>
+                            @endif
                             {{-- <th>@lang('wncms::word.website')</th> --}}
                             <th>@lang('wncms::word.status')</th>
 
                             
                             <th>@lang('wncms::word.title')</th>
+
+                            @if(request()->show_detail)
                             <th>@lang('wncms::word.visibility')</th>
+                            @endif
+
                             <th>@lang('wncms::word.template')</th>
                             <th>@lang('wncms::word.attribute')</th>
                             <th>@lang('wncms::word.remark')</th>
@@ -130,7 +137,7 @@
                             </td>
                             <td>
                                 <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('pages.edit' , $page) }}">@lang('wncms::word.edit')</a>
-                                <a class="btn btn-sm px-2 py-1 btn-info fw-bold" href="{{ route('pages.clone' , $page) }}">@lang('wncms::word.clone')</a>
+                                {{-- <a class="btn btn-sm px-2 py-1 btn-info fw-bold" href="{{ route('pages.clone' , $page) }}">@lang('wncms::word.clone')</a> --}}
                                 @include('wncms::backend.parts.modal_delete' , ['model'=>$page , 'route' => route('pages.destroy' , $page)])
                             </td>
                             <td>{{ $page->id }}</td>
@@ -139,13 +146,18 @@
                             @endif
                             <td>{{ $page->title }}@if($website->homepage == $page->id) <i class="fas fa-home" title="@lang('wncms::word.homepage')"></i>@endif</td>
                             <td>{{ $page->slug }}</td>
+                            @if(request()->show_detail)
                             <td>{{ $page->user?->username }}</td>
+                            @endif
+
                             {{-- <td>{{ $page->website?->domain }}</td> --}}
                             <td>@include('wncms::common.table_status', ['model' => $page])</td>
                             {{-- <td class="mw-400px text-truncate"><a href="{{ $wncms->getRoute('frontend.pages.show', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td> --}}
                             <td class="mw-400px text-truncate"><a href="{{ route('frontend.pages.show', ['slug' => $page->slug]) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td>
+                            @if(request()->show_detail)    
                             <td>{{ $page->visibility }}</td>
-                            <td>{{ $page->template }}</td>
+                            @endif
+                            <td>{{ $page->blade_name }}</td>
                             <th title="@foreach(json_decode($page->attribute, true) ?? [] as $key => $value){{ $key }}: {{ $value }}&#10;@endforeach">@if($page->attribute && $page->attribute != "[]")@lang('wncms::word.hover_to_view')@endif</td>
                             <td>{{ $page->remark }}</td>
                             <td>@include('wncms::common.table_is_active', ['model' => $page, 'attribute' => 'is_locked'])</td>

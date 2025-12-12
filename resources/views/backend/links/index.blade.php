@@ -56,8 +56,6 @@
                 'model_prefix' => 'links',
             ])
 
-            <button id="btn-bulk-update-link" class="btn btn-sm btn-dark fw-bold mb-1">@lang('wncms::word.bulk_edit_order')</button>
-
             @include('wncms::backend.common.btn_bulk_update_model', [
                 'model' => 'Link',
                 'btnText' => __('wncms::word.set_active'),
@@ -105,6 +103,8 @@
                 'fieldColumn' => 'is_recommended',
                 'fieldValue' => '0',
             ])
+
+            <button id="btn-bulk-update-link" class="btn btn-sm btn-info fw-bold mb-1">@lang('wncms::word.bulk_edit')</button>
 
             {{-- bulk update link tags --}}
             <button type="button" class="btn btn-sm btn-info fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_update_link_tag">@lang('wncms::word.handling_link_tags')</button>

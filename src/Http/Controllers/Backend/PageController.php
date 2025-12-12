@@ -19,6 +19,13 @@ class PageController extends BackendController
     {
         $q = $this->modelClass::query();
 
+        if ($request->keyword) {
+            $q->where(function ($subQ) use ($request) {
+                $subQ->where('title', 'like', '%' . $request->keyword . '%')
+                    ->orWhere('slug', 'like', '%' . $request->keyword . '%');
+            });
+        }
+
         $q->orderBy('id', 'desc');
 
         $pages = $q->paginate($request->page_size ?? 100);
@@ -381,25 +388,25 @@ class PageController extends BackendController
             $templateMap = $this->buildTemplateFieldMap($templateConfig[$page->blade_name]['sections'] ?? []);
 
             foreach ($templateInputs as $sectionKey => $fields) {
-                foreach ($fields as $key => $value) {
+                foreach ($fields as $fieldKey => $value) {
 
                     // full key
-                    $optionKey = $sectionKey . '.' . $key;
+                    $optionKey = $sectionKey . '.' . $fieldKey;
 
                     // find type
                     $cfg  = $templateMap[$optionKey] ?? null;
                     $type = $cfg['type'] ?? null;
 
-                    $mediaCollectionName = $scope . '_' . $group . '_' . $key;
+                    $mediaCollectionName = $scope . '_' . $group . '_' . $optionKey;
 
-                    $file = $fileInputs[$sectionKey][$key]['file'] ?? null;
+                    $file = $fileInputs[$sectionKey][$fieldKey]['file'] ?? null;
 
                     // image
                     if ($type === 'image') {
 
                         $removeFlag = isset($value['remove']) ? (int)$value['remove'] : 0;
                         $existing   = $value['image'] ?? null;
-                        $file       = $fileInputs[$sectionKey][$key]['file'] ?? null;
+                        $file       = $fileInputs[$sectionKey][$fieldKey]['file'] ?? null;
 
                         // remove
                         if ($removeFlag === 1) {
@@ -425,7 +432,7 @@ class PageController extends BackendController
                     // accordion (repeat = 1, or repeat = n without sortable)
                     if ($type === 'accordion' && is_array($value)) {
 
-                        $rows = $value; // example: [0 => [...fields...] ]
+                        $rows = $value;
                         $final = [];
 
                         foreach ($rows as $rowIndex => $rowFields) {
@@ -434,43 +441,92 @@ class PageController extends BackendController
 
                             $rowOutput = [];
 
-                            $filesForRow = $fileInputs[$sectionKey][$key][$rowIndex] ?? [];
+                            // uploaded files for this row
+                            $filesForRow = $fileInputs[$sectionKey][$fieldKey][$rowIndex] ?? [];
 
-                            foreach ($rowFields as $fieldKey => $fieldValue) {
+                            foreach ($rowFields as $childKey => $childValue) {
 
                                 // detect child config
-                                $childFullKey = $optionKey . '.' . $fieldKey; // example.acc_single.acc_image
+                                // example: timeline.timeline.tab_gallery
+                                $childFullKey = $optionKey . '.' . $childKey;
                                 $childCfg = $templateMap[$childFullKey] ?? null;
                                 $childType = $childCfg['type'] ?? null;
 
-                                // child IMAGE inside accordion
-                                if ($childType === 'image' && is_array($fieldValue)) {
+                                // gallery inside accordion
+                                if ($childType === 'gallery' && is_array($childValue)) {
 
-                                    $removeFlag = (int)($fieldValue['remove'] ?? 0);
-                                    $existing   = $fieldValue['image'] ?? '';
-                                    $fileInner  = $filesForRow[$fieldKey]['file'] ?? null;
+                                    $galleryImages = $childValue['image']  ?? [];
+                                    $galleryTexts  = $childValue['text']   ?? [];
+                                    $galleryUrls   = $childValue['url']    ?? [];
+                                    $galleryRemove = $childValue['remove'] ?? [];
 
-                                    // remove
-                                    if ($removeFlag === 1) {
-                                        $rowOutput[$fieldKey] = '';
-                                        continue;
+                                    $galleryFiles = $filesForRow[$childKey]['file'] ?? [];
+
+                                    $rowsKeep = [];
+
+                                    // 1) existing items
+                                    foreach ($galleryImages as $i => $img) {
+
+                                        if (!$img) continue;
+
+                                        if (isset($galleryRemove[$i]) && (int)$galleryRemove[$i] === 1) {
+                                            continue;
+                                        }
+
+                                        $rowsKeep[] = [
+                                            'image' => $img,
+                                            'text'  => !empty($childCfg['has_text']) ? ($galleryTexts[$i] ?? '') : '',
+                                            'url'   => !empty($childCfg['has_url'])  ? ($galleryUrls[$i] ?? '') : '',
+                                        ];
                                     }
 
-                                    // new upload
-                                    if ($fileInner instanceof UploadedFile) {
-                                        $media = $page->addMedia($fileInner)->toMediaCollection($scope . '_' . $group . '_' . $fieldKey);
-                                        $url = parse_url($media->getUrl(), PHP_URL_PATH);
-                                        $rowOutput[$fieldKey] = $url;
-                                        continue;
+                                    // 2) new uploads
+                                    foreach ($galleryFiles as $i => $f) {
+
+                                        if ($f instanceof UploadedFile) {
+
+                                            $media = $page->addMedia($f)->toMediaCollection($scope . '_' . $group . '_' . $childKey);
+                                            $url = parse_url($media->getUrl(), PHP_URL_PATH);
+
+                                            $lastIndex = count($rowsKeep);
+
+                                            $rowsKeep[] = [
+                                                'image' => $url,
+                                                'text'  => !empty($childCfg['has_text']) ? ($galleryTexts[$lastIndex] ?? '') : '',
+                                                'url'   => !empty($childCfg['has_url'])  ? ($galleryUrls[$lastIndex] ?? '') : '',
+                                            ];
+                                        }
                                     }
 
-                                    // keep existing
-                                    $rowOutput[$fieldKey] = $existing ?: '';
+                                    $rowOutput[$childKey] = $rowsKeep;
                                     continue;
                                 }
 
-                                // normal field
-                                $rowOutput[$fieldKey] = $fieldValue;
+                                // image inside accordion
+                                if ($childType === 'image' && is_array($childValue)) {
+
+                                    $removeFlag = (int)($childValue['remove'] ?? 0);
+                                    $existing   = $childValue['image'] ?? '';
+                                    $fileInner  = $filesForRow[$childKey]['file'] ?? null;
+
+                                    if ($removeFlag === 1) {
+                                        $rowOutput[$childKey] = '';
+                                        continue;
+                                    }
+
+                                    if ($fileInner instanceof UploadedFile) {
+                                        $media = $page->addMedia($fileInner)->toMediaCollection($scope . '_' . $group . '_' . $childKey);
+                                        $url = parse_url($media->getUrl(), PHP_URL_PATH);
+                                        $rowOutput[$childKey] = $url;
+                                        continue;
+                                    }
+
+                                    $rowOutput[$childKey] = $existing ?: '';
+                                    continue;
+                                }
+
+                                // other fields
+                                $rowOutput[$childKey] = $childValue;
                             }
 
                             $final[] = $rowOutput;
@@ -496,7 +552,7 @@ class PageController extends BackendController
                         $remove = $value['remove'] ?? [];
 
                         // uploaded files
-                        $files = $fileInputs[$sectionKey][$key]['file'] ?? [];
+                        $files = $fileInputs[$sectionKey][$fieldKey]['file'] ?? [];
 
                         $kept = [];
 
@@ -595,15 +651,15 @@ class PageController extends BackendController
                             }
                         }
 
-                        $website->setOption(
-                            key: $key,
-                            value: json_encode($data, JSON_UNESCAPED_UNICODE),
+                        $page->setOption(
+                            key: $optionKey,
+                            value: json_encode($value, JSON_UNESCAPED_UNICODE),
                             scope: $scope,
                             group: $group
                         );
+
                         continue;
                     }
-
 
                     // other types
                     $page->setOption($optionKey, $value, $scope, $group);
@@ -634,37 +690,118 @@ class PageController extends BackendController
         return back()->withMessage(__('wncms::word.successfully_updated'));
     }
 
-    protected function buildTemplateFieldMap(array $templateConfig): array
+    protected function buildTemplateFieldMap(array $templateSections): array
     {
         $map = [];
 
-        foreach ($templateConfig as $sectionKey => $section) {
-            foreach ($section['options'] as $opt) {
+        foreach ($templateSections as $sectionKey => $section) {
+            if (!is_array($section)) {
+                continue;
+            }
 
-                // parent: only add if it really has a name
-                if (!empty($opt['name'])) {
-                    $map[$sectionKey . '.' . $opt['name']] = $opt;
+            $options = $section['options'] ?? null;
+            if (!is_array($options)) {
+                continue;
+            }
+
+            foreach ($options as $option) {
+
+                if (!is_array($option)) {
+                    continue;
                 }
 
-                // nested sub_items
-                if (!empty($opt['sub_items']) && is_array($opt['sub_items'])) {
+                if (empty($option['type'])) {
+                    continue;
+                }
 
-                    foreach ($opt['sub_items'] as $sub) {
+                // skip non-input options (same as WebsiteController)
+                if (in_array($option['type'], ['heading', 'sub_heading', 'display_image'])) {
+                    continue;
+                }
 
-                        // sub item MUST have name
-                        if (empty($sub['name'])) {
-                            continue; // skip safely
+                // -----------------------------------------------------------------
+                // inline (top-level inside this section)
+                // -----------------------------------------------------------------
+                if (
+                    $option['type'] === 'inline'
+                    && !empty($option['sub_items'])
+                    && is_array($option['sub_items'])
+                ) {
+                    // non-repeat inline
+                    if (empty($option['repeat'])) {
+                        foreach ($option['sub_items'] as $sub) {
+                            if (!is_array($sub) || empty($sub['name']) || empty($sub['type'])) {
+                                continue;
+                            }
+                            $this->addFieldToTemplateMap($sectionKey, $sub, $map);
+                        }
+                        continue;
+                    }
+
+                    // repeat inline
+                    if (!is_numeric($option['repeat']) || $option['repeat'] < 1) {
+                        continue;
+                    }
+
+                    $repeat = (int) $option['repeat'];
+
+                    foreach ($option['sub_items'] as $sub) {
+                        if (!is_array($sub) || empty($sub['name']) || empty($sub['type'])) {
+                            continue;
                         }
 
-                        // parent may NOT have name
-                        if (!empty($opt['name'])) {
-                            // section.parent.child
-                            $map[$sectionKey . '.' . $opt['name'] . '.' . $sub['name']] = $sub;
-                        } else {
-                            // section.child
-                            $map[$sectionKey . '.' . $sub['name']] = $sub;
+                        for ($i = 1; $i <= $repeat; $i++) {
+                            $field = $sub;
+                            $field['name'] = $sub['name'] . '_' . $i; // tab_image_1, tab_image_2...
+                            $this->addFieldToTemplateMap($sectionKey, $field, $map);
                         }
                     }
+
+                    continue;
+                }
+
+                // -----------------------------------------------------------------
+                // accordion options (similar to your existing logic, but via helper)
+                // -----------------------------------------------------------------
+                if ($option['type'] === 'accordion') {
+
+                    // parent accordion itself: section.accordion_name
+                    if (!empty($option['name'])) {
+                        $this->addFieldToTemplateMap($sectionKey, $option, $map);
+                    }
+
+                    if (empty($option['sub_items']) || !is_array($option['sub_items'])) {
+                        continue;
+                    }
+
+                    foreach ($option['sub_items'] as $child) {
+
+                        if (!is_array($child) || empty($child['name']) || empty($child['type'])) {
+                            continue;
+                        }
+
+                        // we want keys like: section.accordion.child
+                        if (!empty($option['name'])) {
+                            $fullName = $option['name'] . '.' . $child['name'];
+                        } else {
+                            $fullName = $child['name'];
+                        }
+
+                        $field = $child;
+                        $field['name'] = $fullName;
+
+                        $this->addFieldToTemplateMap($sectionKey, $field, $map);
+                    }
+
+                    continue;
+                }
+
+                // -----------------------------------------------------------------
+                // simple options (no inline / no accordion)
+                // -----------------------------------------------------------------
+                if (!empty($option['name']) && !empty($option['type'])) {
+                    $this->addFieldToTemplateMap($sectionKey, $option, $map);
+                    continue;
                 }
             }
         }
@@ -672,6 +809,22 @@ class PageController extends BackendController
         return $map;
     }
 
+    protected function addFieldToTemplateMap(string $sectionKey, array $field, array &$map): void
+    {
+        $name = $field['name'] ?? null;
+        $type = $field['type'] ?? null;
+
+        if (!$name || !$type) {
+            return;
+        }
+
+        // full key: section.field_name (e.g. "tabs.tab_image_1")
+        $key = $sectionKey . '.' . $name;
+
+        if (!isset($map[$key])) {
+            $map[$key] = $field;
+        }
+    }
 
     public function get_available_templates(Request $request)
     {
