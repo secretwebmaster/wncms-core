@@ -34,6 +34,8 @@ class SettingSeeder extends Seeder
             'enable_cache' => 1,
             'system_name' => 'WNCMS',
             'multi_website' => false,
+            'disable_registration' => true,
+            'disable_core_update' => true,
         ];
     }
 }

@@ -3,7 +3,7 @@
 	{{-- Logo --}}
 	<div class="app-sidebar-logo px-6" id="wncms_app_sidebar_logo">
 		<a href="{{ route('dashboard') }}">
-			<img alt="Logo" src="{{ asset('wncms/images/logos/logo_white.png') }}" class="h-25px app-sidebar-logo-default"/>
+			<img alt="Logo" src="{{ gss('system_logo') ?? asset('wncms/images/logos/logo_white.png') }}" class="h-25px app-sidebar-logo-default"/>
 			<img alt="Logo" src="{{ asset('wncms/images/logos/favicon.png') }}" class="h-20px app-sidebar-logo-minimize" />
 		</a>
 		<div id="wncms_app_sidebar_toggle" class="app-sidebar-toggle btn btn-icon btn-shadow btn-sm btn-color-muted btn-active-color-primary body-bg h-30px w-30px position-absolute top-50 start-100 translate-middle rotate" data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body" data-kt-toggle-name="app-sidebar-minimize">

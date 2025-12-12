@@ -11,7 +11,7 @@ return [
             ['type' => 'switch', 'name' => 'superadmin_mode'],
             ['type' => 'switch', 'name' => 'force_https'],
             ['type' => 'switch', 'name' => 'multi_website'],
-            ['type' => 'text', 'name' => 'system_logo'],
+            // ['type' => 'image', 'name' => 'system_logo'],
             // [
             //     'type' => 'select',
             //     'name' => 'locale',
