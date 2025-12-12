@@ -1,15 +1,26 @@
 # Changelog
 
+## v6.1.1 2025-12-13
+
+-   Improved backend page list with optional detail view and keyword search
+-   Refined link bulk edit actions and tag handling UI
+-   Fixed gallery ID collision in accordion rows
+-   Added full gallery support inside accordion fields
+-   Auto-filled gallery text using uploaded filename when enabled
+-   Stabilized page template option saving and media collection naming
+-   Unified template field mapping logic with website options
+-   Refactored frontend link tag routing using tag manager
+-   Fixed core update script inserting options into wrong table
+
 ## v6.1.0 2025-12-08
 
-* Integrated new Optionable v2 (scope/group/sort support)
-* Replaced old theme option system with Website HasOptions
-* Rewrote page and theme option saving/loading (backend + frontend)
-* Updated backend inputs system (gallery, inline, repeatable items)
-* Updated starter theme layout and config
-* Added aspect ratio + dimension helpers
-* Updated Page and Website models for new option structure
-
+-   Integrated new Optionable v2 (scope/group/sort support)
+-   Replaced old theme option system with Website HasOptions
+-   Rewrote page and theme option saving/loading (backend + frontend)
+-   Updated backend inputs system (gallery, inline, repeatable items)
+-   Updated starter theme layout and config
+-   Added aspect ratio + dimension helpers
+-   Updated Page and Website models for new option structure
 
 ## v6.0.10 2025-12-06
 
