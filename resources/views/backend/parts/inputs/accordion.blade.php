@@ -105,6 +105,7 @@
                                 'optionIndex' => $optionIndex ?? null,
                                 'currentOptions' => $rowValue,
                                 'inputNameKey' => $childNameKey,
+                                'rowIndex' => $groupIndex,
                                 'website' => $website ?? null,
                                 'disabled' => $disabled ?? null,
                             ])
@@ -127,6 +128,7 @@
                                 'option' => $indexed,
                                 'inputNameKey' => $indexed['input_name_key'],
                                 'currentOptions' => $nestedCurrentOptions,
+                                'rowIndex' => $groupIndex,
                                 'website' => $website ?? null,
                                 'disabled' => $disabled ?? null,
                             ])

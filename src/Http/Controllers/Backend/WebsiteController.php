@@ -468,6 +468,70 @@ class WebsiteController extends BackendController
                             continue;
                         }
 
+                        // gallery inside accordion row
+                        if ($fieldType === 'gallery') {
+
+                            $hasText = !empty($fieldCfg['has_text']);
+                            $hasUrl  = !empty($fieldCfg['has_url']);
+
+                            $images = $fieldValue['image'] ?? [];
+                            $texts  = $fieldValue['text']  ?? [];
+                            $urls   = $fieldValue['url']   ?? [];
+                            $remove = $fieldValue['remove'] ?? [];
+
+                            $galleryFiles = $filesForKey[$rowIndex][$fieldKey]['file'] ?? [];
+
+                            // existing items
+                            $existing = [];
+                            foreach ($images as $i => $img) {
+                                if (!$img) continue;
+                                $existing[] = [
+                                    'image' => $img,
+                                    'text'  => $hasText ? ($texts[$i] ?? '') : '',
+                                    'url'   => $hasUrl  ? ($urls[$i]  ?? '') : '',
+                                ];
+                            }
+
+                            // remove flags
+                            $kept = [];
+                            foreach ($existing as $i => $item) {
+                                if (!isset($remove[$i]) || (int)$remove[$i] === 0) {
+                                    $kept[] = $item;
+                                }
+                            }
+
+                            // delete spatie media no longer used
+                            foreach ($website->getMedia($mediaCollectionName) as $media) {
+                                $url = parse_url($media->getUrl(), PHP_URL_PATH);
+                                $exists = collect($kept)->contains(fn($x) => $x['image'] === $url);
+                                if (!$exists) $media->delete();
+                            }
+
+                            // new uploads
+                            foreach ($galleryFiles as $fileItem) {
+                                if ($fileItem instanceof UploadedFile) {
+                                    $media = $website->addMedia($fileItem)->toMediaCollection($mediaCollectionName);
+                                    $url = parse_url($media->getUrl(), PHP_URL_PATH);
+
+                                    $index = count($kept);
+                                    $kept[] = [
+                                        'image' => $url,
+                                        'text'  => $hasText ? ($texts[$index] ?? '') : '',
+                                        'url'   => $hasUrl  ? ($urls[$index]  ?? '') : '',
+                                    ];
+                                }
+                            }
+
+                            // normalize
+                            $normalized = collect($kept)
+                                ->filter(fn($x) => !empty($x['image']))
+                                ->values()
+                                ->toArray();
+
+                            $rowOutput[$fieldKey] = $normalized;
+                            continue;
+                        }
+
                         // tagify in accordion
                         if ($fieldType === 'tagify' && is_string($fieldValue) && wncms()->isValidTagifyJson($fieldValue)) {
                             $ids = collect(json_decode($fieldValue, true))->pluck('value')->toArray();
