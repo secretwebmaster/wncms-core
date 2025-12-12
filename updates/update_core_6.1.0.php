@@ -74,7 +74,7 @@ try {
 
                     $key = "{$sectionKey}.{$fieldKey}";
 
-                    $exists = DB::table($optionsTable)->where([
+                    $exists = DB::table('options')->where([
                         'optionable_type' => 'Wncms\Models\Page',
                         'optionable_id'   => $row->page_id,
                         'scope'           => 'template',
@@ -91,7 +91,7 @@ try {
                         $value = json_encode($value, JSON_UNESCAPED_UNICODE);
                     }
 
-                    DB::table($optionsTable)->insert([
+                    DB::table('options')->insert([
                         'optionable_type' => 'Wncms\Models\Page',
                         'optionable_id'   => $row->page_id,
                         'scope'           => 'template',
