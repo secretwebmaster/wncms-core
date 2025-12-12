@@ -34,7 +34,9 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
     Route::prefix('link')->controller(LinkController::class)->group(function () {
         Route::get('/', 'index')->name('links.index');
         Route::get('{id}', 'show')->name('links.show');
-        Route::get('{tagType}/{slug}', 'archive')->name('links.archive');
+        // Route::get('{tagType}/{slug}', 'archive')->name('links.archive');
+        Route::get('{type}/{slug}', 'tag')->where('type', wncms()->tag()->getTagTypesForRoute(wncms()->getModelClass('link')))->name('links.tag');
+
     });
 
     //post
@@ -47,9 +49,7 @@ Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_c
         // Route::get('category/{tagName?}', 'category')->name('posts.category');
         // Route::get('tag/{tagName?}', 'tag')->name('posts.tag');
         // Route::get('{tagType}/{tagName?}', 'archive')->name('posts.archive');
-        Route::get('{type}/{slug}', [PostController::class, 'tag'])
-            ->where('type', wncms()->tag()->getTagTypesForRoute(wncms()->getModelClass('post')))
-            ->name('posts.tag');
+        Route::get('{type}/{slug}', [PostController::class, 'tag'])->where('type', wncms()->tag()->getTagTypesForRoute(wncms()->getModelClass('post')))->name('posts.tag');
 
         Route::get('list/{name?}/{period?}', 'post_list')->where('name', 'hot|new|like|fav')->where('period', 'today|yesterday|week|month')->name('posts.list');
 

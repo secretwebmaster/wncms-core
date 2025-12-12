@@ -35,7 +35,7 @@ $link->getAttribute('title'),
                 <td>@lang('wncms::word.tag')</td>
                 <td>
                     @foreach($link->tags as $tag)
-                    <a href="{{ route('frontend.links.archive', ['tagType' => $tag->type, 'slug' => $tag->name]) }}">{{ $tag->name }}</a>
+                    <a href="{{ route('frontend.links.tag', ['type' => $tag->type, 'slug' => $tag->name]) }}">{{ $tag->name }}</a>
                     @endforeach
                 </td>
             </tr>
