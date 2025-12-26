@@ -76,7 +76,7 @@
             <div class="image-input image-input-outline {{ isset($starter) && $starter->thumbnail ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center;">
                 <div class="image-input-wrapper w-125px h-125px" style="background-image: {{ isset($starter) && $starter->thumbnail ? 'url('.asset($starter->thumbnail).')' : 'none' }};"></div>
 
-                <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change">
+                <label ignore-developer-hint class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change">
                     <i class="fa fa-pencil fs-7"></i>
                     <input type="file" name="image_example" accept="image/*" />
                     {{-- remove image --}}

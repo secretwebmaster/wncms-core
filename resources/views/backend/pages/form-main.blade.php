@@ -18,8 +18,7 @@
                 {{-- title --}}
                 <div class="form-item mb-3">
                     <label class="form-label required fw-bold fs-6">@lang('wncms::word.title')</label>
-                    <input type="text" name="title" class="form-control form-control-sm"
-                        value="{{ old('title', $page->title) }}" required>
+                    <input type="text" name="title" class="form-control form-control-sm" value="{{ old('title', $page->title) }}" required>
                 </div>
 
                 {{-- slug --}}
@@ -27,8 +26,7 @@
                     <label class="form-label required fw-bold fs-6">
                         @lang('wncms::word.slug') (@lang('wncms::word.show_in_url'))
                     </label>
-                    <input type="text" name="slug" class="form-control form-control-sm"
-                        value="{{ old('slug', $page->slug) }}">
+                    <input type="text" name="slug" class="form-control form-control-sm" value="{{ old('slug', $page->slug) }}">
                 </div>
 
                 {{-- type --}}
@@ -37,7 +35,7 @@
                     <select name="type" class="form-select form-select-sm">
                         <option value="">@lang('wncms::word.please_select')</option>
                         @foreach ($types ?? [] as $type)
-                            <option value="{{ $type }}" @selected($type === old('type', $page->type) || (!old('type') && ! $page->type && $type=='plain'))>
+                            <option value="{{ $type }}" @selected($type === old('type', $page->type) || (!old('type') && !$page->type && $type == 'plain'))>
                                 @lang('wncms::word.' . $type)
                             </option>
                         @endforeach
@@ -73,23 +71,19 @@
                 {{-- remark --}}
                 <div class="form-item mb-3">
                     <label class="form-label fw-bold fs-6">@lang('wncms::word.remark')</label>
-                    <input type="text" name="remark" class="form-control form-control-sm"
-                        value="{{ old('remark', $page->remark) }}">
+                    <input type="text" name="remark" class="form-control form-control-sm" value="{{ old('remark', $page->remark) }}">
                 </div>
 
                 {{-- sort --}}
                 <div class="form-item mb-3">
                     <label class="form-label fw-bold fs-6">@lang('wncms::word.sort')</label>
-                    <input type="number" name="sort" class="form-control form-control-sm"
-                        value="{{ old('sort', $page->sort) }}">
+                    <input type="number" name="sort" class="form-control form-control-sm" value="{{ old('sort', $page->sort) }}">
                 </div>
 
                 {{-- content --}}
                 <div class="form-item mb-3">
                     <label class="form-label fw-bold fs-6">@lang('wncms::word.content')</label>
-                    <textarea id="kt_docs_tinymce_basic"
-                        name="content"
-                        class="tox-target">{{ old('content', $page->content) }}</textarea>
+                    <textarea id="kt_docs_tinymce_basic" name="content" class="tox-target">{{ old('content', $page->content) }}</textarea>
                 </div>
 
             </div>

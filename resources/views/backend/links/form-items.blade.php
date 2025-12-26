@@ -134,7 +134,7 @@
             <div class="image-input image-input-outline {{ isset($link) && $link->icon ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center;">
                 <div class="image-input-wrapper w-125px h-125px" style="background-image: {{ isset($link) && $link->icon ? 'url('.asset($link->icon).')' : 'none' }};"></div>
 
-                <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change">
+                <label ignore-developer-hint class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change">
                     <i class="fa fa-pencil fs-7"></i>
                     <input type="file" name="link_icon" accept="image/*"/>
                     {{-- remove image --}}
@@ -161,7 +161,7 @@
             <div class="image-input image-input-outline {{ isset($link) && $link->thumbnail ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center;">
                 <div class="image-input-wrapper w-300px h-150px" style="background-image: {{ isset($link) && $link->thumbnail ? 'url('.asset($link->thumbnail).')' : 'none' }};background-size:100% 100%;"></div>
 
-                <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change">
+                <label ignore-developer-hint class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change">
                     <i class="fa fa-pencil fs-7"></i>
                     <input type="file" name="link_thumbnail" accept="image/*"/>
                     {{-- remove image --}}
@@ -343,3 +343,5 @@
     </div>
 
 </div>
+
+@include('wncms::backend.common.developer-hints')

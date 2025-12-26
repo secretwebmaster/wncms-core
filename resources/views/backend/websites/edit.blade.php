@@ -119,7 +119,7 @@
                         <div class="image-input image-input-outline {{ !empty($website->site_favicon) ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center">
                             <div class="image-input-wrapper w-125px h-125px" style="background-image: {{!empty($website->site_favicon) ? 'url("'. $website->site_favicon .'")' : 'none' }};background-size: contain;"></div>
 
-                            <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="@lang('wncms::word.change_favicon')">
+                            <label ignore-developer-hint class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="@lang('wncms::word.change_favicon')">
                                 <i class="fa fa-pencil fs-7"></i>
                                 <input type="file" name="site_favicon" accept="image/*" />
                                 <input type="hidden" name="site_favicon_remove" />
@@ -144,7 +144,7 @@
                         <div class="image-input image-input-outline {{ !empty($website->site_logo) ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url('{{ asset('wncms/images/placeholders/upload.png') }}');background-position:center">
                             <div class="image-input-wrapper w-250px h-50px" style="background-image: {{!empty($website->site_logo) ? 'url("'. $website->site_logo .'")' : 'none' }};background-size: contain;"></div>
 
-                            <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="@lang('wncms::word.change_favicon')">
+                            <label ignore-developer-hint class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="@lang('wncms::word.change_favicon')">
                                 <i class="fa fa-pencil fs-7"></i>
 
                                 <input type="file" name="site_logo" accept="image/*" />
@@ -169,7 +169,7 @@
                         <div class="image-input image-input-outline {{ !empty($website->site_logo_white) ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center">
                             <div class="image-input-wrapper w-250px h-50px" style="background-image: {{!empty($website->site_logo_white) ? 'url("'. $website->site_logo_white .'")' : 'none' }};background-size: contain;"></div>
 
-                            <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="@lang('wncms::word.change_favicon')">
+                            <label ignore-developer-hint class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="@lang('wncms::word.change_favicon')">
                                 <i class="fa fa-pencil fs-7"></i>
 
                                 <input type="file" name="site_logo_white" accept="image/*" />
@@ -249,6 +249,8 @@
     </form>
 </div>
 
+@include('wncms::backend.common.developer-hints')
+
 @endsection
 
 @push('foot_js')
@@ -268,3 +270,4 @@
         }
 </script>
 @endpush
+

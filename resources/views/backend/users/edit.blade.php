@@ -139,3 +139,5 @@
 </form>
 
 @endsection
+
+@include('wncms::backend.common.developer-hints')

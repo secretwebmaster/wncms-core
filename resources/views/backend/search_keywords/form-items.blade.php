@@ -19,3 +19,4 @@
     </div>
 </div>
 
+@include('wncms::backend.common.developer-hints')

@@ -115,7 +115,7 @@
         <div class="image-input image-input-outline {{ $tag->getFirstMediaUrl('tag_background') ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center">
             <div class="image-input-wrapper w-250px h-125px" style="background-image: {{ $tag->getFirstMediaUrl('tag_background') ? 'url('. $tag->getFirstMediaUrl('tag_background') .')' : 'none' }};background-size: 100% 100%;"></div>
 
-            <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change avatar">
+            <label ignore-developer-hint class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change avatar">
                 <i class="fa fa-pencil fs-7"></i>
 
                 <input type="file" name="tag_background" accept="image/*" />
@@ -142,7 +142,7 @@
         <div class="image-input image-input-outline {{ $tag->getFirstMediaUrl('tag_thumbnail') ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center">
             <div class="image-input-wrapper w-125px h-125px" style="background-image: {{ $tag->getFirstMediaUrl('tag_thumbnail') ? 'url('. $tag->getFirstMediaUrl('tag_thumbnail') .')' : 'none' }};background-size: 100% 100%;"></div>
 
-            <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change avatar">
+            <label ignore-developer-hint class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change avatar">
                 <i class="fa fa-pencil fs-7"></i>
 
                 <input type="file" name="tag_thumbnail" accept="image/*" />
@@ -182,3 +182,5 @@
         <input type="text" name="sort" class="form-control form-control-sm" value="{{ $tag->sort ?? old('sort') }}" />
     </div>
 </div>
+
+@include('wncms::backend.common.developer-hints')

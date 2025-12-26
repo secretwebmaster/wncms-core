@@ -131,7 +131,7 @@
             <div class="image-input image-input-outline {{ isset($advertisement) && $advertisement->thumbnail ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url({{ asset('wncms/images/placeholders/upload.png') }});background-position:center;">
                 <div class="image-input-wrapper w-400px h-150px mw-100" style="background-image: {{ isset($advertisement) && $advertisement->thumbnail ? 'url('.asset($advertisement->thumbnail).')' : 'none' }};background-size: 100% 100%;"></div>
 
-                <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change">
+                <label ignore-developer-hint class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change">
                     <i class="fa fa-pencil fs-7"></i>
                     <input type="file" name="advertisement_thumbnail" accept="image/*" ignore-developer-hint/>
                     {{-- remove image --}}
