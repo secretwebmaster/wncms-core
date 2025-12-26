@@ -1,5 +1,14 @@
 # Changelog
 
+## v6.1.2 2025-12-26
+
+-   Bumped core version to 6.1.2 and synced installer version
+-   Refactored backend ModelController with centralized model resolution supporting App and Wncms namespaces
+-   Updated Starter theme accordion configuration to use sub_items instead of content
+-   Improved backend input components for better consistency and rendering stability
+-   Added support for model-based option sources in Tagify input
+-   Enhanced status label rendering with configurable translation prefix
+
 ## v6.1.1 2025-12-13
 
 -   Improved backend page list with optional detail view and keyword search
