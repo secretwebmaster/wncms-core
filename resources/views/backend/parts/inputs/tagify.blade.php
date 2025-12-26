@@ -274,6 +274,72 @@
             }
         });
     </script>
+@elseif($option['options'] == 'model')
+    @php
+        $modelClass = $option['model_type'] ?? null;
+        $modelItems = [];
+
+        if (class_exists($modelClass)) {
+            $modelItems = app($modelClass)
+                ->newQuery()
+                ->get()
+                ->map(function ($item) use ($option) {
+                    return [
+                        'value' => $item->getKey(),
+                        'name' => $item->{$option['model_display_field'] ?? 'name'},
+                    ];
+                })
+                ->toArray();
+        }
+    @endphp
+
+    <input id="tagify_{{ $optionIndex }}"
+        class="form-control form-control-sm p-0"
+        name="{{ $inputName }}"
+        value="{{ $currentOptions[$option['name']] }}"
+        @if (!empty($option['required'])) required @endif
+        @disabled(!empty($option['disabled']) || !empty($disabled)) />
+
+    <script type="text/javascript">
+        window.addEventListener('DOMContentLoaded', (event) => {
+            var input = document.querySelector("#tagify_{{ $optionIndex }}");
+            var modelItems = @json($modelItems);
+            // Initialize Tagify
+            tagify = new Tagify(input, {
+                whitelist: modelItems,
+                enforceWhitelist: {{ isset($option['whitelist_tag_only']) && $option['whitelist_tag_only'] == false ? 'false' : 'true' }},
+                // skipInvalid: true,
+                // duplicates: false,
+                tagTextProp: 'name',
+                maxTags: {{ $option['limit'] ?? 999 }},
+                dropdown: {
+                    maxItems: 100,
+                    mapValueTo: 'name',
+                    classname: "tagify__inline__suggestions",
+                    enabled: 0,
+                    closeOnSelect: false,
+                    searchKeys: ['name', 'value'],
+                },
+            });
+
+            // handle value changes
+            input.addEventListener('change', function onChange(e) {
+                console.log(e.target.value);
+            });
+
+            var dragsort = new DragSort(tagify.DOM.scope, {
+                selector: '.' + tagify.settings.classNames.tag,
+                callbacks: {
+                    dragEnd: onDragEnd
+                }
+            });
+
+            function onDragEnd(elm) {
+                tagify.updateValueByDOMTags()
+            }
+
+        });
+    </script>
 @else
     <input id="tagify_{{ $optionIndex }}"
         class="form-control form-control-sm p-0"
