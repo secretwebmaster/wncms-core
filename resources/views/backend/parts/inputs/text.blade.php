@@ -1,3 +1,8 @@
+@php
+    if(is_array($currentValue)){
+        $currentValue = json_encode($currentValue, JSON_UNESCAPED_UNICODE);
+    }
+@endphp
 <input type="{{ $option['type'] }}"
     name="{{ $inputName }}"
     class="form-control form-control-sm"

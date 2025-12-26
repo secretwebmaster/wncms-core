@@ -8,13 +8,13 @@
 
     // translation mode
     if (!empty($has_translation) && !empty($locale_key)) {
-        $inputName       = "translations[{$inputNameKey}][{$locale_key}][{$optionName}]";
+        $inputName = "translations[{$inputNameKey}][{$locale_key}][{$optionName}]";
         $inputNameRemove = "translations[{$inputNameKey}][{$locale_key}][{$optionName}_remove]";
-        $currentValue    = !empty($option['name']) ? ($currentOptions[$option['name']] ?? '') : '';
+        $currentValue = !empty($option['name']) ? $currentOptions[$option['name']] ?? '' : '';
     } else {
-        $inputName       = "{$inputNameKey}[{$optionName}]";
+        $inputName = "{$inputNameKey}[{$optionName}]";
         $inputNameRemove = "{$inputNameKey}[{$optionName}_remove]";
-        $currentValue    = !empty($option['name']) ? ($currentOptions[$option['name']] ?? '') : '';
+        $currentValue = !empty($option['name']) ? $currentOptions[$option['name']] ?? '' : '';
     }
 
     // page template override mode
@@ -38,23 +38,19 @@
         'option' => $option,
         'optionIndex' => $optionIndex,
     ])
-
 @elseif($option['type'] === 'sub_heading')
     @include('wncms::backend.parts.inputs.sub_heading', [
         'option' => $option,
     ])
-
 @elseif($option['type'] === 'display_image')
     @include('wncms::backend.parts.inputs.display_image', [
         'option' => $option,
     ])
-
 @elseif($option['type'] === 'hidden')
     @include('wncms::backend.parts.inputs.hidden', [
         'inputName' => $inputName,
         'currentValue' => $currentValue,
     ])
-
 @elseif($option['type'] === 'inline')
     @include('wncms::backend.parts.inputs.inline', [
         'option' => $option,
@@ -64,12 +60,11 @@
         'website' => $website ?? null,
         'disabled' => $disabled ?? null,
     ])
-
 @else
     <div class="row mb-3 mw-100 mx-0 @if (!empty($option['align_items_center'])) align-items-center @endif">
 
         <label class="col-lg-3 col-form-label fw-bold fs-6 text-nowrap text-truncate @required(!empty($option['required']))"
-               title="{{ $option['label'] ?? $option['name'] }}">
+            title="{{ $option['label'] ?? $option['name'] }}">
             {{ $option['label'] ?? $option['name'] }}
             @if (gss('show_developer_hints'))
                 <br><span class="text-secondary small">{{ $option['name'] ?? '' }}</span>
@@ -85,7 +80,6 @@
                     'currentValue' => $currentValue,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'number')
                 @include('wncms::backend.parts.inputs.number', [
                     'option' => $option,
@@ -93,7 +87,6 @@
                     'currentValue' => $currentValue,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'image')
                 @include('wncms::backend.parts.inputs.image', [
                     'option' => $option,
@@ -101,7 +94,6 @@
                     'currentValue' => $currentValue,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'select')
                 @include('wncms::backend.parts.inputs.select', [
                     'option' => $option,
@@ -112,7 +104,6 @@
                     'website' => $website ?? null,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'boolean')
                 @include('wncms::backend.parts.inputs.boolean', [
                     'option' => $option,
@@ -120,7 +111,6 @@
                     'currentValue' => $currentValue,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'editor')
                 @include('wncms::backend.parts.inputs.editor', [
                     'option' => $option,
@@ -129,7 +119,6 @@
                     'uniqueDomId' => $uniqueDomId,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'textarea')
                 @include('wncms::backend.parts.inputs.textarea', [
                     'option' => $option,
@@ -137,7 +126,6 @@
                     'currentValue' => $currentValue,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'color')
                 @include('wncms::backend.parts.inputs.color', [
                     'option' => $option,
@@ -146,7 +134,6 @@
                     'currentOptions' => $currentOptions,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'tagify')
                 @include('wncms::backend.parts.inputs.tagify', [
                     'option' => $option,
@@ -155,7 +142,6 @@
                     'uniqueDomId' => $uniqueDomId,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'accordion')
                 @include('wncms::backend.parts.inputs.accordion', [
                     'option' => $option,
@@ -166,7 +152,6 @@
                     'website' => $website ?? null,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'gallery')
                 @include('wncms::backend.parts.inputs.gallery', [
                     'option' => $option,
@@ -176,7 +161,6 @@
                     'website' => $website ?? null,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'package')
                 @include('wncms::backend.parts.inputs.package', [
                     'option' => $option,
@@ -186,7 +170,6 @@
                     'website' => $website ?? null,
                     'disabled' => $disabled ?? null,
                 ])
-
             @elseif($option['type'] === 'custom')
                 @includeIf($option['custom_view'] ?? '', [
                     'option' => $option,

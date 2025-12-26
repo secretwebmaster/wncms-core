@@ -1,6 +1,6 @@
 @php
     $status_attribute ??= 'status';
-    $status = ((object)$model)->{$status_attribute};
+    $status = ((object) $model)->{$status_attribute};
 
     $active = array_merge(['active', 'paid', 'success', 'published'], $active_statuses ?? []);
     $pending = array_merge(['pending'], $pending_statuses ?? []);
@@ -8,6 +8,7 @@
     $error = array_merge(['error', 'rejected', 'unread', 'trashed', 'inactive', 'paused'], $error_statuses ?? []);
 
     $style = 'secondary';
+    $translationPrefix = $translationPrefix ?? 'wncms::word.';
 
     if (in_array($status, $active)) {
         $style = 'success';
@@ -21,5 +22,5 @@
 @endphp
 
 <span class="{{ !empty($badgeStyle) ? "badge badge-{$style}" : "text-{$style} fw-bold" }}">
-    @lang('wncms::word.' . $status)
+    @lang($translationPrefix . $status)
 </span>

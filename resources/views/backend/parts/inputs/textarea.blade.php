@@ -10,4 +10,4 @@
     }
 @endphp
 
-<textarea name="{{ $inputName }}" class="form-control" rows="6" @disabled(!empty($option['disabled']) || !empty($disabled))>{{ $displayValue }}</textarea>
+<textarea name="{{ $inputName }}" class="form-control" rows="6" placeholder="{{ $option['placeholder'] ?? '' }}" @disabled(!empty($option['disabled']) || !empty($disabled))>{{ $displayValue }}</textarea>
