@@ -92,7 +92,7 @@ if (!defined('WNCMS_THEME_START')) {
  *      whitelist_tag_only  bool            optional  | tagify 是否只允許既有項目，預設 true
  *
  *      repeat              int             optional  | 重複產生多組同樣欄位（僅適用 inline / accordion）
- *      content             array           optional  | accordion 內容項目，通常為 inline / 一般欄位設定
+ *      sub_items             array           optional  | accordion 內容項目，通常為 inline / 一般欄位設定
  *      id                  string          optional  | accordion 的唯一 ID（未設定時會自動產生）
  *
  *      type                string          required  | 欄位類型（下列其一）
@@ -141,7 +141,7 @@ if (!defined('WNCMS_THEME_START')) {
  *                          - 若 options='tags' 則需設定 tag_type
  *
  *          accordion       手風琴（Accordion）容器
- *                          - 使用 content 定義內部欄位
+ *                          - 使用 sub_items 定義內部欄位
  *                          - 可搭配 repeat 重複產生多個 Accordion 區塊
  *                          - 若 sortable=true，後端會儲存排序 JSON
  *
@@ -539,7 +539,7 @@ return [
                 'name'    => 'accordion_single',
                 'type'    => 'accordion',
                 'repeat'  => 1,
-                'content' => [
+                'sub_items' => [
                     [
                         'label' => '標題',
                         'name'  => 'acc_title',
@@ -576,7 +576,7 @@ return [
                 'type'    => 'accordion',
                 'repeat'  => 3,
                 'sortable' => true,
-                'content' => [
+                'sub_items' => [
                     [
                         'label' => '巢狀文字',
                         'name'  => 'nest_text',
@@ -827,7 +827,7 @@ return [
                             'name'    => 'acc_single',
                             'type'    => 'accordion',
                             'repeat'  => 1,
-                            'content' => [
+                            'sub_items' => [
                                 ['label' => '標題', 'name' => 'acc_title', 'type' => 'text'],
                                 ['label' => '圖片', 'name' => 'acc_image', 'type' => 'image'],
                                 [
