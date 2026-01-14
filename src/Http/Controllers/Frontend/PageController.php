@@ -88,6 +88,11 @@ class PageController extends FrontendController
             return redirect()->route('frontend.pages.home');
         }
 
+        // if status is drafted , only allow $request->preview=true and route is not home
+        if ($page && $page->status === 'drafted' && !request()->preview && !request()->routeIs('frontend.pages.home')) {
+            return redirect()->route('frontend.pages.home');
+        }
+
         // Fire event
         Event::dispatch('wncms.pages.show', $page);
 

@@ -8,7 +8,7 @@ use Wncms\Http\Controllers\Frontend\SitemapController;
 use Wncms\Http\Controllers\Frontend\LinkController;
 use Wncms\Http\Controllers\Frontend\UserController;
 
-Route::name('frontend.')->middleware('is_installed', 'has_website', 'full_page_cache')->group(function () {
+Route::name('frontend.')->middleware(['is_installed', 'has_website', 'full_page_cache'])->group(function () {
 
     //home
     Route::get('/', [PageController::class, 'home'])->name('pages.home');
