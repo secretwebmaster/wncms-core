@@ -357,9 +357,17 @@ abstract class ModelManager
     /**
      * Apply a status filter.
      */
-    protected function applyStatus(Builder $q, string $column, string $status)
+    protected function applyStatus(Builder $q, string $column, string|array|null $status): void
     {
-        $q->where($column, $status);
+        if (empty($status)) {
+            return;
+        }
+
+        if (is_string($status)) {
+            $status = explode(',', $status);
+        }
+
+        $q->whereIn($column, (array) $status);
     }
 
     /**
