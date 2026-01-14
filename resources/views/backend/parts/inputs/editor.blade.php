@@ -1,9 +1,17 @@
-<textarea id="editor_{{ $option['name'] }}" name="{{ $inputName }}" class="tox-target">{{ $currentValue }}</textarea>
+@php
+    // Make editor id unique (accordion / repeat safe)
+    $editorId = 'editor_' . md5($inputName);
+@endphp
+
+<textarea
+    id="{{ $editorId }}"
+    name="{{ $inputName }}"
+    class="tox-target">{{ $currentValue }}</textarea>
 
 <script>
     window.addEventListener('DOMContentLoaded', (event) => {
         var options = {
-            selector: "#editor_{{ $option['name'] }}",
+            selector: "#{{ $editorId }}",
             height: 480,
             menubar: true,
             promotion: false,
@@ -16,12 +24,9 @@
             images_upload_url: '{{ route('uploads.image') }}',
             // images_upload_base_path: '/some/basepath',
             image_class_list: [{
-                    title: 'img-fluid',
-                    value: 'img-fluid'
-                },
-
-
-            ],
+                title: 'img-fluid',
+                value: 'img-fluid'
+            }, ],
             image_title: true,
             automatic_uploads: true,
             toolbar_sticky: true,

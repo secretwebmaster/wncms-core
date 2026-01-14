@@ -10,7 +10,9 @@
 
     // Repeat count from config
     $repeat = (int) ($option['repeat'] ?? 1);
-    if ($repeat < 1) $repeat = 1;
+    if ($repeat < 1) {
+        $repeat = 1;
+    }
 
     // Sortable flag
     $sortable = !empty($option['sortable']);
@@ -19,12 +21,12 @@
     $inputNameKey ??= 'inputs';
 
     // DOM id seed
-    $accordionDomId = ($uniqueDomId ?? ('accordion_' . $accordionKey)) . '_accordion_wrapper';
+    $accordionDomId = ($uniqueDomId ?? 'accordion_' . $accordionKey) . '_accordion_wrapper';
 
     // Current saved values:
     // - prefer $currentOptions[$accordionKey] if array
     // - fall back to $currentValue if that holds JSON
-    $currentList = $currentOptions[$accordionKey] ?? $currentValue ?? [];
+    $currentList = $currentOptions[$accordionKey] ?? ($currentValue ?? []);
 
     if (!is_array($currentList)) {
         $decoded = is_string($currentList) ? json_decode($currentList, true) : [];
@@ -37,13 +39,13 @@
 
     // If nothing saved but repeat=1, prepare a single empty row
     if (empty($currentList) && $repeat === 1) {
-        $currentList = [
-            []
-        ];
+        $currentList = [[]];
     }
 
     // Render row count = max(config repeat, saved rows)
-    $rowCount = max($repeat, count($currentList), 1);
+    // $rowCount = max($repeat, count($currentList), 1);
+    // $rowCount = max(min(count($currentList), $repeat), 1);
+    $rowCount = max($repeat, 1);
 
     // 0..rowCount-1
     $itemOrder = range(0, $rowCount - 1);
@@ -96,8 +98,8 @@
                             @php
                                 // Inline group inside accordion:
                                 // use the row's values as currentOptions so sub_t/sub_n pick from $rowValue
-                                $indexed = $sub;
-                                $indexed['input_name_key'] = $childNameKey;
+$indexed = $sub;
+$indexed['input_name_key'] = $childNameKey;
                             @endphp
 
                             @include('wncms::backend.parts.inputs.inline', [
@@ -141,7 +143,7 @@
 
     @if ($sortable)
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('DOMContentLoaded', function() {
                 var accEl = document.getElementById('{{ $accordionDomId }}');
                 if (!accEl) return;
 
@@ -149,13 +151,13 @@
                     draggable: '.accordion-item',
                     handle: '.drag-handle',
                     animation: 150,
-                    onEnd: function (evt) {
+                    onEnd: function(evt) {
                         updateSortInputs(evt.from.children);
                     }
                 });
 
                 function updateSortInputs(items) {
-                    Array.prototype.forEach.call(items, function (item, index) {
+                    Array.prototype.forEach.call(items, function(item, index) {
                         let input = item.querySelector('.sort-input');
                         if (input) {
                             input.value = index;

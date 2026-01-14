@@ -71,6 +71,10 @@
                 {{-- hidden fields --}}
                 <input type="hidden" name="{{ $fieldBaseName }}[image][]" value="{{ $url }}">
 
+                @if (!empty($option['has_sort']))
+                    <input type="hidden" name="{{ $fieldBaseName }}[sort][]" value="{{ $idx }}">
+                @endif
+
                 @if (!empty($option['has_text']))
                     <input type="text" name="{{ $fieldBaseName }}[text][]" class="form-control form-control-sm mt-1" placeholder="Text" value="{{ $text }}">
                 @endif
@@ -110,6 +114,23 @@
             var preview = document.getElementById('{{ $galleryId }}_preview');
             var fileInput = document.getElementById('{{ $galleryId }}_input');
             var filesStore = [];
+
+            @if (!empty($option['has_sort']))
+                if (preview) {
+                    Sortable.create(preview, {
+                        animation: 150,
+                        draggable: '.gallery-item',
+                        onEnd: function() {
+                            preview.querySelectorAll('.gallery-item').forEach((item, index) => {
+                                var sortInput = item.querySelector('input[name$="[sort][]"]');
+                                if (sortInput) {
+                                    sortInput.value = index;
+                                }
+                            });
+                        }
+                    });
+                }
+            @endif
 
             // Remove existing
             preview.querySelectorAll('.gallery-remove-existing').forEach(function(btn) {
@@ -151,6 +172,15 @@
                 img.src = objectUrl;
 
                 div.appendChild(img);
+
+                @if (!empty($option['has_sort']))
+                    var sortInput = document.createElement('input');
+                    sortInput.type = 'hidden';
+                    sortInput.name = '{{ $fieldBaseName }}[sort][]';
+                    // unique runtime value, will be normalized on submit
+                    sortInput.value = Date.now() + Math.random();
+                    div.appendChild(sortInput);
+                @endif
 
                 @if (!empty($option['has_text']))
                     var textInput = document.createElement('input');
