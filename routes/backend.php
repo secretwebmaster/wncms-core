@@ -334,6 +334,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::post('/store', 'store')->middleware('can:user_create')->name('users.store');
         Route::patch('/{id}', 'update')->middleware('can:user_edit')->name('users.update');
         Route::delete('/{id}', 'destroy')->middleware('can:user_delete')->name('users.destroy');
+        Route::post('/bulk_delete', 'bulk_delete')->middleware('can:user_bulk_delete')->name('users.bulk_delete');
     });
 
     //website

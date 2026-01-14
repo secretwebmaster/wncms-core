@@ -170,9 +170,10 @@ class UserController extends BackendController
     {
         $user = $this->modelClass::findOrFail($id);
 
-        // Prevent deleting the last admin or superadmin
-        if ($this->modelClass::role(['superadmin', 'admin'])->count() == 1 && $user->hasRole(['superadmin', 'admin'])) {
-            return back()->withErrors(['message' => __('wncms::word.cannot_delete_last_admin')]);
+        if ($this->is_deleting_last_admin([$user])) {
+            return back()->withErrors([
+                'message' => __('wncms::word.cannot_delete_last_admin')
+            ]);
         }
 
         $user->delete();
@@ -181,6 +182,52 @@ class UserController extends BackendController
             'status' => 'success',
             'message' => __('wncms::word.successfully_deleted')
         ]);
+    }
+
+    public function bulk_delete(Request $request)
+    {
+        $ids = is_array($request->model_ids)
+            ? $request->model_ids
+            : explode(',', $request->model_ids);
+
+        $users = $this->modelClass::whereIn('id', $ids)->get();
+
+        if ($this->is_deleting_last_admin($users)) {
+            return back()->withErrors([
+                'message' => __('wncms::word.cannot_delete_last_admin')
+            ]);
+        }
+
+        $deleted = 0;
+
+        foreach ($users as $user) {
+            $user->delete();
+            $deleted++;
+        }
+
+        return $request->ajax()
+            ? response()->json([
+                'status' => 'success',
+                'message' => __('wncms::word.successfully_deleted_count', ['count' => $deleted]),
+            ])
+            : back()->withMessage(
+                __('wncms::word.successfully_deleted_count', ['count' => $deleted])
+            );
+    }
+
+    protected function is_deleting_last_admin($users): bool
+    {
+        $users = collect($users);
+
+        $adminRoles = ['superadmin', 'admin'];
+
+        $adminsToDelete = $users->filter(
+            fn($user) => $user->hasRole($adminRoles)
+        )->count();
+
+        $totalAdmins = $this->modelClass::role($adminRoles)->count();
+
+        return $adminsToDelete >= $totalAdmins;
     }
 
     public function show_user_profile(Request $request)
@@ -209,7 +256,6 @@ class UserController extends BackendController
             ->route('users.account.profile.show')
             ->withMessage(__('wncms::word.successfully_updated'));
     }
-
 
     public function show_user_security(Request $request)
     {
