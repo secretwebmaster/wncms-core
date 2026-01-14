@@ -19,7 +19,12 @@ try {
     // ]);
 
     // migrate laravel-optionable table
-    Artisan::call('migrate', ['--force' => true]);
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+    } catch (\Throwable $e) {
+        info('Migrate failed, but update will continue.');
+        info('Migrate error: ' . $e->getMessage());
+    }
 
     if (Schema::hasTable('extra_attributes')) {
         $records = DB::table('extra_attributes')->get();

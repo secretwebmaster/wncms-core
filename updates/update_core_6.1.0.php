@@ -11,7 +11,12 @@ info("running update_{$thisVersion}.php");
 
 try {
 
-    Artisan::call('migrate', ['--force' => true]);
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+    } catch (\Throwable $e) {
+        info('Migrate failed, but update will continue.');
+        info('Migrate error: ' . $e->getMessage());
+    }
 
     // migrate theme options to new options table
     if (Schema::hasTable('theme_options')) {
