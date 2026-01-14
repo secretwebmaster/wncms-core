@@ -1,5 +1,17 @@
 # Changelog
 
+## v6.1.3 2026-01-14
+
+-   Improved backend Pages list with multi-domain homepage indicators
+-   Refactored Pages table column layout and visibility logic
+-   Added sortable Gallery field with drag-and-drop support
+-   Fixed duplicate ID issues in Accordion and Editor inputs
+-   ModelManager status filter now supports multiple values
+-   Unified frontend SEO head handling (canonical, OG, Twitter)
+-   Draft pages are no longer publicly accessible except via preview
+-   Added bulk user deletion with last-admin protection
+-   Hardened core update scripts to continue on migration failure
+
 ## v6.1.2 2025-12-26
 
 -   Bumped core version to 6.1.2 and synced installer version
