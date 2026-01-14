@@ -30,12 +30,22 @@ class PageController extends BackendController
 
         $pages = $q->paginate($request->page_size ?? 100);
 
+        $homepageDomains = Website::query()
+            ->whereNotNull('homepage')
+            ->get(['homepage', 'domain'])
+            ->groupBy('homepage')
+            ->map(function ($items) {
+                return $items->pluck('domain')->values()->all();
+            })
+            ->toArray();
+
         return $this->view('backend.pages.index', [
             'page_title' => wncms_model_word('page', 'management'),
             'pages' => $pages,
             'sorts' => $this->modelClass::SORTS,
             'statuses' => $this->modelClass::STATUSES,
             'visibilities' => $this->modelClass::VISIBILITIES,
+            'homepageDomains' => $homepageDomains,
         ]);
     }
 
@@ -550,14 +560,30 @@ class PageController extends BackendController
                         $texts  = $value['text']   ?? [];
                         $urls   = $value['url']    ?? [];
                         $remove = $value['remove'] ?? [];
+                        $sorts  = $value['sort']   ?? [];
 
                         // uploaded files
                         $files = $fileInputs[$sectionKey][$fieldKey]['file'] ?? [];
 
                         $kept = [];
 
-                        // 1) EXISTING IMAGES (same logic as WebsiteController)
+                        // 1) EXISTING IMAGES (ordered by sort[])
+                        $order = [];
+
                         foreach ($images as $i => $img) {
+                            if (!$img) continue;
+
+                            $order[] = [
+                                'index' => $i,
+                                'sort'  => $sorts[$i] ?? $i,
+                            ];
+                        }
+
+                        usort($order, fn($a, $b) => $a['sort'] <=> $b['sort']);
+
+                        foreach ($order as $o) {
+                            $i   = $o['index'];
+                            $img = $images[$i];
 
                             if (!$img) continue;
 
@@ -608,6 +634,10 @@ class PageController extends BackendController
                             ->filter(fn($x) => !empty($x['image']))
                             ->values()
                             ->toArray();
+
+                        if (isset($value['sort'])) {
+                            unset($value['sort']);
+                        }
 
                         // clean inner image value before final json_encode
                         foreach ($normalized as &$item) {

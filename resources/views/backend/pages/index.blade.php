@@ -1,7 +1,6 @@
 @extends('wncms::layouts.backend')
 
 @section('content')
-
     @include('wncms::backend.parts.message')
 
     {{-- WNCMS toolbar filters --}}
@@ -14,12 +13,12 @@
                 {{-- Add custom toolbar item here --}}
 
                 {{-- Example --}}
-                {{-- @if(!empty($example_toolbar_items))
+                {{-- @if (!empty($example_toolbar_items))
                     <div class="col-6 col-md-auto mb-3 ms-0">
                         <select name="website" class="form-select form-select-sm">
                             <option value="">@lang('wncms::word.select_website')</option>
-                            @foreach($example_toolbar_items as $example_toolbar_item)
-                                <option value="{{ $example_toolbar_item->id }}" @if($example_toolbar_item->id == request()->example_toolbar_item_id) selected @endif>{{ $example_toolbar_item->name }}</option>
+                            @foreach ($example_toolbar_items as $example_toolbar_item)
+                                <option value="{{ $example_toolbar_item->id }}" @if ($example_toolbar_item->id == request()->example_toolbar_item_id) selected @endif>{{ $example_toolbar_item->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -32,10 +31,10 @@
 
             {{-- Checkboxes --}}
             <div class="d-flex flex-wrap">
-                @foreach(['show_detail', 'show_thumbnail'] as $show)
+                @foreach (['show_detail', 'show_thumbnail'] as $show)
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
-                            <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
+                            <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if (request()->{$show}) checked @endif />
                             <label class="form-check-label fw-bold ms-1">@lang('wncms::word.' . $show)</label>
                         </div>
                     </div>
@@ -67,7 +66,7 @@
                                     <label for="website_id" class="form-label">@lang('wncms::word.website')</label>
                                     <select name="website_id" class="form-select">
                                         <option value="">@lang('wncms::word.please_select')</option>
-                                        @foreach($websites as $w)
+                                        @foreach ($websites as $w)
                                         <option value="{{ $w->id }}">{{ $w->domain }}</option>
                                         @endforeach    
                                     </select>
@@ -100,89 +99,92 @@
                             </th>
                             <th>@lang('wncms::word.action')</th>
                             <th>@lang('wncms::word.id')</th>
-                            @if(request()->show_thumbnail)
-                            <th>@lang('wncms::word.thumbnail')</th>
+                            @if (request()->show_thumbnail)
+                                <th>@lang('wncms::word.thumbnail')</th>
                             @endif
                             <th>@lang('wncms::word.title')</th>
                             <th>@lang('wncms::word.slug')</th>
 
-                            @if(request()->show_detail)
-                            <th>@lang('wncms::word.user')</th>
+                            @if (request()->show_detail)
+                                <th>@lang('wncms::word.user')</th>
                             @endif
                             {{-- <th>@lang('wncms::word.website')</th> --}}
                             <th>@lang('wncms::word.status')</th>
-
-                            
-                            <th>@lang('wncms::word.title')</th>
-
-                            @if(request()->show_detail)
-                            <th>@lang('wncms::word.visibility')</th>
+                            @if (request()->show_detail)
+                                <th>@lang('wncms::word.is_locked')</th>
+                                <th>@lang('wncms::word.visibility')</th>
                             @endif
 
                             <th>@lang('wncms::word.template')</th>
                             <th>@lang('wncms::word.attribute')</th>
                             <th>@lang('wncms::word.remark')</th>
-                            <th>@lang('wncms::word.is_locked')</th>
                             <th>@lang('wncms::word.created_at')</th>
 
                         </tr>
                     </thead>
                     <tbody id="table_with_checks" class="fw-semibold text-gray-600">
-                        @foreach($pages as $page)
-                        <tr>
-                            <td>
-                                <div class="form-check form-check-sm form-check-custom form-check-solid">
-                                    <input class="form-check-input" type="checkbox" value="1" data-model-id="{{ $page->id }}"/>
-                                </div>
-                            </td>
-                            <td>
-                                <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('pages.edit' , $page) }}">@lang('wncms::word.edit')</a>
-                                {{-- <a class="btn btn-sm px-2 py-1 btn-info fw-bold" href="{{ route('pages.clone' , $page) }}">@lang('wncms::word.clone')</a> --}}
-                                @include('wncms::backend.parts.modal_delete' , ['model'=>$page , 'route' => route('pages.destroy' , $page)])
-                            </td>
-                            <td>{{ $page->id }}</td>
-                            @if(request()->show_thumbnail)
-                            <td><img class="lazyload mw-80px rounded" src="{{ $page->thumbnail }}" alt=""></td>
-                            @endif
-                            <td>{{ $page->title }}@if($website->homepage == $page->id) <i class="fas fa-home" title="@lang('wncms::word.homepage')"></i>@endif</td>
-                            <td>{{ $page->slug }}</td>
-                            @if(request()->show_detail)
-                            <td>{{ $page->user?->username }}</td>
-                            @endif
+                        @foreach ($pages as $page)
+                            <tr>
+                                <td>
+                                    <div class="form-check form-check-sm form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" value="1" data-model-id="{{ $page->id }}" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <a class="btn btn-sm px-2 py-1 btn-dark fw-bold" href="{{ route('pages.edit', $page) }}">@lang('wncms::word.edit')</a>
+                                    {{-- <a class="btn btn-sm px-2 py-1 btn-info fw-bold" href="{{ route('pages.clone' , $page) }}">@lang('wncms::word.clone')</a> --}}
+                                    @include('wncms::backend.parts.modal_delete', ['model' => $page, 'route' => route('pages.destroy', $page)])
+                                </td>
+                                <td>{{ $page->id }}</td>
+                                @if (request()->show_thumbnail)
+                                    <td><img class="lazyload mw-80px rounded" src="{{ $page->thumbnail }}" alt=""></td>
+                                @endif
+                                <td>
+                                    <a href="{{ route('frontend.pages.show', ['slug' => $page->slug]) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a>
+                                    @if (!empty($homepageDomains[$page->id]))
+                                        <i class="fas fa-home text-muted ms-1"
+                                            title="{{ implode(', ', $homepageDomains[$page->id]) }}">
+                                        </i>
+                                    @endif
+                                </td>
+                                <td>{{ $page->slug }}</td>
+                                @if (request()->show_detail)
+                                    <td>{{ $page->user?->username }}</td>
+                                @endif
 
-                            {{-- <td>{{ $page->website?->domain }}</td> --}}
-                            <td>@include('wncms::common.table_status', ['model' => $page])</td>
-                            {{-- <td class="mw-400px text-truncate"><a href="{{ $wncms->getRoute('frontend.pages.show', ['slug' => $page->slug], false, $page->website->domain) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td> --}}
-                            <td class="mw-400px text-truncate"><a href="{{ route('frontend.pages.show', ['slug' => $page->slug]) }}" target="_blank" title="{{ $page->title }}">{{ $page->title }}</a></td>
-                            @if(request()->show_detail)    
-                            <td>{{ $page->visibility }}</td>
-                            @endif
-                            <td>{{ $page->blade_name }}</td>
-                            <th title="@foreach(json_decode($page->attribute, true) ?? [] as $key => $value){{ $key }}: {{ $value }}&#10;@endforeach">@if($page->attribute && $page->attribute != "[]")@lang('wncms::word.hover_to_view')@endif</td>
-                            <td>{{ $page->remark }}</td>
-                            <td>@include('wncms::common.table_is_active', ['model' => $page, 'attribute' => 'is_locked'])</td>
-                            <td>{{ $page->created_at }}</td>
-                        <tr>
+                                {{-- <td>{{ $page->website?->domain }}</td> --}}
+                                <td>@include('wncms::common.table_status', ['model' => $page])</td>
+                                @if (request()->show_detail)
+                                    <td>@include('wncms::common.table_is_active', ['model' => $page, 'attribute' => 'is_locked'])</td>
+                                    <td>{{ $page->visibility }}</td>
+                                @endif
+                                <td>{{ $page->blade_name }}</td>
+                                <th title="@foreach (json_decode($page->attribute, true) ?? [] as $key => $value){{ $key }}: {{ $value }}&#10; @endforeach">
+                                    @if ($page->attribute && $page->attribute != '[]')
+                                        @lang('wncms::word.hover_to_view')
+                                    @endif
+                                    </td>
+                                <td>{{ $page->remark }}</td>
+                                <td>{{ $page->created_at }}</td>
+                            <tr>
                         @endforeach
                     </tbody>
                 </table>
-
 
             </div>
         </div>
     </div>
 
     {{-- Pagination --}}
-    {{-- <div class="mt-5">
+    <div class="mt-5">
         {{ $pages->withQueryString()->links() }}
-    </div> --}}
-
+    </div>
 @endsection
 
 @push('foot_js')
     <script>
-        $('.model_index_checkbox').on('change', function(){
-            if($(this).is(':checked')){
+        $('.model_index_checkbox').on('change', function() {
+            if ($(this).is(':checked')) {
                 $(this).val('1');
             } else {
                 $(this).val('0');
