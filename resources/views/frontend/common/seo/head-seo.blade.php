@@ -1,16 +1,28 @@
+@if (!empty($hasForbbidenKeywords))
+    <meta name="robots" content="noindex,nofollow">
+@endif
+
+@php
+    $canonical = $seoUrl ?? 'https://' . $website->domain . request()->getRequestUri();
+@endphp
+
+<title>{{ $seoTitle ?? ($page_title ?? ($pageTitle ?? $website->site_name)) }} | {{ $website->site_slogan }}</title>
+<meta name="description" content="{{ $seoDescription ?? $website->site_seo_description }}">
+<meta name="keywords" content="{{ $seoKeyword ?? $website->site_seo_keywords }}">
+<link rel="canonical" href="{{ $canonical }}">
 <meta property="og:locale" content="{{ $wncms->getLocale() }}" />
 <meta property="og:site_name" content="{{ $website->site_name }}" />
-<meta property="og:url" content="{{ request()->fullUrl() }}" />
-<meta property="og:type" content="{{ $seoType ?? 'article' }}" />
-<meta property="og:title" content="{{ $seoTitle ?? $pageTitle ?? $website?->site_name ?? '' }}" />
-<meta property="og:description" content="{{ $seoDescription ?? $website?->site_seo_description ?? ''  }}" />
+<meta property="og:url" content="{{ $canonical }}" />
+<meta property="og:type" content="{{ $seoContentType ?? ($seoType ?? 'article') }}" />
+<meta property="og:title" content="{{ $seoTitle ?? ($pageTitle ?? ($website?->site_name ?? '')) }}" />
+<meta property="og:description" content="{{ $seoDescription ?? ($website?->site_seo_description ?? '') }}" />
 <meta property="og:image" content="{{ $seoImage ?? '' }}" />
 <meta property="og:image:width" content="{{ $seoImageWidth ?? '800' }}" />
-<meta property="og:image:height" content="{{ $seoImageWidth ?? '450' }}" />
+<meta property="og:image:height" content="{{ $seoImageHeight ?? '450' }}" />
 <meta property="og:image:type" content="{{ !empty($seoImage) ? getSeoImageType($seoImage) : 'image/jpeg' }}">
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="{{ $seoTitle ?? $pageTitle ?? $website?->site_name ?? ''}}" />
-<meta name="twitter:description" content="{{ $seoDescription ?? $website?->site_seo_description ?? ''  }}" />
+<meta name="twitter:title" content="{{ $seoTitle ?? ($$page_title ?? ($pageTitle ?? ($website?->site_name ?? ''))) }}" />
+<meta name="twitter:description" content="{{ $seoDescription ?? ($website?->site_seo_description ?? '') }}" />
 <meta name="twitter:image" content="{{ $seoImage ?? '' }}" />
 
 {{-- For Menu: Push to head where menu locates --}}

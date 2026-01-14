@@ -14,9 +14,6 @@
         <link rel="shortcut icon" type="images/x-icon" href="{{ $website->site_favicon ?: asset('wncms/images/logos/favicon.png') }}" />
         
         {{-- SEO --}}
-        <title>{{ $page_title ?? $website->site_name }}</title>
-        <meta name="description" content="{{ $website->site_seo_description }}">
-        <meta name="keywords" content="{{ $website->site_seo_keywords }}">
         @stack('head_seo')
         
         {{-- JS --}}

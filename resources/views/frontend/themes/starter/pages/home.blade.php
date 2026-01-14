@@ -2,7 +2,7 @@
 
 @push('head_seo')
     @include('frontend.common.seo.head-seo', [
-        'seoContentType' => 'article',
+        'seoType' => 'article',
         'seoTitle' => $website->site_name,
         'seoDescription' => $website->site_seo_description,
         'seoKeyword' => $website->site_seo_keywords,
