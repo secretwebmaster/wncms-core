@@ -32,6 +32,7 @@ class ThemeServiceProvider extends ServiceProvider
         }
 
         $themeId = $website->theme ?: 'default';
+        view()->share('themeId', $themeId);
 
         if (gss('multi_website')) {
             $themes = wncms()->website()->getList()->pluck('theme')->unique()->toArray();
@@ -76,9 +77,6 @@ class ThemeServiceProvider extends ServiceProvider
             // Load functions.php
             $this->loadThemeFunctions($themePath);
         }
-
-
-        view()->share('themeId', $themeId);
     }
 
     /**
