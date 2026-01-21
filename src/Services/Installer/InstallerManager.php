@@ -34,7 +34,7 @@ class InstallerManager
             'app_debug' => filter_var($input['app_debug'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false',
             'app_log_level' => $input['app_log_level'] ?? 'daily',
 
-            'broadcast_driver' => $input['broadcast_driver'] ?? 'log',
+            'broadcast_connection' => $input['broadcast_connection'] ?? 'log',
             'cache_store' => $input['cache_store'] ?? 'file',
             'session_driver' => $input['session_driver'] ?? 'file',
             'queue_connection' => $input['queue_connection'] ?? 'sync',
@@ -113,7 +113,7 @@ class InstallerManager
             'JS_DEBUG=false' . "\n" .
             'APP_VERSION=' . config('installer.version') . "\n" .
             'CUSTOM_VERSION=1' . "\n" .
-            'APP_LOG_LEVEL=' . ($input['app_log_level'] ?? '') . "\n" .
+            'LOG_LEVEL=' . ($input['app_log_level'] ?? '') . "\n" .
             'APP_URL=' . ($input['app_url'] ?? '') . "\n\n" .
 
             'APP_MAINTENANCE_DRIVER=file' . "\n\n" .
@@ -126,7 +126,7 @@ class InstallerManager
             'DB_USERNAME=' . ($input['database_username'] ?? '') . "\n" .
             'DB_PASSWORD=' . ($input['database_password'] ?? '') . "\n\n" .
 
-            'BROADCAST_DRIVER=' . ($input['broadcast_driver'] ?? '') . "\n" .
+            'BROADCAST_CONNECTION=' . ($input['broadcast_connection'] ?? '') . "\n" .
             'CACHE_STORE=' . ($input['cache_store'] ?? '') . "\n" .
 
             'SESSION_DRIVER=' . ($input['session_driver'] ?? '') . "\n" .

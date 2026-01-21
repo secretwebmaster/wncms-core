@@ -81,7 +81,7 @@ return [
                 'database_name' => 'required|string|max:50',
                 'database_username' => 'required|string|max:50',
                 'database_password' => 'nullable|string|max:50',
-                // 'broadcast_driver' => 'required|string|max:50',
+                // 'broadcast_connection' => 'required|string|max:50',
                 'cache_store' => 'required|string|max:50',
                 'session_driver' => 'required|string|max:50',
                 'queue_connection' => 'required|string|max:50',

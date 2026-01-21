@@ -25,7 +25,7 @@ class Install extends Command
      *   --app_env=
      *   --app_debug=
      *   --app_log_level=
-     *   --broadcast_driver=
+     *   --broadcast_connection=
      *   --cache_store=
      *   --session_driver=
      *   --queue_connection=
@@ -57,7 +57,7 @@ class Install extends Command
         {--app_env=}
         {--app_debug=}
         {--app_log_level=}
-        {--broadcast_driver=}
+        {--broadcast_connection=}
         {--cache_store=}
         {--session_driver=}
         {--queue_connection=}
@@ -140,7 +140,7 @@ class Install extends Command
             'app_env' => $options['app_env'],
             'app_debug' => $options['app_debug'],
             'app_log_level' => $options['app_log_level'],
-            'broadcast_driver' => $options['broadcast_driver'],
+            'broadcast_connection' => $options['broadcast_connection'],
             'cache_store' => $options['cache_store'],
             'session_driver' => $options['session_driver'],
             'queue_connection' => $options['queue_connection'],
