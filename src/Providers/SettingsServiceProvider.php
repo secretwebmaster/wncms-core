@@ -25,15 +25,15 @@ class SettingsServiceProvider extends ServiceProvider
      */
     public function boot(Request $request)
     {
-        if(!wncms_is_installed()) return;
-        
+        if (!wncms_is_installed()) return;
+
         try {
 
             $cacheKey = "gsss";
             $cacheTags = ['system'];
             //wncms_clear_cache($cacheKey, $cacheTags);
 
-            $settings = wncms()->cache()->tags($cacheTags)->remember($cacheKey, gss('data_cache_time', 86400), function(){
+            $settings = wncms()->cache()->tags($cacheTags)->remember($cacheKey, gss('data_cache_time', 86400), function () {
                 return Setting::all()->pluck('value', 'key');
             });
             // dd($settings);
@@ -49,15 +49,19 @@ class SettingsServiceProvider extends ServiceProvider
             config(['services.google.redirect' => gss('google_redirect', config('services.google.redirect'))]);
 
             //paypal
-            config(['paypal' =>[
+            config(['paypal' => [
                 'mode' => gss('paypal_mode'),
                 'client_id' => gss('paypal_mode') == 'sandbox' ? gss('paypal_sandbox_client_id') : gss('paypal_client_id'),
                 'client_secret' => gss('paypal_mode') == 'sandbox' ? gss('paypal_sandbox_client_secret') : gss('paypal_client_secret'),
                 'webhook_id' => gss('paypal_mode') == 'sandbox' ? gss('paypal_sandbox_webhook_id') : gss('paypal_webhook_id'),
             ]]);
 
-        } catch (\Exception $e) {
+            // language
+            config([
+                'laravellocalization.useAcceptLanguageHeader' => gss('laravellocalization_use_accept_language_header', false),
+            ]);
             
+        } catch (\Exception $e) {
         }
     }
 }

@@ -20,7 +20,7 @@ return [
             //         ->toArray(),
             //     'translate_option' => false,
             // ],
-            // ['type' => 'switch', 'name' => 'laravellocalization_use_accept_language_header'],
+            ['type' => 'switch', 'name' => 'laravellocalization_use_accept_language_header'],
             ['type' => 'text', 'name' => 'system_name'],
             ['type' => 'text', 'name' => 'system_description'],
             ['type' => 'text', 'name' => 'system_keyword'],
