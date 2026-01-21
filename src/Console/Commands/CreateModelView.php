@@ -26,59 +26,52 @@ class CreateModelView extends Command
      */
     public function handle()
     {
-        $package_view_path = wncms()->getPackageRootPath('resources/views');
+        $package_view_path = wncms()->getPackageRootPath('../resources/views');
 
         $view_files = [
-            'index' => $package_view_path . '/backend/starters/index.blade.php',
-            'create' => $package_view_path . '/backend/starters/create.blade.php',
-            'edit' => $package_view_path . '/backend/starters/edit.blade.php',
-            'form-items' => $package_view_path . '/backend/starters/form-items.blade.php',
+            $package_view_path . '/backend/starters/index.blade.php',
+            $package_view_path . '/backend/starters/create.blade.php',
+            $package_view_path . '/backend/starters/edit.blade.php',
+            $package_view_path . '/backend/starters/form-items.blade.php',
         ];
 
-        //namings
+        // namings
         $model_name = str()->snake($this->argument('model_name'));
-        $className = str($model_name)->studly();
-        $singulaer_camel = str($model_name)->camel()->singular();
-        $plural_camel = str($model_name)->camel()->plural();
-        $singulaer_snake = str($model_name)->snake()->singular();
+        $singular_camel = str($model_name)->camel()->singular();
+        $singular_snake = str($model_name)->snake()->singular();
         $plural_snake = str($model_name)->snake()->plural();
 
-        //generate view files
-        foreach ($view_files as $view_file) {
-            $new_view_file = resource_path("views/backend/{$plural_snake}/") . basename($view_file);
+        foreach ($view_files as $source) {
 
-            if (!File::exists($new_view_file)) {
-
-                $directory = dirname($new_view_file);
-
-                //make sure directory exists
-                if (!File::isDirectory($directory)) {
-  
-                    File::makeDirectory($directory, 0755, true, true);
-                    $this->info("created direcotry {$directory}");
-                }
-
-                //copy
-                File::copy($view_file, $new_view_file);
-
-                //replace starter content for model
-                $file_content = File::get($new_view_file);
-
-                // replace @inclde path
-                $updated_content = str_replace('backend.starters.', "backend.{$plural_snake}.", $file_content);
-   
-                //replace starter
-                $updated_content = str_replace('starter', $singulaer_snake, $updated_content);
-
-                //replace model variable
-                $updated_content = str_replace("\${$singulaer_snake}", "\${$singulaer_camel}", $updated_content);
-
-                File::put($new_view_file, $updated_content);
-                $this->info("copied starter file to {$new_view_file}");
-            }else{
-                $this->error("File {$new_view_file} already exists");
+            if (!File::exists($source)) {
+                $this->error("Source view file not found: {$source}");
+                continue;
             }
-        }
 
+            $target = resource_path("views/backend/{$plural_snake}/" . basename($source));
+            $directory = dirname($target);
+
+            if (!File::isDirectory($directory)) {
+                File::makeDirectory($directory, 0755, true);
+                $this->info("created directory {$directory}");
+            }
+
+            if (File::exists($target)) {
+                $this->error("File {$target} already exists");
+                continue;
+            }
+
+            File::copy($source, $target);
+
+            $content = File::get($target);
+
+            $content = str_replace('backend.starters.', "backend.{$plural_snake}.", $content);
+            $content = str_replace('starter', $singular_snake, $content);
+            $content = str_replace('$' . $singular_snake, '$' . $singular_camel, $content);
+
+            File::put($target, $content);
+
+            $this->info("copied starter file to {$target}");
+        }
     }
 }
