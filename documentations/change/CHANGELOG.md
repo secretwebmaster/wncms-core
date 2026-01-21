@@ -1,930 +1,942 @@
 # 更新日誌
 
+## v6.1.4 2026-01-21
+
+- 安裝流程環境變數對齊 Laravel 11+（broadcast_connection、LOG_LEVEL）
+- 修正 Installer / Install 指令中的廣播、快取、佇列參數命名
+- 系統設定新增 Accept-Language Header 開關，並正確注入執行時設定
+- 後台按鈕 success-action / fail-action 支援傳入 response 與 button
+- 修復 Tagify 手動輸入標籤時值遺失的問題
+- Sidebar Model 清單支援 MODEL_KEY 常數，避免未定義屬性錯誤
+- CreateModel 指令強化健壯性，避免覆寫已存在的模型
+- 後台模型路由生成邏輯重整，命名與權限更一致
+- 修復 CreateModelView 模板路徑錯誤，提升生成穩定性
+
 ## v6.1.3 2026-01-14
 
--   後台 Pages 列表結構優化，首頁頁面支援顯示多網域標示
--   Pages 列表欄位顯示邏輯重整，修正縮圖、鎖定、可見性欄位順序
--   Gallery 欄位新增排序支援，後台可拖曳調整並正確保存
--   Accordion / Editor 輸入元件修正重複 ID 問題，提升穩定性
--   ModelManager 狀態篩選支援多值（字串 / 陣列）
--   前台 SEO head 統一處理 canonical、OG、Twitter meta
--   Draft 狀態頁面在前台預設不可存取（僅 preview 例外）
--   新增後台使用者批次刪除，並防止刪除最後一位管理員
--   核心更新腳本強化，migration 失敗不再中斷更新流程
+- 後台 Pages 列表結構優化，首頁頁面支援顯示多網域標示
+- Pages 列表欄位顯示邏輯重整，修正縮圖、鎖定、可見性欄位順序
+- Gallery 欄位新增排序支援，後台可拖曳調整並正確保存
+- Accordion / Editor 輸入元件修正重複 ID 問題，提升穩定性
+- ModelManager 狀態篩選支援多值（字串 / 陣列）
+- 前台 SEO head 統一處理 canonical、OG、Twitter meta
+- Draft 狀態頁面在前台預設不可存取（僅 preview 例外）
+- 新增後台使用者批次刪除，並防止刪除最後一位管理員
+- 核心更新腳本強化，migration 失敗不再中斷更新流程
 
 ## v6.1.2 2025-12-26
 
--   核心版本更新至 6.1.2，同步安裝流程版本標示
--   重構後台 ModelController，統一模型解析邏輯並支援 App 與 Wncms 命名空間
--   Starter 主題調整 accordion 設定結構，以 sub_items 取代 content 命名
--   後台輸入元件優化：改善欄位命名一致性與顯示穩定性
--   Tagify 元件新增支援以 Model 作為資料來源的選項模式
--   狀態標籤顯示支援自訂翻譯前綴，提升模組整合彈性
+- 核心版本更新至 6.1.2，同步安裝流程版本標示
+- 重構後台 ModelController，統一模型解析邏輯並支援 App 與 Wncms 命名空間
+- Starter 主題調整 accordion 設定結構，以 sub_items 取代 content 命名
+- 後台輸入元件優化：改善欄位命名一致性與顯示穩定性
+- Tagify 元件新增支援以 Model 作為資料來源的選項模式
+- 狀態標籤顯示支援自訂翻譯前綴，提升模組整合彈性
 
 ## v6.1.1 2025-12-13
 
--   改善後台頁面列表，支援可選詳細欄位顯示與關鍵字搜尋
--   優化連結批次編輯操作與標籤管理介面
--   修正 accordion 區塊中 gallery ID 重複衝突問題
--   新增 accordion 欄位內完整 gallery 支援
--   啟用時自動以上傳檔名（不含副檔名）填入 gallery 文字欄位
--   強化頁面模板選項儲存流程與媒體集合命名一致性
--   統一模板欄位對應邏輯，與網站選項處理方式一致
--   重構前台連結標籤路由，改由 TagManager 處理
--   修正核心更新腳本誤將資料寫入錯誤資料表的問題
+- 改善後台頁面列表，支援可選詳細欄位顯示與關鍵字搜尋
+- 優化連結批次編輯操作與標籤管理介面
+- 修正 accordion 區塊中 gallery ID 重複衝突問題
+- 新增 accordion 欄位內完整 gallery 支援
+- 啟用時自動以上傳檔名（不含副檔名）填入 gallery 文字欄位
+- 強化頁面模板選項儲存流程與媒體集合命名一致性
+- 統一模板欄位對應邏輯，與網站選項處理方式一致
+- 重構前台連結標籤路由，改由 TagManager 處理
+- 修正核心更新腳本誤將資料寫入錯誤資料表的問題
 
 ## v6.1.0 2025-12-08
 
--   整合全新版 Optionable v2（支援 scope/group/sort）
--   以 Website HasOptions 取代舊版主題選項系統
--   全面重寫頁面與主題選項的讀取／儲存（前後台）
--   更新後台輸入元件（含圖庫、inline、可重複區塊）
--   更新 Starter 主題版型與配置
--   新增長寬比與尺寸計算工具
--   更新 Page、Website 模型以支援新版選項結構
+- 整合全新版 Optionable v2（支援 scope/group/sort）
+- 以 Website HasOptions 取代舊版主題選項系統
+- 全面重寫頁面與主題選項的讀取／儲存（前後台）
+- 更新後台輸入元件（含圖庫、inline、可重複區塊）
+- 更新 Starter 主題版型與配置
+- 新增長寬比與尺寸計算工具
+- 更新 Page、Website 模型以支援新版選項結構
 
 ## v6.0.10 2025-12-06
 
--   新增主題選項頁「保持上次停留的分頁」功能；儲存後自動回到之前開啟的分頁。
--   安裝器預設 mailer 設為 log，以避免 SMTP DSN 錯誤。
--   改良 getList 的隨機快取邏輯，同時支援快取與非快取的隨機查詢。
--   新增後台表格欄位切換器（顯示/隱藏欄位、記住使用者偏好、顯示隱藏欄位數量、一鍵全顯示/全隱藏）。
--   Channels 頁新增推廣連結產生器（自動根據 slug 產生 URL、即時同步、可複製按鈕）。
--   Links 新增排序與 URL 的批次更新（取代舊的 bulk_update_sort）。
--   新增連結標籤批次處理（attach / detach / sync）。
--   新增多項翻譯字串：handling_link_tags、set_is_pinned、set_not_pinned、enter_url_to_generate_affiliate_link、affiliate_url。
--   Link 模型新增 getImageAttribute()（icon → thumbnail 的自動回退）。
--   RolesSeeder 依字母排序並補上缺少的模型項目。
--   改良 ModelManager@applyTagFilter，可正確處理 Tag 模型、ID、字串混合輸入，並確保查詢不會誤回傳所有項目。
--   改良 LinkController@bulk_delete，刪除後改為返回上一頁。
--   安裝器改良：新增 APP_LOCALE 至產生的 .env。
--   改善後台 Links 與 Channels UI：修正縮排、更新批次按鈕、新增置頂與標籤操作面板。
+- 新增主題選項頁「保持上次停留的分頁」功能；儲存後自動回到之前開啟的分頁。
+- 安裝器預設 mailer 設為 log，以避免 SMTP DSN 錯誤。
+- 改良 getList 的隨機快取邏輯，同時支援快取與非快取的隨機查詢。
+- 新增後台表格欄位切換器（顯示/隱藏欄位、記住使用者偏好、顯示隱藏欄位數量、一鍵全顯示/全隱藏）。
+- Channels 頁新增推廣連結產生器（自動根據 slug 產生 URL、即時同步、可複製按鈕）。
+- Links 新增排序與 URL 的批次更新（取代舊的 bulk_update_sort）。
+- 新增連結標籤批次處理（attach / detach / sync）。
+- 新增多項翻譯字串：handling_link_tags、set_is_pinned、set_not_pinned、enter_url_to_generate_affiliate_link、affiliate_url。
+- Link 模型新增 getImageAttribute()（icon → thumbnail 的自動回退）。
+- RolesSeeder 依字母排序並補上缺少的模型項目。
+- 改良 ModelManager@applyTagFilter，可正確處理 Tag 模型、ID、字串混合輸入，並確保查詢不會誤回傳所有項目。
+- 改良 LinkController@bulk_delete，刪除後改為返回上一頁。
+- 安裝器改良：新增 APP_LOCALE 至產生的 .env。
+- 改善後台 Links 與 Channels UI：修正縮排、更新批次按鈕、新增置頂與標籤操作面板。
 
 ## v6.0.9 2025-12-04
 
--   統一 Gallery 欄位結構為 image[]、text[]、url[]、remove[]、file[]，完全移除舊的 \_remove 與 \_files 格式
--   重寫後台 Gallery UI（inputs.blade.php）：新增 text/url 欄位、移除/還原按鈕、拖曳外觀優化、更穩定的 preview 行為
--   修正主題選項頁（theme option）無法取得上傳檔案的問題，改用 request()->file() 正確讀取 file[]
--   重寫 WebsiteController@updateThemeOptions：圖片不會消失、移除/新增完整運作、避免覆蓋錯誤
--   重寫 WebsiteController@editThemeOptions：正確解析 JSON 結構並還原成前端需要的格式
--   重寫 Page 模型的 processFieldGroup() gallery 區塊，支援新格式並統一與主題選項邏輯
--   增強 createtheme 指令：顯示建立的檔案與資料夾、改善 starter 複製路徑判斷
--   增加 Tagify maxTags 至 999，避免後台限制不必要錯誤
+- 統一 Gallery 欄位結構為 image[]、text[]、url[]、remove[]、file[]，完全移除舊的 \_remove 與 \_files 格式
+- 重寫後台 Gallery UI（inputs.blade.php）：新增 text/url 欄位、移除/還原按鈕、拖曳外觀優化、更穩定的 preview 行為
+- 修正主題選項頁（theme option）無法取得上傳檔案的問題，改用 request()->file() 正確讀取 file[]
+- 重寫 WebsiteController@updateThemeOptions：圖片不會消失、移除/新增完整運作、避免覆蓋錯誤
+- 重寫 WebsiteController@editThemeOptions：正確解析 JSON 結構並還原成前端需要的格式
+- 重寫 Page 模型的 processFieldGroup() gallery 區塊，支援新格式並統一與主題選項邏輯
+- 增強 createtheme 指令：顯示建立的檔案與資料夾、改善 starter 複製路徑判斷
+- 增加 Tagify maxTags 至 999，避免後台限制不必要錯誤
 
 ## v6.0.8 2025-12-03
 
--   改進更新系統版本排序機制，使用 `version_compare` 正確處理 alpha/beta 版本
--   修正可用更新版本列表排序錯亂問題（由舊到新順序）
--   優化 Update 指令程式碼結構與細部邏輯
+- 改進更新系統版本排序機制，使用 `version_compare` 正確處理 alpha/beta 版本
+- 修正可用更新版本列表排序錯亂問題（由舊到新順序）
+- 優化 Update 指令程式碼結構與細部邏輯
 
 ## v6.0.7 2025-12-03
 
--   新增後台網站編輯頁的首頁頁面 ID 設定欄位
--   前台 PageController 支援依頁面 ID 載入首頁，不再強制使用 home.blade.php
--   改進頁面複製邏輯，自動產生唯一 slug 並複製範本選項
--   新增 MenuResource 與 MenuItemResource，改善 API 結構並支援 Next.js 使用
--   Menus API 端點支援 GET 與 POST 請求
--   改進頁面列表（Pages index）介面：新增縮圖顯示開關、首頁小圖示、鎖定狀態顯示
--   修正圖庫上傳功能：新增圖片的移除/復原動作無法正常運作問題
--   重寫圖庫欄位邏輯：統一資料格式、避免重複圖片、改善移除與上傳流程
--   新增圖庫文字與連結欄位（has_text、has_url）功能
--   修正圖片欄位在未重新上傳時，原有的 hidden input 會遺失的問題
--   改善後台 UI：統一深色標題列、深色/淺色 LOGO 自動切換、調整間距
--   更新 Starter 主題設定文件，完整補充所有欄位類型說明
--   新增 Starter 主題示範：heading、sub_heading、inline、accordion、display_image、custom HTML 等
--   新增 Template 1 範例版型，示範多區塊、多欄位類型
--   改進頁面範本系統：複製頁面時正確載入範本選項、優化預覽行為
--   修正頁面類型、狀態、可見性預設選取邏輯
--   更新 PostResource：新增 content 輸出，並使用統一的縮圖欄位存取
+- 新增後台網站編輯頁的首頁頁面 ID 設定欄位
+- 前台 PageController 支援依頁面 ID 載入首頁，不再強制使用 home.blade.php
+- 改進頁面複製邏輯，自動產生唯一 slug 並複製範本選項
+- 新增 MenuResource 與 MenuItemResource，改善 API 結構並支援 Next.js 使用
+- Menus API 端點支援 GET 與 POST 請求
+- 改進頁面列表（Pages index）介面：新增縮圖顯示開關、首頁小圖示、鎖定狀態顯示
+- 修正圖庫上傳功能：新增圖片的移除/復原動作無法正常運作問題
+- 重寫圖庫欄位邏輯：統一資料格式、避免重複圖片、改善移除與上傳流程
+- 新增圖庫文字與連結欄位（has_text、has_url）功能
+- 修正圖片欄位在未重新上傳時，原有的 hidden input 會遺失的問題
+- 改善後台 UI：統一深色標題列、深色/淺色 LOGO 自動切換、調整間距
+- 更新 Starter 主題設定文件，完整補充所有欄位類型說明
+- 新增 Starter 主題示範：heading、sub_heading、inline、accordion、display_image、custom HTML 等
+- 新增 Template 1 範例版型，示範多區塊、多欄位類型
+- 改進頁面範本系統：複製頁面時正確載入範本選項、優化預覽行為
+- 修正頁面類型、狀態、可見性預設選取邏輯
+- 更新 PostResource：新增 content 輸出，並使用統一的縮圖欄位存取
 
 ## v6.0.6 2025-11-30
 
--   新增頁面模板「圖庫上傳」後端邏輯，支援新增、刪除、復原並自動同步媒體庫。
--   改善後台圖庫介面，包含即時預覽、刪除/復原切換、排序與更直覺的操作體驗。
--   修正手風琴預設展開問題，並改善項目排序的儲存邏輯。
+- 新增頁面模板「圖庫上傳」後端邏輯，支援新增、刪除、復原並自動同步媒體庫。
+- 改善後台圖庫介面，包含即時預覽、刪除/復原切換、排序與更直覺的操作體驗。
+- 修正手風琴預設展開問題，並改善項目排序的儲存邏輯。
 
 ## v6.0.5 2025-11-30
 
--   修正模板圖片處理
+- 修正模板圖片處理
 
 ## v6.0.4 2025-11-30
 
--   新增 **頁面模板系統（Page Template System）**，支援模板註冊與基於模板的頁面渲染。
--   引入全新的 **Page Builder** 介面，包括後台控制器、視圖與內容儲存模型。
--   更新 Starter 主題的 `config.php`，使其符合新的模板定義。
--   重新組織並重構主題選項的 Blade 輸入結構，使程式碼更易擴充與維護。
--   改良 MenuManager，以支援基於模板的選單行為邏輯。
+- 新增 **頁面模板系統（Page Template System）**，支援模板註冊與基於模板的頁面渲染。
+- 引入全新的 **Page Builder** 介面，包括後台控制器、視圖與內容儲存模型。
+- 更新 Starter 主題的 `config.php`，使其符合新的模板定義。
+- 重新組織並重構主題選項的 Blade 輸入結構，使程式碼更易擴充與維護。
+- 改良 MenuManager，以支援基於模板的選單行為邏輯。
 
 ## v6.0.3 2025-11-20
 
--   更新核心控制器、資源、模型與 Managers，使路由一致性更佳、資料載入更高效且快取邏輯更加統一。
--   全面重設後台 **主題選項（Theme Options）** 介面，新增分頁式標籤、改良 Pickr 顏色工具、整體排版更清楚。
--   大幅更新 Starter 主題設定，提升結構安全性並改善文件內容。
--   新增預設主題藍圖於 `resources/themes`。
--   改良版本產生器（version builder）內部邏輯與除錯標記功能。
--   新增核心常數 `WNCMS_START`、`WNCMS_THEME_START`，並讓所有視圖皆能取得 `themeId`。
--   前台 PostController 支援主題命名空間後援（namespace fallback）。
--   新增新版 `CreateTheme` 指令以取代舊版主題建立流程。
--   修正前台存檔頁、FAQ 頁路由不一致問題。
--   改善 Tagify 欄位行為與驗證邏輯。
--   後台文章列表新增批次複製視窗並改善欄位呈現。
--   新增 rounded-3px 與 rounded-5px 的 CSS 工具類別。
+- 更新核心控制器、資源、模型與 Managers，使路由一致性更佳、資料載入更高效且快取邏輯更加統一。
+- 全面重設後台 **主題選項（Theme Options）** 介面，新增分頁式標籤、改良 Pickr 顏色工具、整體排版更清楚。
+- 大幅更新 Starter 主題設定，提升結構安全性並改善文件內容。
+- 新增預設主題藍圖於 `resources/themes`。
+- 改良版本產生器（version builder）內部邏輯與除錯標記功能。
+- 新增核心常數 `WNCMS_START`、`WNCMS_THEME_START`，並讓所有視圖皆能取得 `themeId`。
+- 前台 PostController 支援主題命名空間後援（namespace fallback）。
+- 新增新版 `CreateTheme` 指令以取代舊版主題建立流程。
+- 修正前台存檔頁、FAQ 頁路由不一致問題。
+- 改善 Tagify 欄位行為與驗證邏輯。
+- 後台文章列表新增批次複製視窗並改善欄位呈現。
+- 新增 rounded-3px 與 rounded-5px 的 CSS 工具類別。
 
 ## v6.0.2 2025-11-19
 
--   支援直接從 **public/themes** 載入主題。
--   改善主題與網站的載入行為，使主題架構更具彈性。
--   新增前台 Post API（index/show），並強化 Tag 類型的正則驗證。
--   改善設定頁介面，更新卡片邊框並重新啟用開發者選項。
+- 支援直接從 **public/themes** 載入主題。
+- 改善主題與網站的載入行為，使主題架構更具彈性。
+- 新增前台 Post API（index/show），並強化 Tag 類型的正則驗證。
+- 改善設定頁介面，更新卡片邊框並重新啟用開發者選項。
 
 ## v6.0.1 2025-11-18
 
--   安裝器補上缺漏的 env 預設值。
--   統一安裝器的欄位名稱與 env 對應鍵值。
--   改善 `app_locale` 下拉選單的 fallback 行為，使其更符合預期。
+- 安裝器補上缺漏的 env 預設值。
+- 統一安裝器的欄位名稱與 env 對應鍵值。
+- 改善 `app_locale` 下拉選單的 fallback 行為，使其更符合預期。
 
 ## v6.0.0 2025-11-18
 
--   正式推出
+- 正式推出
 
 ## v6.0.0-alpha3 2025-11-16
 
--   新增驗證模式、統一 API 回應格式、擴充 Post API（index/store/show/update/delete），並更新設定頁 UI 與路由
--   小幅後台樣式調整
--   新增通用的 View 小工具注入系統
--   將 API 模型邏輯從 Blade 移至控制器，並清理 display_model 區塊
--   改善前台響應式排版，新增彈性布局工具、更新資產版本控制、優化 header 與 tag-list 介面
--   修正 SettingSeeder 中的錯字
--   新增 normalizeInput()，並統一安裝精靈與 CLI 安裝的驗證流程
--   安裝後允許使用 CLI 建立網站模型
--   從設定檔載入預設版本，避免預設為 0.0.0
--   系統設定模型新增多語系翻譯
--   預設設定中新增 Link 模型並移除 Website 模型
--   CLI 安裝流程新增 site_name、domain、theme 選項，安裝後自動建立網站
--   修正 InstallerManager 類別找不到的問題
--   使用 InstallerManager 統一瀏覽器與 CLI 安裝流程，並新增 CLI 安裝指令
--   links 資料表更新操作加入 Schema::hasTable 檢查
--   PostManager 新增 dynamic search_fields，TagManager 新增 type 篩選
--   新增 applyExtraFilters 並移除已棄用的 getAllowedTagTypes
--   改善快取鍵生成方式，支援 wheres 雜湊與閉包標準化
--   將 search_result 更名為 result，並更新相關路由名稱
--   安裝器版本提升至 6.0.0
--   測試優先載入套件的 ServiceProvider
--   修正廣告複製路由及避免 null 日期被解析為今日
--   新增 please_select 選項並修正標籤預設類型導向 post_category
--   新增 zh_CN、en、ja 多語系更新
--   移除舊的 wncms_get_unique_slug，改用 wncms()->getUniqueSlug()
--   標籤關鍵字：新增批次建立翻譯、更新 Blade、修正關鍵字邏輯與關聯
--   更新核心 6.0.0：新增 tag group 欄位 migration
--   TagManager 全面改用 TagMeta，改善網址生成與標籤顯示
--   清理 PostManager buildListQuery 排版
--   新增 getModelByKey，用於動態解析模型類別
--   自動註冊核心與 App 模型至 TagMeta 與 Manager 系統
--   移除舊 getUrl，改以 TagManager 處理網址
--   post 模型新增 tagMeta 設定、統一格式並改善標籤相關 helper
--   page 模型新增 page_category / page_tag TagMeta
--   Package 模型改為繼承 BaseModel
--   link 模型新增 link_category / link_tag TagMeta
--   DomainAlias 模型改為繼承 BaseModel
--   BaseModel getTagMeta 擴充為支援 package、model_key、label 資訊
--   advertisement 模型新增 advertisement_category / advertisement_tag TagMeta
--   Sitemap 中的文章分類/標籤 URL 改為 {type}/{slug}
--   重寫文章標籤邏輯，支援統一的 {type}/{slug} 路由
--   TagController 更新：全面採用 TagMeta、改善 group selector、清理類型邏輯
--   MenuController 更新：使用模型掃描取得 TagMeta，統一 tagTypeArr
--   將文章分類路由統一為 /{type}/{slug}
--   前台 blog/post 視圖全面改為 {type}/{slug} 路由
--   tag index 視圖更新：使用 TagMeta，並調整工具列位置
--   標籤表單新增 group 欄位並自動帶入類型
--   後台側邊欄移除舊的標籤類型列
--   後台選單編輯頁更新：使用 TagMeta 並提升折疊 UI
--   toolbar 新增隱藏旗標並清理預設按鈕
--   調整 col-form-label padding 以改善表單對齊
--   新增 page_category、page_tag、tag_group 多語系
--   新增 contracts 並覆寫認證基礎層
--   預設主題新增產品標籤 Blade
--   清理 TestCase middleware alias spacing
--   全模型新增 static $modelKey，統一模型元資料格式
--   ROUTES / ORDERS 常數改為 SORTS，以提升一致性
--   全面加入 TagMeta、統一標籤 URL、改善 getUrl() 邏輯
--   BaseModel 改良：屬性、標籤資訊、modelKey 驗證、轉換、自動顯示名稱
--   Tag 模型 URL 改為由 TagManager 處理
--   所有 Manager 改為使用 sort + direction
--   LinkManager / TagManager 排序與欄位邏輯更新
--   新增 registerModel() 與 getModels()
--   TagManager 正式在 ServiceProvider 中註冊並加入 TagMeta 管理
--   模型 spacing 與註釋統一調整
--   Migration Script：所有 order 欄位統一改名為 sort
--   Controllers / Requests：全面將 order/order_column 改為 sort/direction
--   安全性：全面改為使用 input() 取得請求資料
--   控制器排版與陣列格式統一
--   Post / Link CRUD 改為使用 sort
--   選單排序統一改用 sort
--   TagController 清理無用程式碼並改善驗證邏輯
--   更新 BannerFormRequest 使用 sort
--   安裝器語言檔格式統一
--   修正 zh_TW / zh_CN / ja 中 sort 相關用語
--   所有 Blade 中的 order 欄位改為 sort
--   toolbar filters 改為 sort/direction
--   批次更新路由從 bulk_update_order 改為 bulk_update_sort
--   更新選單與標籤模板名稱
--   新增前台商品分類測試區塊
--   migrations 全面清理 order 欄位，統一使用 sort
--   移除舊標籤 migrations
--   清理 migration 排版
--   helpers：order/sequence → sort/direction
--   模型掃描機制改善，略過抽象類別
--   搜尋關鍵字 helper 加入 deprecated 註記
--   移除未使用的選單 helper
--   更新 config 變更日誌內容
--   wncms-translatable 升級至 ^1.3.0
--   新增 themes/plugins 檔案系統路徑
--   統一 config 陣列間距
--   修正安裝器語言 key 對齊
--   backend link 排序路由更新為 sort
+- 新增驗證模式、統一 API 回應格式、擴充 Post API（index/store/show/update/delete），並更新設定頁 UI 與路由
+- 小幅後台樣式調整
+- 新增通用的 View 小工具注入系統
+- 將 API 模型邏輯從 Blade 移至控制器，並清理 display_model 區塊
+- 改善前台響應式排版，新增彈性布局工具、更新資產版本控制、優化 header 與 tag-list 介面
+- 修正 SettingSeeder 中的錯字
+- 新增 normalizeInput()，並統一安裝精靈與 CLI 安裝的驗證流程
+- 安裝後允許使用 CLI 建立網站模型
+- 從設定檔載入預設版本，避免預設為 0.0.0
+- 系統設定模型新增多語系翻譯
+- 預設設定中新增 Link 模型並移除 Website 模型
+- CLI 安裝流程新增 site_name、domain、theme 選項，安裝後自動建立網站
+- 修正 InstallerManager 類別找不到的問題
+- 使用 InstallerManager 統一瀏覽器與 CLI 安裝流程，並新增 CLI 安裝指令
+- links 資料表更新操作加入 Schema::hasTable 檢查
+- PostManager 新增 dynamic search_fields，TagManager 新增 type 篩選
+- 新增 applyExtraFilters 並移除已棄用的 getAllowedTagTypes
+- 改善快取鍵生成方式，支援 wheres 雜湊與閉包標準化
+- 將 search_result 更名為 result，並更新相關路由名稱
+- 安裝器版本提升至 6.0.0
+- 測試優先載入套件的 ServiceProvider
+- 修正廣告複製路由及避免 null 日期被解析為今日
+- 新增 please_select 選項並修正標籤預設類型導向 post_category
+- 新增 zh_CN、en、ja 多語系更新
+- 移除舊的 wncms_get_unique_slug，改用 wncms()->getUniqueSlug()
+- 標籤關鍵字：新增批次建立翻譯、更新 Blade、修正關鍵字邏輯與關聯
+- 更新核心 6.0.0：新增 tag group 欄位 migration
+- TagManager 全面改用 TagMeta，改善網址生成與標籤顯示
+- 清理 PostManager buildListQuery 排版
+- 新增 getModelByKey，用於動態解析模型類別
+- 自動註冊核心與 App 模型至 TagMeta 與 Manager 系統
+- 移除舊 getUrl，改以 TagManager 處理網址
+- post 模型新增 tagMeta 設定、統一格式並改善標籤相關 helper
+- page 模型新增 page_category / page_tag TagMeta
+- Package 模型改為繼承 BaseModel
+- link 模型新增 link_category / link_tag TagMeta
+- DomainAlias 模型改為繼承 BaseModel
+- BaseModel getTagMeta 擴充為支援 package、model_key、label 資訊
+- advertisement 模型新增 advertisement_category / advertisement_tag TagMeta
+- Sitemap 中的文章分類/標籤 URL 改為 {type}/{slug}
+- 重寫文章標籤邏輯，支援統一的 {type}/{slug} 路由
+- TagController 更新：全面採用 TagMeta、改善 group selector、清理類型邏輯
+- MenuController 更新：使用模型掃描取得 TagMeta，統一 tagTypeArr
+- 將文章分類路由統一為 /{type}/{slug}
+- 前台 blog/post 視圖全面改為 {type}/{slug} 路由
+- tag index 視圖更新：使用 TagMeta，並調整工具列位置
+- 標籤表單新增 group 欄位並自動帶入類型
+- 後台側邊欄移除舊的標籤類型列
+- 後台選單編輯頁更新：使用 TagMeta 並提升折疊 UI
+- toolbar 新增隱藏旗標並清理預設按鈕
+- 調整 col-form-label padding 以改善表單對齊
+- 新增 page_category、page_tag、tag_group 多語系
+- 新增 contracts 並覆寫認證基礎層
+- 預設主題新增產品標籤 Blade
+- 清理 TestCase middleware alias spacing
+- 全模型新增 static $modelKey，統一模型元資料格式
+- ROUTES / ORDERS 常數改為 SORTS，以提升一致性
+- 全面加入 TagMeta、統一標籤 URL、改善 getUrl() 邏輯
+- BaseModel 改良：屬性、標籤資訊、modelKey 驗證、轉換、自動顯示名稱
+- Tag 模型 URL 改為由 TagManager 處理
+- 所有 Manager 改為使用 sort + direction
+- LinkManager / TagManager 排序與欄位邏輯更新
+- 新增 registerModel() 與 getModels()
+- TagManager 正式在 ServiceProvider 中註冊並加入 TagMeta 管理
+- 模型 spacing 與註釋統一調整
+- Migration Script：所有 order 欄位統一改名為 sort
+- Controllers / Requests：全面將 order/order_column 改為 sort/direction
+- 安全性：全面改為使用 input() 取得請求資料
+- 控制器排版與陣列格式統一
+- Post / Link CRUD 改為使用 sort
+- 選單排序統一改用 sort
+- TagController 清理無用程式碼並改善驗證邏輯
+- 更新 BannerFormRequest 使用 sort
+- 安裝器語言檔格式統一
+- 修正 zh_TW / zh_CN / ja 中 sort 相關用語
+- 所有 Blade 中的 order 欄位改為 sort
+- toolbar filters 改為 sort/direction
+- 批次更新路由從 bulk_update_order 改為 bulk_update_sort
+- 更新選單與標籤模板名稱
+- 新增前台商品分類測試區塊
+- migrations 全面清理 order 欄位，統一使用 sort
+- 移除舊標籤 migrations
+- 清理 migration 排版
+- helpers：order/sequence → sort/direction
+- 模型掃描機制改善，略過抽象類別
+- 搜尋關鍵字 helper 加入 deprecated 註記
+- 移除未使用的選單 helper
+- 更新 config 變更日誌內容
+- wncms-translatable 升級至 ^1.3.0
+- 新增 themes/plugins 檔案系統路徑
+- 統一 config 陣列間距
+- 修正安裝器語言 key 對齊
+- backend link 排序路由更新為 sort
 
 ## v6.0.0-alpha2 2025-11-12
 
--   修正主題資產未能發布至新目錄
--   將主題目錄統一改名為 themes，補上缺漏的 migration
--   更新相依套件
--   安裝流程中移除 storage:link
--   FrontendController 新增 wncms 安裝狀態檢查
+- 修正主題資產未能發布至新目錄
+- 將主題目錄統一改名為 themes，補上缺漏的 migration
+- 更新相依套件
+- 安裝流程中移除 storage:link
+- FrontendController 新增 wncms 安裝狀態檢查
 
 ## v6.0.0-alpha1 2025-11-11
 
--   安裝程序臨時移除 SQL dump
--   將 config 保留在核心套件內，不寫入專案根目錄
--   禁用安裝流程中的自動發布設定檔
--   安裝過程取消 symlink 與 exec 需求
--   發布 v6.0.0-alpha1
--   將 WncmsModel 移至 Wncms\Models\Base
--   重構 Wncms.php
--   修正 SitemapController 在模型不存在時的錯誤
--   移除 banner 相關路由
--   更新後台預設工具列按鈕 Blade，支援自訂前綴文字
--   TagManager 的 getTagifyDropdownItems 新增停用快取選項
--   新增 BaseResource 作為 API 輸出格式
--   修正 return back() 無法保留 repeater 項目
--   新增 wncms()->displayPrice($number)，並自動移除小數尾零
+- 安裝程序臨時移除 SQL dump
+- 將 config 保留在核心套件內，不寫入專案根目錄
+- 禁用安裝流程中的自動發布設定檔
+- 安裝過程取消 symlink 與 exec 需求
+- 發布 v6.0.0-alpha1
+- 將 WncmsModel 移至 Wncms\Models\Base
+- 重構 Wncms.php
+- 修正 SitemapController 在模型不存在時的錯誤
+- 移除 banner 相關路由
+- 更新後台預設工具列按鈕 Blade，支援自訂前綴文字
+- TagManager 的 getTagifyDropdownItems 新增停用快取選項
+- 新增 BaseResource 作為 API 輸出格式
+- 修正 return back() 無法保留 repeater 項目
+- 新增 wncms()->displayPrice($number)，並自動移除小數尾零
 
 ## v5.5.5 2025-09-08
 
--   更新 AdvertisementManager，繼承 ModelManager
--   移除重複的翻譯 migration 檔案
--   修正找不到 Advertisement 與網站的關聯問題
--   在 PageController 載入前端主題 helpers
--   將 HasTags trait 移至基礎 WncmsModel（所有模型皆可被標籤化）
--   移除多餘的 OwnModelTrait 與 WnModelTrait
--   移除 ExtraAttribute，改用 laravel-optionable 套件
--   後台新增工具頁面
--   在 @simonwep/pickr 套件加入多語系化
--   重構所有控制器中的 view()，改為使用 wncms()->view()
--   在 Advertisement 模型中新增 contact 欄位
--   新增建立 Tag 模型的 API
--   新增 HasComments trait
--   在後台 Post 顯示評論清單
--   重寫前台 PostController 以符合最新格式
--   修復後台權限編輯頁錯誤
--   預備後台 UI 以支援 API 使用日誌
+- 更新 AdvertisementManager，繼承 ModelManager
+- 移除重複的翻譯 migration 檔案
+- 修正找不到 Advertisement 與網站的關聯問題
+- 在 PageController 載入前端主題 helpers
+- 將 HasTags trait 移至基礎 WncmsModel（所有模型皆可被標籤化）
+- 移除多餘的 OwnModelTrait 與 WnModelTrait
+- 移除 ExtraAttribute，改用 laravel-optionable 套件
+- 後台新增工具頁面
+- 在 @simonwep/pickr 套件加入多語系化
+- 重構所有控制器中的 view()，改為使用 wncms()->view()
+- 在 Advertisement 模型中新增 contact 欄位
+- 新增建立 Tag 模型的 API
+- 新增 HasComments trait
+- 在後台 Post 顯示評論清單
+- 重寫前台 PostController 以符合最新格式
+- 修復後台權限編輯頁錯誤
+- 預備後台 UI 以支援 API 使用日誌
 
 ## v5.5.4 2025-08-18
 
--   修復標籤保存時的翻譯問題，更新依賴 **wncms-translatable**
--   修復 **UserController** 中多處驗證與資料傳遞問題（`profile` 頁面 `$user` 未傳遞、密碼驗證規則與訊息錯誤、`withError()` 使用錯誤、`profile` 更新程式優化）
--   修復部分站群模式的問題
--   更新 **Controller stub** 檔案以符合新結構
--   修復後台控制器路由錯誤
+- 修復標籤保存時的翻譯問題，更新依賴 **wncms-translatable**
+- 修復 **UserController** 中多處驗證與資料傳遞問題（`profile` 頁面 `$user` 未傳遞、密碼驗證規則與訊息錯誤、`withError()` 使用錯誤、`profile` 更新程式優化）
+- 修復部分站群模式的問題
+- 更新 **Controller stub** 檔案以符合新結構
+- 修復後台控制器路由錯誤
 
 ## v5.5.3 2025-08-17
 
--   修復提交 Checkbox 會送出 NULL 值的問題
--   Beta 版本多模組站群相容性適配
--   更新 Starter 表單項 Blade 中的 repeater 範例
--   將 WnContentModelTraits 更名為 WnContentModelTrait
--   將 WnModelTraits 更名為 WnModelTrait
--   Beta 版本新增 HasMultisite trait
+- 修復提交 Checkbox 會送出 NULL 值的問題
+- Beta 版本多模組站群相容性適配
+- 更新 Starter 表單項 Blade 中的 repeater 範例
+- 將 WnContentModelTraits 更名為 WnContentModelTrait
+- 將 WnModelTraits 更名為 WnModelTrait
+- Beta 版本新增 HasMultisite trait
 
 ## v5.5.2 2025-07-20
 
--   添加前台鏈接頁面，鏈接控制器
--   更新依賴 wncms-tags > 1.6.1
+- 添加前台鏈接頁面，鏈接控制器
+- 更新依賴 wncms-tags > 1.6.1
 
 ## v5.5.0 2025-07-19
 
--   部分後台 Blade 視圖中將 `getVersion()` 替換為 `addVersion()`
--   新增 `isActiveRoutes()` 輔助函數
--   修復安裝程序在資料庫遷移後中止的問題
--   避免在覆蓋 `Wncms\Models` 為 `App\Models` 時側邊欄重複出現模型
--   修復 `PageController` 中自定義資源頁面無法顯示的問題
--   移除 `click.js`，改用 API 取代
--   安裝後自動更新版本號
--   預設將佇列連線從 `redis` 改為 `sync`
--   刪除動作將返回上一頁而非索引頁
--   重寫 `PageManager`
--   重寫 `UserManager`
--   儀表板在資料庫較大時的記憶體需求已優化
--   清理後台 `PostController` 代碼
--   支援在 WNCMS 預設視圖之前使用自定義 app 視圖
--   當輸入欄位為 hidden 類型時，隱藏開發者提示
--   修復廣告背景顏色未顯示的問題
--   後台聯絡表單整合建立與編輯表單項目
--   移除 `BulkDeleteTrait`，整合進 `BackendController`
--   移除 `tags.index.type` 路由，整合進 `tags.index`
--   移除選單中的多站台選項
--   將產品欄位 `attribute` 改名為 `properties`
--   支援新增自定義搜尋關鍵字
--   移除 `traffic_log` 和 `click_log` 的 Blade 視圖
--   所有模型關聯改為使用 `wncms()->getModelClass('xxx')`，以支援模型覆寫
--   `CreateModel` 路由更新為使用 `{id}` 取代 `{modelName}`
--   控制器樣板加入 `order by id desc`
--   改進後台網站編輯頁面，加入網域別名排序功能
+- 部分後台 Blade 視圖中將 `getVersion()` 替換為 `addVersion()`
+- 新增 `isActiveRoutes()` 輔助函數
+- 修復安裝程序在資料庫遷移後中止的問題
+- 避免在覆蓋 `Wncms\Models` 為 `App\Models` 時側邊欄重複出現模型
+- 修復 `PageController` 中自定義資源頁面無法顯示的問題
+- 移除 `click.js`，改用 API 取代
+- 安裝後自動更新版本號
+- 預設將佇列連線從 `redis` 改為 `sync`
+- 刪除動作將返回上一頁而非索引頁
+- 重寫 `PageManager`
+- 重寫 `UserManager`
+- 儀表板在資料庫較大時的記憶體需求已優化
+- 清理後台 `PostController` 代碼
+- 支援在 WNCMS 預設視圖之前使用自定義 app 視圖
+- 當輸入欄位為 hidden 類型時，隱藏開發者提示
+- 修復廣告背景顏色未顯示的問題
+- 後台聯絡表單整合建立與編輯表單項目
+- 移除 `BulkDeleteTrait`，整合進 `BackendController`
+- 移除 `tags.index.type` 路由，整合進 `tags.index`
+- 移除選單中的多站台選項
+- 將產品欄位 `attribute` 改名為 `properties`
+- 支援新增自定義搜尋關鍵字
+- 移除 `traffic_log` 和 `click_log` 的 Blade 視圖
+- 所有模型關聯改為使用 `wncms()->getModelClass('xxx')`，以支援模型覆寫
+- `CreateModel` 路由更新為使用 `{id}` 取代 `{modelName}`
+- 控制器樣板加入 `order by id desc`
+- 改進後台網站編輯頁面，加入網域別名排序功能
 
 ## v5.4.3 2025-07-17
 
--   後台連結路由接受 id，不再自動解析模型，支援自定義 Link 模型
--   `BackendController` 現為抽象類別以維持標準
--   `ModelManager` 的 get() 函式新增 `$option['name']` 支援
--   非清單中的網域將共用回退網站的快取
--   自動在 select 中加入排序欄位避免 SQL 錯誤
--   在 `WebsiteManager` 中對回退網站預先載入媒體
--   重寫 `TagManager` 的條件邏輯
--   更新更新日誌 API 路由名稱為 `api.v1.update.run`
--   將 Link 模型的描述欄位由輸入框改為 textarea
--   清理後台路由代碼，移除開頭斜線
--   `BackendController` 新增抽象 `getModelClass()` 方法
--   移除 `AnalyticController`
+- 後台連結路由接受 id，不再自動解析模型，支援自定義 Link 模型
+- `BackendController` 現為抽象類別以維持標準
+- `ModelManager` 的 get() 函式新增 `$option['name']` 支援
+- 非清單中的網域將共用回退網站的快取
+- 自動在 select 中加入排序欄位避免 SQL 錯誤
+- 在 `WebsiteManager` 中對回退網站預先載入媒體
+- 重寫 `TagManager` 的條件邏輯
+- 更新更新日誌 API 路由名稱為 `api.v1.update.run`
+- 將 Link 模型的描述欄位由輸入框改為 textarea
+- 清理後台路由代碼，移除開頭斜線
+- `BackendController` 新增抽象 `getModelClass()` 方法
+- 移除 `AnalyticController`
 
 ## v5.4.2 2025-05-04
 
--   `links` 資料表中的 `description` 欄位由 `string` 改為 `text`，支援更長內容
--   將 SQL 安裝檔移至 `wncms-core` 套件內的 `resources/installer/wncms.sql`，統一安裝來源
--   安裝流程優化，如有 `wncms.sql` 檔，將優先匯入資料庫結構與資料，否則使用 Artisan 指令安裝
--   修復在未建立首個網站且站群模式關閉時，頂部的網站設定按鈕出現錯誤的問題
+- `links` 資料表中的 `description` 欄位由 `string` 改為 `text`，支援更長內容
+- 將 SQL 安裝檔移至 `wncms-core` 套件內的 `resources/installer/wncms.sql`，統一安裝來源
+- 安裝流程優化，如有 `wncms.sql` 檔，將優先匯入資料庫結構與資料，否則使用 Artisan 指令安裝
+- 修復在未建立首個網站且站群模式關閉時，頂部的網站設定按鈕出現錯誤的問題
 
 ## v5.4.1 2025-05-03
 
--   安裝流程優化，檢測是否有 `storage/app/installer/wncms.sql` ，加快首次安裝速度，避免安裝過程 Cloudflare 超時問題
+- 安裝流程優化，檢測是否有 `storage/app/installer/wncms.sql` ，加快首次安裝速度，避免安裝過程 Cloudflare 超時問題
 
 ## v5.4.0 2025-04-05
 
--   修正 Card 模型找不到狀態的問題
--   當啟用 `multi_website` 時，新增下拉選單可選擇網站模型
--   支援模型使用常數 `NAME_KEY` 自定名稱，避免如 `order` 混淆排序與訂單
--   更新後台側邊欄選單中的模型圖示
--   允許刪除網站模型（但至少保留一個）
--   權限支援批次刪除功能
--   新增 Channel、Click、Parameter 模型
--   暫時隱藏 Price 模型，每個價格應設定於對應的上層模型中
--   修正未定義的 `$display_name` 變數
--   移除未使用的 analytics API 路由
--   在大多數 migration 中新增資料表是否存在檢查
--   LinkManager 預載 media 資料
--   重構 CacheManager：現代語法並統一支援 tag 的 get/put/forget
--   重構 ModelManager：建立抽象基底類別以重用邏輯
--   PostManager 與 LinkManager 改為繼承 ModelManager，支援標籤與關鍵字篩選
--   支援 `wncms()->getModel('xxx')` 並可回退到 config/App/Models/Wncms/Models
--   增加 zh_TW 語系翻譯鍵（如 `bulk_create`, `channel`, `parameters`, `clickable_type` 等）
--   CardController 改用 `wncms()->getModel('user')` 動態取得使用者模型
--   `gto()` 可在不傳入 key 時回傳所有選項
--   新增多語言翻譯
--   修正錯字：`fontaweseom` → `fontawesome`，`operater` → `operator`，`Starer` → `Starter`
--   Tag 模型新增 `$tag->url` 存取器
--   更新後台使用者搜尋邏輯
--   廣告列表新增分頁與樣式優化
--   修正打包主題檔案時未包含語系檔案問題
--   新增 `wncms()->log($message, $level)` 可隨處呼叫的除錯函式
--   【重要】LinkManager 升級為繼承 ModelManager
--   修正後台快速連結刪除錯誤
--   `starter/form-items.blade.php` 新增 `repeater` 欄位
--   修正 `starter/form-items.blade.php` 中的 color 欄位錯誤
--   `form-items.blade.php` 新增開發者提示
--   修正廣告排序未更新問題
--   使用者登入與管理員登入頁面分離
--   更新 Post API
+- 修正 Card 模型找不到狀態的問題
+- 當啟用 `multi_website` 時，新增下拉選單可選擇網站模型
+- 支援模型使用常數 `NAME_KEY` 自定名稱，避免如 `order` 混淆排序與訂單
+- 更新後台側邊欄選單中的模型圖示
+- 允許刪除網站模型（但至少保留一個）
+- 權限支援批次刪除功能
+- 新增 Channel、Click、Parameter 模型
+- 暫時隱藏 Price 模型，每個價格應設定於對應的上層模型中
+- 修正未定義的 `$display_name` 變數
+- 移除未使用的 analytics API 路由
+- 在大多數 migration 中新增資料表是否存在檢查
+- LinkManager 預載 media 資料
+- 重構 CacheManager：現代語法並統一支援 tag 的 get/put/forget
+- 重構 ModelManager：建立抽象基底類別以重用邏輯
+- PostManager 與 LinkManager 改為繼承 ModelManager，支援標籤與關鍵字篩選
+- 支援 `wncms()->getModel('xxx')` 並可回退到 config/App/Models/Wncms/Models
+- 增加 zh_TW 語系翻譯鍵（如 `bulk_create`, `channel`, `parameters`, `clickable_type` 等）
+- CardController 改用 `wncms()->getModel('user')` 動態取得使用者模型
+- `gto()` 可在不傳入 key 時回傳所有選項
+- 新增多語言翻譯
+- 修正錯字：`fontaweseom` → `fontawesome`，`operater` → `operator`，`Starer` → `Starter`
+- Tag 模型新增 `$tag->url` 存取器
+- 更新後台使用者搜尋邏輯
+- 廣告列表新增分頁與樣式優化
+- 修正打包主題檔案時未包含語系檔案問題
+- 新增 `wncms()->log($message, $level)` 可隨處呼叫的除錯函式
+- 【重要】LinkManager 升級為繼承 ModelManager
+- 修正後台快速連結刪除錯誤
+- `starter/form-items.blade.php` 新增 `repeater` 欄位
+- 修正 `starter/form-items.blade.php` 中的 color 欄位錯誤
+- `form-items.blade.php` 新增開發者提示
+- 修正廣告排序未更新問題
+- 使用者登入與管理員登入頁面分離
+- 更新 Post API
 
 ## v5.3.0 2025-03-30
 
--   後台頂部連結根據站群設定顯示，站群顯示網站列表，單站顯示網站設定和主題設定
--   修復廣告模型無法更新排序欄位的問題
--   允許更新網站模型的域名
--   新增超級管理員的系統設定，準備隱藏一些不常用的選項
--   更新後台側邊欄的主題列表圖示
--   新增主題檔案結構檢查功能
--   自訂的 ModelManager 將優先於套件內的 ModelManager 載入
--   TagManager 的 get() 函數允許傳入 null，以避免從主題選項取得 null 時發生錯誤
--   更新後台列表頁的狀態與布林欄位樣式，支援徽章或純文字顯示
--   將 getList() 函數的預設每頁筆數設為 0，即預設停用分頁功能
--   新增可包含於後台列表頁的模型批次更新按鈕 blade
--   更新 Link 模型的後台功能，允許批次更新狀態與排序
+- 後台頂部連結根據站群設定顯示，站群顯示網站列表，單站顯示網站設定和主題設定
+- 修復廣告模型無法更新排序欄位的問題
+- 允許更新網站模型的域名
+- 新增超級管理員的系統設定，準備隱藏一些不常用的選項
+- 更新後台側邊欄的主題列表圖示
+- 新增主題檔案結構檢查功能
+- 自訂的 ModelManager 將優先於套件內的 ModelManager 載入
+- TagManager 的 get() 函數允許傳入 null，以避免從主題選項取得 null 時發生錯誤
+- 更新後台列表頁的狀態與布林欄位樣式，支援徽章或純文字顯示
+- 將 getList() 函數的預設每頁筆數設為 0，即預設停用分頁功能
+- 新增可包含於後台列表頁的模型批次更新按鈕 blade
+- 更新 Link 模型的後台功能，允許批次更新狀態與排序
 
 ## v5.2.0 2025-02-04
 
--   新增多語系翻譯
--   程式碼清理
--   前台註冊用戶預設指派為 member 角色，可由主題選項調整
--   當網站模型無法透過目前網域找到時，讀取第一個網站的廣告資料
--   預先載入連結的翻譯資料
--   若依目前網域找不到網站模型，則讀取第一個網站的文章，可選擇隨機排序結果
--   預先載入網站模型的翻譯資料
+- 新增多語系翻譯
+- 程式碼清理
+- 前台註冊用戶預設指派為 member 角色，可由主題選項調整
+- 當網站模型無法透過目前網域找到時，讀取第一個網站的廣告資料
+- 預先載入連結的翻譯資料
+- 若依目前網域找不到網站模型，則讀取第一個網站的文章，可選擇隨機排序結果
+- 預先載入網站模型的翻譯資料
 
 ## v5.1.3 2025-02-04
 
--   新增多語系翻譯
+- 新增多語系翻譯
 
 ## v5.1.2 2025-02-04
 
--   改善後台快捷連結儲存邏輯，改為儲存 URL 而非路由名稱，以避免遺失參數
--   後台主題選項頁標題新增網站 ID 顯示
+- 改善後台快捷連結儲存邏輯，改為儲存 URL 而非路由名稱，以避免遺失參數
+- 後台主題選項頁標題新增網站 ID 顯示
 
 ## v5.1.1 2025-01-28
 
--   將所有 gss 版本更新為 core_version
+- 將所有 gss 版本更新為 core_version
 
 ## v5.1.0 2025-01-28
 
--   修復更多選單項目資料無法儲存的問題
--   從可為空的欄位中移除 required 類別
--   預加載 Website 模型及其翻譯
--   新增 ThemeServiceProvider
--   使用當前網域來顯示頁面 URL，而非從 website 模型獲取
--   預加載 Post 模型的翻譯，允許 order 變數設為隨機
--   使 Link 模型可翻譯
+- 修復更多選單項目資料無法儲存的問題
+- 從可為空的欄位中移除 required 類別
+- 預加載 Website 模型及其翻譯
+- 新增 ThemeServiceProvider
+- 使用當前網域來顯示頁面 URL，而非從 website 模型獲取
+- 預加載 Post 模型的翻譯，允許 order 變數設為隨機
+- 使 Link 模型可翻譯
 
 ## v5.0.0 2025-01-27
 
--   修復使用者頁面路由順序錯誤
--   在 Credit 模型中新增函式以新增或獲取 Credit 額度
--   在 User 模型中新增函式以直接檢查 Credit 額度
--   允許 TinyMCE 選擇器為類別，將 GIF 新增至允許的圖片格式
--   重新啟用使用前台登入頁面登入後台的功能
--   在運行時動態修改 CSRF 規則
--   更新 wncms-translatable 的相依性
--   修復更新後選單項目翻譯遺失的問題
--   允許 gto() 配置當值為空時是否回退
--   新增前台文章的 CRUD（建立、讀取、更新、刪除）功能
+- 修復使用者頁面路由順序錯誤
+- 在 Credit 模型中新增函式以新增或獲取 Credit 額度
+- 在 User 模型中新增函式以直接檢查 Credit 額度
+- 允許 TinyMCE 選擇器為類別，將 GIF 新增至允許的圖片格式
+- 重新啟用使用前台登入頁面登入後台的功能
+- 在運行時動態修改 CSRF 規則
+- 更新 wncms-translatable 的相依性
+- 修復更新後選單項目翻譯遺失的問題
+- 允許 gto() 配置當值為空時是否回退
+- 新增前台文章的 CRUD（建立、讀取、更新、刪除）功能
 
 ## v4.5.0 2024-09-30
 
--   修復分頁 URL 被快取時包含語系的問題
--   新增外掛系統
--   提升 PostHelper 的效能
--   更新測試
--   新增 `LOCALIZATION_HIDE_DEFAULT_LOCALE` 環境變數
+- 修復分頁 URL 被快取時包含語系的問題
+- 新增外掛系統
+- 提升 PostHelper 的效能
+- 更新測試
+- 新增 `LOCALIZATION_HIDE_DEFAULT_LOCALE` 環境變數
 
 ## v4.4.0 2024-09-18
 
--   添加了後端的更新通知功能。
--   更新了模型創建函數，以確保與自定義模型和控制器的兼容性。
--   修正了模型分頁，以準確顯示最後一頁的項目數量。
--   在設置中添加了禁用核心更新的選項。
--   在 `README.md` 中包含了演示 URL。
--   更新了錯誤頁面。
--   添加了翻譯。
--   引入了更新設置的命令。
--   添加了主題控制器。
+- 添加了後端的更新通知功能。
+- 更新了模型創建函數，以確保與自定義模型和控制器的兼容性。
+- 修正了模型分頁，以準確顯示最後一頁的項目數量。
+- 在設置中添加了禁用核心更新的選項。
+- 在 `README.md` 中包含了演示 URL。
+- 更新了錯誤頁面。
+- 添加了翻譯。
+- 引入了更新設置的命令。
+- 添加了主題控制器。
 
 ## v4.3.0 2024-09-14
 
--   測試新的安裝過程
--   停止追蹤 vendor 目錄
--   更新後台頁腳年份為動態更新
--   在安裝前將預設快取驅動程式更新為 null
--   更新 README.md
--   改進預設模板
--   更新安裝程式圖示。安裝時自動添加強制 HTTPS 設定
--   向安裝程式添加錯誤訊息
--   在安裝過程中添加選擇 Redis、Memcache、文件作為快取驅動程式的選項
--   將預設 DB_CONNECTION 設為內存中的假 SQLite。將預設 SESSION 驅動程式設為文件
--   禁用安裝過程中的 trait 文件生成
--   在系統設定中添加強制 HTTPS 選項
--   添加預設 env 文件
--   更新 .gitignore
--   更新 composer 依賴
--   更新主題選項面板
--   改進首次網站創建流程
--   移除調試訊息
--   修正後台樣式
--   重命名 Traits。修正安裝錯誤。添加強制 HTTPS 相容性
--   在要求之前檢查自定義語言文件是否存在
+- 測試新的安裝過程
+- 停止追蹤 vendor 目錄
+- 更新後台頁腳年份為動態更新
+- 在安裝前將預設快取驅動程式更新為 null
+- 更新 README.md
+- 改進預設模板
+- 更新安裝程式圖示。安裝時自動添加強制 HTTPS 設定
+- 向安裝程式添加錯誤訊息
+- 在安裝過程中添加選擇 Redis、Memcache、文件作為快取驅動程式的選項
+- 將預設 DB_CONNECTION 設為內存中的假 SQLite。將預設 SESSION 驅動程式設為文件
+- 禁用安裝過程中的 trait 文件生成
+- 在系統設定中添加強制 HTTPS 選項
+- 添加預設 env 文件
+- 更新 .gitignore
+- 更新 composer 依賴
+- 更新主題選項面板
+- 改進首次網站創建流程
+- 移除調試訊息
+- 修正後台樣式
+- 重命名 Traits。修正安裝錯誤。添加強制 HTTPS 相容性
+- 在要求之前檢查自定義語言文件是否存在
 
 ## v4.2.0 2024-09-13
 
--   移除 WnTagTraits.php
--   在生成示例文章內容時添加翻譯
--   改進預設首頁模板。添加文章存檔 URL
--   添加更多翻譯
--   修正添加第二個網站時的錯誤
+- 移除 WnTagTraits.php
+- 在生成示例文章內容時添加翻譯
+- 改進預設首頁模板。添加文章存檔 URL
+- 添加更多翻譯
+- 修正添加第二個網站時的錯誤
 
 ## v4.1.0 2024-09-07
 
--   添加強制 HTTPS 選項
--   小幅修正
--   更新預設 env 文件以隱藏調試訊息
--   安裝和網站創建後清除快取
--   添加 PHP 函數需求檢查
--   將 database.sqlite 添加到 .gitignore
--   修正創建主題命令。根據 Laravel 11 結構更新 lang 目錄
--   修正廣告過期日期不能為空的錯誤
--   移除無用的 UpdateLog 模型
--   更新預設模型設定
--   更新安裝程式
--   添加禁用用戶註冊功能
--   在網站編輯頁面上將主題設置為 null 而非預設
+- 添加強制 HTTPS 選項
+- 小幅修正
+- 更新預設 env 文件以隱藏調試訊息
+- 安裝和網站創建後清除快取
+- 添加 PHP 函數需求檢查
+- 將 database.sqlite 添加到 .gitignore
+- 修正創建主題命令。根據 Laravel 11 結構更新 lang 目錄
+- 修正廣告過期日期不能為空的錯誤
+- 移除無用的 UpdateLog 模型
+- 更新預設模型設定
+- 更新安裝程式
+- 添加禁用用戶註冊功能
+- 在網站編輯頁面上將主題設置為 null 而非預設
 
 ## v4.0.0 2024-08-03
 
 ### 新增
 
--   PHP 需求從 7.2+ 升級至 8.2+
--   Laravel 10 -> 11
--   jQuery 3.2.1 -> 3.7.1
--   更新所有 composer 依賴
--   添加數據庫前綴以避免與 MySQL 保留關鍵字的表名衝突
+- PHP 需求從 7.2+ 升級至 8.2+
+- Laravel 10 -> 11
+- jQuery 3.2.1 -> 3.7.1
+- 更新所有 composer 依賴
+- 添加數據庫前綴以避免與 MySQL 保留關鍵字的表名衝突
 
 ### 修復
 
--   修正當 CMS 未安裝時導航 panel/xxxx 頁面的錯誤
--   修正 php artisan migrate:fresh 不工作
--   修正當 $request-input 為 null 時頁面控制器錯誤
+- 修正當 CMS 未安裝時導航 panel/xxxx 頁面的錯誤
+- 修正 php artisan migrate:fresh 不工作
+- 修正當 $request-input 為 null 時頁面控制器錯誤
 
 ### 優化
 
--   合併舊遷移並重命名遷移文件
--   重命名資料庫列 external_image -> external_thumbnail
--   更新預設 env 文件生成器
--   wncms_get_unique_slug() 將預設長度設為 8
--   所有 // 註釋後應留有空格。例如 // Good 和 //Bad
--   重寫 wncms.js 和 AuthenticatedSessionController 中的登入邏輯
+- 合併舊遷移並重命名遷移文件
+- 重命名資料庫列 external_image -> external_thumbnail
+- 更新預設 env 文件生成器
+- wncms_get_unique_slug() 將預設長度設為 8
+- 所有 // 註釋後應留有空格。例如 // Good 和 //Bad
+- 重寫 wncms.js 和 AuthenticatedSessionController 中的登入邏輯
 
 ### 移除
 
--   移除 vendor 目錄以縮小包大小。安裝過程中將下載包
--   移除全域函數 wn()，全部替換為 wncms()
--   移除全域變數 $wn，全部替換為 $wncms
--   移除分析幫助程式以避免性能問題。用第三方分析工具替代
--   移除 wncms_get_theme_options() 幫助函數。在模型中使用 $website->get_options()
+- 移除 vendor 目錄以縮小包大小。安裝過程中將下載包
+- 移除全域函數 wn()，全部替換為 wncms()
+- 移除全域變數 $wn，全部替換為 $wncms
+- 移除分析幫助程式以避免性能問題。用第三方分析工具替代
+- 移除 wncms_get_theme_options() 幫助函數。在模型中使用 $website->get_options()
 
 ## v3.2.1 2024-05-19
 
 ### 新增
 
--   新增數個旗次 SVG
--   增加更多翻譯字段
--   後台各模組數據列表加入權限判斷
--   後台新增菜單判斷非管理員權限
--   預留 1 個代理 Dashboard，供日後開發使用
+- 新增數個旗次 SVG
+- 增加更多翻譯字段
+- 後台各模組數據列表加入權限判斷
+- 後台新增菜單判斷非管理員權限
+- 預留 1 個代理 Dashboard，供日後開發使用
 
 ### 修復
 
--   修復部分大小寫錯誤
+- 修復部分大小寫錯誤
 
 ### 優化
 
--   common.table_status.blade.php 可以判斷更多狀態，新增自定功能
+- common.table_status.blade.php 可以判斷更多狀態，新增自定功能
 
 ## v3.2.0 2024-03-14
 
 ### 修復
 
--   修復新版本安裝時 site_name 為 null 報錯
+- 修復新版本安裝時 site_name 為 null 報錯
 
 ### 優化
 
--   更新安裝程序
--   使用 api_token 請求時，視爲登入
+- 更新安裝程序
+- 使用 api_token 請求時，視爲登入
 
 ## v3.1.15 2024-03-12
 
 ### 新增
 
--   新增 Page 模組的 API
--   新增菜單模組 API
--   PostHelper getList() 支持 $isRandom 參數，可以獲取隨機文章
--   Post 模組新增 getTags ，獲取 Tag 列表，可傳入 $type 參數
--   WebsiteHelpr 新增排序功能
--   優化主題設定判斷可以分辨 0 和 未設定
--   新增一鍵複雜菜單功能
+- 新增 Page 模組的 API
+- 新增菜單模組 API
+- PostHelper getList() 支持 $isRandom 參數，可以獲取隨機文章
+- Post 模組新增 getTags ，獲取 Tag 列表，可傳入 $type 參數
+- WebsiteHelpr 新增排序功能
+- 優化主題設定判斷可以分辨 0 和 未設定
+- 新增一鍵複雜菜單功能
 
 ### 修復
 
--   修復聯絡表單中 current_url 項被緩存問題
--   修復表單提交失敗時按鈕文字不顯示
+- 修復聯絡表單中 current_url 項被緩存問題
+- 修復表單提交失敗時按鈕文字不顯示
 
 ### 優化
 
--   計劃移除 Post 模組 getFirstCategory()，一律改為使用 getFirstTag('post_category')
--   優化手機版後台 UI
--   生成主題檔案時，會自動替換 starter 字串為主題名稱，無需再手動修改
--   主題名稱按英文字母順序排列
--   文章搜索前，先判斷是否包括 keyword
--   優化主題設定判斷，可以分辨 0 和 未設定
--   後台 Tag 顯示相關模組數量
--   所有 Helper 預設改為不使用分頁 $pageSize = 0
+- 計劃移除 Post 模組 getFirstCategory()，一律改為使用 getFirstTag('post_category')
+- 優化手機版後台 UI
+- 生成主題檔案時，會自動替換 starter 字串為主題名稱，無需再手動修改
+- 主題名稱按英文字母順序排列
+- 文章搜索前，先判斷是否包括 keyword
+- 優化主題設定判斷，可以分辨 0 和 未設定
+- 後台 Tag 顯示相關模組數量
+- 所有 Helper 預設改為不使用分頁 $pageSize = 0
 
 ## v3.1.14 2023-12-17
 
 ### 新增
 
--   批量複製文章功能
+- 批量複製文章功能
 
 ## v3.1.13 2023-12-12
 
 ### 新增
 
--   模組列表的工具列，可以設定隱藏部分預設按鈕，例如 'hideToolbarStatusFiller' => true 可以隱藏狀態篩選下拉清單
--   聯絡表單增加提交後的 js 事件，可以針對成功及失敗分別設定
--   後台聯絡表單增加篩選功能
--   後台聯絡表單增加匯出 XLXS/CSV 功能
--   增加翻譯字段
+- 模組列表的工具列，可以設定隱藏部分預設按鈕，例如 'hideToolbarStatusFiller' => true 可以隱藏狀態篩選下拉清單
+- 聯絡表單增加提交後的 js 事件，可以針對成功及失敗分別設定
+- 後台聯絡表單增加篩選功能
+- 後台聯絡表單增加匯出 XLXS/CSV 功能
+- 增加翻譯字段
 
 ### 修復
 
--   修復假瀏覽量小數問題
+- 修復假瀏覽量小數問題
 
 ### 優化
 
--   調整部分後台 UI
+- 調整部分後台 UI
 
 ## v3.1.12 2023-12-11
 
 ### 新增
 
--   系統設定中，加入上傳封面圖片時，自動轉換為 webp
--   模組加入額外參數功能 ExtraAttribute，使用 getExtraAttribute() 和 saveExtraAttribute()
+- 系統設定中，加入上傳封面圖片時，自動轉換為 webp
+- 模組加入額外參數功能 ExtraAttribute，使用 getExtraAttribute() 和 saveExtraAttribute()
 
 ### 修復
 
--   修復主題設定中，開關的說明有時候會重覆顯示
+- 修復主題設定中，開關的說明有時候會重覆顯示
 
 ## v3.1.11 2023-12-08
 
 ### 新增
 
--   更多翻譯字段
+- 更多翻譯字段
 
 ### 修復
 
--   修復主題設定圖片若帶括號()未能顯示
+- 修復主題設定圖片若帶括號()未能顯示
 
 ### 優化
 
--   utm 參數支持帶到著陸以外的其他頁面
+- utm 參數支持帶到著陸以外的其他頁面
 
 ## v3.1.10 2023-12-08
 
 ### 新增
 
--   聯絡表單支持調整欄位順序
--   新增數項系統設定，設定超級管理員收件帳號
--   新增 SMTP 測試電郵功能
--   更新部分翻譯字段
--   聯絡表單現支持單選及多選
--   聯絡表單現支持檢查是否所有必須填寫項目都已填寫
+- 聯絡表單支持調整欄位順序
+- 新增數項系統設定，設定超級管理員收件帳號
+- 新增 SMTP 測試電郵功能
+- 更新部分翻譯字段
+- 聯絡表單現支持單選及多選
+- 聯絡表單現支持檢查是否所有必須填寫項目都已填寫
 
 ### 修復
 
--   修復手機版主題設定因網站名稱過長而跑版
--   修復部分模組未能批量刪除
--   修復文章回收時，未有更新狀態
+- 修復手機版主題設定因網站名稱過長而跑版
+- 修復部分模組未能批量刪除
+- 修復文章回收時，未有更新狀態
 
 ### 優化
 
--   更新預設 Email 模版，支持 html
+- 更新預設 Email 模版，支持 html
 
 ## v3.1.9 2023-12-06
 
 ### 新增
 
--   新增 Starter 主題的 style.css 和 main.js
+- 新增 Starter 主題的 style.css 和 main.js
 
 ### 修復
 
--   修復部分主題頁面的部件未能讀取
+- 修復部分主題頁面的部件未能讀取
 
 ### 優化
 
--   獲取文章時，如果指定了排除的分類 ID，也會包括沒有分類的文章
--   更新表單系統，使用新的模版調用方法 $wncms->contact_form()->render()，直接生成表單結構
--   更新常見問題模組，增加更多欄位，可設定排序
+- 獲取文章時，如果指定了排除的分類 ID，也會包括沒有分類的文章
+- 更新表單系統，使用新的模版調用方法 $wncms->contact_form()->render()，直接生成表單結構
+- 更新常見問題模組，增加更多欄位，可設定排序
 
 ## v3.1.8 2023-11-29
 
 ### 新增
 
--   新增 json-id 結構
+- 新增 json-id 結構
 
 ## v3.1.7 2023-11-21
 
 ### 新增
 
--   優化後台手機版 UI
--   所有上傳圖片模組，支緩更多圖片類型
--   新增一鍵匯入預設主題設定功能
+- 優化後台手機版 UI
+- 所有上傳圖片模組，支緩更多圖片類型
+- 新增一鍵匯入預設主題設定功能
 
 ### 修復
 
--   修復文章上限少於分頁數量時，可能不顯示的問題
+- 修復文章上限少於分頁數量時，可能不顯示的問題
 
 ### 優化
 
--   升級主題設定中的文本編輯器
--   更新翻譯字段
+- 升級主題設定中的文本編輯器
+- 更新翻譯字段
 
 ## v3.1.6 2023-11-17
 
 ### 新增
 
--   文章批量指派到網站功能
--   新增點擊事件紀錄，屬性為[wncms-click]
--   新增顯示網站瀏覽量 (有別於文章瀏覽量，網站瀏覽量為全局，查看多少文章都只計算 1 次)
--   更多翻譯字段
--   系統設定新增瀏覽量，訪問量冷卻間隔，可以設定 60 分鐘算一次，或 1440 分鐘計算一次，自行輸入分鐘
--   廣告位加入多篩選條件
+- 文章批量指派到網站功能
+- 新增點擊事件紀錄，屬性為[wncms-click]
+- 新增顯示網站瀏覽量 (有別於文章瀏覽量，網站瀏覽量為全局，查看多少文章都只計算 1 次)
+- 更多翻譯字段
+- 系統設定新增瀏覽量，訪問量冷卻間隔，可以設定 60 分鐘算一次，或 1440 分鐘計算一次，自行輸入分鐘
+- 廣告位加入多篩選條件
 
 ## v3.1.5 2023-11-16
 
 ### 新增
 
--   菜單項目可以新增描述
--   [開發者] 新增 Wiget 系統，用於建立 Page template，增加可重用性
--   [開發者] 初引入 Sortable JS 插件
--   [開發者] 後台 backend.blade.php 加入可堆疊 css 位置，使用@push('foot_css')
--   更多翻譯字段
--   新增一鍵生成演示文章功能，方便開發
--   [開發者] 新增第 4 個常用簡稱涵數 gpto (getPageTemplateOption)，用於在 page 頁面中，獲取個別頁面參數
+- 菜單項目可以新增描述
+- [開發者] 新增 Wiget 系統，用於建立 Page template，增加可重用性
+- [開發者] 初引入 Sortable JS 插件
+- [開發者] 後台 backend.blade.php 加入可堆疊 css 位置，使用@push('foot_css')
+- 更多翻譯字段
+- 新增一鍵生成演示文章功能，方便開發
+- [開發者] 新增第 4 個常用簡稱涵數 gpto (getPageTemplateOption)，用於在 page 頁面中，獲取個別頁面參數
 
 ### 修復
 
--   修復 Ajax 聯絡表單返回訊息， 成功建立 改為 成功提交
+- 修復 Ajax 聯絡表單返回訊息， 成功建立 改為 成功提交
 
 ### 優化
 
--   頁面樊組 option 欄位由 json 類型改為 text 類型，防止自動排序
--   修改單頁加載順序， template > plain > static ，都沒有就跳轉主頁
--   修正以\#開頭的菜單連結未能正常跳轉錨點
--   修化手機版後台主題設定樣式
--   [開發者] 大幅修改後台 input.blade.php 的判斷條件，為可視化編輯器作準備
+- 頁面樊組 option 欄位由 json 類型改為 text 類型，防止自動排序
+- 修改單頁加載順序， template > plain > static ，都沒有就跳轉主頁
+- 修正以\#開頭的菜單連結未能正常跳轉錨點
+- 修化手機版後台主題設定樣式
+- [開發者] 大幅修改後台 input.blade.php 的判斷條件，為可視化編輯器作準備
 
 ## v3.1.4 2023-11-04
 
 ### 新增
 
--   [開發者] 模版中新增 $wncms 參數，等同於 $wn
--   [開發者] 新增 wncms()->paginateWithLimit() 方法，解決 paginate 不能與 limit 同時使用的問題
--   更多翻譯字
--   緩存讚好數，每日使用排程任務更新到模組 like 欄位，可加速不需要實時讚好數的模組
--   更新 RecordViews 排程任務，可以紀錄任何 collection，例如 visit, like, dislike
--   [開發者] 新增 $wn->addVersion()，不需要再於模版中加上 '?v=' . $wn->getVersion()，新功能輸出時已包括 ?v=
--   引入 applicaion/ld+json 選項，可以 Push 到 `<head>` 中
+- [開發者] 模版中新增 $wncms 參數，等同於 $wn
+- [開發者] 新增 wncms()->paginateWithLimit() 方法，解決 paginate 不能與 limit 同時使用的問題
+- 更多翻譯字
+- 緩存讚好數，每日使用排程任務更新到模組 like 欄位，可加速不需要實時讚好數的模組
+- 更新 RecordViews 排程任務，可以紀錄任何 collection，例如 visit, like, dislike
+- [開發者] 新增 $wn->addVersion()，不需要再於模版中加上 '?v=' . $wn->getVersion()，新功能輸出時已包括 ?v=
+- 引入 applicaion/ld+json 選項，可以 Push 到 `<head>` 中
 
 ### 修復
 
--   修復 3.1.3 更新後，部分頁面未能讀取內容
+- 修復 3.1.3 更新後，部分頁面未能讀取內容
 
 ### 優化
 
--   預設主題 `<title>` 從「首頁」改為網站名稱
--   優化新增同名權限時的提示，不再是報錯，而是提示已有重覆項目
--   [開發者] 重新命名前端視圖中的統計部分 get_view -> get, record_like -> like, record_view -> record
+- 預設主題 `<title>` 從「首頁」改為網站名稱
+- 優化新增同名權限時的提示，不再是報錯，而是提示已有重覆項目
+- [開發者] 重新命名前端視圖中的統計部分 get_view -> get, record_like -> like, record_view -> record
 
 ## v3.1.3 2023-10-31
 
 ### 新增
 
--   更新後台菜單模組圖標
--   新增從文字中提取域名
--   廣告更換為可以設定永久廣告
--   [開發者] 新增頁面模版功能，開發者可建立 Blade 檔案，用於頁面管理中，一鍵生成頁面
--   修復顏色表選項不顯示當前值
--   新增菜單 Tag 項目可以一鍵獲取多國語言功能，獲取後仍然可以自訂各語言顯示文字
--   新增更多預設廣告位置
--   [開發者] 新增日期標示模塊 resources/views/common/table_date.blade.php ，根據日期與當前時間的距離，以不同顏色標示
--   [開發者] 新判斷某連結是否與當前頁面連結相同，wncms()->isActiveUrl()
--   新增更多翻字段
--   新增文章排行榜功能 /psots/rank, /post/rank/{$period} ，可以按日週月年總排列
--   [開發者] 新增 WnMediaTraits，暫時只有 1 個功能，$this->addThumbnailFromRequest()，可以直接從 request 中上傳圖片
--   [開發者] WnTgTraits 新增 getFirstTag() 功能，以獲取任何 Model 的第一個 Tag
--   [開發者] CacheHelper 新 get() 和 put() 功能
--   [開發者] MenuHelper 新增以輸出 theme_page 連結，與 external_link 差不多
--   新增一鍵複製廣告功
+- 更新後台菜單模組圖標
+- 新增從文字中提取域名
+- 廣告更換為可以設定永久廣告
+- [開發者] 新增頁面模版功能，開發者可建立 Blade 檔案，用於頁面管理中，一鍵生成頁面
+- 修復顏色表選項不顯示當前值
+- 新增菜單 Tag 項目可以一鍵獲取多國語言功能，獲取後仍然可以自訂各語言顯示文字
+- 新增更多預設廣告位置
+- [開發者] 新增日期標示模塊 resources/views/common/table_date.blade.php ，根據日期與當前時間的距離，以不同顏色標示
+- [開發者] 新判斷某連結是否與當前頁面連結相同，wncms()->isActiveUrl()
+- 新增更多翻字段
+- 新增文章排行榜功能 /psots/rank, /post/rank/{$period} ，可以按日週月年總排列
+- [開發者] 新增 WnMediaTraits，暫時只有 1 個功能，$this->addThumbnailFromRequest()，可以直接從 request 中上傳圖片
+- [開發者] WnTgTraits 新增 getFirstTag() 功能，以獲取任何 Model 的第一個 Tag
+- [開發者] CacheHelper 新 get() 和 put() 功能
+- [開發者] MenuHelper 新增以輸出 theme_page 連結，與 external_link 差不多
+- 新增一鍵複製廣告功
 
 ### 修復
 
--   [開發者] 修復更新 Laravel 版本後，Stub 文件被覆蓋，導致模組生成器模版還原為設設
--   修復會員後面版錯誤
--   修復開啟緩存時，Tag 分頁只顯示第 1 頁緩存問題
--   修復部分模組，管理員沒有初始權限問題
--   修復菜單項目更新後，排序可能會亂掉問題
+- [開發者] 修復更新 Laravel 版本後，Stub 文件被覆蓋，導致模組生成器模版還原為設設
+- 修復會員後面版錯誤
+- 修復開啟緩存時，Tag 分頁只顯示第 1 頁緩存問題
+- 修復部分模組，管理員沒有初始權限問題
+- 修復菜單項目更新後，排序可能會亂掉問題
 
 ### 優化
 
--   [開發者] 優代從字段中獲取連結功能，可選擇保留 www， wncms()->getDomainFromString($string, $includePort = true, $preserveWWW = false)
+- [開發者] 優代從字段中獲取連結功能，可選擇保留 www， wncms()->getDomainFromString($string, $includePort = true, $preserveWWW = false)
 
 ## v3.1.2 2023-10-28
 
 ### 新增
 
--   使用新的 Redis 緩存庫，可以清理個別標籤
--   新增後台一鍵清理緩存功能
--   [開發者] 新增從 String 獲取域名+端口的方法，wncms()->getDomainFromString()
+- 使用新的 Redis 緩存庫，可以清理個別標籤
+- 新增後台一鍵清理緩存功能
+- [開發者] 新增從 String 獲取域名+端口的方法，wncms()->getDomainFromString()
 
 ### 優化
 
--   [開發者] 整理代碼
--   [開發者] Theme helper 修改為不受緩存設定影響，即使關閉緩存，仍然會套用數據緩存的時間，預設為 3600 秒，以防閉閉緩存後，一個頁面請求幾十次數據庫只為了讀取主題設定
--   [開發者] 更新 CSRF 路徑
--   修復主題設定中，Tinymce 編輯器無效
--   [開發者] TagHelper 中，getList() 新增可以只獲取父級分 Tag
--   更新文章 AP
--   更新 WNCMS 安裝程序，簡化流程
+- [開發者] 整理代碼
+- [開發者] Theme helper 修改為不受緩存設定影響，即使關閉緩存，仍然會套用數據緩存的時間，預設為 3600 秒，以防閉閉緩存後，一個頁面請求幾十次數據庫只為了讀取主題設定
+- [開發者] 更新 CSRF 路徑
+- 修復主題設定中，Tinymce 編輯器無效
+- [開發者] TagHelper 中，getList() 新增可以只獲取父級分 Tag
+- 更新文章 AP
+- 更新 WNCMS 安裝程序，簡化流程
 
 ## v3.1.1 2023-10-20
 
 ### 新增
 
--   重製安裝流程，更簡單快速
--   [開發者] Starter 中的 tagify 欄位，改為可以輸入開關字搜索
--   [開發者] 開發者可以自訂管理員控制台項目
--   [開發者] 開發者可以自訂會員主頁項目
--   添加更多翻譯字段
+- 重製安裝流程，更簡單快速
+- [開發者] Starter 中的 tagify 欄位，改為可以輸入開關字搜索
+- [開發者] 開發者可以自訂管理員控制台項目
+- [開發者] 開發者可以自訂會員主頁項目
+- 添加更多翻譯字段
 
 ### 修復
 
--   修復部分模組未能清除標籤
+- 修復部分模組未能清除標籤
 
 ### 優化
 
--   [開發者] 後台 Sidebar Model 部分重構，開發者可以自訂後台 Model 菜單順序，修改 Model 中的$menuPriority property
--   [開發者] 更新 controller.model.stub
--   重寫註冊會員邏輯
+- [開發者] 後台 Sidebar Model 部分重構，開發者可以自訂後台 Model 菜單順序，修改 Model 中的$menuPriority property
+- [開發者] 更新 controller.model.stub
+- 重寫註冊會員邏輯
 
 ## v3.0.8 2023-10-18
 
 ### 新增
 
--   [開發者] 更新 Wncms core class，可以任意配額參數 $wn->anything = 'something';
--   [開發者] 更新 Wncms core class，更有效重用 Helper Classes
+- [開發者] 更新 Wncms core class，可以任意配額參數 $wn->anything = 'something';
+- [開發者] 更新 Wncms core class，更有效重用 Helper Classes
 
 ## v3.0.7 2023-10-17
 
 ### 新增
 
--   聯絡表單新增批量處理功能，可以批量設為已讀，批量設為未讀，批量設為已回覆
--   新增網站級的緩存
--   新增備用域名系統
--   部分後台頁面開始增加數據數量資訊，例如總數，及當前正在顯示第幾條數據
--   新增廣告模組
+- 聯絡表單新增批量處理功能，可以批量設為已讀，批量設為未讀，批量設為已回覆
+- 新增網站級的緩存
+- 新增備用域名系統
+- 部分後台頁面開始增加數據數量資訊，例如總數，及當前正在顯示第幾條數據
+- 新增廣告模組
 
 ### 優化
 
--   更新 Ajax 按鈕發送數據模式
--   優化系統設定緩存
--   升級 tinymce 編輯器，使用 cloudflare CDN
+- 更新 Ajax 按鈕發送數據模式
+- 優化系統設定緩存
+- 升級 tinymce 編輯器，使用 cloudflare CDN
 
 ## v3.0.6 2023-10-09
 
 ### 新增
 
--   新增更多翻譯字段
--   [開發者] 新增 table_url Blade 視圖
--   [開發者] webphp 路遊新增演示模組
--   [開發者] starter/index.bade.php 視圖新增再製按鈕
--   [開發者] Tag 模組新增 WnTagTraits 特徵，增 getAvailableTypes()，可以獲取分類法列表 ['post_tag', 'video_category', etc]
+- 新增更多翻譯字段
+- [開發者] 新增 table_url Blade 視圖
+- [開發者] webphp 路遊新增演示模組
+- [開發者] starter/index.bade.php 視圖新增再製按鈕
+- [開發者] Tag 模組新增 WnTagTraits 特徵，增 getAvailableTypes()，可以獲取分類法列表 ['post_tag', 'video_category', etc]
 
 ## v3.0.5 2023-10-07
 
 ### 新增
 
--   檢查自定模組是否存在 (Custom{Model}Traits.php)
+- 檢查自定模組是否存在 (Custom{Model}Traits.php)
 
 ## v3.0.4 2023-10-07
 
 ### 修復
 
--   修復部分模組小問題
+- 修復部分模組小問題
 
 ### 優化
 
--   優化後台 UI
+- 優化後台 UI
 
 ## v3.0.3 2023-10-06
 
 ### 優化
 
--   更新文章模組，修復會員權限問題
--   移動 Trait 目錄到 Ap 目錄下
+- 更新文章模組，修復會員權限問題
+- 移動 Trait 目錄到 Ap 目錄下
 
 ## v3.0.2 2023-09-30
 
 ### 新增
 
--   新增 Page 類型 (純文字類型，由編輯器製作的模版，由主題提供的模版)
+- 新增 Page 類型 (純文字類型，由編輯器製作的模版，由主題提供的模版)
 
 ## 2.0.0 2021-07-28
 
--   全新版本發行! (相關更新紀錄已隱藏)
+- 全新版本發行! (相關更新紀錄已隱藏)
 
 ## 1.0.0 2019-03-01
 
--   首版本發行 (相關更新紀錄已隱藏)
+- 首版本發行 (相關更新紀錄已隱藏)
