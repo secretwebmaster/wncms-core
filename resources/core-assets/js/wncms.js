@@ -328,12 +328,12 @@ var WNCMS = {
                 if (response.restoreBtn !== false) button.prop("disabled", false);
 
                 // Get the custom success action function name from the button attribute
-                const successActionName = button.data("success-action");
-                if (successActionName && typeof window[successActionName] === "function") {
-                    window[successActionName]();
+                const customSuccessAction = button.data("success-action");
+                if (customSuccessAction && typeof window[customSuccessAction] === "function") {
+                    window[customSuccessAction](response, button);
                 } else {
                     console.log("no custom success action is found");
-                    console.log(typeof successActionName);
+                    console.log(typeof customSuccessAction);
                 }
 
                 console.log("end successAction, check if reload");
@@ -346,9 +346,11 @@ var WNCMS = {
                 if (response.failRedirect) location.href = response.failRedirect;
                 if (response.restoreBtn !== false) button.prop("disabled", false);
 
+                const customFailAction = button.data("fail-action");
+
                 //custom fail action
-                if (typeof customFailAction === "function") {
-                    customFailAction(response);
+                if (typeof window[customFailAction] === "function") {
+                    window[customFailAction](response, button);
                 } else {
                     console.log("no custom fail action is found");
                     console.log(typeof customFailAction);
