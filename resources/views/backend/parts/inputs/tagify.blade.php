@@ -296,7 +296,7 @@
     <input id="tagify_{{ $optionIndex }}"
         class="form-control form-control-sm p-0"
         name="{{ $inputName }}"
-        value="{{ $currentOptions[$option['name']] }}"
+        value="{{ $currentValue }}"
         @if (!empty($option['required'])) required @endif
         @disabled(!empty($option['disabled']) || !empty($disabled)) />
 

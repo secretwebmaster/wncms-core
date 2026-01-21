@@ -23,7 +23,7 @@
                 'routes' => array_map(fn($route) => $snake_name . '_' . $route, $model::ROUTES),
                 'table_name' => $table_name,
                 'snake_name' => $snake_name,
-                'model_key' => $model::$modelKey,
+                'model_key' => defined(get_class($model) . "::MODEL_KEY") ? $model::MODEL_KEY : null,
                 'icon' => defined(get_class($model) . "::ICONS") && !empty($model::ICONS['fontawesome']) ? $model::ICONS['fontawesome'] : 'fa-solid fa-cube',
                 'sub_routes' => [],
             ];
