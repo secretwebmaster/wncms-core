@@ -2277,6 +2277,19 @@ $words = [
     'enter_url_to_generate_affiliate_link' => '输入原始网址以生成推广链接',
     'affiliate_url' => '推广链接',
 
+    // 6.1.1
+    'invalid_themes_are_found' => '发现无效主题',
+    'default_theme_cannot_be_deleted' => '无法删除默认主题',
+
+    // 6.1.5
+    'enable_translation' => '启用翻译',
+    'default_locale' => '默认语言',
+    'use_accept_language_header' => '自动检测浏览器语言',
+    'hide_default_locale_in_url' => '在 URL 路径中隐藏默认语言代码',
+    'app_locale' => '网站默认语言',
+    'translation_setting' => '翻译设置',
+    'use_locales_mapping' => '使用语言映射表',
+    'use_locales_mapping_description' => '启用后，URL 将显示简短语言代码，例如 cn → zh_CN、tw → zh_TW',
 ];
 
 $locale = basename(__DIR__);

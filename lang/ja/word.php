@@ -2277,6 +2277,19 @@ $words = [
     'enter_url_to_generate_affiliate_link' => '元のURLを入力してアフィリエイトリンクを生成',
     'affiliate_url' => 'アフィリエイトURL',
 
+    // 6.1.1
+    'invalid_themes_are_found' => 'Invalid themes found',
+    'default_theme_cannot_be_deleted' => 'The default theme cannot be deleted',
+
+    // 6.1.5
+    'enable_translation' => 'Enable translation',
+    'default_locale' => 'Default locale',
+    'use_accept_language_header' => 'Automatically detect browser language',
+    'hide_default_locale_in_url' => 'Hide default locale code in URL path',
+    'app_locale' => 'Site default language',
+    'translation_setting' => 'Translation settings',
+    'use_locales_mapping' => 'Use locale mapping',
+    'use_locales_mapping_description' => 'When enabled, URLs will use short locale codes, for example cn → zh_CN, tw → zh_TW',
 ];
 
 $locale = basename(__DIR__);

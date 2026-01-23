@@ -2281,6 +2281,15 @@ $words = [
     'invalid_themes_are_found' => '發現無效主題',
     'default_theme_cannot_be_deleted' => '無法刪除預設主題',
 
+    // 6.1.5
+    'enable_translation' => '啟用翻譯',
+    'default_locale' => '預設語言',
+    'use_accept_language_header' => '自動偵測瀏覽器語言',
+    'hide_default_locale_in_url' => '在URL路徑中隱藏預設語言代碼',
+    'app_locale' => '網站預設語言',
+    'translation_setting' => '翻譯設定',
+    'use_locales_mapping' => '使用語言對應表',
+    'use_locales_mapping_description' => '啟用後，URL 會顯示簡短的語言代碼，例如 cn → zh_CN、tw → zh_TW',
 ];
 
 $locale = basename(__DIR__);
