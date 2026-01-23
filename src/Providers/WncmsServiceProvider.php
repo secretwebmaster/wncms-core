@@ -46,9 +46,6 @@ class WncmsServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../../config/theme/default.php', 'theme.default');
         $this->mergeConfigFrom(__DIR__ . '/../../config/theme/starter.php', 'theme.starter');
 
-        // Ensure fallback and DB-based system settings
-        $this->loadSystemSettings();
-
         // Register ViewServiceProvider
         $this->app->register(\Wncms\Providers\ViewServiceProvider::class);
 
@@ -63,6 +60,10 @@ class WncmsServiceProvider extends ServiceProvider
     {
         define('WNCMS_CORE_PATH', base_path('vendor/secretwebmaster/wncms-core/'));
         config('app.debug') ? error_reporting(E_ALL) : error_reporting(0);
+
+        // IMPORTANT: Load system settings FIRST before routes/middleware
+        // This ensures LaravelLocalization gets the correct default locale from database
+        $this->loadSystemSettings();
 
         // Middleware aliases
         $router = $this->app['router'];
@@ -130,15 +131,24 @@ class WncmsServiceProvider extends ServiceProvider
 
         // Database-based settings (only after installation)
         if (function_exists('wncms_is_installed') && wncms_is_installed()) {
+
+            // Multi-website mode
             config([
                 'multi_website' => gss('multi_website', config('wncms.multi_website', false)),
                 'filesystems.disks.public.url' => url('/storage'),
             ]);
 
-            // Load app locale from database and override Laravel's locale
-            if ($locale = gss('app_locale')) {
-                app()->setLocale($locale);
-                config(['app.locale' => $locale]);
+            // Multiple locales support
+            if (gss('enable_translation', true)) {
+                // $defaultLocale = gss('app_locale', config('app.locale'));
+
+                config([
+                    // 'app.locale' => $defaultLocale,
+                    'laravellocalization.hideDefaultLocaleInURL' => gss('hide_default_locale_in_url', config('laravellocalization.hideDefaultLocaleInURL', false)),
+                    'laravellocalization.useAcceptLanguageHeader' => gss('use_accept_language_header', config('laravellocalization.useAcceptLanguageHeader', false)),
+                ]);
+
+                app()->setLocale(config('app.locale'));
             }
         }
     }

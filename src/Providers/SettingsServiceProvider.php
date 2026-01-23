@@ -55,12 +55,6 @@ class SettingsServiceProvider extends ServiceProvider
                 'client_secret' => gss('paypal_mode') == 'sandbox' ? gss('paypal_sandbox_client_secret') : gss('paypal_client_secret'),
                 'webhook_id' => gss('paypal_mode') == 'sandbox' ? gss('paypal_sandbox_webhook_id') : gss('paypal_webhook_id'),
             ]]);
-
-            // language
-            config([
-                'laravellocalization.useAcceptLanguageHeader' => gss('laravellocalization_use_accept_language_header', false),
-            ]);
-            
         } catch (\Exception $e) {
         }
     }
