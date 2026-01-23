@@ -1,5 +1,17 @@
 # Changelog
 
+## v6.1.5 2026-01-24
+
+- Added translation toggle (enable_translation) to quickly enable/disable multilingual routes and UI
+- Added URL locale mapping (localesMapping) to support short codes like cn → zh_CN and tw → zh_TW
+- Refactored backend settings page: field descriptions now use tooltips and a shared label component
+- Fixed gss() not returning fallback value on exception to prevent settings read issues
+- Fixed slug / tracking_code fallback when input is an empty string
+- Adjusted ServiceProvider boot order to load system settings before registering routes and middleware
+- Backend language switch button now shows/hides based on enable_translation
+- Localization route group now applies middleware and prefix dynamically based on enable_translation
+- Minor backend UI improvements (footer wrapping, form card border styles)
+
 ## v6.1.4 2026-01-21
 
 - Align installer environment variables with Laravel 11+ (broadcast_connection, LOG_LEVEL)

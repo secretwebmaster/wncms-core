@@ -1,5 +1,17 @@
 # 更新履歴
 
+## v6.1.5 2026-01-24
+
+- 翻訳機能の切り替え（enable_translation）を追加し、多言語ルートとUIを簡単に有効/無効化可能に
+- URLロケールマッピング（localesMapping）を追加し、cn → zh_CN、tw → zh_TW の短縮コードに対応
+- 管理画面の設定ページをリファクタし、説明文を tooltip 表示に変更し共通 label コンポーネントを追加
+- gss() が例外時に fallback を返さない問題を修正し、設定取得の異常を防止
+- slug / tracking_code が空文字のときに自動 fallback されない問題を修正
+- ServiceProvider の起動順を調整し、ルートとミドルウェア登録前にシステム設定を先に読み込み
+- 管理画面の言語切り替えボタンを enable_translation に応じて表示/非表示
+- 多言語ルートグループの middleware と prefix を enable_translation に応じて動的に適用
+- 管理画面UIの細部調整（フッターの折り返し、フォームカードの枠線スタイル）
+
 ## v6.1.4 2026-01-21
 
 - インストーラの環境変数を Laravel 11+ に対応（broadcast_connection、LOG_LEVEL）

@@ -1,5 +1,17 @@
 # 更新日志
 
+## v6.1.5 2026-01-24
+
+- 新增翻译功能开关（enable_translation），可一键启用/停用多语言路由与界面
+- 新增 URL 语言代码映射（localesMapping），支持 cn → zh_CN、tw → zh_TW 短代码
+- 后台设置页面重构，字段说明改用 tooltip 显示，并抽出通用 label 组件
+- 修复 gss() 异常时未返回 fallback 的问题，避免设置读取异常
+- 修复 slug / tracking_code 为空字符串时无法自动 fallback 的问题
+- 调整 ServiceProvider 加载顺序，确保系统设置先加载再注册路由与中间件
+- 后台语言切换按钮支持根据 enable_translation 显示/隐藏
+- 多语言路由组支持根据 enable_translation 动态套用 middleware 与 prefix
+- 后台 UI 细节调整（footer 换行、表单卡片边框样式）
+
 ## v6.1.4 2026-01-21
 
 - 安装流程环境变量对齐 Laravel 11+（broadcast_connection、LOG_LEVEL）
