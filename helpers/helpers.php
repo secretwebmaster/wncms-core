@@ -25,6 +25,7 @@ if (!function_exists('gss')) {
         } catch (\Exception $e) {
             if (wncms_is_installed()) {
                 logger()->error("Call gss error. key: $key");
+                return $fallback;
             }
         }
     }
@@ -74,6 +75,7 @@ if (!function_exists('gto')) {
     }
 }
 
+//% Depracated soon
 if (!function_exists('isAdmin')) {
     /**
      * ----------------------------------------------------------------------------------------------------
