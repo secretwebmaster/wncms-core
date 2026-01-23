@@ -159,7 +159,7 @@ class PageController extends BackendController
             'status' => $request->input('status'),
             'visibility' => $request->input('visibility'),
             'title' => $request->input('title'),
-            'slug' => $request->input('slug') ?? wncms()->getUniqueSlug('pages'),
+            'slug' => $request->input('slug') ?: wncms()->getUniqueSlug('pages'),
             'remark' => $request->input('remark'),
             'content' => $request->input('content'),
             'type' => $request->input('type') ?: 'plain',

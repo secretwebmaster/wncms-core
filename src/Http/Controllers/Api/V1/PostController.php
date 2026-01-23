@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Wncms\Http\Controllers\Api\V1\ApiController;
 use Wncms\Http\Resources\PostResource;
-use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class PostController extends ApiController
 {
@@ -18,7 +17,7 @@ class PostController extends ApiController
             'status' => $request->input('status', 'published'),
             'visibility' => $request->input('visibility', 'public'),
             'external_thumbnail' => $request->input('external_thumbnail'),
-            'slug' => $request->input('slug', wncms()->getUniqueSlug('posts')),
+            'slug' => $request->input('slug') ?: wncms()->getUniqueSlug('posts'),
             'title' => $request->input('title'),
             'label' => $request->input('label'),
             'excerpt' => $request->input('excerpt'),

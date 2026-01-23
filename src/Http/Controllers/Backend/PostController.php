@@ -124,7 +124,7 @@ class PostController extends BackendController
             'status' => $request->input('status'),
             'visibility' => $request->input('visibility'),
             'external_thumbnail' => $request->input('external_thumbnail'),
-            'slug' => $request->input('slug', wncms()->getUniqueSlug('posts')),
+            'slug' => $request->input('slug') ?: wncms()->getUniqueSlug('posts'),
             'title' => $request->input('title'),
             'label' => $request->input('label'),
             'excerpt' => $request->input('excerpt'),

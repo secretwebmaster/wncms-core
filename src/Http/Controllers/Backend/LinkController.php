@@ -85,8 +85,8 @@ class LinkController extends BackendController
 
         $link = $this->modelClass::create([
             'status' => $request->input('status'),
-            'tracking_code' => $request->input('tracking_code') ?? $uid,
-            'slug' => $request->input('slug') ?? $uid,
+            'tracking_code' => $request->input('tracking_code') ?: $uid,
+            'slug' => $request->input('slug') ?: $uid,
             'name' => $request->input('name'),
             'url' => $request->input('url'),
             'slogan' => $request->input('slogan'),
@@ -157,7 +157,7 @@ class LinkController extends BackendController
         $link->update([
             'status' => $request->input('status'),
             'tracking_code' => $request->input('tracking_code') ?? $link->tracking_code,
-            'slug' => $request->input('slug') ?? $link->slug,
+            'slug' => $request->input('slug') ?: $link->slug,
             'name' => $request->input('name'),
             'url' => $request->input('url'),
             'slogan' => $request->input('slogan'),
