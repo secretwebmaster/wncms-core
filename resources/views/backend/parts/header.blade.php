@@ -283,6 +283,7 @@
                 </div>
                 
                 {{-- Language --}}
+                @if(gss('enable_translation', true))
                 <div class="app-navbar-item ms-1 ms-lg-3">
                     {{-- button --}}
                     <a href="#" class="btn btn-icon btn-custom btn-icon-muted btn-active-light btn-active-color-primary w-25px h-25px w-md-40px h-md-40px" data-kt-menu-trigger="{default:'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
@@ -301,6 +302,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 {{-- User Menu --}}
                 @auth
