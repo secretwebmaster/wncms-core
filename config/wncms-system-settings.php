@@ -6,21 +6,12 @@ return [
         'tab_content' => [
             ['type' => 'text', 'name' => 'core_version', 'disabled' => 'true'],
             ['type' => 'switch', 'name' => 'disable_core_update'],
-            ['type' => 'switch', 'name' => 'check_beta_functions', 'badge'=>'Beta'],
-            ['type' => 'switch', 'name' => 'show_developer_hints', 'badge'=>'Dev'],
+            ['type' => 'switch', 'name' => 'check_beta_functions', 'badge' => 'Beta'],
+            ['type' => 'switch', 'name' => 'show_developer_hints', 'badge' => 'Dev'],
             ['type' => 'switch', 'name' => 'superadmin_mode'],
             ['type' => 'switch', 'name' => 'force_https'],
             ['type' => 'switch', 'name' => 'multi_website'],
             // ['type' => 'image', 'name' => 'system_logo'],
-            // [
-            //     'type' => 'select',
-            //     'name' => 'locale',
-            //     'options' => collect(config('laravellocalization.supportedLocales'))
-            //         ->mapWithKeys(fn($val, $key) => [$key => $val['native']])
-            //         ->toArray(),
-            //     'translate_option' => false,
-            // ],
-            ['type' => 'switch', 'name' => 'laravellocalization_use_accept_language_header'],
             ['type' => 'text', 'name' => 'system_name'],
             ['type' => 'text', 'name' => 'system_description'],
             ['type' => 'text', 'name' => 'system_keyword'],
@@ -89,16 +80,6 @@ return [
             ['type' => 'switch', 'name' => 'localize_post_image'],
         ]
     ],
-    // 'api' => [
-    //     'tab_name' => 'api',
-    //     'tab_content' => [
-    //         ['type' => 'switch', 'name' => 'enable_api_access'],
-    //         ['type' => 'switch', 'name' => 'enable_api_post_index'],
-    //         ['type' => 'switch', 'name' => 'enable_api_post_store'],
-    //         ['type' => 'switch', 'name' => 'enable_api_post_show'],
-    //         ['type' => 'switch', 'name' => 'enable_api_tag_store'],
-    //     ]
-    // ],
     'content' => [
         'tab_name' => 'content',
         'tab_content' => [
@@ -131,4 +112,14 @@ return [
             ['type' => 'number', 'name' => 'other_count_cooldown'],
         ]
     ],
+    // 'translation' => [
+    //     'tab_name' => 'translation',
+    //     'tab_content' => [
+    //         ['type' => 'switch', 'name' => 'enable_translation'],
+    //         ['type' => 'select', 'name' => 'app_locale', 'options' => 'supported_locales'],
+    //         ['type' => 'switch', 'name' => 'use_accept_language_header'],
+    //         ['type' => 'switch', 'name' => 'hide_default_locale_in_url'],
+    //         ['type' => 'switch', 'name' => 'use_locales_mapping'],
+    //     ]
+    // ],
 ];

@@ -36,6 +36,12 @@ class SettingSeeder extends Seeder
             'multi_website' => false,
             'disable_registration' => true,
             'disable_core_update' => true,
+
+            // localization
+            'enable_translation' => false,
+            'use_accept_language_header' => false,
+            'hide_default_locale_in_url' => true,
+            'use_locales_mapping' => true,
         ];
     }
 }
