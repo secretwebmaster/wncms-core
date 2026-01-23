@@ -69,10 +69,10 @@
 
     <form class="form" method="POST" action="{{ route('websites.theme.options.update', $_website) }}" enctype="multipart/form-data">
 
-        <div class="card show">
+        <div class="card">
             @csrf
             @method('PUT')
-            <div class="card-body border-top px-5 py-3">
+            <div class="card-body border border-3 border-dark rounded px-5 py-3 mt-0">
 
                 <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6">
                     @foreach ($option_tabs ?? [] as $tab_name => $options)

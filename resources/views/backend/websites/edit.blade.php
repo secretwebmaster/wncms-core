@@ -4,7 +4,7 @@
 
 @include('wncms::backend.parts.message')
 
-<div class="card">
+<div class="card border border-3 border-dark">
     <form class="form" method="POST" action="{{ route('websites.update' , $website) }}" enctype="multipart/form-data">
         @csrf
         @method('PATCH')
