@@ -11,7 +11,7 @@
     "require": {
         "php": "^8.2",
         "laravel/framework": "^12.0",
-        "secretwebmaster/laravel-localization": "^2.3.0",
+        "secretwebmaster/laravel-localization": "^2.3.0.5",
         "spatie/laravel-medialibrary": "^11.9",
         "spatie/laravel-permission": "^6.9",
         "secretwebmaster/wncms-tags": "^1.7.0",
