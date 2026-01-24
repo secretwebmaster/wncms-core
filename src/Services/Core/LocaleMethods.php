@@ -25,4 +25,18 @@ trait LocaleMethods
     {
         return LaravelLocalization::getSupportedLocales();
     }
+
+    public function setDefaultLocale($locale)
+    {
+        return LaravelLocalization::setDefaultLocale($locale);
+    }
+
+    /**
+     * Enable or disable locale alias mapping at runtime.
+     * Pass [] to fully disable mapping.
+     */
+    public function setLocalesMapping(array $mapping): void
+    {
+        LaravelLocalization::setLocalesMapping($mapping);
+    }
 }

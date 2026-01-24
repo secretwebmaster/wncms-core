@@ -61,9 +61,9 @@ class WncmsServiceProvider extends ServiceProvider
         define('WNCMS_CORE_PATH', base_path('vendor/secretwebmaster/wncms-core/'));
         config('app.debug') ? error_reporting(E_ALL) : error_reporting(0);
 
-        // IMPORTANT: Load system settings FIRST before routes/middleware
-        // This ensures LaravelLocalization gets the correct default locale from database
         $this->loadSystemSettings();
+
+        $this->loadTranslationSettings();
 
         // Middleware aliases
         $router = $this->app['router'];
@@ -128,30 +128,32 @@ class WncmsServiceProvider extends ServiceProvider
 
         // Base filesystem overrides
         config(['filesystems.disks' => $disks]);
-
-        // Database-based settings (only after installation)
-        if (function_exists('wncms_is_installed') && wncms_is_installed()) {
-
-            // Multi-website mode
-            config([
-                'multi_website' => gss('multi_website', config('wncms.multi_website', false)),
-                'filesystems.disks.public.url' => url('/storage'),
-            ]);
-
-            // Multiple locales support
-            if (gss('enable_translation', true)) {
-                // $defaultLocale = gss('app_locale', config('app.locale'));
-
-                config([
-                    // 'app.locale' => $defaultLocale,
-                    'laravellocalization.hideDefaultLocaleInURL' => gss('hide_default_locale_in_url', config('laravellocalization.hideDefaultLocaleInURL', false)),
-                    'laravellocalization.useAcceptLanguageHeader' => gss('use_accept_language_header', config('laravellocalization.useAcceptLanguageHeader', false)),
-                ]);
-
-                app()->setLocale(config('app.locale'));
-            }
-        }
     }
+
+    protected function loadTranslationSettings(): void
+    {
+        if (!function_exists('wncms_is_installed') || !wncms_is_installed()) {
+            return;
+        }
+
+        if (!gss('enable_translation', true)) {
+            return;
+        }
+
+        $locale = gss('app_locale', config('app.locale'));
+
+        // override runtime config
+        config([
+            'app.locale' => $locale,
+            'laravellocalization.hideDefaultLocaleInURL' => gss('hide_default_locale_in_url', config('laravellocalization.hideDefaultLocaleInURL', false)),
+            'laravellocalization.useAcceptLanguageHeader' => gss('use_accept_language_header', config('laravellocalization.useAcceptLanguageHeader', false)),
+        ]);
+
+        wncms()->setDefaultLocale($locale);
+
+        wncms()->setLocalesMapping(gss('use_locales_mapping', false) ? config('laravellocalization.localesMapping', []) : []);
+    }
+
 
     /**
      * Setup shared view variables and composers.
