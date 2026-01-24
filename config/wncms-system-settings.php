@@ -112,14 +112,14 @@ return [
             ['type' => 'number', 'name' => 'other_count_cooldown'],
         ]
     ],
-    // 'translation' => [
-    //     'tab_name' => 'translation',
-    //     'tab_content' => [
-    //         ['type' => 'switch', 'name' => 'enable_translation'],
-    //         ['type' => 'select', 'name' => 'app_locale', 'options' => 'supported_locales'],
-    //         ['type' => 'switch', 'name' => 'use_accept_language_header'],
-    //         ['type' => 'switch', 'name' => 'hide_default_locale_in_url'],
-    //         ['type' => 'switch', 'name' => 'use_locales_mapping'],
-    //     ]
-    // ],
+    'translation' => [
+        'tab_name' => 'translation',
+        'tab_content' => [
+            ['type' => 'switch', 'name' => 'enable_translation'],
+            ['type' => 'select', 'name' => 'app_locale', 'options' => 'supported_locales'],
+            ['type' => 'switch', 'name' => 'use_accept_language_header'],
+            ['type' => 'switch', 'name' => 'hide_default_locale_in_url'],
+            ['type' => 'switch', 'name' => 'use_locales_mapping'],
+        ]
+    ],
 ];

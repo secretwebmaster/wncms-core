@@ -2278,18 +2278,18 @@ $words = [
     'affiliate_url' => 'Affiliate URL',
 
     // 6.1.1
-    'invalid_themes_are_found' => '無効なテーマが見つかりました',
-    'default_theme_cannot_be_deleted' => 'デフォルトテーマは削除できません',
+    'invalid_themes_are_found' => 'Invalid themes found',
+    'default_theme_cannot_be_deleted' => 'The default theme cannot be deleted',
 
     // 6.1.5
-    'enable_translation' => '翻訳を有効にする',
-    'default_locale' => 'デフォルト言語',
-    'use_accept_language_header' => 'ブラウザの言語を自動検出',
-    'hide_default_locale_in_url' => 'URL パスからデフォルト言語コードを非表示にする',
-    'app_locale' => 'サイトのデフォルト言語',
-    'translation_setting' => '翻訳設定',
-    'use_locales_mapping' => '言語マッピングを使用する',
-    'use_locales_mapping_description' => '有効にすると、URL には短い言語コードが表示されます。例：cn → zh_CN、tw → zh_TW',
+    'enable_translation' => 'Enable translation',
+    'default_locale' => 'Default locale',
+    'use_accept_language_header' => 'Automatically detect browser language',
+    'hide_default_locale_in_url' => 'Hide default locale code in URL path',
+    'app_locale' => 'Site default language',
+    'translation_setting' => 'Translation settings',
+    'use_locales_mapping' => 'Use locale mapping',
+    'use_locales_mapping_description' => 'When enabled, URLs will use short locale codes, for example cn → zh_CN, tw → zh_TW',
 ];
 
 $locale = basename(__DIR__);
