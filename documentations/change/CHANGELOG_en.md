@@ -1,5 +1,11 @@
 # Changelog
 
+## v6.1.6 2026-01-24
+
+- Improve how multilingual settings are applied: changes made in the admin panel take effect on the site more reliably
+- Improve short locale URLs (cn / tw) and default-locale detection to avoid inconsistent multilingual routing in some cases
+- Improve the translation settings page and wording in the admin panel: more complete UI and more consistent terms
+
 ## v6.1.5 2026-01-24
 
 - Added translation toggle (enable_translation) to quickly enable/disable multilingual routes and UI
