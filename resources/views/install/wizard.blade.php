@@ -50,7 +50,7 @@
 
             <input type="hidden" name="app_env" value="production">
             <input type="hidden" name="app_debug" value="false">
-            <input type="hidden" name="app_log_level" value="{{ old('app_log_level','info') }}">
+            <input type="hidden" name="log_level" value="{{ old('log_level','info') }}">
 
             {{-- App URL --}}
             <div class="form-group {{ $errors->has('app_url') ? ' has-error ' : '' }}">

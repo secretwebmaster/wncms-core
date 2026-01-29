@@ -2290,6 +2290,10 @@ $words = [
     'translation_setting' => '翻譯設定',
     'use_locales_mapping' => '使用語言對應表',
     'use_locales_mapping_description' => '啟用後，URL 會顯示簡短的語言代碼，例如 cn → zh_CN、tw → zh_TW',
+
+    // 6.1.7
+    'wncms_official_doc' => '官方文檔',
+    'webmaster_resource' => '站長資源',
 ];
 
 $locale = basename(__DIR__);

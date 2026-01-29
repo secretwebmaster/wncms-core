@@ -12,7 +12,7 @@ return [
     | by looping through the array and run "extension_loaded" on it.
     |
     */
-    'version'=>'6.1.6',
+    'version'=>'6.1.7',
     'core' => [
         'minPhpVersion' => '8.2.0+',
     ],
@@ -73,7 +73,7 @@ return [
                 'app_env' => 'required|string|max:50',
                 'environment_custom' => 'required_if:app_env,other|max:50',
                 'app_debug' => 'required|string',
-                'app_log_level' => 'required|string|max:50',
+                'log_level' => 'required|string|max:50',
                 'app_url' => 'required|url',
                 'database_connection' => 'required|string|max:50',
                 'database_hostname' => 'required|string|max:50',

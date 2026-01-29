@@ -24,7 +24,7 @@ class Install extends Command
      *   --app_locale=
      *   --app_env=
      *   --app_debug=
-     *   --app_log_level=
+     *   --log_level=
      *   --broadcast_connection=
      *   --cache_store=
      *   --session_driver=
@@ -56,7 +56,7 @@ class Install extends Command
         {--app_locale=}
         {--app_env=}
         {--app_debug=}
-        {--app_log_level=}
+        {--log_level=}
         {--broadcast_connection=}
         {--cache_store=}
         {--session_driver=}
@@ -139,7 +139,7 @@ class Install extends Command
             'app_locale' => $options['app_locale'],
             'app_env' => $options['app_env'],
             'app_debug' => $options['app_debug'],
-            'app_log_level' => $options['app_log_level'],
+            'log_level' => $options['log_level'],
             'broadcast_connection' => $options['broadcast_connection'],
             'cache_store' => $options['cache_store'],
             'session_driver' => $options['session_driver'],
@@ -257,6 +257,16 @@ class Install extends Command
         } else {
             $this->info('Step 6: No domain set. Website model creation skipped.');
         }
+
+        $this->info("__        ___   _  ____ __  __ ____  ");
+        $this->info("\ \      / / \ | |/ ___|  \/  / ___| ");
+        $this->info(" \ \ /\ / /|  \| | |   | |\/| \___ \ ");
+        $this->info("  \ V  V / | |\  | |___| |  | |___) |");
+        $this->info("   \_/\_/  |_| \_|\____|_|  |_|____/ ");
+        $this->info("\nWelcome to WNCMS! Your installation is complete. \n");
+        $this->info('Default admin account:');
+        $this->info('Email: admin@demo.com');
+        $this->info('Password: wncms.cc');
 
         return Command::SUCCESS;
     }
