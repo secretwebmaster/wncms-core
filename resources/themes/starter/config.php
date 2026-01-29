@@ -615,9 +615,30 @@ return [
     ],
 
     /**
-     * Static pages (none for starter)
+     * ----------------------------------------------------------------------------------------------------
+     * Static pages
+     * ----------------------------------------------------------------------------------------------------
+     *
+     * Define custom theme pages that can be added to menus
+     *
+     * Structure:
+     *   'pages' => [
+     *       'page_key' => [
+     *           'label' => 'Display label',  // Label shown in menu editor (not translated)
+     *           'key'   => 'translation_key', // Key used for translation (theme::word.key)
+     *           'route' => 'route.name',      // Laravel route name
+     *           'blade' => 'path.to.blade',   // Blade file path relative to theme views
+     *       ],
+     *   ],
      */
-    'pages' => [],
+    'pages' => [
+        'blog' => [
+            'label' => '部落格頁面',
+            'key'   => 'blog',
+            'route' => 'frontend.pages.blog',
+            'blade' => 'pages.blog',
+        ],
+    ],
 
     /**
      * Dynamic templates (none for starter)
