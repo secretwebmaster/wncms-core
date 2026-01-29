@@ -8,10 +8,11 @@
 
 		<ul class="menu menu-gray-600 menu-hover-primary fw-semibold order-1 flex-wrap justify-content-center">
 			<li class="menu-item"><a href="https://wncms.cc" target="_blank" class="menu-link px-2">@lang('wncms::word.wncms_official_website')</a></li>
-			<li class="menu-item"><a href="https://3dayseo.com" target="_blank" class="menu-link px-2">@lang('wncms::word.wn_official_website')</a></li>
+			<li class="menu-item"><a href="https://doc.wncms.cc" target="_blank" class="menu-link px-2">@lang('wncms::word.wncms_official_doc')</a></li>
+			<li class="menu-item"><a href="https://3dayseo.com" target="_blank" class="menu-link px-2">@lang('wncms::word.webmaster_resource')</a></li>
 			<li class="menu-item"><a href="https://wntheme.com" target="_blank" class="menu-link px-2">@lang('wncms::word.wntheme_official_website')</a></li>
 			<li class="menu-item"><a href="https://t.me/secretwebmaster" target="_blank" class="menu-link px-2">@lang('wncms::word.live_support')</a></li>
-			<li class="menu-item"><a href="https://t.me/secretwebmaster" target="_blank" class="menu-link px-2">@lang('wncms::word.contact_to_purchase')</a></li>
+			{{-- <li class="menu-item"><a href="https://t.me/secretwebmaster" target="_blank" class="menu-link px-2">@lang('wncms::word.contact_to_purchase')</a></li> --}}
 		</ul>
 	</div>
 </div>

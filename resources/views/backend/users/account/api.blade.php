@@ -32,7 +32,9 @@
                     </button>
                 </div>
 
-                <h4 class="text-gray-900 fw-bold mt-10">@lang('wncms::word.usage')</h4>
+                {{-- TODO: Display Real data --}}
+
+                <h4 class="text-gray-900 fw-bold mt-10">@lang('wncms::word.usage' )<span class="badge badge-light-danger fw-bold ms-2">Demo</span></h4>
 
                 <div class="card card-flush overflow-hidden h-lg-100">
                     <div class="card-header pt-5">
@@ -57,8 +59,6 @@
                         <canvas id="apiUsageChart" class="mh-400px"></canvas>
                     </div>
                 </div>
-
-
             </div>
         </div>
     </div>
