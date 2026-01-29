@@ -32,7 +32,7 @@ class InstallerManager
             'app_env' => $input['app_env'] ?? 'production',
 
             'app_debug' => filter_var($input['app_debug'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false',
-            'app_log_level' => $input['app_log_level'] ?? 'daily',
+            'log_level' => $input['log_level'] ?? 'info',
 
             'broadcast_connection' => $input['broadcast_connection'] ?? 'log',
             'cache_store' => $input['cache_store'] ?? 'file',
@@ -113,7 +113,7 @@ class InstallerManager
             'JS_DEBUG=false' . "\n" .
             'APP_VERSION=' . config('installer.version') . "\n" .
             'CUSTOM_VERSION=1' . "\n" .
-            'LOG_LEVEL=' . ($input['app_log_level'] ?? '') . "\n" .
+            'LOG_LEVEL=' . ($input['log_level'] ?? '') . "\n" .
             'APP_URL=' . ($input['app_url'] ?? '') . "\n\n" .
 
             'APP_MAINTENANCE_DRIVER=file' . "\n\n" .

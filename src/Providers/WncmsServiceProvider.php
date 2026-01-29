@@ -19,38 +19,22 @@ class WncmsServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        if (!defined('WNCMS_START')) {
-            define('WNCMS_START', true);
-        }
+        $this->defineConstants();
 
         // Facades
-        $this->app->singleton('wncms', fn($app) => new \Wncms\Services\Wncms);
-        $this->app->singleton('macroable-models', fn($app) => new \Wncms\Services\MacroableModels\MacroableModels);
-        $this->app->singleton(\Wncms\Services\Managers\TagManager::class, fn($app) => new \Wncms\Services\Managers\TagManager);
+        $this->loadFacades();
 
         // Alias
-        AliasLoader::getInstance()->alias('Wncms', \Wncms\Facades\Wncms::class);
+        $this->loadAlias();
 
-        // Custom exception handler
-        $this->app->singleton(\Illuminate\Contracts\Debug\ExceptionHandler::class, WncmsExceptionHandler::class);
+        // Exception handler
+        $this->loadExceptionHandler();
 
         // Package configs
-        $this->mergeConfigFrom(__DIR__ . '/../../config/installer.php', 'installer');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/laravellocalization.php', 'laravellocalization');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/media-library.php', 'media-library');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/translatable.php', 'translatable');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-system-settings.php', 'wncms-system-settings');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/wncms-tags.php', 'wncms-tags');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/permission.php', 'wncms');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/wncms.php', 'wncms');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/theme/default.php', 'theme.default');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/theme/starter.php', 'theme.starter');
+        $this->mergeConfigs();
 
-        // Register ViewServiceProvider
-        $this->app->register(\Wncms\Providers\ViewServiceProvider::class);
-
-        // Third-party providers
-        $this->app->register(\Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class);
+        // Register service providers
+        $this->registerServiceProviders();
     }
 
     /**
@@ -111,6 +95,114 @@ class WncmsServiceProvider extends ServiceProvider
     }
 
     /**
+     * Define WNCMS core constants.
+     */
+    protected function defineConstants(): void
+    {
+        if (!defined('WNCMS_START')) {
+            define('WNCMS_START', true);
+        }
+
+        // package root
+        if (!defined('WNCMS_ROOT')) {
+            $root = realpath(__DIR__ . '/../../');
+            define('WNCMS_ROOT', rtrim($root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR);
+        }
+
+        // config path
+        if (!defined('WNCMS_CONFIG_PATH')) {
+            define('WNCMS_CONFIG_PATH', WNCMS_ROOT . 'config' . DIRECTORY_SEPARATOR);
+        }
+
+        // database path
+        if (!defined('WNCMS_DATABASE_PATH')) {
+            define('WNCMS_DATABASE_PATH', WNCMS_ROOT . 'database' . DIRECTORY_SEPARATOR);
+        }
+
+        // src path
+        if (!defined('WNCMS_APP_PATH')) {
+            define('WNCMS_APP_PATH', WNCMS_ROOT . 'src' . DIRECTORY_SEPARATOR);
+        }
+
+        // resources path
+        if (!defined('WNCMS_RESOURCES_PATH')) {
+            define('WNCMS_RESOURCES_PATH', WNCMS_ROOT . 'resources' . DIRECTORY_SEPARATOR);
+        }
+
+        // lang path
+        if (!defined('WNCMS_LANG_PATH')) {
+            define('WNCMS_LANG_PATH', WNCMS_RESOURCES_PATH . 'lang' . DIRECTORY_SEPARATOR);
+        }
+
+        // route path
+        if (!defined('WNCMS_ROUTE_PATH')) {
+            define('WNCMS_ROUTE_PATH', WNCMS_ROOT . 'routes' . DIRECTORY_SEPARATOR);
+        }
+
+        // update path
+        if (!defined('WNCMS_UPDATE_PATH')) {
+            define('WNCMS_UPDATE_PATH', WNCMS_DATABASE_PATH . 'updates' . DIRECTORY_SEPARATOR);
+        }
+    }
+
+    /**
+     * Load WNCMS facades.
+     */
+    protected function loadFacades(): void
+    {
+        $this->app->singleton('wncms', fn($app) => new \Wncms\Services\Wncms);
+        $this->app->singleton('macroable-models', fn($app) => new \Wncms\Services\MacroableModels\MacroableModels);
+        $this->app->singleton(\Wncms\Services\Managers\TagManager::class, fn($app) => new \Wncms\Services\Managers\TagManager);
+    }
+
+    /**
+     * Load class aliases.
+     */
+    protected function loadAlias(): void
+    {
+        $loader = AliasLoader::getInstance();
+        $loader->alias('Wncms', \Wncms\Facades\Wncms::class);
+    }
+
+    /**
+     * Merge package configuration files.
+     */
+    protected function mergeConfigs(): void
+    {
+        $configs = [
+            'installer',
+            'laravellocalization',
+            'media-library',
+            'translatable',
+            'wncms-system-settings',
+            'wncms-tags',
+            'permission',
+            'wncms',
+        ];
+
+        foreach ($configs as $config) {
+            $this->mergeConfigFrom(__DIR__ . "/../../config/{$config}.php", $config);
+        }
+    }
+
+    /**
+     * Load exception handler.
+     */
+    protected function loadExceptionHandler(): void
+    {
+        $this->app->singleton(\Illuminate\Contracts\Debug\ExceptionHandler::class, WncmsExceptionHandler::class);
+    }
+
+    /**
+     * Register additional service providers.
+     */
+    protected function registerServiceProviders(): void
+    {
+        $this->app->register(\Wncms\Providers\ViewServiceProvider::class);
+        $this->app->register(\Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class);
+    }
+
+    /**
      * Load system-level settings (fallback + database overrides).
      */
     protected function loadSystemSettings(): void
@@ -154,7 +246,6 @@ class WncmsServiceProvider extends ServiceProvider
         wncms()->setLocalesMapping(gss('use_locales_mapping', false) ? config('laravellocalization.localesMapping', []) : []);
     }
 
-
     /**
      * Setup shared view variables and composers.
      */
@@ -166,6 +257,9 @@ class WncmsServiceProvider extends ServiceProvider
             View::share('website', wncms()->website()->get());
 
             View::composer('*', function ($view) {
+                // Share errors with all views
+                $view->with('errors', session()->get('errors', new \Illuminate\Support\ViewErrorBag()));
+
                 if (Route::currentRouteName() && str_starts_with(Route::currentRouteName(), 'frontend.')) {
                     $view->with('user', auth()->user());
                 }
@@ -182,15 +276,24 @@ class WncmsServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../../resources/core-assets' => public_path('wncms'),
             __DIR__ . '/../../resources/stubs' => base_path('stubs'),
-        ], 'wncms-core-assets');
-
-        // Theme assets
-        $this->publishes([
-            __DIR__ . '/../../resources/theme-assets' => public_path('themes'),
-            // __DIR__ . '/../../resources/views/frontend' => resource_path('views/frontend'),
             __DIR__ . '/../../resources/views/errors' => resource_path('views/errors'),
             __DIR__ . '/../../resources/views/layouts/error.blade.php' => resource_path('views/layouts/error.blade.php'),
-        ], 'wncms-theme-assets');
+        ], 'wncms-core-assets');
+
+        // Theme assets (assets only)
+        $themesPath = __DIR__ . '/../../resources/themes';
+
+        foreach (glob($themesPath . '/*', GLOB_ONLYDIR) as $themeDir) {
+            $themeId = basename($themeDir);
+
+            if (!is_dir($themeDir . '/assets')) {
+                continue;
+            }
+
+            $this->publishes([
+                $themeDir . '/assets' => public_path('themes/' . $themeId . '/assets'),
+            ], 'wncms-theme-assets');
+        }
     }
 
     /**
