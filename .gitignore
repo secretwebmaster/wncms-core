@@ -2,4 +2,5 @@
 /documentations/Todo.md
 diff.txt
 *.backup
+*.bak
 /composer.lock
