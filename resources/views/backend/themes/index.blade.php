@@ -79,6 +79,7 @@
                                 </div>
                             </th> --}}
                             <th>@lang('wncms::word.action')</th>
+                            <th>@lang('wncms::word.thumbnail')</th>
                             <th>@lang('wncms::word.id')</th>
                             <th>@lang('wncms::word.valid_structure')</th>
                             {{-- <th>@lang('wncms::word.status')</th> --}}
@@ -103,10 +104,11 @@
                         @foreach ($themes as $theme)
                             <tr>
                                 {{-- <td>
-                                <div class="form-check form-check-sm form-check-custom form-check-solid">
-                                    <input class="form-check-input" type="checkbox" value="1" data-model-id="{{ $theme['id'] }}"/>
-                                </div>
-                            </td> --}}
+                                    <div class="form-check form-check-sm form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" value="1" data-model-id="{{ $theme['id'] }}"/>
+                                    </div>
+                                </td> --}}
+
                                 <td>
                                     {{-- Delete --}}
                                     @if (!in_array($theme['id'], ['default', 'starter']))
@@ -144,6 +146,11 @@
                                             </button>
 
                                         </div>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if (!empty($theme['screenshot']))
+                                        <img class="h-40px" src="{{ $theme['screenshot'] }}" alt="">
                                     @endif
                                 </td>
                                 <td>{{ $theme['id'] }}</td>
