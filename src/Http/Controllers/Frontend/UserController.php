@@ -16,11 +16,14 @@ class UserController extends FrontendController
      */
     public function dashboard()
     {
-        return $this->view(
-            "frontend.themes.{$this->theme}.users.dashboard",
-            [],
-            'wncms::frontend.themes.default.users.dashboard',
-        );
+        $themeView = "{$this->theme}::users.dashboard";
+        $params = [];
+        $defaultView = 'default::users.dashboard';
+
+        // add event hook for plugins to modify dashboard view
+        Event::dispatch('wncms.frontend.users.dashboard', [&$themeView, &$params, &$defaultView]);
+
+        return $this->view($themeView, $params, $defaultView);
     }
 
     /**
@@ -30,15 +33,19 @@ class UserController extends FrontendController
      */
     public function show_login()
     {
+        $themeView = "{$this->theme}::users.login";
+        $params = [];
+        $defaultView = 'default::users.login';
+        $loggedInRedirectRouteName = 'frontend.pages.home';
+
+        // add event hook for plugins to modify login view
+        Event::dispatch('wncms.frontend.users.show_login', [&$themeView, &$params, &$defaultView, &$loggedInRedirectRouteName]);
+
         if (auth()->check()) {
-            return redirect()->route('frontend.pages.home');
+            return redirect()->route($loggedInRedirectRouteName);
         }
 
-        return $this->view(
-            "frontend.themes.{$this->theme}.users.login",
-            [],
-            'wncms::frontend.themes.default.users.login',
-        );
+        return $this->view($themeView, $params, $defaultView);
     }
 
     /**
@@ -80,7 +87,7 @@ class UserController extends FrontendController
             }
 
             // if theme has dashboard page
-            if (view()->exists("frontend.themes.{$this->theme}.users.dashboard")) {
+            if (view()->exists("{$this->theme}::users.dashboard")) {
                 return redirect()->route('frontend.users.dashboard');
             }
 
@@ -122,11 +129,19 @@ class UserController extends FrontendController
      */
     public function show_register()
     {
-        return $this->view(
-            "frontend.themes.{$this->theme}.users.register",
-            [],
-            'wncms::frontend.themes.default.users.register',
-        );
+        $themeView = "{$this->theme}::users.register";
+        $params = [];
+        $defaultView = 'default::users.register';
+        $disabledRegistrationRedirectRouteName = 'frontend.pages.home';
+
+        // add event hook for plugins to modify registration view
+        Event::dispatch('wncms.frontend.users.show_register', [&$themeView, &$params, &$defaultView, &$disabledRegistrationRedirectRouteName]);
+
+        if (!$this->enabledRegistration()) {
+            return redirect()->route($disabledRegistrationRedirectRouteName);
+        }
+
+        return $this->view($themeView, $params, $defaultView);
     }
 
     /**
@@ -136,10 +151,30 @@ class UserController extends FrontendController
      * @return \Illuminate\Http\RedirectResponse
      * 
      * TODO: allow user either to register with email or username
-     * TODO: allow admin to set if send welcome email
+     * TODO:: allow register via ajax request
      */
     public function register(Request $request)
     {
+        // Pull configs at beginning
+        $disabledRegistrationRedirectRouteName = 'frontend.pages.home';
+        $sendWelcomeEmail = false;
+        $defaultUserRoles = 'member';
+        $redirectAfterRegister = null;
+        $intendedUrl = session()->get('url.intended');
+        
+        // Add event hook for plugins to modify registration configs
+        Event::dispatch('wncms.frontend.users.register', [
+            &$disabledRegistrationRedirectRouteName,
+            &$sendWelcomeEmail,
+            &$defaultUserRoles,
+            &$redirectAfterRegister,
+            &$intendedUrl,
+        ]);
+
+        if (!$this->enabledRegistration()) {
+            return redirect()->route($disabledRegistrationRedirectRouteName);
+        }
+
         $request->validate(
             [
                 'email' => 'required_without:username',
@@ -152,8 +187,6 @@ class UserController extends FrontendController
                 'password.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.password')]),
             ]
         );
-
-        $sendWelcomeEmail = false;
 
         // if username is not provided, use string before @ in email as username
         if (!$request->filled('username')) {
@@ -177,7 +210,7 @@ class UserController extends FrontendController
             return redirect()->back()->withErrors(['message' => __('wncms::word.user_already_exists')]);
         }
 
-        // TODO: move the manager to make all registration process consistent
+        // Create user
         $user = $userModel::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
@@ -187,35 +220,44 @@ class UserController extends FrontendController
             'password' => Hash::make($request->password),
         ]);
 
-        // set credits to 0
-        $user->credits()->create(['type' => 'balance', 'amount' => 0]);
-        $user->credits()->create(['type' => 'points', 'amount' => 0]);
+        // Add event hook for credit system (moved to package)
+        Event::dispatch('wncms.frontend.users.registered.credits', [$user]);
 
-        $defaultUserRoleOption = gto('default_user_roles', 'member');
-        $defaultUserRoles = Role::whereIn('name', explode(',', $defaultUserRoleOption))->get();
-        if ($defaultUserRoles->isEmpty()) {
-            $defaultUserRoles = Role::where('name', 'member')->get();
+        // Assign default roles
+        $defaultUserRoleOption = gto('default_user_roles', $defaultUserRoles);
+        $roles = Role::whereIn('name', explode(',', $defaultUserRoleOption))->get();
+        if ($roles->isEmpty()) {
+            $roles = Role::where('name', 'member')->get();
         }
-        $user->assignRole($defaultUserRoles);
+        $user->assignRole($roles);
 
-        Event::dispatch('wncms.frontend.users.registered', $user);
+        // Dispatch registered event
+        Event::dispatch('wncms.frontend.users.registered', [$user]);
 
+        // Add event hook for welcome email
+        Event::dispatch('wncms.frontend.users.registered.welcome_email', [$user, $sendWelcomeEmail]);
+
+        // Authenticate user
         $this->auth($username, $request->password);
 
-        // if user has intented url
-        if ($request->has('intended')) {
-            dd("intended");
-            return redirect($request->intended);
+        // Redirect priority: intended url > request intended > theme redirect > dashboard > home
+        if ($intendedUrl) {
+            return redirect($intendedUrl);
         }
 
-        // if theme has set rediret page after login
+        if ($request->filled('intended')) {
+            return redirect($request->input('intended'));
+        }
+
+        if ($redirectAfterRegister) {
+            return redirect($redirectAfterRegister);
+        }
+
         if (gto('redirect_after_login')) {
-            dd("redirect_after_login");
             return redirect(gto('redirect_after_login'));
         }
 
-        // if theme has dashboard page
-        if (view()->exists("frontend.themes.{$this->theme}.users.dashboard")) {
+        if (view()->exists("{$this->theme}::users.dashboard")) {
             return redirect()->route('frontend.users.dashboard');
         }
 
@@ -246,36 +288,53 @@ class UserController extends FrontendController
      */
     public function logout()
     {
+        // event before logout
+        Event::dispatch('wncms.frontend.users.logout.before', auth()->user());
+
         auth()->logout();
 
+        
         // if theme has logout page
-
+        
         // else redirect to home
+
+        // event after logout
+        Event::dispatch('wncms.frontend.users.logout.after');
+
         return redirect()->route('frontend.pages.home');
     }
 
+    /**
+     * Show the user profile.
+     */
     public function show_profile()
     {
-        return $this->view(
-            "frontend.themes.{$this->theme}.users.profile.show",
-            [
-                'user' => auth()->user(),
-            ],
-            'wncms::frontend.themes.default.users.profile.show',
-        );
+        $themeView = "{$this->theme}::users.profile.show";
+        $params = [
+            'user' => auth()->user(),
+        ];
+        $defaultView = 'default::users.profile.show';
+        
+        return $this->view($themeView, $params, $defaultView);
     }
 
+    /**
+     * Show the edit profile form.
+     */
     public function edit_profile()
     {
-        return $this->view(
-            "frontend.themes.{$this->theme}.users.profile.edit",
-            [
-                'user' => auth()->user(),
-            ],
-            'wncms::frontend.themes.default.users.profile.edit',
-        );
+        $themeView = "{$this->theme}::users.profile.edit";
+        $params = [
+            'user' => auth()->user(),
+        ];
+        $defaultView = 'default::users.profile.edit';
+        
+        return $this->view($themeView, $params, $defaultView);
     }
 
+    /**
+     * Handle the edit profile form submission.
+     */
     public function update_profile(Request $request)
     {
         $user = auth()->user();
@@ -322,11 +381,11 @@ class UserController extends FrontendController
      */
     public function show_password_forgot()
     {
-        return $this->view(
-            "frontend.themes.{$this->theme}.users.password.forgot",
-            [],
-            'wncms::frontend.themes.default.users.password.forgot',
-        );
+        $themeView = "{$this->theme}::users.password.forgot";
+        $params = [];
+        $defaultView = 'default::users.password.forgot';
+
+        return $this->view($themeView, $params, $defaultView);
     }
 
     /**
@@ -345,14 +404,15 @@ class UserController extends FrontendController
         $user = $modelClass::where('email', $request->email)->first();
 
         if ($user) {
+            
             $token = Password::createToken($user);
             $user->notify(new ResetPassword($token));
 
-            return $this->view(
-                "frontend.themes.{$this->theme}.users.password.sent",
-                ['email' => $request->email],
-                'wncms::frontend.themes.default.users.password.sent',
-            );
+            $themeView = "{$this->theme}::users.password.sent";
+            $params = ['email' => $request->email];
+            $defaultView = 'default::users.password.sent';
+
+            return $this->view($themeView, $params, $defaultView);
         }
 
         return back()->withErrors(['email' => __('wncms::word.reset_link_failed')]);
@@ -366,14 +426,14 @@ class UserController extends FrontendController
      */
     public function show_password_reset(Request $request)
     {
-        return $this->view(
-            "frontend.themes.{$this->theme}.users.password.reset",
-            [
-                'token' => $request->token,
-                'email' => $request->email,
-            ],
-            'wncms::frontend.themes.default.users.password.reset',
-        );
+        $themeView = "{$this->theme}::users.password.reset";
+        $params = [
+            'token' => $request->token,
+            'email' => $request->email,
+        ];
+        $defaultView = 'default::users.password.reset';
+        
+        return $this->view($themeView, $params, $defaultView);
     }
 
     /**
@@ -409,14 +469,16 @@ class UserController extends FrontendController
         );
 
         return $this->view(
-            "frontend.themes.{$this->theme}.users.password.completed",
+            "{$this->theme}::users.password.completed",
             ['status' => $status],
             'wncms::frontend.themes.default.users.password.completed',
         );
     }
 
-    // other pages
-    public function page()
+    /**
+     * Show a custom user page based on URL segments.
+     */
+    public function page(Request $request)
     {
         // Get all segments after 'user'
         // Example: /user/custom/aaa/bbb → ['custom', 'aaa', 'bbb']
@@ -426,16 +488,16 @@ class UserController extends FrontendController
         $page = implode('.', $segments);
 
         // Debug: see what Laravel resolves
-        dd("frontend.themes.{$this->theme}.users.{$page}");
+        $themeView = "{$this->theme}::users.{$page}";
+        $params = [];
+        $defaultView = "default::users.{$page}";
 
-        return $this->view(
-            "frontend.themes.{$this->theme}.users.{$page}",
-            [],
-            "frontend.themes.{$this->theme}.pages.home",
-        );
+        return $this->view($themeView, $params, $defaultView);
     }
 
-    // posts by the user
+    /**
+     * Display posts by a specific user.
+     */
     public function posts($username)
     {
         $modelClass = $this->getModelClass();
@@ -450,16 +512,26 @@ class UserController extends FrontendController
             'paginate' => 10,
         ]);
 
-        dd($posts);
+        $themeView = "{$this->theme}::users.posts";
+        $params = [
+            'posts' => $user ? $user->posts()->paginate(10) : collect([]),
+            'user' => $user,
+        ];
+        $defaultView = 'default::users.posts';
 
+        return $this->view($themeView, $params, $defaultView);
+    }
 
-        return $this->view(
-            "frontend.themes.{$this->theme}.users.posts",
-            [
-                'posts' => $user ? $user->posts()->paginate(10) : collect([]),
-                'user' => $user,
-            ],
-            'wncms::frontend.themes.default.users.posts',
-        );
+    // check if registration enabled
+    protected function enabledRegistration()
+    {
+        // system default: false = registration allowed? you said "false means no registration allowed"
+        // so I'm assuming: disable_registration = true means DISABLE registration
+        $systemDisabled = (bool) gss('disable_registration', true); // install default should be true to disable by default
+
+        // theme override: null means "theme didn't provide this option"
+        $themeDisabled = gto('disable_registration', null);
+
+        return is_null($themeDisabled) ? !$systemDisabled : !(bool) $themeDisabled;
     }
 }
