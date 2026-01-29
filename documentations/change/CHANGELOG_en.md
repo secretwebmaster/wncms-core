@@ -1,5 +1,60 @@
 # Changelog
 
+## v6.1.7 2026-01-29
+
+### Theme System
+- Add support for core themes (default, starter, demo) in ThemeServiceProvider
+- Refactor ThemeManager with better metadata handling and asset resolution
+- Add getThemePages() method to resolve theme page URLs
+- Improve theme translation fallback mechanism
+- Simplify view paths in PostController using theme namespace
+- Add theme screenshot support in metadata
+
+### User Controller
+- Add event hooks throughout user lifecycle (login, register, logout, etc.)
+- Refactor registration flow with configurable options via events
+- Add enabledRegistration() method to check system/theme settings
+- Improve view resolution using theme namespace syntax
+- Add event hooks for credit system (moved to package)
+- Enhance dashboard, login, and profile views with event support
+- Add custom user page routing support
+- Improve user posts listing functionality
+- Better separation of concerns with event-driven architecture
+
+### Service Providers
+- Define WNCMS constants (ROOT, CONFIG_PATH, DATABASE_PATH, etc.)
+- Extract facades, aliases, and configs into separate methods
+- Improve theme asset publishing to support per-theme assets
+- Add error sharing with all views via view composer
+- Update installer to use log_level instead of app_log_level
+- Better separation of concerns with dedicated methods
+- Improve code readability and maintainability
+
+### Route Service Provider
+- Remove deprecated namespace property usage in route registration
+- Align with Laravel 8+ routing conventions
+
+### Backend Improvements
+- Add menu.js for enhanced menu editing
+- Update menu edit view layout
+- Improve backend footer and API management views
+- Update website controller
+- Enhance backend layout
+
+### Theme Refactoring
+- Migrate default theme from resources/views/frontend/themes/default to resources/themes/default
+- Consolidate theme structure for better organization
+- Remove old theme configuration files
+- Remove deprecated theme assets directory
+- Remove old frontend theme views directory
+- Remove CreateThemeFile command (replaced by new theme structure)
+
+### Others
+- Fix log_level configuration in installer
+- Update Traditional Chinese translations
+- Improve installer wizard UI
+- Update install command
+
 ## v6.1.6 2026-01-24
 
 - Improve how multilingual settings are applied: changes made in the admin panel take effect on the site more reliably
