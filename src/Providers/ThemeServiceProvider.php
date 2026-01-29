@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Response;
+use Wncms\Services\Managers\ThemeManager;
 
 class ThemeServiceProvider extends ServiceProvider
 {
@@ -106,6 +107,20 @@ class ThemeServiceProvider extends ServiceProvider
             // Store as config('theme.demo')
             config(["theme.{$themeId}" => $config]);
         }
+
+        // fallback to core themes
+        elseif (in_array($themeId, ThemeManager::CORE_THEMES)) {
+
+            $coreThemePath = WNCMS_RESOURCES_PATH . 'themes' . DIRECTORY_SEPARATOR . $themeId;
+            $coreConfigFile = $coreThemePath . '/config.php';
+
+            if (File::exists($coreConfigFile)) {
+                $config = include $coreConfigFile;
+
+                // Store as config('theme.demo')
+                config(["theme.{$themeId}" => $config]);
+            }
+        }
     }
 
     /**
@@ -120,6 +135,17 @@ class ThemeServiceProvider extends ServiceProvider
         if (File::exists($viewPath)) {
             $namespace = "{$themeId}";
             $this->loadViewsFrom($viewPath, $namespace);
+        }
+
+        // Fallback to wncms-core theme views
+        elseif (in_array($themeId, ThemeManager::CORE_THEMES)) {
+            $coreThemePath = WNCMS_RESOURCES_PATH . 'themes' . DIRECTORY_SEPARATOR . $themeId;
+            $coreViewPath = $coreThemePath . '/views';
+
+            if (File::exists($coreViewPath)) {
+                $namespace = "{$themeId}";
+                $this->loadViewsFrom($coreViewPath, $namespace);
+            }
         }
     }
 
@@ -136,6 +162,15 @@ class ThemeServiceProvider extends ServiceProvider
         if (File::exists($langPath)) {
             $this->loadTranslationsFrom($langPath, $themeId);
         }
+        // Fallback to wncms-core theme translations
+        elseif (in_array($themeId, ThemeManager::CORE_THEMES)) {
+            $coreThemePath = WNCMS_RESOURCES_PATH . 'themes' . DIRECTORY_SEPARATOR . $themeId;
+            $coreLangPath = $coreThemePath . '/lang';
+
+            if (File::exists($coreLangPath)) {
+                $this->loadTranslationsFrom($coreLangPath, $themeId);
+            }
+        }
     }
 
     /**
@@ -148,6 +183,16 @@ class ThemeServiceProvider extends ServiceProvider
 
         if (File::exists($functionsFile)) {
             require_once $functionsFile;
+        }
+
+        // Fallback to wncms-core theme functions.php
+        elseif (in_array(basename($themePath), ThemeManager::CORE_THEMES)) {
+            $coreThemePath = WNCMS_RESOURCES_PATH . 'themes' . DIRECTORY_SEPARATOR . basename($themePath);
+            $coreFunctionsFile = $coreThemePath . '/functions.php';
+
+            if (File::exists($coreFunctionsFile)) {
+                require_once $coreFunctionsFile;
+            }
         }
     }
 }

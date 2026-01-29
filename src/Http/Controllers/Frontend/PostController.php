@@ -20,12 +20,11 @@ class PostController extends FrontendController
         ]);
 
         return $this->view(
-            $this->theme . "::posts.index",
+            "{$this->theme}::posts.index",
             [
                 'pageTitle' => __('wncms::word.all_posts'),
                 'posts' => $posts,
-            ],
-            "frontend.themes.{$this->theme}.posts.index",
+            ]
         );
     }
 
