@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-$thisVersion = '6.1.5';
+$thisVersion = '6.1.6';
 
 info("running update_{$thisVersion}.php");
 
