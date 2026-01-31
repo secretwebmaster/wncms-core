@@ -12,7 +12,7 @@ class Update extends Command
      *
      * @var string
      */
-    protected $signature = 'wncms:update {product=core}';
+    protected $signature = 'wncms:update {product=core} {--version=}';
 
     /**
      * The console command description.
@@ -29,14 +29,10 @@ class Update extends Command
         $this->info('Starting WNCMS update process.');
 
         $product = $this->argument('product');
+        $targetVersion = $this->option('version'); // Optional specific version to update to
 
         // Step 1: Get the user's current version
-        $currentVersion = gss("{$product}_version");
-        if (!$currentVersion) {
-            // $this->error('Unable to determine the current version. Aborting.');
-            // return Command::FAILURE;
-            $currentVersion = config('installer.version');
-        }
+        $currentVersion = gss("{$product}_version", '1.0.0');
         $this->info("Current version: {$currentVersion}");
 
         // Step 2: Fetch the list of available versions
@@ -49,7 +45,7 @@ class Update extends Command
         $this->info('Available versions: ' . implode(', ', $availableVersions));
 
         // Step 3: Filter updates that are later than the current version
-        $updatesToRun = $this->filterUpdates($currentVersion, $availableVersions);
+        $updatesToRun = $this->filterUpdates($currentVersion, $availableVersions, $targetVersion);
 
         if (empty($updatesToRun)) {
             $this->info('No updates are required. Your system is up-to-date.');
@@ -101,7 +97,6 @@ class Update extends Command
         return [];
     }
 
-
     /**
      * Filter updates that are later than the current version.
      *
@@ -109,9 +104,12 @@ class Update extends Command
      * @param array $availableVersions
      * @return array
      */
-    protected function filterUpdates($currentVersion, $availableVersions)
+    protected function filterUpdates($currentVersion, $availableVersions, $targetVersion = null)
     {
-        $updates = array_filter($availableVersions, function ($version) use ($currentVersion) {
+        $updates = array_filter($availableVersions, function ($version) use ($currentVersion, $targetVersion) {
+            if ($targetVersion !== null && version_compare($version, $targetVersion, '>')) {
+                return false;
+            }
             return version_compare($version, $currentVersion, '>');
         });
 
