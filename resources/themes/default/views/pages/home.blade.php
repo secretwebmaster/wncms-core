@@ -1,7 +1,6 @@
 @extends("$themeId::layouts.app")
 
 @section('content')
-
     {{-- Pages --}}
     @include("$themeId::parts.page-list")
 
@@ -13,7 +12,7 @@
 
     {{-- Webstie options --}}
     @include("$themeId::parts.website-options")
-    
+
     {{-- Thenme options --}}
     @include("$themeId::parts.theme-options")
 
