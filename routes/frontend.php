@@ -88,7 +88,7 @@ Route::name('frontend.')->middleware(['is_installed', 'has_website', 'full_page_
 
         Route::get('/regcheck', 'validateRegistration')->name('users.regcheck');
 
-        Route::middleware(['auth'])->group(function () {
+        Route::middleware(['frontend_auth'])->group(function () {
             Route::get('/', 'dashboard')->name('users.dashboard');
             Route::get('/logout', 'logout')->name('users.logout');
             Route::get('/profile', 'show_profile')->name('users.profile');

@@ -59,6 +59,7 @@ class WncmsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('is_installed', \Wncms\Http\Middleware\IsInstalled::class);
         $router->aliasMiddleware('has_website', \Wncms\Http\Middleware\HasWebsite::class);
         $router->aliasMiddleware('full_page_cache', \Wncms\Http\Middleware\FullPageCache::class);
+        $router->aliasMiddleware('frontend_auth', \Wncms\Http\Middleware\FrontendAuth::class);
 
         // Exclude paths from CSRF check
         $this->app->resolving(VerifyCsrfToken::class, function ($csrf) {
@@ -198,8 +199,8 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function registerServiceProviders(): void
     {
-        $this->app->register(\Wncms\Providers\ViewServiceProvider::class);
         $this->app->register(\Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class);
+        $this->app->register(\Wncms\Providers\ViewServiceProvider::class);
     }
 
     /**
@@ -225,6 +226,11 @@ class WncmsServiceProvider extends ServiceProvider
     protected function loadTranslationSettings(): void
     {
         if (!function_exists('wncms_is_installed') || !wncms_is_installed()) {
+            return;
+        }
+
+        // Ensure translator is bound before attempting to use translation features
+        if (!$this->app->bound('translator')) {
             return;
         }
 
@@ -258,7 +264,7 @@ class WncmsServiceProvider extends ServiceProvider
 
             View::composer('*', function ($view) {
                 // Share errors with all views
-                $view->with('errors', session()->get('errors', new \Illuminate\Support\ViewErrorBag()));
+                // $view->with('errors', session()->get('errors', new \Illuminate\Support\ViewErrorBag()));
 
                 if (Route::currentRouteName() && str_starts_with(Route::currentRouteName(), 'frontend.')) {
                     $view->with('user', auth()->user());
