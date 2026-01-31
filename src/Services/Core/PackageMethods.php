@@ -33,12 +33,8 @@ trait PackageMethods
     {
         $packageId = Str::lower($packageId);
 
-        // Translate info fields
-        if (!empty($packageFiles['info'])) {
-            foreach ($packageFiles['info'] as $key => $value) {
-                $packageFiles['info'][$key] = $this->translatePackageInfo($value, $packageId);
-            }
-        }
+        // Store raw info without translation - translate on-demand at runtime
+        // This avoids translator dependency during early provider registration
 
         // Ensure base structure
         $paths = $packageFiles ?? [];
@@ -67,19 +63,15 @@ trait PackageMethods
          * Build Menus
          * ===============================
          */
-        $menus = [];
-
-        if (!empty($packageFiles['menus']) && is_array($packageFiles['menus'])) {
-            $menus = $this->translateMenuItems($packageFiles['menus'], $packageId);
-        }
+        $menus = $packageFiles['menus'] ?? [];
 
         $icon = $packageFiles['info']['icon'] ?? 'fa-solid fa-box';
 
         if (!empty($menus)) {
             $this->packageMenus[$packageId] = [
-                'title' => $this->translatePackageInfo($packageFiles['info']['name'] ?? ucfirst($packageId), $packageId),
+                'title' => $packageFiles['info']['name'] ?? ucfirst($packageId), // Store raw, translate at runtime
                 'icon' => $icon,
-                'menus' => $menus,
+                'menus' => $menus, // Store raw menu data, translate at runtime
                 'permission' => $packageFiles['permissions'][0] ?? null,
             ];
         }
@@ -87,6 +79,11 @@ trait PackageMethods
 
     /**
      * Recursively translate all menu or item names in a package’s menu definition.
+     * 
+     * @deprecated No longer needed - menus are now translated at runtime in getPackageMenus()
+     * This method was previously used during package registration but caused issues
+     * because it pre-translated menus at boot time using the default locale instead
+     * of the user's current locale.
      */
     protected function translateMenuItems(array $items, string $packageId): array
     {
@@ -102,7 +99,10 @@ trait PackageMethods
 
             // Recursively process nested items
             if (!empty($item['items']) && is_array($item['items'])) {
-                $translatedItem['items'] = $this->translateMenuItems($item['items'], $packageId);
+                // $translatedItem['items'] = $this->translateMenuItems($item['items'], $packageId);
+                foreach($item['items'] as $subItemKey => $subItem){
+                    $translatedItem['items'][$subItemKey]['name'] = $this->translatePackageInfo($subItem['name'], $packageId);
+                }
             }
 
             $translated[] = $translatedItem;
@@ -167,7 +167,8 @@ trait PackageMethods
                 continue;
             }
 
-            $title      = $menuData['title'] ?? ucfirst($packageId);
+            // Translate title at runtime when translator is available
+            $title      = $this->translatePackageInfo($menuData['title'] ?? ucfirst($packageId), $packageId);
             $icon       = $menuData['icon'] ?? 'fa-solid fa-box';
             $permission = $menuData['permission'] ?? null;
             $menus      = $menuData['menus'] ?? [];
@@ -180,12 +181,18 @@ trait PackageMethods
             $isActive = false;
 
             foreach ($menus as $group) {
-                // Case 1: Direct route group
+
+                // Translate group title if it exists
+                $groupTitle = !empty($group['title']) 
+                    ? $this->translatePackageInfo($group['title'], $packageId) 
+                    : null;
+
+                // Case 1: Direct route group (no nested items)
                 if (!empty($group['route'])) {
                     $perm = $group['permission'] ?? $permission;
                     if (!$perm || ($user && Gate::allows($perm, $user))) {
                         $items[] = [
-                            'name' => $group['name'] ?? ucfirst($packageId),
+                            'name' => $this->translatePackageInfo($group['name'] ?? $group['title'] ?? ucfirst($packageId), $packageId),
                             'route' => $group['route'],
                         ];
 
@@ -195,14 +202,15 @@ trait PackageMethods
                     }
                 }
 
-                // Case 2: Nested "items"
+                // Case 2: Nested "items" (submenu structure)
                 if (!empty($group['items'])) {
                     foreach ($group['items'] as $subItem) {
                         $perm = $subItem['permission'] ?? null;
                         if (!$perm || ($user && Gate::allows($perm, $user))) {
                             $items[] = [
-                                'name' => $subItem['name'] ?? ucfirst($packageId),
+                                'name' => $this->translatePackageInfo($subItem['name'] ?? ucfirst($packageId), $packageId),
                                 'route' => $subItem['route'] ?? null,
+                                'group_title' => $groupTitle, // Add group title for nested items
                             ];
 
                             if (!empty($subItem['route']) && request()->routeIs($subItem['route'] . '*')) {
@@ -227,6 +235,8 @@ trait PackageMethods
 
         return $result;
     }
+
+    
 
     /**
      * Resolve a manager class from a given package.
@@ -572,8 +582,9 @@ trait PackageMethods
      * - If none applies → return the packageId itself (last resort).
      */
     protected function translatePackageInfo(mixed $field, ?string $packageId = null): mixed
-    {
-        $currentLocale  = app()->getLocale();
+    {            
+        // Safely get locale, fallback if translator not bound yet
+        $currentLocale  = app()->bound('translator') ? wncms()->getLocale() : config('app.locale', 'en');
         $fallbackLocale = config('app.fallback_locale', 'en');
 
         // --- Case 1: plain string
@@ -583,6 +594,7 @@ trait PackageMethods
 
         // --- Case 2: translation array
         if (is_array($field)) {
+
             if (array_key_exists($currentLocale, $field)) {
                 return $field[$currentLocale];
             }
