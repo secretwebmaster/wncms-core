@@ -24,6 +24,10 @@ POST /api/v1/tags
 
 必需：可透過設定配置
 
+### 功能開關
+
+- `wncms_api_tag_index`
+
 ### 請求參數
 
 | 參數        | 類型   | 必需 | 預設值   | 說明                                            |
@@ -100,6 +104,10 @@ POST /api/v1/tags/exist
 
 必需：可透過設定配置
 
+### 功能開關
+
+- `wncms_api_tag_exist`
+
 ### 請求參數
 
 | 參數        | 類型   | 必需 | 說明                 |
@@ -124,9 +132,13 @@ curl -X POST "https://your-domain.com/api/v1/tags/exist" \
 
 ```json
 {
+  "code": 200,
   "status": "success",
   "message": "Successfully fetched data",
-  "ids": [1, 2, 5]
+  "data": {
+    "ids": [1, 2, 5]
+  },
+  "extra": {}
 }
 ```
 
@@ -150,11 +162,13 @@ POST /api/v1/tags/store
 
 ### 身份驗證
 
-必需：是（透過 `api_token`）
+必需：可透過設定配置
 
 ### 功能開關
 
-此端點可以透過 `enable_api_tag_store` 設定停用。
+主要設定鍵：`wncms_api_tag_store`。
+
+舊版相容：若舊環境仍啟用 `enable_api_tag_store`，此端點仍可用。
 
 ### 請求參數
 

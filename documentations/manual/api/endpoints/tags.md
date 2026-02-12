@@ -24,6 +24,10 @@ POST /api/v1/tags
 
 Required: Configurable via settings
 
+### Feature Toggle
+
+- `wncms_api_tag_index`
+
 ### Request Parameters
 
 | Parameter   | Type   | Required | Default        | Description                                  |
@@ -100,6 +104,10 @@ POST /api/v1/tags/exist
 
 Required: Configurable via settings
 
+### Feature Toggle
+
+- `wncms_api_tag_exist`
+
 ### Request Parameters
 
 | Parameter   | Type   | Required | Description               |
@@ -124,9 +132,13 @@ curl -X POST "https://your-domain.com/api/v1/tags/exist" \
 
 ```json
 {
+  "code": 200,
   "status": "success",
   "message": "Successfully fetched data",
-  "ids": [1, 2, 5]
+  "data": {
+    "ids": [1, 2, 5]
+  },
+  "extra": {}
 }
 ```
 
@@ -150,11 +162,13 @@ POST /api/v1/tags/store
 
 ### Authentication
 
-Required: Yes (via `api_token`)
+Required: Configurable via settings
 
 ### Feature Toggle
 
-This endpoint can be disabled via `enable_api_tag_store` setting.
+Primary setting key: `wncms_api_tag_store`.
+
+Legacy compatibility: if `enable_api_tag_store` is still enabled in old setups, this endpoint remains available.
 
 ### Request Parameters
 
