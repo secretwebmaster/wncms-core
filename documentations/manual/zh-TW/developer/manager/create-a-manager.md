@@ -1,0 +1,156 @@
+# Create a Manager
+
+WNCMS 中的 **Manager** 扮演 controllers 與 models 之間的邏輯層。
+它封裝查詢邏輯、快取與過濾規則，使你的 controllers 保持整潔且一致。
+
+本指南展示如何建立繼承 WNCMS `ModelManager` 的自訂 Manager。
+
+## Managers 的用途
+
+Managers 負責：
+
+- 建構與過濾資料庫查詢。
+- 透過 `wncms()->cache()` 處理快取邏輯。
+- 套用 tag、keyword 與 website 過濾器。
+- 以 Eloquent collections 或分頁清單回傳資料。
+- 確保 backend、frontend 與 API 之間行為一致。
+
+## 位置與命名
+
+Managers 儲存於：
+
+```
+app/Services/Managers/
+```
+
+每個 Manager 應遵循命名模式：
+
+```
+{ModelName}Manager.php
+```
+
+例如：
+
+```
+PostManager.php
+ProductManager.php
+FaqManager.php
+```
+
+## 基本範例
+
+```php
+<?php
+
+namespace App\Services\Managers;
+
+use Wncms\Services\Managers\ModelManager;
+use Illuminate\Database\Eloquent\Builder;
+
+class ProductManager extends ModelManager
+{
+    protected string $cacheKeyPrefix = 'wncms_product';
+    protected string $defaultTagType = 'product_category';
+    protected bool $shouldAuth = false;
+    protected string|array $cacheTags = ['products'];
+
+    public function getModelClass(): string
+    {
+        // 回傳 Product model（自訂或 WNCMS 預設）
+        return wncms()->getModelClass('product');
+    }
+
+    protected function buildListQuery(array $options): mixed
+    {
+        $q = $this->query();
+
+        // 套用過濾器
+        $this->applyStatus($q, 'status', $options['status'] ?? 'active');
+        $this->applyTagFilter($q, $options['tags'] ?? [], $options['tag_type'] ?? 'product_category');
+        $this->applyKeywordFilter($q, $options['keywords'] ?? [], ['title', 'description']);
+        $this->applyIds($q, 'id', $options['ids'] ?? []);
+        $this->applyExcludeIds($q, 'id', $options['excluded_ids'] ?? []);
+        $this->applyWebsiteId($q, $options['website_id'] ?? null);
+
+        // 排序與限制
+        $this->applyOrdering($q, $options['order'] ?? 'id', $options['sequence'] ?? 'desc');
+        $this->applyLimit($q, $options['count'] ?? 0);
+        $this->applyOffset($q, $options['offset'] ?? 0);
+
+        return $q;
+    }
+}
+```
+
+## 可覆寫的方法
+
+繼承 `ModelManager` 時，你可以覆寫這些核心方法：
+
+| Method                           | 用途                              |
+| -------------------------------- | --------------------------------- |
+| `getModelClass()`                | 回傳 Manager 處理的 model class。 |
+| `buildListQuery(array $options)` | 定義如何建構查詢。                |
+| `get()`                          | 修改單一記錄的擷取方式。          |
+| `getList()`                      | 修改清單結果的擷取方式。          |
+| `applyOrdering()`                | 自訂排序邏輯。                    |
+
+## 常用 Helper 方法
+
+你可以使用從 `ModelManager` 繼承的內建查詢 helpers：
+
+| Method                                             | 說明                 |
+| -------------------------------------------------- | -------------------- |
+| `applyIds($q, $column, $ids)`                      | 依 ID 過濾           |
+| `applyExcludeIds($q, $column, $ids)`               | 排除 ID              |
+| `applyTagFilter($q, $tags, $type)`                 | 依 tag 類型過濾      |
+| `applyExcludedTags($q, $excludedTagIds)`           | 排除 tag ID          |
+| `applyKeywordFilter($q, $keywords, $columns)`      | 套用關鍵字搜尋       |
+| `applyStatus($q, $column, $status)`                | 依狀態過濾           |
+| `applyWebsiteId($q, $websiteId)`                   | 依 website 限定範圍  |
+| `applyOrdering($q, $column, $sequence, $isRandom)` | 套用排序             |
+| `applyLimit($q, $count)`                           | 套用限制             |
+| `applyOffset($q, $offset)`                         | 跳過記錄             |
+| `applyWiths($q, $relations)`                       | Eager load relations |
+
+這些工具確保所有 WNCMS Managers 行為一致。
+
+## 在 Controller 中使用範例
+
+一旦註冊你的 Manager，就可以直接透過 `wncms()` 使用：
+
+```php
+$products = wncms()->product()->getList([
+    'status' => 'active',
+    'tags' => ['featured'],
+    'order' => 'price',
+    'sequence' => 'asc',
+    'count' => 10,
+]);
+```
+
+或擷取單一記錄：
+
+```php
+$product = wncms()->product()->get(['slug' => 'premium-plan']);
+```
+
+## 自訂 Managers 的提示
+
+- 總是定義唯一的 `$cacheKeyPrefix` 與 `$cacheTags`。
+- 設定 `$defaultTagType` 以確保 tag 過濾的一致性。
+- 重複使用 `ModelManager` helpers 而非原始 Eloquent 條件。
+- 當你的 model 支援 multi-website 範圍時，使用 `applyWebsiteId()`。
+- 若 join tags 或 counts，在查詢中使用 `distinct()`。
+
+## 範例資料夾結構
+
+```
+app/
+ └── Services/
+     └── Managers/
+         ├── ProductManager.php
+         ├── PostManager.php
+         └── LinkManager.php
+```
+
+每個 Manager 處理其各自的 model，同時共享一致的快取、過濾與清單建構邏輯。
