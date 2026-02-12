@@ -7,12 +7,15 @@ use Secretwebmaster\LaravelOptionable\Traits\HasOptions;
 use Wncms\Models\BaseModel;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Wncms\Interfaces\ApiModelInterface;
+use Wncms\Traits\HasApi;
 use Wncms\Translatable\Traits\HasTranslations;
 
-class Website extends BaseModel implements HasMedia
+class Website extends BaseModel implements HasMedia, ApiModelInterface
 {
     use HasFactory;
     use InteractsWithMedia;
+    use HasApi;
     use HasTranslations;
     use HasOptions;
 
@@ -33,6 +36,46 @@ class Website extends BaseModel implements HasMedia
     ];
 
     protected $withs = ['media'];
+
+    protected static bool $hasApi = true;
+
+    protected static array $apiRoutes = [
+        [
+            'name' => 'api.v1.websites.index',
+            'key' => 'wncms_api_website_index',
+            'action' => 'index',
+        ],
+        [
+            'name' => 'api.v1.websites.show',
+            'key' => 'wncms_api_website_show',
+            'action' => 'show',
+        ],
+        [
+            'name' => 'api.v1.websites.store',
+            'key' => 'wncms_api_website_store',
+            'action' => 'store',
+        ],
+        [
+            'name' => 'api.v1.websites.update',
+            'key' => 'wncms_api_website_update',
+            'action' => 'update',
+        ],
+        [
+            'name' => 'api.v1.websites.delete',
+            'key' => 'wncms_api_website_delete',
+            'action' => 'delete',
+        ],
+        [
+            'name' => 'api.v1.websites.add_domain',
+            'key' => 'wncms_api_website_add_domain',
+            'action' => 'add_domain',
+        ],
+        [
+            'name' => 'api.v1.websites.remove_domain',
+            'key' => 'wncms_api_website_remove_domain',
+            'action' => 'remove_domain',
+        ],
+    ];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-globe'

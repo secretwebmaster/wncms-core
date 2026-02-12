@@ -6,6 +6,7 @@ use Wncms\Http\Controllers\Api\V1\PageController;
 use Wncms\Http\Controllers\Api\V1\PostController;
 use Wncms\Http\Controllers\Api\V1\TagController;
 use Wncms\Http\Controllers\Api\V1\UpdateController;
+use Wncms\Http\Controllers\Api\V1\WebsiteController;
 
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -45,6 +46,17 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::prefix('update')->name('update.')->controller(UpdateController::class)->group(function () {
         Route::post('/', 'update')->name('run');
         Route::post('progress', 'progress')->name('progress');
+    });
+
+    // Websites
+    Route::prefix('websites')->name('websites.')->controller(WebsiteController::class)->group(function () {
+        Route::match(['GET', 'POST'], '/', 'index')->name('index');
+        Route::post('store', 'store')->name('store');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('delete/{id}', 'delete')->name('delete');
+        Route::post('add-domain', 'addDomain')->name('add_domain');
+        Route::post('remove-domain', 'removeDomain')->name('remove_domain');
+        Route::match(['GET', 'POST'], '{id}', 'show')->name('show');
     });
 });
 
