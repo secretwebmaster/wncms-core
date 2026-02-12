@@ -37,11 +37,23 @@ class SettingController extends Controller
             }
 
             $modelKey = $modelClass::$modelKey ?? strtolower(class_basename($modelClass));
-            $routes = $modelClass::getApiRoutes();
+            $resolvedPackageId = method_exists($modelClass, 'getPackageId')
+                ? ($modelClass::getPackageId() ?: 'wncms')
+                : 'wncms';
+
+            $routes = array_map(function ($route) use ($resolvedPackageId) {
+                if (!is_array($route)) {
+                    return $route;
+                }
+
+                $route['package_id'] = $route['package_id'] ?? $resolvedPackageId;
+                return $route;
+            }, $modelClass::getApiRoutes());
 
             $apiModels[$modelKey] = [
                 'class' => $modelClass,
                 'routes' => $routes,
+                'package_id' => $resolvedPackageId,
             ];
 
             foreach ($routes as $route) {

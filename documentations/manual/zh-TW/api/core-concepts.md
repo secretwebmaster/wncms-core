@@ -310,6 +310,27 @@ API 端點可以透過 WNCMS 設定啟用/停用。每個端點檢查自己的�
 - `wncms_api_tag_store` - 控制標籤建立
 - 等等
 
+### System Settings API 分頁中的套件感知標籤
+
+在 **System Settings -> API** 中，每個端點標籤現在會依路由所屬套件解析翻譯：
+
+- 模型 `$apiRoutes` 可選擇帶入 `package_id`。
+- 若未帶入，WNCMS 會回退到模型的 package ID。
+- 若仍為空，最後回退到 `wncms`。
+
+模型 API 路由設定範例：
+
+```php
+protected static array $apiRoutes = [
+    [
+        'name' => 'api.v1.tags.store',
+        'key' => 'wncms_api_tag_store',
+        'action' => 'store',
+        'package_id' => 'your-package-id',
+    ],
+];
+```
+
 當停用時，您將收到：
 
 ```json

@@ -310,6 +310,27 @@ API endpoints can be enabled/disabled via WNCMS settings. Each endpoint checks i
 - `wncms_api_tag_store` - Controls tag creation
 - etc.
 
+### Package-Aware Toggle Labels In System Settings
+
+In **System Settings -> API**, each endpoint label now resolves translation by route package context:
+
+- Route config may include `package_id` in model `$apiRoutes`.
+- If omitted, WNCMS falls back to the model package ID.
+- If still missing, WNCMS falls back to `wncms`.
+
+Example model API route metadata:
+
+```php
+protected static array $apiRoutes = [
+    [
+        'name' => 'api.v1.tags.store',
+        'key' => 'wncms_api_tag_store',
+        'action' => 'store',
+        'package_id' => 'your-package-id',
+    ],
+];
+```
+
 When disabled, you'll receive:
 
 ```json

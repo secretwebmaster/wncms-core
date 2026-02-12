@@ -61,6 +61,7 @@ $authModes = [
                             @foreach($apiModels as $modelKey => $model)
                             @php
                             $modelClass = $model['class'];
+                            $packageId = $model['package_id'] ?? 'wncms';
                             $routes = $model['routes'];
                             $routeByAction = collect($routes)->keyBy('action');
                             @endphp
@@ -86,7 +87,7 @@ $authModes = [
                                     @if($route)
                                         @php
                                         $key = $route['key'];
-                                        $label = $modelClass::getApiLabel($route);
+                                        $label = $modelClass::getApiLabel($route, $route['package_id'] ?? $packageId);
                                         $authKey = $key . '_should_auth';
                                         @endphp
 
@@ -126,7 +127,7 @@ $authModes = [
                                         @foreach($otherRouteList as $route)
                                         @php
                                         $key = $route['key'];
-                                        $label = $modelClass::getApiLabel($route);
+                                        $label = $modelClass::getApiLabel($route, $route['package_id'] ?? $packageId);
                                         $authKey = $key . '_should_auth';
                                         @endphp
 

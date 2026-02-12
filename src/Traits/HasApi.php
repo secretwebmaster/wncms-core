@@ -60,7 +60,7 @@ trait HasApi
      *
      * If translation is missing, fall back to key itself.
      */
-    public static function getApiLabel(array $route): string
+    public static function getApiLabel(array $route, ?string $packageId = null): string
     {
         $key = $route['key'] ?? null;
         if (!$key) {
@@ -68,7 +68,7 @@ trait HasApi
         }
 
         // Determine package_id
-        $packageId = $route['package_id'] ?? static::resolveApiPackageId();
+        $packageId = $packageId ?? $route['package_id'] ?? static::resolveApiPackageId();
 
         // Try translation
         $text = __($packageId . '::word.' . $key);
