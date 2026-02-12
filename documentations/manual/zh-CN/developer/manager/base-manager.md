@@ -209,6 +209,17 @@ protected bool $shouldAuth = false;
 3. 实作 `buildListQuery()`
 4. （选用）覆写 `get()` 或 `getList()` 来自订行为
 
+## 自订 App Manager 解析
+
+当你用动态方式呼叫 manager（例如 `wncms()->post()`）时，WNCMS 会依照这个顺序解析：
+
+1. `App\Services\Managers\{Name}Manager`
+2. `Wncms\Services\Managers\{Name}Manager`
+
+`App` manager 会优先透过 Laravel container 解析，因此建构子相依性可自动注入。
+
+WNCMS 也支援单复数别名查找。例如 `wncms()->catalog_item()` 与 `wncms()->catalog_items()` 都可解析到 `App\Services\Managers\CatalogItemManager`。
+
 **范例：**
 
 ```php

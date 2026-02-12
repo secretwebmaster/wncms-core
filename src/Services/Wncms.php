@@ -20,6 +20,7 @@ class Wncms
     use \Wncms\Services\Core\WebsiteMethods;
 
     protected array $customProperties = [];
+    protected array $resolvedManagers = [];
 
     public function __construct()
     {
@@ -68,24 +69,32 @@ class Wncms
 
     protected function resolveManager(string $method, array $args = [], ?string $package = null)
     {
-        $studly = ucfirst(\Illuminate\Support\Str::camel($method));
+        $managerKey = Str::snake($method);
 
-        // App Managers
-        $class = "App\\Services\\Managers\\{$studly}Manager";
-        if (class_exists($class)) {
-            if (app()->bound($class)) {
-                return app($class);
-            }
-            return new $class($this, ...$args);
+        if (empty($args) && isset($this->resolvedManagers[$managerKey])) {
+            return $this->resolvedManagers[$managerKey];
         }
 
-        // Core Managers
-        $class = "Wncms\\Services\\Managers\\{$studly}Manager";
-        if (class_exists($class)) {
-            if (app()->bound($class)) {
-                return app($class);
+        foreach ($this->getManagerStudlyCandidates($method) as $studly) {
+            // App Managers
+            $class = "App\\Services\\Managers\\{$studly}Manager";
+            if (class_exists($class)) {
+                $manager = $this->instantiateManager($class, $args);
+                if (empty($args)) {
+                    $this->resolvedManagers[$managerKey] = $manager;
+                }
+                return $manager;
             }
-            return new $class($this, ...$args);
+
+            // Core Managers
+            $class = "Wncms\\Services\\Managers\\{$studly}Manager";
+            if (class_exists($class)) {
+                $manager = $this->instantiateManager($class, $args);
+                if (empty($args)) {
+                    $this->resolvedManagers[$managerKey] = $manager;
+                }
+                return $manager;
+            }
         }
 
         // Package-specific Manager
@@ -93,16 +102,19 @@ class Wncms
             $pkg = $this->getRegisteredPackages()[$package] ?? null;
             if ($pkg) {
                 $managerMap = $pkg['manager_map'] ?? [];
-                $alias = \Illuminate\Support\Str::lower($method);
+                $aliases = $this->getManagerAliasCandidates($method);
 
-                if (!empty($managerMap[$alias]) && class_exists($managerMap[$alias])) {
-                    $pkgClass = $managerMap[$alias];
-
-                    if (app()->bound($pkgClass)) {
-                        return app($pkgClass);
+                foreach ($aliases as $alias) {
+                    if (empty($managerMap[$alias]) || !class_exists($managerMap[$alias])) {
+                        continue;
                     }
 
-                    return new $pkgClass($this, ...$args);
+                    $pkgClass = $managerMap[$alias];
+                    $manager = $this->instantiateManager($pkgClass, $args);
+                    if (empty($args)) {
+                        $this->resolvedManagers[$managerKey] = $manager;
+                    }
+                    return $manager;
                 }
             }
         }
@@ -114,5 +126,38 @@ class Wncms
         }
 
         return null;
+    }
+
+    protected function instantiateManager(string $class, array $args = []): mixed
+    {
+        try {
+            return app()->make($class);
+        } catch (\Throwable $e) {
+            return new $class($this, ...$args);
+        }
+    }
+
+    protected function getManagerStudlyCandidates(string $method): array
+    {
+        return collect($this->getManagerAliasCandidates($method))
+            ->map(fn(string $alias) => Str::studly($alias))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    protected function getManagerAliasCandidates(string $method): array
+    {
+        $alias = Str::snake($method);
+
+        return collect([
+            $alias,
+            Str::singular($alias),
+            Str::plural($alias),
+        ])
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 }

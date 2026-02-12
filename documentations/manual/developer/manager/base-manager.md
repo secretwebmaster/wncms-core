@@ -168,6 +168,17 @@ To build your own manager:
 3. Implement `getModelClass()` and `buildListQuery()`.
 4. Use helper methods like `applyTagFilter()`, `applyKeywordFilter()`, and `applyOrdering()`.
 
+## Custom App Manager Resolution
+
+When calling managers dynamically (for example `wncms()->post()`), WNCMS resolves manager classes in this order:
+
+1. `App\Services\Managers\{Name}Manager`
+2. `Wncms\Services\Managers\{Name}Manager`
+
+`App` managers are resolved through Laravel's container first, so constructor dependencies are injected automatically.
+
+WNCMS also accepts singular/plural aliases during lookup. For example, both `wncms()->catalog_item()` and `wncms()->catalog_items()` can resolve `App\Services\Managers\CatalogItemManager`.
+
 ## Common Use Cases
 
 - Filter and paginate models for frontend lists.

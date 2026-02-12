@@ -134,6 +134,14 @@ $products = wncms()->product()->getList([
 $product = wncms()->product()->get(['slug' => 'premium-plan']);
 ```
 
+## 解析行為
+
+建立 `app/Services/Managers/ProductManager.php` 之後，WNCMS 會透過 `wncms()->product()` 自動解析。
+
+- `App\Services\Managers\*Manager` 優先於 core managers。
+- Manager 會先透過 Laravel container 建立，因此可使用建構子相依注入。
+- 單數與複數別名都可使用（`wncms()->product()` 與 `wncms()->products()`）。
+
 ## 自訂 Managers 的提示
 
 - 總是定義唯一的 `$cacheKeyPrefix` 與 `$cacheTags`。

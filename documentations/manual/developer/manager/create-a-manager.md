@@ -134,6 +134,14 @@ Or fetch a single record:
 $product = wncms()->product()->get(['slug' => 'premium-plan']);
 ```
 
+## Resolution Behavior
+
+After creating `app/Services/Managers/ProductManager.php`, WNCMS resolves it automatically through `wncms()->product()`.
+
+- `App\Services\Managers\*Manager` has higher priority than core managers.
+- Managers are created through Laravel's container first, so constructor dependencies are supported.
+- Singular/plural aliases are both valid (`wncms()->product()` and `wncms()->products()`).
+
 ## Tips for Custom Managers
 
 - Always define a unique `$cacheKeyPrefix` and `$cacheTags`.
