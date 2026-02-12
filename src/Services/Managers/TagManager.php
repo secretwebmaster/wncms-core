@@ -22,7 +22,7 @@ class TagManager extends ModelManager
 
     public function get($options = []): ?Model
     {
-        if (!empty($options['type'])) {
+        if (array_key_exists('type', $options) && $this->hasFilterValue($options['type'], true)) {
             $options['wheres'][] = ['type', $options['type']];
             unset($options['type']);
         }
@@ -69,7 +69,7 @@ class TagManager extends ModelManager
     {
         $type = $options['type'] ?? null;
 
-        if (!empty($type)) {
+        if ($this->hasFilterValue($type, true)) {
             $q->where('type', $type);
         }
     }

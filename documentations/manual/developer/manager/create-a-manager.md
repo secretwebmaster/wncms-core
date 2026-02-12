@@ -141,6 +141,7 @@ $product = wncms()->product()->get(['slug' => 'premium-plan']);
 - Reuse `ModelManager` helpers instead of raw Eloquent conditions.
 - Use `applyWebsiteId()` when your model supports multi-website scope.
 - Use `distinct()` in the query if joining tags or counts.
+- When supporting boolean filters, pass explicit `false` values directly (for example `'status' => false`) and let `ModelManager` helpers apply them.
 
 ## Example Folder Structure
 

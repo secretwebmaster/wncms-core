@@ -166,6 +166,18 @@ $query = wncms()->post()->run([
 
 这些方法确保所有 WNCMS Manager 的行为一致。
 
+## 显式 `false` 选项值
+
+`ModelManager` 现在会把显式传入的 `false` 视为有效过滤值（例如 `status => false`），而不是当作空值忽略。
+
+当你需要过滤布林栏位时，可直接这样写：
+
+```php
+$items = wncms()->advertisement()->getList([
+    'status' => false,
+]);
+```
+
 ## 快取支援
 
 `ModelManager` 与 `wncms()->cache()` 整合，自动处理快取键生成与失效。

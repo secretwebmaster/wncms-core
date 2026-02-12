@@ -15,6 +15,22 @@ abstract class ModelManager
     protected string|array $cacheTags = ['models'];
 
     /**
+     * Check whether a filter value should be treated as present.
+     */
+    protected function hasFilterValue(mixed $value, bool $allowFalse = false): bool
+    {
+        if ($value === null || $value === '' || $value === []) {
+            return false;
+        }
+
+        if (!$allowFalse && $value === false) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Returns the model class name that this manager handles.
      * 
      * @return string
@@ -42,23 +58,23 @@ abstract class ModelManager
             $modelClass = $this->getModelClass();
             $q = $modelClass::query();
 
-            if (!empty($withs)) {
+            if ($this->hasFilterValue($withs)) {
                 $q->with($withs);
             }
 
-            if (!empty($wheres)) {
+            if ($this->hasFilterValue($wheres)) {
                 $this->applyWhereConditions($q, $wheres);
             }
 
-            if (!empty($id)) {
+            if ($this->hasFilterValue($id, true)) {
                 $q->where('id', $id);
             }
 
-            if (!empty($slug)) {
+            if ($this->hasFilterValue($slug, true)) {
                 $q->where('slug', $slug);
             }
 
-            if (!empty($name)) {
+            if ($this->hasFilterValue($name, true)) {
                 $q->where('name', $name);
             }
 
@@ -280,7 +296,7 @@ abstract class ModelManager
      */
     protected function applyExcludedTags(Builder $q, array|string|int|null $excludedTagIds): void
     {
-        if (empty($excludedTagIds)) return;
+        if (!$this->hasFilterValue($excludedTagIds)) return;
 
         if (is_string($excludedTagIds)) {
             $excludedTagIds = explode(',', $excludedTagIds);
@@ -300,7 +316,7 @@ abstract class ModelManager
      */
     protected function applyKeywordFilter(Builder $q, array|string|null $keywords, array $columns = ['title'])
     {
-        if (empty($keywords)) return;
+        if (!$this->hasFilterValue($keywords)) return;
         if (is_string($keywords)) $keywords = explode(',', $keywords);
 
         $q->where(function ($subq) use ($keywords, $columns) {
@@ -317,7 +333,7 @@ abstract class ModelManager
      */
     protected function applyIds(Builder $q, string $column, array|string|int|null $ids)
     {
-        if (empty($ids)) return;
+        if (!$this->hasFilterValue($ids)) return;
         if (is_string($ids)) $ids = explode(',', $ids);
         $q->whereIn($column, (array)$ids);
     }
@@ -327,7 +343,7 @@ abstract class ModelManager
      */
     protected function applyExcludeIds(Builder $q, string $column, array|string|int|null $excluded)
     {
-        if (empty($excluded)) return;
+        if (!$this->hasFilterValue($excluded)) return;
         if (is_string($excluded)) $excluded = explode(',', $excluded);
         $q->whereNotIn($column, (array)$excluded);
     }
@@ -357,9 +373,9 @@ abstract class ModelManager
     /**
      * Apply a status filter.
      */
-    protected function applyStatus(Builder $q, string $column, string|array|null $status): void
+    protected function applyStatus(Builder $q, string $column, string|array|int|bool|null $status): void
     {
-        if (empty($status)) {
+        if (!$this->hasFilterValue($status, true)) {
             return;
         }
 
@@ -375,7 +391,7 @@ abstract class ModelManager
      */
     protected function applyWiths(Builder $q, array $withs)
     {
-        if (!empty($withs)) {
+        if ($this->hasFilterValue($withs)) {
             $q->with($withs);
         }
     }
@@ -456,7 +472,7 @@ abstract class ModelManager
      */
     protected function applyUserId(Builder $q, ?int $userId = null): void
     {
-        if (empty($userId)) {
+        if (!$this->hasFilterValue($userId, true)) {
             return;
         }
 

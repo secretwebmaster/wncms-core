@@ -107,6 +107,18 @@ These methods help apply query conditions consistently:
 | `applyOffset()`        | Apply offset                        |
 | `applyLimit()`         | Limit result count                  |
 
+### Explicit `false` option values
+
+`ModelManager` now treats explicit `false` values as valid option inputs for boolean-style filters (for example `status => false`) instead of dropping them as "empty" values.
+
+Use this when you need to filter boolean-backed columns:
+
+```php
+$items = wncms()->advertisement()->getList([
+    'status' => false,
+]);
+```
+
 ### Query Lifecycle
 
 1. **`buildListQuery()`** — create the base query.

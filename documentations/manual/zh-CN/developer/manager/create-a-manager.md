@@ -141,6 +141,7 @@ $product = wncms()->product()->get(['slug' => 'premium-plan']);
 - 重复使用 `ModelManager` helpers 而非原始 Eloquent 条件。
 - 当你的 model 支援 multi-website 范围时，使用 `applyWebsiteId()`。
 - 若 join tags 或 counts，在查询中使用 `distinct()`。
+- 若有布林过滤条件，可直接传入显式 `false`（例如 `'status' => false`），`ModelManager` helper 会正确套用。
 
 ## 范例资料夹结构
 
