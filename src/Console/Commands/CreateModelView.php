@@ -7,6 +7,13 @@ use Illuminate\Support\Facades\File;
 
 class CreateModelView extends Command
 {
+    protected array $starterFiles = [
+        'index.blade.php',
+        'create.blade.php',
+        'edit.blade.php',
+        'form-items.blade.php',
+    ];
+
     /**
      * The name and signature of the console command.
      *
@@ -26,14 +33,17 @@ class CreateModelView extends Command
      */
     public function handle()
     {
-        $package_view_path = wncms()->getPackageRootPath('../resources/views');
+        $starterPath = $this->resolveStarterPath();
 
-        $view_files = [
-            $package_view_path . '/backend/starters/index.blade.php',
-            $package_view_path . '/backend/starters/create.blade.php',
-            $package_view_path . '/backend/starters/edit.blade.php',
-            $package_view_path . '/backend/starters/form-items.blade.php',
-        ];
+        if ($starterPath === null) {
+            $this->error('Starter blade files are not found. Checked these paths:');
+
+            foreach ($this->getStarterPathCandidates() as $candidate) {
+                $this->line("- {$candidate}");
+            }
+
+            return self::FAILURE;
+        }
 
         // namings
         $model_name = str()->snake($this->argument('model_name'));
@@ -41,7 +51,8 @@ class CreateModelView extends Command
         $singular_snake = str($model_name)->snake()->singular();
         $plural_snake = str($model_name)->snake()->plural();
 
-        foreach ($view_files as $source) {
+        foreach ($this->starterFiles as $fileName) {
+            $source = "{$starterPath}/{$fileName}";
 
             if (!File::exists($source)) {
                 $this->error("Source view file not found: {$source}");
@@ -73,5 +84,37 @@ class CreateModelView extends Command
 
             $this->info("copied starter file to {$target}");
         }
+
+        return self::SUCCESS;
+    }
+
+    protected function resolveStarterPath(): ?string
+    {
+        foreach ($this->getStarterPathCandidates() as $path) {
+            $isValid = true;
+            foreach ($this->starterFiles as $fileName) {
+                if (!File::exists("{$path}/{$fileName}")) {
+                    $isValid = false;
+                    break;
+                }
+            }
+
+            if ($isValid) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    protected function getStarterPathCandidates(): array
+    {
+        $candidates = [
+            wncms()->getPackageRootPath('resources/views/backend/starters'),
+            wncms()->getPackageRootPath('../resources/views/backend/starters'),
+            dirname(__DIR__, 3) . '/resources/views/backend/starters',
+        ];
+
+        return array_values(array_unique(array_filter($candidates)));
     }
 }
