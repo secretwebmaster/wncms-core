@@ -11,5 +11,5 @@ diff.txt
 
 # Documentation
 /documentations/manual/deploy-doc.sh
-/documentations/plans/
+/documentations/plans/*
 /documentations/commands/
