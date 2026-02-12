@@ -36,24 +36,60 @@
                         $displayId  = $record?->id ?? $loop->index + 1;
 
                         $info       = $packageInfo['info'] ?? [];
-                        $name       = $info['name'] 
-                                        ?? $record?->name 
-                                        ?? ucfirst($packageId);
+                        $normalizeMeta = function ($value, $default = '-') {
+                            if (is_scalar($value) || is_null($value)) {
+                                $text = is_null($value) ? '' : trim((string) $value);
+                                return $text !== '' ? $text : $default;
+                            }
 
-                        $desc       = $info['description'] 
-                                        ?? $record?->description 
-                                        ?? ($packageInfo['title'] ?? '');
+                            if (!is_array($value)) {
+                                return $default;
+                            }
 
-                        $author     = $info['author'] 
-                                        ?? $record?->author 
-                                        ?? '-';
+                            $locale = str_replace('-', '_', app()->getLocale());
+                            $fallbackLocale = str_replace('-', '_', app()->getFallbackLocale());
 
-                        $version    = $info['version'] 
-                                        ?? $record?->version 
-                                        ?? '1.0.0';
+                            $priorityKeys = [
+                                $locale,
+                                strtolower($locale),
+                                $fallbackLocale,
+                                strtolower($fallbackLocale),
+                                'en',
+                            ];
 
-                        $path       = $record?->path 
-                                        ?? ($packageInfo['paths']['base'] ?? '—');
+                            foreach ($priorityKeys as $key) {
+                                $candidate = data_get($value, $key);
+                                if (is_scalar($candidate)) {
+                                    $text = trim((string) $candidate);
+                                    if ($text !== '') {
+                                        return $text;
+                                    }
+                                }
+                            }
+
+                            foreach ($value as $candidate) {
+                                if (is_scalar($candidate)) {
+                                    $text = trim((string) $candidate);
+                                    if ($text !== '') {
+                                        return $text;
+                                    }
+                                }
+                            }
+
+                            return $default;
+                        };
+
+                        $nameRaw    = $info['name'] ?? $record?->name ?? ucfirst($packageId);
+                        $descRaw    = $info['description'] ?? $record?->description ?? ($packageInfo['title'] ?? '');
+                        $authorRaw  = $info['author'] ?? $record?->author ?? '-';
+                        $versionRaw = $info['version'] ?? $record?->version ?? '1.0.0';
+                        $pathRaw    = $record?->path ?? ($packageInfo['paths']['base'] ?? '—');
+
+                        $name       = $normalizeMeta($nameRaw, ucfirst($packageId));
+                        $desc       = $normalizeMeta($descRaw, '-');
+                        $author     = $normalizeMeta($authorRaw, '-');
+                        $version    = $normalizeMeta($versionRaw, '1.0.0');
+                        $path       = $normalizeMeta($pathRaw, '—');
                     @endphp
 
                     <tr>
