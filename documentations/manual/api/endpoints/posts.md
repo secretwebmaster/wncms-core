@@ -385,6 +385,11 @@ WNCMS will:
 3. Save them to your media library
 4. Update the content with local URLs
 
+Image format behavior follows **System Settings -> Content -> `convert_thumbnail_to_webp`**:
+
+- `On`: localized/cloned content images are converted to `.webp`
+- `Off`: localized/cloned content images keep their source extension
+
 ### Batch Tagging
 
 Assign multiple tags and categories at once:

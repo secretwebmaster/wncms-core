@@ -404,12 +404,22 @@ class PostController extends BackendController
                 }
 
                 $imageContents = file_get_contents($tempImageUrl);
-                $webpImageContents = $post->convertToWebp($imageContents);
+                $mediaContents = $imageContents;
+                $sourcePath = parse_url($tempImageUrl, PHP_URL_PATH) ?: $tempImageUrl;
+                $extension = pathinfo($sourcePath, PATHINFO_EXTENSION);
+
+                if (gss('convert_thumbnail_to_webp')) {
+                    $mediaContents = $post->convertToWebp($imageContents);
+                    $extension = 'webp';
+                }
+
+                if (empty($extension)) {
+                    $extension = 'jpg';
+                }
 
                 $fileName = str()->random(16);
-                $extension = 'webp';
 
-                $media = $newPost->addMediaFromString($webpImageContents)
+                $media = $newPost->addMediaFromString($mediaContents)
                     ->usingFileName("{$fileName}.{$extension}")
                     ->toMediaCollection('post_content'); // You can define your own collection name
 
