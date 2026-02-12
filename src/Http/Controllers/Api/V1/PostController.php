@@ -104,10 +104,13 @@ class PostController extends ApiController
         if (isset($auth['error'])) return $auth['error'];
         $user = $auth['user'];
 
-        $postModel = wncms()->getModel('post');
+        $postModel = wncms()->getModelClass('post');
+        $normalizedTranslatableInputs = $this->getNormalizedTranslatableInputs($request, $postModel);
+        $this->mergeTranslatableBaseValuesIntoRequest($request, $normalizedTranslatableInputs);
 
         $data = $this->buildPostPayload($request, $user?->id);
         $post = $postModel::create($data);
+        $this->applyModelTranslations($post, $normalizedTranslatableInputs);
 
         if ($request->hasFile('thumbnail')) {
             $post->addMediaFromRequest('thumbnail')->toMediaCollection('post_thumbnail');
@@ -124,6 +127,7 @@ class PostController extends ApiController
         }
 
         wncms()->cache()->tags(['posts'])->flush();
+        $post->refresh();
 
         return $this->success(
             $post,
@@ -149,8 +153,18 @@ class PostController extends ApiController
             return $this->fail(__('wncms::api.post_not_found'), 404);
         }
 
+        $normalizedTranslatableInputs = $this->getNormalizedTranslatableInputs($request, $post::class);
+        $this->mergeTranslatableBaseValuesIntoRequest($request, $normalizedTranslatableInputs);
+
         $data = $this->buildPostPayload($request, $post->user_id);
+        foreach ($this->getModelTranslatableFields($post::class) as $field) {
+            if (!$request->has($field)) {
+                unset($data[$field]);
+            }
+        }
+
         $post->update($data);
+        $this->applyModelTranslations($post, $normalizedTranslatableInputs);
 
         if ($request->filled('categories')) {
             $post->syncTagsWithType(explode(',', $request->categories), 'post_category');
@@ -160,6 +174,7 @@ class PostController extends ApiController
         }
 
         wncms()->cache()->tags(['posts'])->flush();
+        $post->refresh();
 
         return $this->success(
             new PostResource($post),

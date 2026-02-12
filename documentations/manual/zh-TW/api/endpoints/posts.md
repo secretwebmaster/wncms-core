@@ -123,7 +123,7 @@ POST /api/v1/posts/store
 | 參數               | 類型          | 必需 | 說明                                        |
 | ------------------ | ------------- | ---- | ------------------------------------------- |
 | `api_token`        | string        | 是\* | 使用者 API token                            |
-| `title`            | string        | 是   | 文章標題                                    |
+| `title`            | string/object | 是   | 文章標題。若傳入物件會先標準化，再以純文字儲存 |
 | `content`          | string        | 是   | 文章內容（允許 HTML）                       |
 | `slug`             | string        | 否   | 自定義 slug（如果未提供則從標題自動產生）   |
 | `excerpt`          | string        | 否   | 簡短描述/摘要                               |
@@ -141,6 +141,12 @@ POST /api/v1/posts/store
 | `localize_images`  | boolean       | 否   | 下載並儲存遠端圖片                          |
 
 \*如果啟用了身份驗證則為必需
+
+### 可翻譯欄位儲存格式
+
+- 對可翻譯欄位（`title`、`excerpt`、`keywords`、`content`、`label`），基礎欄位會以純文字寫入資料表。
+- 若可翻譯欄位傳入 locale JSON/物件（例如 `{"en":"Hello","zh-TW":"哈囉"}`），API 會選取一個值作為基礎欄位，並透過 `HasTranslations` 同步保存各語言翻譯。
+- 保存翻譯前會先標準化 locale key（例如 `zh-TW` 會轉換並寫入為 `zh_TW`）。
 
 ### 請求範例
 

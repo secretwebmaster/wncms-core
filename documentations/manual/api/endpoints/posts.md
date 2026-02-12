@@ -123,7 +123,7 @@ Required: Configurable via `wncms_api_posts_store` setting
 | Parameter          | Type          | Required | Description                                             |
 | ------------------ | ------------- | -------- | ------------------------------------------------------- |
 | `api_token`        | string        | Yes\*    | User API token                                          |
-| `title`            | string        | Yes      | Post title                                              |
+| `title`            | string/object | Yes      | Post title. Object input is normalized and stored as plain text |
 | `content`          | string        | Yes      | Post content (HTML allowed)                             |
 | `slug`             | string        | No       | Custom slug (auto-generated from title if not provided) |
 | `excerpt`          | string        | No       | Short description/summary                               |
@@ -141,6 +141,12 @@ Required: Configurable via `wncms_api_posts_store` setting
 | `localize_images`  | boolean       | No       | Download and save remote images                         |
 
 \*Required if authentication is enabled
+
+### Translatable Field Storage Format
+
+- For translatable fields (`title`, `excerpt`, `keywords`, `content`, `label`), base column values are persisted as plain text.
+- If a translatable field is sent as locale JSON/object (for example `{"en":"Hello","zh-TW":"哈囉"}`), the API uses one value as the base column value and saves locale entries through `HasTranslations`.
+- Locale keys are normalized before saving translations (for example `zh-TW` will be stored as `zh_TW`).
 
 ### Request Example
 

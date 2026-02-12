@@ -123,7 +123,7 @@ POST /api/v1/posts/store
 | 参数               | 类型          | 必需 | 说明                                        |
 | ------------------ | ------------- | ---- | ------------------------------------------- |
 | `api_token`        | string        | 是\* | 使用者 API token                            |
-| `title`            | string        | 是   | 文章标题                                    |
+| `title`            | string/object | 是   | 文章标题。若传入对象会先标准化，再以纯文字储存 |
 | `content`          | string        | 是   | 文章内容（允许 HTML）                       |
 | `slug`             | string        | 否   | 自定义 slug（如果未提供则从标题自动产生）   |
 | `excerpt`          | string        | 否   | 简短描述/摘要                               |
@@ -141,6 +141,12 @@ POST /api/v1/posts/store
 | `localize_images`  | boolean       | 否   | 下载并储存远端图片                          |
 
 \*如果启用了身份验证则为必需
+
+### 可翻译栏位储存格式
+
+- 对可翻译栏位（`title`、`excerpt`、`keywords`、`content`、`label`），基础栏位会以纯文字写入资料表。
+- 若可翻译栏位传入 locale JSON/对象（例如 `{"en":"Hello","zh-TW":"哈囉"}`），API 会选取一个值作为基础栏位，并透过 `HasTranslations` 同步保存各语言翻译。
+- 保存翻译前会先标准化 locale key（例如 `zh-TW` 会转换并写入为 `zh_TW`）。
 
 ### 请求范例
 
