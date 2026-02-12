@@ -178,7 +178,35 @@ class Post extends BaseModel implements HasMedia, ApiModelInterface
 
     protected $translatable = ['title', 'excerpt', 'keywords', 'content', 'label'];
 
-    protected static bool $hasApi = true;
+protected static bool $hasApi = true;
+
+protected static array $apiRoutes = [
+    [
+        'name' => 'api.v1.posts.index',
+        'key' => 'wncms_api_post_index',
+        'action' => 'index',
+    ],
+    [
+        'name' => 'api.v1.posts.show',
+        'key' => 'wncms_api_post_show',
+        'action' => 'show',
+    ],
+    [
+        'name' => 'api.v1.posts.store',
+        'key' => 'wncms_api_post_store',
+        'action' => 'store',
+    ],
+    [
+        'name' => 'api.v1.posts.update',
+        'key' => 'wncms_api_post_update',
+        'action' => 'update',
+    ],
+    [
+        'name' => 'api.v1.posts.delete',
+        'key' => 'wncms_api_post_delete',
+        'action' => 'delete',
+    ],
+];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-pencil'
@@ -257,6 +285,42 @@ protected static array $tagMetas = [
 ```
 
 Tag metadata defines what types of tags this model supports. The system automatically registers these tag types during boot.
+
+### 3. API Route Metadata (Required for API Settings Integration)
+
+If a model should expose configurable API actions in **System Settings -> API**, define all of the following together:
+
+- Implement `Wncms\Interfaces\ApiModelInterface`
+- Use `Wncms\Traits\HasApi`
+- Set `protected static bool $hasApi = true;`
+- Define `protected static array $apiRoutes = [...]`
+
+Each route item must include:
+
+- `name`: Laravel route name in `routes/api.php`
+- `key`: system setting key (for example `wncms_api_post_index`)
+- `action`: action name used by settings table grouping (`index`, `show`, `store`, `update`, `delete`, or custom)
+
+Optional but recommended:
+
+- `package_id`: package namespace used by API settings label translation (for example `wncms`, `my-package`)
+
+Example:
+
+```php
+protected static array $apiRoutes = [
+    [
+        'name' => 'api.v1.posts.index',
+        'key' => 'wncms_api_post_index',
+        'action' => 'index',
+        'package_id' => 'wncms',
+    ],
+];
+```
+
+`HasApi::getApiRoutes()` now auto-fills `package_id` from the model package when missing, so labels in **System Settings -> API** resolve against the correct translation namespace.
+
+Without `$apiRoutes`, the API auth/enable toggles for that model will not appear in backend settings.
 
 ### 3. Translatable Fields
 

@@ -178,7 +178,35 @@ class Post extends BaseModel implements HasMedia, ApiModelInterface
 
     protected $translatable = ['title', 'excerpt', 'keywords', 'content', 'label'];
 
-    protected static bool $hasApi = true;
+protected static bool $hasApi = true;
+
+protected static array $apiRoutes = [
+    [
+        'name' => 'api.v1.posts.index',
+        'key' => 'wncms_api_post_index',
+        'action' => 'index',
+    ],
+    [
+        'name' => 'api.v1.posts.show',
+        'key' => 'wncms_api_post_show',
+        'action' => 'show',
+    ],
+    [
+        'name' => 'api.v1.posts.store',
+        'key' => 'wncms_api_post_store',
+        'action' => 'store',
+    ],
+    [
+        'name' => 'api.v1.posts.update',
+        'key' => 'wncms_api_post_update',
+        'action' => 'update',
+    ],
+    [
+        'name' => 'api.v1.posts.delete',
+        'key' => 'wncms_api_post_delete',
+        'action' => 'delete',
+    ],
+];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-pencil'
@@ -257,6 +285,42 @@ protected static array $tagMetas = [
 ```
 
 標籤中繼資料定義此模型支援的標籤類型。系統會在啟動時自動註冊這些標籤類型。
+
+### 3. API 路由中繼資料（要在 API 設定顯示時為必要）
+
+如果模型要在**系統設定 -> API**中顯示可配置的 API 動作，請同時定義以下項目：
+
+- 實作 `Wncms\Interfaces\ApiModelInterface`
+- 使用 `Wncms\Traits\HasApi`
+- 設定 `protected static bool $hasApi = true;`
+- 定義 `protected static array $apiRoutes = [...]`
+
+每個路由項目必須包含：
+
+- `name`：`routes/api.php` 中的 Laravel 路由名稱
+- `key`：系統設定鍵值（例如 `wncms_api_post_index`）
+- `action`：設定表格中的動作名稱（`index`、`show`、`store`、`update`、`delete` 或自訂）
+
+可選但建議提供：
+
+- `package_id`：API 設定標籤翻譯所用的套件命名空間（例如 `wncms`、`my-package`）
+
+範例：
+
+```php
+protected static array $apiRoutes = [
+    [
+        'name' => 'api.v1.posts.index',
+        'key' => 'wncms_api_post_index',
+        'action' => 'index',
+        'package_id' => 'wncms',
+    ],
+];
+```
+
+`HasApi::getApiRoutes()` 現在會在缺少 `package_id` 時自動以模型套件識別碼補上，確保**系統設定 -> API**中的標籤翻譯能使用正確命名空間。
+
+若未定義 `$apiRoutes`，該模型的 API 啟用/驗證切換不會出現在後台設定中。
 
 ### 3. 可翻譯欄位
 

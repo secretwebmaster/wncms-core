@@ -17,6 +17,7 @@ interface ApiModelInterface
      *     'name' => 'api.v1.posts.index',
      *     'key' => 'wncms_api_post_index',
      *     'action' => 'index',
+     *     'package_id' => 'wncms', // optional if model package is used
      * ]
      */
     public static function getApiRoutes(): array;

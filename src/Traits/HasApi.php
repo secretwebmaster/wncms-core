@@ -11,7 +11,18 @@ trait HasApi
 
     public static function getApiRoutes(): array
     {
-        return static::$apiRoutes ?? [];
+        $routes = static::$apiRoutes ?? [];
+        $fallbackPackageId = static::resolveApiPackageId();
+
+        foreach ($routes as $index => $route) {
+            if (!is_array($route)) {
+                continue;
+            }
+
+            $routes[$index]['package_id'] = $route['package_id'] ?? $fallbackPackageId;
+        }
+
+        return $routes;
     }
 
     public static function addApiRoute(array $route): void
@@ -19,6 +30,9 @@ trait HasApi
         if (!isset(static::$apiRoutes)) {
             static::$apiRoutes = [];
         }
+
+        $route['package_id'] = $route['package_id'] ?? static::resolveApiPackageId();
+
         static::$apiRoutes[] = $route;
     }
 
@@ -54,7 +68,7 @@ trait HasApi
         }
 
         // Determine package_id
-        $packageId = $route['package_id'] ?? (static::$packageId ?? 'wncms');
+        $packageId = $route['package_id'] ?? static::resolveApiPackageId();
 
         // Try translation
         $text = __($packageId . '::word.' . $key);
@@ -65,5 +79,17 @@ trait HasApi
         }
 
         return $text;
+    }
+
+    protected static function resolveApiPackageId(): string
+    {
+        if (method_exists(static::class, 'getPackageId')) {
+            $resolved = static::getPackageId();
+            if (is_string($resolved) && $resolved !== '') {
+                return $resolved;
+            }
+        }
+
+        return static::$packageId ?? 'wncms';
     }
 }

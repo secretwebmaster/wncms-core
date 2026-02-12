@@ -178,7 +178,35 @@ class Post extends BaseModel implements HasMedia, ApiModelInterface
 
     protected $translatable = ['title', 'excerpt', 'keywords', 'content', 'label'];
 
-    protected static bool $hasApi = true;
+protected static bool $hasApi = true;
+
+protected static array $apiRoutes = [
+    [
+        'name' => 'api.v1.posts.index',
+        'key' => 'wncms_api_post_index',
+        'action' => 'index',
+    ],
+    [
+        'name' => 'api.v1.posts.show',
+        'key' => 'wncms_api_post_show',
+        'action' => 'show',
+    ],
+    [
+        'name' => 'api.v1.posts.store',
+        'key' => 'wncms_api_post_store',
+        'action' => 'store',
+    ],
+    [
+        'name' => 'api.v1.posts.update',
+        'key' => 'wncms_api_post_update',
+        'action' => 'update',
+    ],
+    [
+        'name' => 'api.v1.posts.delete',
+        'key' => 'wncms_api_post_delete',
+        'action' => 'delete',
+    ],
+];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-pencil'
@@ -257,6 +285,42 @@ protected static array $tagMetas = [
 ```
 
 标签中继资料定义此模型支援的标签类型。系统会在启动时自动注册这些标签类型。
+
+### 3. API 路由中继资料（要在 API 设定显示时为必要）
+
+如果模型要在**系统设定 -> API**中显示可配置的 API 动作，请同时定义以下项目：
+
+- 实作 `Wncms\Interfaces\ApiModelInterface`
+- 使用 `Wncms\Traits\HasApi`
+- 设定 `protected static bool $hasApi = true;`
+- 定义 `protected static array $apiRoutes = [...]`
+
+每个路由项目必须包含：
+
+- `name`：`routes/api.php` 中的 Laravel 路由名称
+- `key`：系统设定键值（例如 `wncms_api_post_index`）
+- `action`：设定表格中的动作名称（`index`、`show`、`store`、`update`、`delete` 或自定义）
+
+可选但建议提供：
+
+- `package_id`：API 设定标签翻译所用的套件命名空间（例如 `wncms`、`my-package`）
+
+范例：
+
+```php
+protected static array $apiRoutes = [
+    [
+        'name' => 'api.v1.posts.index',
+        'key' => 'wncms_api_post_index',
+        'action' => 'index',
+        'package_id' => 'wncms',
+    ],
+];
+```
+
+`HasApi::getApiRoutes()` 现在会在缺少 `package_id` 时自动以模型套件识别码补上，确保**系统设定 -> API**中的标签翻译能使用正确命名空间。
+
+若未定义 `$apiRoutes`，该模型的 API 启用/验证切换不会出现在后台设定中。
 
 ### 3. 可翻译栏位
 
