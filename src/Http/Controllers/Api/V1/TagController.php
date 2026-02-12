@@ -2,17 +2,25 @@
 
 namespace Wncms\Http\Controllers\Api\V1;
 
-use Wncms\Http\Controllers\Controller;
-use Wncms\Models\Tag;
 use Illuminate\Http\Request;
 
-class TagController extends Controller
+class TagController extends ApiController
 {
     public function index(Request $request)
     {
-        $locale = $request->input('locale', app()->getLocale());
+        if ($err = $this->checkEnabled('wncms_api_tag_index')) return $err;
+        $auth = $this->checkAuthSetting('wncms_api_tag_index', $request);
+        if (isset($auth['error'])) return $auth['error'];
 
-        $tags = Tag::where('type', $request->type)
+        $request->validate([
+            'type' => 'required|string|max:50',
+            'locale' => 'nullable|string|max:10',
+        ]);
+
+        $locale = $request->input('locale', app()->getLocale());
+        $tagModel = wncms()->getModelClass('tag');
+
+        $tags = $tagModel::where('type', $request->input('type'))
             ->whereNull('parent_id')
             ->with('children', 'children.children')
             ->orderBy('sort', 'desc')
@@ -23,18 +31,32 @@ class TagController extends Controller
                 return $tag;
             });
 
-        return $tags;
+        return $this->success(
+            $tags,
+            __('wncms::word.successfully_fetched_data')
+        );
     }
 
     public function exist(Request $request)
     {
-        $tagIds = Tag::whereIn('id', $request->tagIds ?? [])->pluck('id')->toArray();
+        if ($err = $this->checkEnabled('wncms_api_tag_exist')) return $err;
+        $auth = $this->checkAuthSetting('wncms_api_tag_exist', $request);
+        if (isset($auth['error'])) return $auth['error'];
 
-        return response()->json([
-            'status' => 'success',
-            'message' => __('wncms::word.successfully_fetched_data'),
-            'ids' => $tagIds,
+        $request->validate([
+            'tagIds' => 'required|array',
+            'tagIds.*' => 'integer',
         ]);
+
+        $tagModel = wncms()->getModelClass('tag');
+        $tagIds = $tagModel::whereIn('id', $request->input('tagIds', []))
+            ->pluck('id')
+            ->toArray();
+
+        return $this->success(
+            ['ids' => $tagIds],
+            __('wncms::word.successfully_fetched_data')
+        );
     }
 
     /**
@@ -50,34 +72,33 @@ class TagController extends Controller
      * - icon           (string, optional)   → Tag icon reference
      * - sort           (int, optional)      → Sorting order
      * - website_id     (int|array|string)   → Website IDs (array or comma-separated string)
-     * - update_when_duplicated (bool, optional) → If true, update existing tag when duplicate slug+type is found
+     * - update_when_duplicated (bool, optional) → If true, update existing tag when duplicate name+type is found
      */
     public function store(Request $request)
     {
-        if (!gss('enable_api_tag_store', true)) {
-            return response()->json([
-                'status' => 403,
-                'message' => 'API access is disabled',
-            ], 403);
+        if (!$this->isTagStoreEnabled()) {
+            return $this->fail("API feature 'wncms_api_tag_store' is disabled", 403);
         }
+        $auth = $this->checkAuthSetting('wncms_api_tag_store', $request);
+        if (isset($auth['error'])) return $auth['error'];
 
         try {
-            // Auth by api_token
-            $user = wncms()->getModelClass('user')::where('api_token', $request->api_token)->first();
-            if (!$user) {
-                return response()->json(['status' => 'fail', 'message' => 'Invalid token']);
-            }
-            auth()->login($user);
-
-            // Validate
             $data = $request->validate([
                 'name' => 'required|string|max:255',
+                'slug' => 'nullable|string|max:255',
                 'type' => 'nullable|string|max:50',
                 'parent_id' => 'nullable|integer|exists:tags,id',
+                'description' => 'nullable|string',
+                'icon' => 'nullable|string|max:255',
                 'sort' => 'nullable|integer',
+                'group' => 'nullable|string|max:255',
+                'website_id' => 'nullable',
+                'update_when_duplicated' => 'nullable|boolean',
             ]);
+            $websiteInput = $data['website_id'] ?? null;
+            $updateWhenDuplicated = $request->boolean('update_when_duplicated');
+            unset($data['website_id'], $data['update_when_duplicated']);
 
-            // Default type
             if (empty($data['type'])) {
                 $data['type'] = 'post_category';
             }
@@ -86,46 +107,31 @@ class TagController extends Controller
                 $data['slug'] = str()->slug($data['name']) ?: $data['name'];
             }
 
-            // Check duplicate
-            $tagModel = wncms()->getModel('tag');
+            $tagModel = wncms()->getModelClass('tag');
             $existing = $tagModel::where('name', $data['name'])->where('type', $data['type'])->first();
 
-            if ($existing && !$request->update_when_duplicated) {
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Skipped. Duplicated tag found',
-                    'data' => $existing,
-                ]);
+            if ($existing && !$updateWhenDuplicated) {
+                return $this->success($existing, 'Skipped. Duplicated tag found');
             }
 
-            if ($existing && $request->update_when_duplicated) {
+            if ($existing && $updateWhenDuplicated) {
                 $existing->update($data);
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Existing tag updated',
-                    'data' => $existing,
-                ]);
+                return $this->success($existing->fresh(), 'Existing tag updated');
             }
 
-            // Create new
             $tag = $tagModel::create($data);
 
-            // Bind websites
-            if (gss('multi_website') && $request->filled('website_id')) {
-                $websiteIds = is_array($request->website_id)
-                    ? $request->website_id
-                    : explode(',', $request->website_id);
+            if (gss('multi_website') && !empty($websiteInput)) {
+                $websiteIds = is_array($websiteInput)
+                    ? $websiteInput
+                    : explode(',', (string) $websiteInput);
 
                 $tag->bindWebsites($websiteIds);
             }
 
             wncms()->cache()->tags(['tags'])->flush();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => "tag #{$tag->id} created",
-                'data' => $tag,
-            ], 200, [], JSON_UNESCAPED_UNICODE);
+            return $this->success($tag->fresh(), "tag #{$tag->id} created");
 
         } catch (\Throwable $e) {
             logger()->error('API TagController@store error', [
@@ -133,10 +139,15 @@ class TagController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return response()->json([
-                'status' => 500,
-                'message' => 'Server Error: ' . $e->getMessage(),
-            ], 500);
+            return $this->fail('Server Error: ' . $e->getMessage(), 500);
         }
+    }
+
+    /**
+     * Check if the tag store API feature is enabled. Legacy support for 'enable_api_tag_store' is included.
+     */
+    protected function isTagStoreEnabled(): bool
+    {
+        return (bool) gss('wncms_api_tag_store') || (bool) gss('enable_api_tag_store');
     }
 }

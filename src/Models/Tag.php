@@ -4,12 +4,15 @@ namespace Wncms\Models;
 
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Wncms\Interfaces\ApiModelInterface;
 use Wncms\Tags\Tag as WncmsTag;
+use Wncms\Traits\HasApi;
 
 //TODO: Pending merge to HasTags
-class Tag extends WncmsTag implements HasMedia
+class Tag extends WncmsTag implements HasMedia, ApiModelInterface
 {
     use InteractsWithMedia;
+    use HasApi;
 
     /**
      * ----------------------------------------------------------------------------------------------------
@@ -17,6 +20,26 @@ class Tag extends WncmsTag implements HasMedia
      * ----------------------------------------------------------------------------------------------------
      */
     public static $modelKey = 'tag';
+
+    protected static bool $hasApi = true;
+
+    protected static array $apiRoutes = [
+        [
+            'name' => 'api.v1.tags.index',
+            'key' => 'wncms_api_tag_index',
+            'action' => 'index',
+        ],
+        [
+            'name' => 'api.v1.tags.exist',
+            'key' => 'wncms_api_tag_exist',
+            'action' => 'exist',
+        ],
+        [
+            'name' => 'api.v1.tags.store',
+            'key' => 'wncms_api_tag_store',
+            'action' => 'store',
+        ],
+    ];
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-tag'
