@@ -89,6 +89,7 @@ For more details, see [Core Concepts](./core-concepts.md).
 | **Pages**   | Manage website pages           | `/pages`  |
 | **Menus**   | Manage navigation menus        | `/menus`  |
 | **Tags**    | Manage categories and tags     | `/tags`   |
+| **Websites** | Manage website domains         | `/websites` |
 | **Updates** | System update operations       | `/update` |
 
 ## Next Steps
