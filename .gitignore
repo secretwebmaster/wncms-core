@@ -1,7 +1,15 @@
 /vendor/
-/documentations/Todo.md
-/documentations/Plan.md
 diff.txt
 *.backup
 *.bak
 /composer.lock
+
+# Agent Skills
+/AGENTS.md
+/.github/copilot-instructions.md
+/.github/skills/
+
+# Documentation
+/documentations/manual/deploy-doc.sh
+/documentations/plans/
+/documentations/commands/
