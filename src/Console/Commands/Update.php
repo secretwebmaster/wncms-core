@@ -12,7 +12,7 @@ class Update extends Command
      *
      * @var string
      */
-    protected $signature = 'wncms:update {product=core} {--version=}';
+    protected $signature = 'wncms:update {product=core} {--target-version=}';
 
     /**
      * The console command description.
@@ -29,7 +29,7 @@ class Update extends Command
         $this->info('Starting WNCMS update process.');
 
         $product = $this->argument('product');
-        $targetVersion = $this->option('version'); // Optional specific version to update to
+        $targetVersion = $this->option('target-version'); // Optional specific version to update to
 
         // Step 1: Get the user's current version
         $currentVersion = gss("{$product}_version", '1.0.0');

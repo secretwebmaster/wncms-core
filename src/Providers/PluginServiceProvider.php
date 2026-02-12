@@ -2,47 +2,57 @@
 
 namespace Wncms\Providers;
 
-use Wncms\Models\Plugin;
-use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Wncms\Models\Plugin;
 
 class PluginServiceProvider extends ServiceProvider
 {
-    /**
-     * Register services.
-     *
-     * @return void
-     */
     public function register()
     {
         // Register services if needed
     }
 
-    /**
-     * Bootstrap services.
-     *
-     * @return void
-     */
     public function boot()
     {
-        if(wncms_is_installed()){
-            $activePlugins = $this->getActivePlugins();
+        if (!$this->shouldLoadPlugins()) {
+            return;
+        }
 
-            foreach ($activePlugins as $plugin) {
-                $this->loadPluginRoutes($plugin);
-                $this->loadPluginEvent($plugin);
-                $this->loadPluginFunction($plugin);
-            }
+        $activePlugins = $this->getActivePlugins();
+
+        foreach ($activePlugins as $plugin) {
+            $this->loadPluginRoutes($plugin);
+            $this->loadPluginEvent($plugin);
+            $this->loadPluginFunction($plugin);
         }
     }
 
-    // Get active plugins
+    protected function shouldLoadPlugins(): bool
+    {
+        if (!function_exists('wncms_is_installed') || !wncms_is_installed()) {
+            return false;
+        }
+
+        if (!Schema::hasTable('wn_plugins')) {
+            return false;
+        }
+
+        if (app()->runningInConsole()) {
+            $cmd = $_SERVER['argv'][1] ?? '';
+            if (str_starts_with($cmd, 'migrate') || $cmd === 'db:seed') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function getActivePlugins()
     {
         return Plugin::where('status', 'active')->get();
     }
 
-    // Load the plugin routes
     public function loadPluginRoutes(Plugin $plugin)
     {
         $routeFile = app_path('Plugins/' . $plugin->path . '/routes/web.php');
@@ -52,7 +62,6 @@ class PluginServiceProvider extends ServiceProvider
         }
     }
 
-    // Load the plugin events
     public function loadPluginEvent(Plugin $plugin)
     {
         $eventFile = app_path('Plugins/' . $plugin->path . '/system/events.php');
@@ -62,7 +71,6 @@ class PluginServiceProvider extends ServiceProvider
         }
     }
 
-    // Load the plugin functions
     public function loadPluginFunction(Plugin $plugin)
     {
         $functionFile = app_path('Plugins/' . $plugin->path . '/system/functions.php');
