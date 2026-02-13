@@ -184,6 +184,45 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                @elseif ($tab_content['name'] == 'model_website_modes')
+                                                    <div class="row mb-1">
+                                                        @include('wncms::backend.admin.settings.label', [
+                                                            'tab_content' => $tab_content,
+                                                            'settings' => $settings
+                                                        ])
+
+                                                        <div class="col-lg-8 fv-row">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm table-striped align-middle">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>@lang('wncms::word.model')</th>
+                                                                            <th>@lang('wncms::word.website_mode')</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @foreach ($multisiteModels ?? [] as $modelData)
+                                                                            <tr>
+                                                                                <td>
+                                                                                    @lang('wncms::word.' . $modelData['key'])
+                                                                                    @if (!empty($settings['show_developer_hints']))
+                                                                                        <div class="fs-xs text-gray-300">{{ $modelData['key'] }}</div>
+                                                                                    @endif
+                                                                                </td>
+                                                                                <td>
+                                                                                    <select class="form-select form-select-sm mw-200px" name="model_website_modes[{{ $modelData['key'] }}]">
+                                                                                        @foreach (['global', 'single', 'multi'] as $mode)
+                                                                                            <option value="{{ $mode }}" {{ ($modelData['mode'] ?? 'global') === $mode ? 'selected' : '' }}>@lang('wncms::word.' . $mode)</option>
+                                                                                        @endforeach
+                                                                                    </select>
+                                                                                </td>
+                                                                            </tr>
+                                                                        @endforeach
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 @elseif(false)
                                                 @endif
                                             @endif

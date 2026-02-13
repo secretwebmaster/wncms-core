@@ -2300,6 +2300,12 @@ $words = [
     'translation_setting' => '翻译设置',
     'use_locales_mapping' => '使用语言映射表',
     'use_locales_mapping_description' => '启用后，URL 将显示简短语言代码，例如 cn → zh_CN、tw → zh_TW',
+    'multisite_setting' => '多站点设置',
+    'model_website_modes' => '模型网站模式',
+    'website_mode' => '网站模式',
+    'global' => '全局',
+    'single' => '单站',
+    'multi' => '多站',
 ];
 
 $locale = basename(__DIR__);

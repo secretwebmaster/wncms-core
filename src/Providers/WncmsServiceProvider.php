@@ -11,6 +11,7 @@ use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Support\Str;
 
 class WncmsServiceProvider extends ServiceProvider
 {
@@ -221,6 +222,64 @@ class WncmsServiceProvider extends ServiceProvider
 
         // Base filesystem overrides
         config(['filesystems.disks' => $disks]);
+
+        // Runtime model website mode override from system settings
+        $this->loadModelWebsiteModeSettings();
+    }
+
+    protected function loadModelWebsiteModeSettings(): void
+    {
+        $resolvedModes = [];
+
+        foreach ((array) config('wncms.model_website_modes', []) as $modelKey => $mode) {
+            $normalizedKey = Str::snake(Str::singular($modelKey));
+            if (in_array($mode, ['global', 'single', 'multi'], true)) {
+                $resolvedModes[$normalizedKey] = $mode;
+            }
+        }
+
+        foreach ((array) config('wncms.models', []) as $modelKey => $configData) {
+            $normalizedKey = Str::snake(Str::singular($modelKey));
+            $mode = $configData['website_mode'] ?? null;
+            if (in_array($mode, ['global', 'single', 'multi'], true)) {
+                $resolvedModes[$normalizedKey] = $mode;
+            }
+        }
+
+        if (function_exists('wncms_is_installed') && wncms_is_installed()) {
+            $raw = gss('model_website_modes', '{}');
+            $overrides = json_decode((string) $raw, true);
+            if (is_array($overrides)) {
+                foreach ($overrides as $modelKey => $mode) {
+                    $normalizedKey = Str::snake(Str::singular($modelKey));
+                    if (in_array($mode, ['global', 'single', 'multi'], true)) {
+                        $resolvedModes[$normalizedKey] = $mode;
+                    }
+                }
+            }
+        }
+
+        $models = (array) config('wncms.models', []);
+
+        foreach ($resolvedModes as $modelKey => $mode) {
+            if (isset($models[$modelKey])) {
+                $models[$modelKey]['website_mode'] = $mode;
+                continue;
+            }
+
+            try {
+                $modelClass = wncms()->getModelClass($modelKey);
+                if (class_exists($modelClass)) {
+                    $models[$modelKey] = [
+                        'class' => $modelClass,
+                        'website_mode' => $mode,
+                    ];
+                }
+            } catch (\Throwable $e) {
+            }
+        }
+
+        config(['wncms.models' => $models]);
     }
 
     protected function loadTranslationSettings(): void

@@ -2300,6 +2300,12 @@ $words = [
     'translation_setting' => '翻譯設定',
     'use_locales_mapping' => '使用語言對應表',
     'use_locales_mapping_description' => '啟用後，URL 會顯示簡短的語言代碼，例如 cn → zh_CN、tw → zh_TW',
+    'multisite_setting' => '多站點設定',
+    'model_website_modes' => '模型網站模式',
+    'website_mode' => '網站模式',
+    'global' => '全域',
+    'single' => '單站',
+    'multi' => '多站',
 
     // 6.1.7
     'wncms_official_doc' => '官方文檔',

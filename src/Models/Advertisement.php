@@ -7,14 +7,12 @@ use Wncms\Models\BaseModel;
 use Wncms\Translatable\Traits\HasTranslations;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Wncms\Traits\HasMultisite;
 
 class Advertisement extends BaseModel implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
     use HasTranslations;
-    use HasMultisite;
 
     /**
      * ----------------------------------------------------------------------------------------------------

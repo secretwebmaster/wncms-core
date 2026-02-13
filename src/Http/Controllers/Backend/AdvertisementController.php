@@ -78,17 +78,12 @@ class AdvertisementController extends BackendController
     public function store(Request $request)
     {
         // dd($request->all());
-        if (gss('multi_website')) {
-            $websiteId = $request->website_id;
-        } else {
-            $websiteId = wncms()->website()->get()?->id;
-            if (!$websiteId) {
-                return back()->withMessage(__('wncms::word.website_not_found'));
-            }
+        $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
+        if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
+            return back()->withMessage(__('wncms::word.website_not_found'));
         }
 
-        $advertisement = $this->modelClass::create([
-            'website_id' => $websiteId,
+        $payload = [
             'status' => $request->status,
             'expired_at' => $request->expired_at,
             'name' => $request->name,
@@ -105,14 +100,11 @@ class AdvertisementController extends BackendController
             'style' => $request->style,
             'sort' => $request->sort,
             'contact' => $request->contact,
-        ]);
+        ];
 
-        if (gss('multi_website')) {
-            $websiteId = $request->website_id;
-            if ($websiteId) {
-                $advertisement->bindWebsites($websiteId);
-            }
-        }
+        $advertisement = $this->modelClass::create($payload);
+
+        $this->syncModelWebsites($advertisement, $websiteIds);
 
         //thumbnail
         if (!empty($request->advertisement_thumbnail_remove)) {
@@ -164,14 +156,9 @@ class AdvertisementController extends BackendController
     {
         // dd($request->all());
 
-        // TODO: remove single model binding
-        if (gss('multi_website')) {
-            $websiteId = $request->website_id;
-        } else {
-            $websiteId = wncms()->website()->get()?->id;
-            if (!$websiteId) {
-                return back()->withMessage(__('wncms::word.website_not_found'));
-            }
+        $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
+        if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
+            return back()->withMessage(__('wncms::word.website_not_found'));
         }
 
         $advertisement = $this->modelClass::find($id);
@@ -179,8 +166,7 @@ class AdvertisementController extends BackendController
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.advertisement')]));
         }
 
-        $advertisement->update([
-            'website_id' => $websiteId,
+        $payload = [
             'status' => $request->status,
             'expired_at' => $request->expired_at,
             'name' => $request->name,
@@ -197,15 +183,11 @@ class AdvertisementController extends BackendController
             'code' => $request->code,
             'style' => $request->style,
             'contact' => $request->contact,
-        ]);
+        ];
 
-        // multisite
-        if (gss('multi_website')) {
-            $websiteId = $request->website_id;
-            if ($websiteId) {
-                $advertisement->bindWebsites($websiteId);
-            }
-        }
+        $advertisement->update($payload);
+
+        $this->syncModelWebsites($advertisement, $websiteIds);
 
         // thumbnail
         if (!empty($request->advertisement_thumbnail_remove)) {
@@ -232,4 +214,5 @@ class AdvertisementController extends BackendController
             'id' => $advertisement,
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
+
 }

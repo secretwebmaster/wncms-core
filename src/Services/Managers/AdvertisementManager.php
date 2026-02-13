@@ -68,7 +68,22 @@ class AdvertisementManager extends ModelManager
             $q->whereRaw('0 = 1');
         }
 
+        // Type filter (`type=image` or `types=image,card`)
+        $typeFilter = $options['type'] ?? ($options['types'] ?? null);
+        if ($this->hasFilterValue($typeFilter, true)) {
+            $types = is_string($typeFilter)
+                ? array_filter(array_map('trim', explode(',', $typeFilter)))
+                : array_filter((array) $typeFilter);
 
+            if (!empty($types)) {
+                $q->whereIn('type', $types);
+            } else {
+                $q->whereRaw('0 = 1');
+            }
+        } elseif (isset($options['type']) || isset($options['types'])) {
+            // Empty type filter means no results
+            $q->whereRaw('0 = 1');
+        }
 
         // Generic filters
         $this->applyIds($q, 'advertisements.id', $options['ids'] ?? []);

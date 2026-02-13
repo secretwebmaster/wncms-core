@@ -2300,6 +2300,12 @@ $words = [
     'translation_setting' => 'Translation settings',
     'use_locales_mapping' => 'Use locale mapping',
     'use_locales_mapping_description' => 'When enabled, URLs will use short locale codes, for example cn → zh_CN, tw → zh_TW',
+    'multisite_setting' => 'Multisite Settings',
+    'model_website_modes' => 'Model Website Modes',
+    'website_mode' => 'Website Mode',
+    'global' => 'Global',
+    'single' => 'Single',
+    'multi' => 'Multi',
 ];
 
 $locale = basename(__DIR__);

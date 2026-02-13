@@ -7,6 +7,7 @@ use Wncms\Mails\TestMail;
 use Wncms\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class SettingController extends Controller
 {
@@ -19,6 +20,15 @@ class SettingController extends Controller
 
         $settings = Setting::pluck('value', 'key')->toArray();
         $availableSettings = array_merge(config('wncms-system-settings'), config('wncms.custom-settings') ?? []);
+
+        if (gss('multi_website')) {
+            $availableSettings['multisite'] = [
+                'tab_name' => 'multisite',
+                'tab_content' => [
+                    ['type' => 'custom', 'name' => 'model_website_modes'],
+                ],
+            ];
+        }
 
         // Determine active tab
         $firstTabName = collect($availableSettings)
@@ -88,6 +98,23 @@ class SettingController extends Controller
         $otherActions = array_diff($allActions, $commonActionsOriginal);
 
         $modelDisplayList = wncms_get_model_names();
+        $resolvedWebsiteModes = $this->getResolvedModelWebsiteModes($settings);
+
+        $multisiteModels = collect($modelDisplayList)
+            ->filter(fn($modelData) => !empty($modelData['routes']))
+            ->map(function ($modelData) use ($resolvedWebsiteModes) {
+                $modelKey = !empty($modelData['model_key'])
+                    ? Str::snake(Str::singular($modelData['model_key']))
+                    : Str::snake(Str::singular($modelData['model_name']));
+
+                return [
+                    'key' => $modelKey,
+                    'class' => $modelData['model_name_with_namespace'] ?? null,
+                    'mode' => $resolvedWebsiteModes[$modelKey] ?? 'global',
+                ];
+            })
+            ->values()
+            ->all();
 
         return $this->view('wncms::backend.admin.settings.index', [
             'settings' => $settings,
@@ -98,13 +125,37 @@ class SettingController extends Controller
             'commonActions' => $commonActions,
             'otherActions' => $otherActions,
             'modelDisplayList' => $modelDisplayList,
+            'multisiteModels' => $multisiteModels,
         ]);
     }
 
 
     public function update(Request $request)
     {
-        foreach ($request->settings as $key => $value) {
+        if ($request->has('model_website_modes')) {
+            $allowedModelKeys = collect(wncms_get_model_names())
+                ->filter(fn($modelData) => !empty($modelData['routes']))
+                ->map(function ($modelData) {
+                    return !empty($modelData['model_key'])
+                        ? Str::snake(Str::singular($modelData['model_key']))
+                        : Str::snake(Str::singular($modelData['model_name']));
+                })
+                ->unique()
+                ->values()
+                ->all();
+
+            $modes = collect((array) $request->model_website_modes)
+                ->mapWithKeys(function ($mode, $modelKey) {
+                    $normalizedKey = Str::snake(Str::singular($modelKey));
+                    $normalizedMode = in_array($mode, ['global', 'single', 'multi'], true) ? $mode : 'global';
+                    return [$normalizedKey => $normalizedMode];
+                })
+                ->only($allowedModelKeys)
+                ->toArray();
+            uss('model_website_modes', json_encode($modes));
+        }
+
+        foreach ((array) $request->settings as $key => $value) {
             uss($key, $value);
         }
 
@@ -188,5 +239,37 @@ class SettingController extends Controller
         uss('quick_links', json_encode(array_values($quickLinks)));
 
         return back()->withMessage(__('wncms::word.successfully_updated'));
+    }
+
+    protected function getResolvedModelWebsiteModes(array $settings = []): array
+    {
+        $modes = [];
+
+        foreach ((array) config('wncms.model_website_modes', []) as $modelKey => $mode) {
+            $normalizedKey = Str::snake(Str::singular($modelKey));
+            if (in_array($mode, ['global', 'single', 'multi'], true)) {
+                $modes[$normalizedKey] = $mode;
+            }
+        }
+
+        foreach ((array) config('wncms.models', []) as $modelKey => $configData) {
+            $normalizedKey = Str::snake(Str::singular($modelKey));
+            $mode = $configData['website_mode'] ?? null;
+            if (in_array($mode, ['global', 'single', 'multi'], true)) {
+                $modes[$normalizedKey] = $mode;
+            }
+        }
+
+        $dbModes = json_decode($settings['model_website_modes'] ?? '{}', true);
+        if (is_array($dbModes)) {
+            foreach ($dbModes as $modelKey => $mode) {
+                $normalizedKey = Str::snake(Str::singular($modelKey));
+                if (in_array($mode, ['global', 'single', 'multi'], true)) {
+                    $modes[$normalizedKey] = $mode;
+                }
+            }
+        }
+
+        return $modes;
     }
 }

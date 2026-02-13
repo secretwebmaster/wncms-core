@@ -6,20 +6,7 @@
 
 <div class="card-body border-top p-3 p-md-9">
 
-    {{-- website --}}
-    @if(gss('multi_website') && $advertisement::getWebsiteMode() === 'single')
-        <div class="row mb-3">
-            <label class="col-lg-3 col-form-label required fw-bold fs-6" for="website_id">@lang('wncms::word.website')</label>
-            <div class="col-lg-9 fv-row">
-                <select id="website_id" name="website_id" class="form-select form-select-sm" required>
-                    <option value="">@lang('wncms::word.please_select')</option>
-                    @foreach($websites as $website)
-                        <option  value="{{ $website->id }}" {{ $website->id === old('website_id', $advertisement?->website?->id ?? '') ? 'selected' : '' }}>{{ $website->domain }} #({{ $website->id }})</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-    @endif
+    @include('wncms::backend.common.website_selector', ['model' => $advertisement, 'websites' => $websites ?? []])
 
     {{-- status --}}
     <div class="row mb-3">
