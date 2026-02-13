@@ -24,12 +24,6 @@ function initMenuEditor(menuData, locale, defLocale) {
     // Generate menu list
     fillMenu(currentMenuData);
 
-    // Bind toggle events for expand/collapse
-    $('.toggle-children').on('click', function() {
-        $(this).toggleClass('collapsed');
-        $(this).closest('.dd-item').children('.dd-list').toggleClass('d-none');
-    });
-
     // Bind all event handlers
     bindEventHandlers();
 
@@ -53,11 +47,13 @@ function bindEventHandlers() {
     // Expand all menu items
     $('.dd_expand_all').on('click', function() {
         $('.dd-item').removeClass('dd-collapsed');
+        updateCollapseToggleStates();
     });
 
     // Collapse all menu items
     $('.dd_collapse_all').on('click', function() {
         $('.dd-item').addClass('dd-collapsed');
+        updateCollapseToggleStates();
     });
 
     // Submit menu item edit from modal
@@ -198,6 +194,10 @@ function updateMenuItemDisplay(menuItemId, menuItem) {
 function fillMenu(data, parent) {
     var html = '';
     $.each(data, function(index, item) {
+        var menuItemId = item.id ? item.id : generateRandomId();
+        var menuItemUrlInputId = 'menu_item_url_' + menuItemId;
+        var menuItemNewWindowInputId = 'menu_item_new_window_' + menuItemId;
+
         // Get item name based on locale
         var item_name = item.name[currentLocale] != undefined ? item.name[currentLocale] :
             (item.name[defaultLocale] != undefined ? item.name[defaultLocale] : item.name);
@@ -211,7 +211,7 @@ function fillMenu(data, parent) {
         }
 
         // Render menu item data to the list
-        html += '<li class="dd-item" data-id="' + (item.id ? item.id : generateRandomId()) +
+        html += '<li class="dd-item" data-id="' + menuItemId +
             '" data-model-type="' + (item.model_type ?? item.modelType) +
             '" data-model-id="' + (item.model_id ?? item.modelId) +
             '" data-name="' + item_name +
@@ -222,21 +222,25 @@ function fillMenu(data, parent) {
             '" data-thumbnail="' + item.thumbnail +
             '" data-is_new_window="' + item.is_new_window + '">';
         
-        // Collapse/expand buttons
-        html += '<button class="dd-collapse" data-action="collapse" type="button">Collapse</button><button class="dd-expand" data-action="expand" type="button">Expand</button>';
-        
         // Handle container with flex layout
         html += '<div class="dd-handle h-35px d-flex justify-content-between align-items-center">';
         
         // Left section: Name and URL
         html += '<div class="d-flex align-items-center gap-2">';
+        if (item.children && item.children.length > 0) {
+            html += '<button type="button" class="menu-collapse-toggle dd-nodrag me-1" aria-label="Toggle children"><i class="fa fa-caret-down" aria-hidden="true"></i></button>';
+        } else {
+            html += '<span class="menu-collapse-placeholder me-1"></span>';
+        }
         html += '<span class="dd-handle-name">' + item_name + '</span>';
         html += '<span class="small text-muted fw-normal d-none d-inline">(' + item.type + ')</span>';
         
         // URL display
         if (item.type == 'external_link') {
             // Editable input for external links
-            html += '<div class="d-inline-flex align-items-center dd-nodrag ms-2"><input class="menu_item_url" type="text" value="' + item.url + '"></div>';
+            html += '<div class="d-inline-flex align-items-center dd-nodrag ms-2">';
+            html += '<input class="menu_item_url" type="text" id="' + menuItemUrlInputId + '" name="menu_item_url_inline[]" value="' + item.url + '" autocomplete="url" aria-label="Menu item URL">';
+            html += '</div>';
         } else if (item.url && item.url !== 'null' && item.url !== 'undefined') {
             // Plain text display for other types
             html += '<span class="small text-muted ms-2">' + item.url + '</span>';
@@ -251,8 +255,8 @@ function fillMenu(data, parent) {
         
         // New window checkbox
         html += '<div class="form-check form-check-sm form-check-custom form-check-solid mb-0 d-inline check_new_window">';
-        html += '<input class="form-check-input menu_item_is_new_window" type="checkbox" title="' + window.wncmsMenuTranslations.newWindow + '"' + ((item.is_new_window || item.newWindow) && item.newWindow != 'undefined' ? 'checked' : '') + '>';
-        html += '<label class="form-check-label small d-none d-inline ms-1">' + window.wncmsMenuTranslations.newWindow + '</label>';
+        html += '<input class="form-check-input menu_item_is_new_window" type="checkbox" id="' + menuItemNewWindowInputId + '" name="menu_item_new_window_inline[]" title="' + window.wncmsMenuTranslations.newWindow + '" aria-label="' + window.wncmsMenuTranslations.newWindow + '"' + ((item.is_new_window || item.newWindow) && item.newWindow != 'undefined' ? 'checked' : '') + '>';
+        html += '<label class="form-check-label small d-none d-inline ms-1" for="' + menuItemNewWindowInputId + '">' + window.wncmsMenuTranslations.newWindow + '</label>';
         html += '</div>';
 
         // Edit icon
@@ -279,10 +283,24 @@ function fillMenu(data, parent) {
         return html;
         $('[data-id="' + parent + '"]').children('.dd-list').html(html);
     } else {
-        $('.dd-list').html(html);
+        $('#nestable-json > .dd-list').html(html);
     }
     
     bindClickEvents();
+    updateCollapseToggleStates();
+}
+
+function updateCollapseToggleStates() {
+    $('.dd-item').each(function() {
+        var item = $(this);
+        var toggleIcon = item.find('> .dd-handle .menu-collapse-toggle i');
+        if (toggleIcon.length === 0) return;
+        if (item.hasClass('dd-collapsed')) {
+            toggleIcon.removeClass('fa-caret-down').addClass('fa-caret-right');
+        } else {
+            toggleIcon.removeClass('fa-caret-right').addClass('fa-caret-down');
+        }
+    });
 }
 
 /**
@@ -290,6 +308,14 @@ function fillMenu(data, parent) {
  * This needs to be called every time items are generated
  */
 function bindClickEvents() {
+    $('.menu-collapse-toggle').off().on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var item = $(this).closest('.dd-item');
+        item.toggleClass('dd-collapsed');
+        updateCollapseToggleStates();
+    });
+
     // Remove menu item
     $('.remove_menu_item').on('click', function(e) {
         e.preventDefault();
@@ -464,6 +490,10 @@ function checkTagIds() {
         tagIds.push($(this).data('model-id'));
     });
 
+    if (!tagIds.length) {
+        return;
+    }
+
     $.ajax({
         url: window.wncmsMenuRoutes.checkTagsExist,
         type: "POST",
@@ -471,10 +501,10 @@ function checkTagIds() {
             tagIds: tagIds
         },
         success: function(response) {
-            var existingTagIds = response.ids;
+            var existingTagIds = Array.isArray(response && response.ids) ? response.ids.map(String) : [];
             $("#nestable-json li[data-model-type='Tag']").each(function() {
                 var tagId = $(this).data('model-id');
-                if (!tagId || !existingTagIds.includes(tagId)) {
+                if (!tagId || !existingTagIds.includes(String(tagId))) {
                     var handleName = $(this).find('.dd-handle>.dd-handle-name');
                     handleName.css('color', 'red');
                 }

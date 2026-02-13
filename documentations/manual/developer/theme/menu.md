@@ -89,6 +89,10 @@ For each menu item:
 - Drag and drop items to reorder
 - Nest items under parents for submenus
 - Up to 3 levels deep recommended
+- Parent items now include an in-row collapse toggle icon (`fa-caret-right` / `fa-caret-down`) for expand/collapse.
+- Sub-level sorting now keeps nested structure stable after rerender by updating only the root Nestable list.
+- Tag existence checks now fail-safe when API returns empty or unexpected `ids`, so menu UI controls remain usable.
+- Menu item editor inputs (modal + inline row controls) now use explicit unique `id`/`name`, matching label `for` links, and `autocomplete` hints for better browser autofill/accessibility compatibility.
 
 ## Using Menus in Themes
 

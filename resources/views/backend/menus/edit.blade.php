@@ -23,7 +23,7 @@
             display: flex;
             height: 30px;
             margin: 5px 0;
-            padding: 5px 10px;
+            padding: 5px 12px;
             color: #333;
             text-decoration: none;
             font-weight: 700;
@@ -33,6 +33,44 @@
             box-sizing: border-box;
             align-items: center;
             justify-content: space-between;
+        }
+
+        #nestable-json .dd-item > button {
+            display: none !important;
+        }
+
+        .dd-dragel .dd-item > button {
+            display: none !important;
+        }
+
+        #nestable-json .menu-collapse-toggle,
+        .dd-dragel .menu-collapse-toggle {
+            border: 0 !important;
+            outline: 0 !important;
+            box-shadow: none !important;
+            background: transparent;
+            color: #7e8299;
+            line-height: 1;
+            padding: 0;
+            width: 14px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        #nestable-json .menu-collapse-toggle:focus,
+        #nestable-json .menu-collapse-toggle:active,
+        .dd-dragel .menu-collapse-toggle:focus,
+        .dd-dragel .menu-collapse-toggle:active {
+            border: 0 !important;
+            outline: 0 !important;
+            box-shadow: none !important;
+            background: transparent;
+        }
+
+        #nestable-json .menu-collapse-placeholder {
+            display: inline-block;
+            width: 14px;
         }
     </style>
 @endpush
@@ -197,12 +235,12 @@
                     <div id="menu_option_external_link" class="menu_options accordion-collapse collapse show" aria-labelledby="wncms_accordion_external_link" data-bs-parent="#wncms_accordion">
                         <div class="accordion-body mh-500px overflow-scroll white-space-nowrap">
                             <div class="form-group mb-3">
-                                <label class="form-label">@lang('wncms::word.title')</label>
-                                <input type="text" class="form-control form-control-sm" name="external_link_name" value="">
+                                <label class="form-label" for="external_link_name">@lang('wncms::word.title')</label>
+                                <input type="text" class="form-control form-control-sm" id="external_link_name" name="external_link_name" value="" autocomplete="off">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">@lang('wncms::word.url')</label>
-                                <input type="text" class="form-control form-control-sm" name="external_link_url" value="" placeholder="https://example.com">
+                                <label class="form-label" for="external_link_url">@lang('wncms::word.url')</label>
+                                <input type="text" class="form-control form-control-sm" id="external_link_url" name="external_link_url" value="" placeholder="https://example.com" autocomplete="url">
                             </div>
                             <button class="btn btn-sm btn-secondary w-100 mt-3 fw-bold add_external_link_to_menu">@lang('wncms::word.add_to_menu')</button>
                         </div>
@@ -232,8 +270,8 @@
                     </div> --}}
 
                         <div class="mb-5">
-                            <label class="form-label fw-bold text-info">@lang('wncms::word.menu_name')</label>
-                            <input type="text" class="form-control form-control-sm" name="name" value="{{ $menu->name }}" required>
+                            <label class="form-label fw-bold text-info" for="menu_name">@lang('wncms::word.menu_name')</label>
+                            <input type="text" class="form-control form-control-sm" id="menu_name" name="name" value="{{ $menu->name }}" required autocomplete="off">
                         </div>
 
                         <label class="form-label fw-bold text-info">@lang('wncms::word.menu_items')</label>
@@ -271,13 +309,13 @@
                         <div class="row">
                             <div class="col-6">
                                 <div class="mb-3">
-                                    <label for="menu_item_name" class="form-label">@lang('wncms::word.menu_id')</label>
+                                    <label for="modal_edit_menu_item_id" class="form-label">@lang('wncms::word.menu_id')</label>
                                     <input type="text" class="form-control form-control-solid form-control-sm" id="modal_edit_menu_item_id" name="menu_item_id" readonly>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="mb-3">
-                                    <label for="menu_item_url" class="form-label">@lang('wncms::word.menu_item_type')</label>
+                                    <label for="modal_edit_menu_item_type" class="form-label">@lang('wncms::word.menu_item_type')</label>
                                     <input type="text" class="form-control form-control-solid form-control-sm" id="modal_edit_menu_item_type" name="menu_item_type" readonly>
                                 </div>
                             </div>
@@ -286,13 +324,13 @@
                         <div class="row">
                             <div class="col-6">
                                 <div class="mb-3">
-                                    <label for="menu_item_url" class="form-label">@lang('wncms::word.menu_item_model_type')</label>
+                                    <label for="modal_edit_menu_item_model_type" class="form-label">@lang('wncms::word.menu_item_model_type')</label>
                                     <input type="text" class="form-control form-control-solid form-control-sm" id="modal_edit_menu_item_model_type" name="menu_item_model_type" readonly>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="mb-3">
-                                    <label for="menu_item_url" class="form-label">@lang('wncms::word.menu_item_model_id')</label>
+                                    <label for="modal_edit_menu_item_model_id" class="form-label">@lang('wncms::word.menu_item_model_id')</label>
                                     <input type="text" class="form-control form-control-solid form-control-sm" id="modal_edit_menu_item_model_id" name="menu_item_model_id" readonly>
                                 </div>
                             </div>
@@ -303,8 +341,8 @@
                             @foreach (wncms()->locale()->getSupportedLocales() as $locale_key => $locale)
                                 <div class="col-6">
                                     <div class="mb-3">
-                                        <label for="menu_item_name" class="form-label">@lang('wncms::word.menu_item_name') <span class="text-muted">({{ $locale['native'] }})</span></label>
-                                        <input type="text" class="form-control form-control-sm modal_edit_menu_item_name" id="modal_edit_menu_item_name" name="menu_item_name[{{ $locale_key }}]">
+                                        <label for="modal_edit_menu_item_name_{{ $locale_key }}" class="form-label">@lang('wncms::word.menu_item_name') <span class="text-muted">({{ $locale['native'] }})</span></label>
+                                        <input type="text" class="form-control form-control-sm modal_edit_menu_item_name" id="modal_edit_menu_item_name_{{ $locale_key }}" name="menu_item_name[{{ $locale_key }}]">
                                     </div>
                                 </div>
                             @endforeach
@@ -316,13 +354,13 @@
                         <div class="row">
                             <div class="col-6">
                                 <div class="mb-5">
-                                    <label for="menu_item_url" class="form-label">@lang('wncms::word.menu_item_url')</label>
+                                    <label for="modal_edit_menu_item_url" class="form-label">@lang('wncms::word.menu_item_url')</label>
                                     <input type="text" class="form-control form-control-sm" id="modal_edit_menu_item_url" name="menu_item_url">
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="mb-5">
-                                    <label for="menu_item_order" class="form-label">@lang('wncms::word.order')</label>
+                                    <label for="modal_edit_menu_item_order" class="form-label">@lang('wncms::word.order')</label>
                                     <input type="text" class="form-control form-control-sm" id="modal_edit_menu_item_order" name="menu_item_order" disabled>
                                 </div>
                             </div>
@@ -331,7 +369,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="mb-5">
-                                    <label for="menu_item_description" class="form-label">@lang('wncms::word.description')</label>
+                                    <label for="modal_edit_menu_item_description" class="form-label">@lang('wncms::word.description')</label>
                                     <input type="text" class="form-control form-control-sm" id="modal_edit_menu_item_description" name="menu_item_description">
                                 </div>
                             </div>
@@ -340,11 +378,11 @@
                         <div class="row">
                             <div class="col-6">
                                 <div class="mb-5">
-                                    <label for="menu_item_icon" class="form-label">@lang('wncms::word.menu_item_icon')</label>
+                                    <label for="modal_edit_menu_item_icon" class="form-label">@lang('wncms::word.menu_item_icon')</label>
                                     <input type="text" class="form-control form-control-sm" id="modal_edit_menu_item_icon" name="menu_item_icon">
                                 </div>
                                 <div class="mb-5">
-                                    <label for="menu_item_thumbnail" class="form-label">@lang('wncms::word.thumbnail')</label>
+                                    <label for="modal_edit_menu_item_thumbnail" class="form-label">@lang('wncms::word.thumbnail')</label>
                                     <input type="file" class="form-control" id="modal_edit_menu_item_thumbnail" name="menu_item_thumbnail">
                                 </div>
                             </div>
