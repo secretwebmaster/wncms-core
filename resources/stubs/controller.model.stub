@@ -3,20 +3,27 @@
 namespace {{ namespace }};
 
 use {{ namespacedModel }};
-use {{ rootNamespace }}Http\Controllers\Controller;
+use {{ rootNamespace }}Http\Controllers\Backend\BackendController;
 use {{ namespacedRequests }}
 
-class {{ class }} extends Controller
+class {{ class }} extends BackendController
 {
     public function index(Request $request)
     {
-        $q = {{ model }}::query();
+        $q = $this->modelClass::query();
+
+        $filterWebsiteId = (int) ($request->input('website_id') ?? $request->input('website') ?? 0);
+        if ($filterWebsiteId > 0 && $this->supportsWncmsMultisite($this->modelClass) && method_exists($this->modelClass, 'applyWebsiteScope')) {
+            $this->modelClass::applyWebsiteScope($q, $filterWebsiteId);
+        } else {
+            $this->applyBackendListWebsiteScope($q);
+        }
 
         $q->orderBy('id', 'desc');
-        
+
         ${{ modelVariable }}s = $q->paginate($request->page_size ?? 100);
 
-        return view('backend.{{ modelVariable }}s.index', [
+        return $this->view('backend.{{ modelVariable }}s.index', [
             'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
             '{{ modelVariable }}s' => ${{ modelVariable }}s,
         ]);
@@ -26,7 +33,7 @@ class {{ class }} extends Controller
     {
         ${{ modelVariable }} ??= new {{ model }};
 
-        return view('backend.{{ modelVariable }}s.create', [
+        return $this->view('backend.{{ modelVariable }}s.create', [
             'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
             '{{ modelVariable }}' => ${{ modelVariable }},
         ]);
@@ -34,13 +41,11 @@ class {{ class }} extends Controller
 
     public function store({{ storeRequest }} $request)
     {
-        dd($request->all());
-
-        ${{ modelVariable }} = {{ model }}::create([
+        ${{ modelVariable }} = $this->modelClass::create([
             'xxxx' => $request->xxxx,
         ]);
 
-        wncms()->cache()->flush(['{{ modelVariable }}s']);
+        $this->flush();
 
         return redirect()->route('{{ modelVariable }}s.edit', [
             'id' => ${{ modelVariable }},
@@ -49,7 +54,7 @@ class {{ class }} extends Controller
 
     public function edit({{ model }} ${{ modelVariable }})
     {
-        return view('backend.{{ modelVariable }}s.edit', [
+        return $this->view('backend.{{ modelVariable }}s.edit', [
             'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
             '{{ modelVariable }}' => ${{ modelVariable }},
         ]);
@@ -57,14 +62,12 @@ class {{ class }} extends Controller
 
     public function update({{ updateRequest }} $request, {{ model }} ${{ modelVariable }})
     {
-        dd($request->all());
-
         ${{ modelVariable }}->update([
             'xxxx' => $request->xxxx,
         ]);
 
-        wncms()->cache()->flush(['{{ modelVariable }}s']);
-        
+        $this->flush();
+
         return redirect()->route('{{ modelVariable }}s.edit', [
             'id' => ${{ modelVariable }},
         ])->withMessage(__('wncms::word.successfully_updated'));
@@ -73,20 +76,24 @@ class {{ class }} extends Controller
     public function destroy({{ model }} ${{ modelVariable }})
     {
         ${{ modelVariable }}->delete();
+
+        $this->flush();
+
         return redirect()->route('{{ modelVariable }}s.index')->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     public function bulk_delete(Request $request)
     {
-        if(!is_array($request->model_ids)){
+        if (!is_array($request->model_ids)) {
             $modelIds = explode(",", $request->model_ids);
-        }else{
+        } else {
             $modelIds = $request->model_ids;
         }
 
-        $count = {{ model }}::whereIn('id', $modelIds)->delete();
+        $count = $this->modelClass::whereIn('id', $modelIds)->delete();
+        $this->flush();
 
-        if($request->ajax()){
+        if ($request->ajax()) {
             return response()->json([
                 'status' => 'success',
                 'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
