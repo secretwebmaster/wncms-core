@@ -78,7 +78,7 @@ abstract class BackendController extends Controller
     /**
      * Apply current website list filtering for models using WNCMS multisite modes.
      */
-    protected function applyBackendListWebsiteScope(Builder $q): void
+    protected function applyBackendListWebsiteScope(Builder $q, ?Request $request = null, bool $onlyWhenExplicitFilter = false): void
     {
         if (
             !$this->supportsWncmsMultisite($this->modelClass)
@@ -87,8 +87,18 @@ abstract class BackendController extends Controller
             return;
         }
 
-        $websiteId = wncms()->website()->get()?->id;
-        if (empty($websiteId)) {
+        $request ??= request();
+
+        $websiteId = (int) ($request->input('website_id') ?? $request->input('website') ?? 0);
+        if ($websiteId <= 0 && $onlyWhenExplicitFilter) {
+            return;
+        }
+
+        if ($websiteId <= 0) {
+            $websiteId = (int) (wncms()->website()->get()?->id ?? 0);
+        }
+
+        if ($websiteId <= 0) {
             return;
         }
 

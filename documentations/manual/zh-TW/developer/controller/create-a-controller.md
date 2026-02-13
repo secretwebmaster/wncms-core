@@ -27,6 +27,8 @@ class PostController extends BackendController
     {
         $query = $this->modelClass::query();
         $this->applyBackendListWebsiteScope($query);
+        // 對預設應顯示全部資料的頁面，可改用：
+        // $this->applyBackendListWebsiteScope($query, $request, true);
 
         if ($keyword = $request->get('keyword')) {
             $query->where('title', 'like', "%{$keyword}%");

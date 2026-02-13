@@ -37,7 +37,7 @@ protected function getModelSingular(): string
 protected function getModelPlural(): string
 
 // Apply current-website list scoping for single/multi website modes.
-protected function applyBackendListWebsiteScope(Builder $q): void
+protected function applyBackendListWebsiteScope(Builder $q, ?Request $request = null, bool $onlyWhenExplicitFilter = false): void
 ```
 
 ## Cache control
@@ -53,12 +53,20 @@ public function flush(string|array|null $tags = null): bool
 
 `applyBackendListWebsiteScope()` standardizes backend index filtering for models whose website mode is `single` or `multi`.
 
-- Reads the current website ID from `wncms()->website()->get()?->id`.
+- Reads filter value from request `website_id` (or legacy `website`) first.
+- Falls back to current website ID (`wncms()->website()->get()?->id`) when no explicit filter is provided.
 - Applies model `applyWebsiteScope(...)` only when multisite behavior is supported.
 - No-op for `global` models or when no current website is resolved.
 - For index toolbar filters, standardize request key to `website_id` and keep `website` as backward-compatible alias when reading request input.
-- For pages that should show all data by default (for example Posts), apply website scope only when `website_id` is explicitly selected in request.
+- For pages that should show all data by default (for example Posts), pass `true` as third argument so scope is applied only when `website_id` is explicitly selected.
 - Shared website toolbar filter should be shown only when `gss('multi_website')` is enabled and model website mode is `single` or `multi`; hide it for `global`.
+
+Example for explicit-filter pages:
+
+```php
+$q = $this->modelClass::query();
+$this->applyBackendListWebsiteScope($q, $request, true);
+```
 
 ## Built-in CRUD actions
 

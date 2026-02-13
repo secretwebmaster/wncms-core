@@ -37,7 +37,7 @@ protected function getModelSingular(): string
 protected function getModelPlural(): string
 
 // 為 single/multi 網站模式套用當前網站列表篩選。
-protected function applyBackendListWebsiteScope(Builder $q): void
+protected function applyBackendListWebsiteScope(Builder $q, ?Request $request = null, bool $onlyWhenExplicitFilter = false): void
 ```
 
 ## Cache 控制
@@ -53,12 +53,20 @@ public function flush(string|array|null $tags = null): bool
 
 `applyBackendListWebsiteScope()` 用於標準化後台 index 列表篩選（僅針對網站模式為 `single` 或 `multi` 的模型）。
 
-- 從 `wncms()->website()->get()?->id` 讀取當前網站 ID。
+- 優先讀取請求中的 `website_id`（相容舊鍵 `website`）。
+- 當請求未傳篩選值時，回退到 `wncms()->website()->get()?->id` 當前網站 ID。
 - 僅在模型支援多站點作用域時呼叫 `applyWebsiteScope(...)`。
 - 對 `global` 模型或無法解析當前網站時不做任何處理。
 - 對 index 工具列篩選，建議統一使用 `website_id` 作為請求參數，並相容讀取舊鍵 `website`。
-- 對需要預設顯示全部資料的頁面（例如 Posts），僅在請求明確傳入 `website_id` 時才套用網站作用域。
+- 對需要預設顯示全部資料的頁面（例如 Posts），第三個參數傳 `true`，僅在請求明確傳入 `website_id` 時才套用網站作用域。
 - 共用網站篩選器應僅在 `gss('multi_website')` 啟用且模型網站模式為 `single`/`multi` 時顯示；`global` 模式應隱藏。
+
+明確篩選模式範例：
+
+```php
+$q = $this->modelClass::query();
+$this->applyBackendListWebsiteScope($q, $request, true);
+```
 
 ## 內建 CRUD 操作
 

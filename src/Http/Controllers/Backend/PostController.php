@@ -13,10 +13,7 @@ class PostController extends BackendController
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
-        $filterWebsiteId = (int) ($request->input('website_id') ?? $request->input('website') ?? 0);
-        if ($filterWebsiteId > 0 && $this->supportsWncmsMultisite($this->modelClass) && method_exists($this->modelClass, 'applyWebsiteScope')) {
-            $this->modelClass::applyWebsiteScope($q, $filterWebsiteId);
-        }
+        $this->applyBackendListWebsiteScope($q, $request, true);
 
         if (!isAdmin()) {
             $q->whereRelation('user', 'id', auth()->id());

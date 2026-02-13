@@ -27,6 +27,8 @@ class PostController extends BackendController
     {
         $query = $this->modelClass::query();
         $this->applyBackendListWebsiteScope($query);
+        // For pages that should show all data by default, use:
+        // $this->applyBackendListWebsiteScope($query, $request, true);
 
         if ($keyword = $request->get('keyword')) {
             $query->where('title', 'like', "%{$keyword}%");
