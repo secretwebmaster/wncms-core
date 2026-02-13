@@ -52,9 +52,11 @@ class TagController extends BackendController
         $parents = $q->paginate($request->page_size ?? 50);
         $tagTypes = wncms()->tag()->getAllTagTypes();
 
-        $allParents = $this->modelClass::whereNull('parent_id')->when($request->type, function ($subq) use ($request) {
-            $subq->where('type', $request->type);
-        })->get();
+        $allParents = $this->modelClass::whereNull('parent_id')
+            ->when($request->type && $request->type !== 'all', function ($subq) use ($request) {
+                $subq->where('type', $request->type);
+            })
+            ->get();
 
         return $this->view('backend.tags.index', [
             'page_title' => __('wncms::word.category_management'),
@@ -320,7 +322,7 @@ class TagController extends BackendController
         $q = $this->modelClass::query();
         $this->applyBackendListWebsiteScope($q);
 
-        $selectedType = $type ?? $request->type;
+        $selectedType = $request->type;
 
         if (empty($selectedType)) {
             $currentParam = $request->all();

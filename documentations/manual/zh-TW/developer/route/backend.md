@@ -237,6 +237,12 @@ Route::prefix('tags')->controller(TagController::class)->group(function () {
 });
 ```
 
+標籤列表篩選行為：
+
+- `GET /panel/tags?type=post_category`：只顯示該標籤類型。
+- `GET /panel/tags?type=all`：顯示所有標籤類型（不會套用 `where type = all`）。
+- 當 `type` 為空時，後端會重新導向並預設使用 `type=post_category`。
+
 ### 主題
 
 ```php

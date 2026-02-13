@@ -237,6 +237,12 @@ Route::prefix('tags')->controller(TagController::class)->group(function () {
 });
 ```
 
+Tag list filter behavior:
+
+- `GET /panel/tags?type=post_category`: shows only that tag type.
+- `GET /panel/tags?type=all`: shows all tag types (does not apply `where type = all`).
+- If `type` is missing, backend redirects with default `type=post_category`.
+
 ### Themes
 
 ```php
