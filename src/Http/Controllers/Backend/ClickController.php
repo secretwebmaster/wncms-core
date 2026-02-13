@@ -12,6 +12,7 @@ class ClickController extends BackendController
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($q);
 
         if ($request->name) {
             $q->where('name', $request->name);

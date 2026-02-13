@@ -14,6 +14,7 @@ class TagController extends BackendController
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($q);
 
         $selectedType = $request->type;
         if(empty($selectedType)) {
@@ -315,6 +316,7 @@ class TagController extends BackendController
     public function show_keyword_index(Request $request)
     {
         $q = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($q);
 
         $selectedType = $type ?? $request->type;
 

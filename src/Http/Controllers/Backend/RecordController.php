@@ -12,6 +12,7 @@ class RecordController extends BackendController
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($q);
 
         $q->orderBy('id', 'desc');
         

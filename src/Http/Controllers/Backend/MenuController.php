@@ -13,6 +13,7 @@ class MenuController extends BackendController
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($q);
 
         $q->with('menu_items');
         $menus = $q->paginate($request->page_size ?? 20);

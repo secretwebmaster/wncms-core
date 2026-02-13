@@ -9,6 +9,7 @@ class ChannelController extends BackendController
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($q);
 
         $q->withCount('clicks');
 

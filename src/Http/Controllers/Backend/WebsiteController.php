@@ -12,6 +12,7 @@ class WebsiteController extends BackendController
     {
         if (isAdmin()) {
             $q = $this->modelClass::query();
+            $this->applyBackendListWebsiteScope($q);
         } else {
             $q = auth()->user()->websites();
         }

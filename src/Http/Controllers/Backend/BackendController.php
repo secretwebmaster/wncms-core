@@ -2,6 +2,7 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Wncms\Http\Controllers\Controller;
 
@@ -75,6 +76,26 @@ abstract class BackendController extends Controller
     }
 
     /**
+     * Apply current website list filtering for models using WNCMS multisite modes.
+     */
+    protected function applyBackendListWebsiteScope(Builder $q): void
+    {
+        if (
+            !$this->supportsWncmsMultisite($this->modelClass)
+            || !method_exists($this->modelClass, 'applyWebsiteScope')
+        ) {
+            return;
+        }
+
+        $websiteId = wncms()->website()->get()?->id;
+        if (empty($websiteId)) {
+            return;
+        }
+
+        $this->modelClass::applyWebsiteScope($q, (int) $websiteId);
+    }
+
+    /**
      * ============================================
      * CRUD Operations
      * ============================================
@@ -82,6 +103,7 @@ abstract class BackendController extends Controller
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($q);
 
         $q->orderBy('id', 'desc');
 

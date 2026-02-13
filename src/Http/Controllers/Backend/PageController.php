@@ -18,6 +18,7 @@ class PageController extends BackendController
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($q);
 
         if ($request->keyword) {
             $q->where(function ($subQ) use ($request) {
