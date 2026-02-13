@@ -119,6 +119,26 @@ $items = wncms()->advertisement()->getList([
 ]);
 ```
 
+### Advertisement type filter example
+
+`AdvertisementManager` supports filtering by one or more advertisement types.
+
+Use `type` for a single value:
+
+```php
+$items = wncms()->advertisement()->getList([
+    'type' => 'image',
+]);
+```
+
+Or use `types` for multiple values:
+
+```php
+$items = wncms()->advertisement()->getList([
+    'types' => ['image', 'card'],
+]);
+```
+
 ### Query Lifecycle
 
 1. **`buildListQuery()`** — create the base query.

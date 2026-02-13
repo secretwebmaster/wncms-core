@@ -153,6 +153,26 @@ Use plural resource prefixes for route names:
 - Apply authorization (e.g., policies or middleware) at the route group or controller.
 - If you manage files/media/tags (e.g., via Spatie Media Library or Tagify), perform those operations around `store()` / `update()` and call `$this->flush()` for relevant tags.
 - For heavy lists, prefer pagination over `get()` and add indexes to frequently filtered columns.
+- For cross-version compatibility, avoid hardcoding legacy foreign-key columns (for example `website_id`) when WNCMS multisite relation binding is available.
+
+### WNCMS multisite compatibility pattern
+
+When the model supports WNCMS multisite methods, write normal model fields only, then bind website relation via `bindWebsites(...)`:
+
+```php
+$payload = [
+    'name' => $request->name,
+    'type' => $request->type,
+];
+
+$model->update($payload);
+
+if (method_exists($model, 'bindWebsites') && method_exists($model, 'getWebsiteMode')) {
+    if (in_array($model::getWebsiteMode(), ['single', 'multi'], true) && $websiteId) {
+        $model->bindWebsites($websiteId);
+    }
+}
+```
 
 ## When to override vs. extend
 

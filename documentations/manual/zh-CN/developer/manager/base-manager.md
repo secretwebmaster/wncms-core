@@ -178,6 +178,26 @@ $items = wncms()->advertisement()->getList([
 ]);
 ```
 
+## Advertisement `type` 过滤示例
+
+`AdvertisementManager` 现在支援按广告类型过滤（一种或多种）。
+
+单一类型可使用 `type`：
+
+```php
+$items = wncms()->advertisement()->getList([
+    'type' => 'image',
+]);
+```
+
+多类型可使用 `types`：
+
+```php
+$items = wncms()->advertisement()->getList([
+    'types' => ['image', 'card'],
+]);
+```
+
 ## 快取支援
 
 `ModelManager` 与 `wncms()->cache()` 整合，自动处理快取键生成与失效。

@@ -149,3 +149,22 @@ class CustomProductController extends BackendController
 - 依賴自動 model 解析或根據需要覆蓋。
 - 使用內建的 CRUD 方法或覆蓋以進行自訂邏輯。
 - 利用 cache flushing 和 WNCMS 輔助方法保持程式碼簡潔。
+
+## WNCMS 多站點相容寫入模式
+
+當模型支援 WNCMS 多站點方法時，不要在 `create()/update()` payload 硬寫舊版外鍵欄位（例如 `website_id`）。建議先更新一般欄位，再用 `bindWebsites(...)` 綁定站點關聯：
+
+```php
+$payload = [
+    'name' => $request->name,
+    'type' => $request->type,
+];
+
+$model->update($payload);
+
+if (method_exists($model, 'bindWebsites') && method_exists($model, 'getWebsiteMode')) {
+    if (in_array($model::getWebsiteMode(), ['single', 'multi'], true) && $websiteId) {
+        $model->bindWebsites($websiteId);
+    }
+}
+```

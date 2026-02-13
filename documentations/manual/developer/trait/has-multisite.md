@@ -27,7 +27,24 @@ The mode is configured in `config/wncms.php`:
 ],
 ```
 
+Legacy projects may still define a flat config map:
+
+```php
+'model_website_modes' => [
+    'post' => 'multi',
+    'page' => 'single',
+],
+```
+
+WNCMS merges both config styles, then applies system setting override (`model_website_modes`) from database. Priority is:
+
+1. System setting in DB (`model_website_modes`)
+2. `config('wncms.models.*.website_mode')`
+3. `config('wncms.model_website_modes')` (legacy)
+
 ## Core Methods
+
+If your model extends `Wncms\Models\BaseModel`, `HasMultisite` is already included by default. Do not re-add `use HasMultisite;` in the child model.
 
 ### Get Website Mode
 

@@ -47,6 +47,30 @@ WNCMS 的 base controller 是一个精简的基础，集中处理视图解析。
 
 如果您不符合这些情况，请使用上述子 controller。
 
+## 共用多站点辅助方法
+
+Base `Controller` 现在提供可复用的多站点辅助方法，backend/frontend controllers 可共用相同的网站解析与能力检测逻辑：
+
+```php
+protected function supportsWncmsMultisite(string $modelClass): bool
+protected function resolveModelWebsiteIds(string $modelClass, array|string|int|null $websiteIds = null): array
+protected function syncModelWebsites($model, array $websiteIds): void
+```
+
+- `supportsWncmsMultisite()`：
+  - 透过 `getWebsiteMode()` 与 `bindWebsites()` 检查模型是否支援
+  - 将 `single` 与 `multi` 视为已启用多站点模式
+- `resolveModelWebsiteIds()`：
+  - 支援阵列或逗号分隔字串输入网站 ID
+  - 在 single 模式只取第一个网站 ID
+  - 在 multi 模式使用全部网站 ID
+  - 当 `gss('multi_website')` 关闭时，回退到当前网站 ID
+  - 只保留存在的网站 ID
+- `syncModelWebsites()`：
+  - 按模型网站模式同步绑定
+  - `single`：绑定第一个网站
+  - `multi`：先清空旧绑定，再绑定当前选择
+
 ## 下一步
 
 - Backend：参见 [Backend Controller](./backend-controller)

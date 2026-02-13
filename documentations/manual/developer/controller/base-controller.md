@@ -47,6 +47,30 @@ WNCMS’s base controller is a thin foundation that centralizes view resolution.
 
 If you don’t fit one of these, use a child controller above.
 
+## Shared multisite helpers
+
+The base `Controller` now provides reusable multisite helper methods so backend/frontend controllers can share the same website resolution and capability checks:
+
+```php
+protected function supportsWncmsMultisite(string $modelClass): bool
+protected function resolveModelWebsiteIds(string $modelClass, array|string|int|null $websiteIds = null): array
+protected function syncModelWebsites($model, array $websiteIds): void
+```
+
+- `supportsWncmsMultisite()`:
+  - checks model support via `getWebsiteMode()` and `bindWebsites()`
+  - treats `single` and `multi` as multisite-enabled modes
+- `resolveModelWebsiteIds()`:
+  - accepts website IDs as array or comma-separated string
+  - in single mode, the first parsed ID is used
+  - in multi mode, all parsed IDs are used
+  - when `gss('multi_website')` is disabled, falls back to current website id
+  - normalizes IDs to existing website records
+- `syncModelWebsites()`:
+  - syncs binding according to model website mode
+  - `single`: bind first selected website
+  - `multi`: clear existing bindings then bind selected websites
+
 ## Next steps
 
 - Backend: see [Backend Controller](./backend-controller.md)

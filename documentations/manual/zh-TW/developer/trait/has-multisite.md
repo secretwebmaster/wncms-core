@@ -90,7 +90,24 @@ return [
 ];
 ```
 
+舊版專案也可能使用平鋪設定：
+
+```php
+'model_website_modes' => [
+    'post' => 'multi',
+    'page' => 'single',
+],
+```
+
+WNCMS 會合併兩種設定來源，並在最後套用資料庫中的系統設定（`model_website_modes`）。優先順序如下：
+
+1. 資料庫系統設定 `model_website_modes`
+2. `config('wncms.models.*.website_mode')`
+3. `config('wncms.model_website_modes')`（舊版）
+
 ## 可用方法
+
+如果模型繼承 `Wncms\Models\BaseModel`，則已預設包含 `HasMultisite`，不需要在子模型再次 `use HasMultisite;`。
 
 ### getWebsiteMode()
 
