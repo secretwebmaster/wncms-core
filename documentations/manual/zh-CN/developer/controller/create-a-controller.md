@@ -26,6 +26,7 @@ class PostController extends BackendController
     public function index(Request $request)
     {
         $query = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($query);
 
         if ($keyword = $request->get('keyword')) {
             $query->where('title', 'like', "%{$keyword}%");

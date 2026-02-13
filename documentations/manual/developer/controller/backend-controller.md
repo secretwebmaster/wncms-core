@@ -35,6 +35,9 @@ protected function getModelCacheTags(): array
 // Customize resource nouns.
 protected function getModelSingular(): string
 protected function getModelPlural(): string
+
+// Apply current-website list scoping for single/multi website modes.
+protected function applyBackendListWebsiteScope(Builder $q): void
 ```
 
 ## Cache control
@@ -45,6 +48,15 @@ public function flush(string|array|null $tags = null): bool
 
 - Flushes tagged caches via `wncms()->cache()->tags($tag)->flush()`.
 - If `$tags` is `null`, uses `$this->cacheTags`.
+
+## Multisite list filtering helper
+
+`applyBackendListWebsiteScope()` standardizes backend index filtering for models whose website mode is `single` or `multi`.
+
+- Reads the current website ID from `wncms()->website()->get()?->id`.
+- Applies model `applyWebsiteScope(...)` only when multisite behavior is supported.
+- No-op for `global` models or when no current website is resolved.
+- For index toolbar filters, standardize request key to `website_id` and keep `website` as backward-compatible alias when reading request input.
 
 ## Built-in CRUD actions
 
@@ -111,6 +123,7 @@ class ProductController extends BackendController
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($q);
 
         if ($kw = $request->keyword) {
             $q->where(function ($sub) use ($kw) {

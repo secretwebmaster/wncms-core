@@ -35,6 +35,9 @@ protected function getModelCacheTags(): array
 // 自訂資源名詞。
 protected function getModelSingular(): string
 protected function getModelPlural(): string
+
+// 為 single/multi 網站模式套用當前網站列表篩選。
+protected function applyBackendListWebsiteScope(Builder $q): void
 ```
 
 ## Cache 控制
@@ -45,6 +48,15 @@ public function flush(string|array|null $tags = null): bool
 
 - 透過 `wncms()->cache()->tags($tag)->flush()` 清除已標記的快取。
 - 如果 `$tags` 為 `null`，使用 `$this->cacheTags`。
+
+## 多站點列表篩選輔助方法
+
+`applyBackendListWebsiteScope()` 用於標準化後台 index 列表篩選（僅針對網站模式為 `single` 或 `multi` 的模型）。
+
+- 從 `wncms()->website()->get()?->id` 讀取當前網站 ID。
+- 僅在模型支援多站點作用域時呼叫 `applyWebsiteScope(...)`。
+- 對 `global` 模型或無法解析當前網站時不做任何處理。
+- 對 index 工具列篩選，建議統一使用 `website_id` 作為請求參數，並相容讀取舊鍵 `website`。
 
 ## 內建 CRUD 操作
 
@@ -127,6 +139,7 @@ class CustomProductController extends BackendController
     {
         // 使用 parent 的邏輯，或完全覆蓋
         $query = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($query);
 
         // 添加自訂篩選
         if ($category = $request->input('category')) {
