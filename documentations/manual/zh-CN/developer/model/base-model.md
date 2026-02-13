@@ -238,6 +238,22 @@ public static function getModelName(?string $locale = null): string
 ```php
 Post::getModelName('zh_TW');  // → "文章"
 Post::getModelName('en');     // → "Post"
+
+## 多站点模式 Helper
+
+`BaseModel` 提供集中式模式解析，避免在各处重复读取原始 config：
+
+```php
+public static function getMultiWebsiteMode(): string
+public static function isWebsiteScopedModel(): bool
+```
+
+`getMultiWebsiteMode()` 的解析顺序：
+1. `config('wncms.models.{model_key}.website_mode')`
+2. `config('wncms.model_website_modes.{model_key}')`
+3. `gss('model_website_modes')` 运行时覆写（可用时）
+
+最终标准化为：`global`、`single`、`multi`。
 ```
 
 ## 预设常数

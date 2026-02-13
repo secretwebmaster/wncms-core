@@ -64,6 +64,40 @@ abstract class BaseModel extends Model implements BaseModelInterface
         return static::$modelKey;
     }
 
+    /**
+     * Resolve model multi-website mode with runtime overrides.
+     */
+    public static function getMultiWebsiteMode(): string
+    {
+        $modelKey = (string) str(static::getModelKey() ?: class_basename(static::class))->singular()->snake();
+        $mode = config("wncms.models.$modelKey.website_mode", config("wncms.model_website_modes.$modelKey", 'global'));
+
+        if (function_exists('gss')) {
+            $raw = gss('model_website_modes', '{}');
+            $overrides = is_array($raw) ? $raw : json_decode((string) $raw, true);
+
+            if (is_array($overrides)) {
+                foreach ($overrides as $key => $overrideMode) {
+                    $normalizedKey = (string) str((string) $key)->singular()->snake();
+                    if ($normalizedKey === $modelKey && in_array($overrideMode, ['global', 'single', 'multi'], true)) {
+                        $mode = $overrideMode;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return in_array($mode, ['global', 'single', 'multi'], true) ? $mode : 'global';
+    }
+
+    /**
+     * Check if model website mode requires website scoping.
+     */
+    public static function isWebsiteScopedModel(): bool
+    {
+        return in_array(static::getMultiWebsiteMode(), ['single', 'multi'], true);
+    }
+
     public static function getTagMeta(): array
     {
         $raw = static::$tagMetas ?? [];

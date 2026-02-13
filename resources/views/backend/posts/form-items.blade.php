@@ -290,21 +290,7 @@
         {{-- Relationship --}}
         <div class="card mt-5">
             <div class="card-body p-2 p-md-5">
-                {{-- website_id --}}
-                {{-- <div class="form-item mb-3">
-                    <label class="form-label required fw-bold fs-6">@lang('wncms::word.website')</label>
-                    @foreach ($websites as $index => $_website)
-                    <div class="col-12 col-md-3 mb-1 website_ids_checkbox">
-                        <label class="form-check form-check-inline form-check-solid me-5">
-                            <input class="form-check-input" name="website_ids[]" type="checkbox" value="{{ $_website->id }}"
-                                @checked($post?->websites->contains($_website->id))
-                            @checked(request()->routeIs('posts.create') && wncms()->isSelectedWebsite($_website))
-                            />
-                            <span class="fw-bold ps-2 fs-6">{{ $_website->domain }}</span>
-                        </label>
-                    </div>
-                    @endforeach
-                </div> --}}
+                @include('wncms::backend.common.website_selector', ['model' => $post, 'websites' => $websites ?? []])
 
                 {{-- user_id --}}
                 <div class="form-item mb-3">

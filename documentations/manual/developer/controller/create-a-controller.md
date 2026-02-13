@@ -42,6 +42,27 @@ class PostController extends BackendController
 }
 ```
 
+### Backend multisite create/update pattern
+
+For models using WNCMS `single` or `multi` website modes, resolve and sync websites with shared controller helpers:
+
+```php
+$websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
+
+if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
+    return back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
+}
+
+$post = $this->modelClass::create($payload);
+$this->syncModelWebsites($post, $websiteIds);
+```
+
+For backend form-items, render website input via the shared partial:
+
+```blade
+@include('wncms::backend.common.website_selector', ['model' => $post, 'websites' => $websites ?? []])
+```
+
 ## Example: Frontend controller
 
 ```php

@@ -57,6 +57,8 @@ public function flush(string|array|null $tags = null): bool
 - Applies model `applyWebsiteScope(...)` only when multisite behavior is supported.
 - No-op for `global` models or when no current website is resolved.
 - For index toolbar filters, standardize request key to `website_id` and keep `website` as backward-compatible alias when reading request input.
+- For pages that should show all data by default (for example Posts), apply website scope only when `website_id` is explicitly selected in request.
+- Shared website toolbar filter should be shown only when `gss('multi_website')` is enabled and model website mode is `single` or `multi`; hide it for `global`.
 
 ## Built-in CRUD actions
 
@@ -170,21 +172,27 @@ Use plural resource prefixes for route names:
 
 ### WNCMS multisite compatibility pattern
 
-When the model supports WNCMS multisite methods, write normal model fields only, then bind website relation via `bindWebsites(...)`:
+When the model supports WNCMS multisite methods, resolve website IDs via controller helpers and bind relation with `syncModelWebsites(...)`:
 
 ```php
-$payload = [
+$websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
+
+if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
+    return back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
+}
+
+$model->update([
     'name' => $request->name,
     'type' => $request->type,
-];
+]);
 
-$model->update($payload);
+$this->syncModelWebsites($model, $websiteIds);
+```
 
-if (method_exists($model, 'bindWebsites') && method_exists($model, 'getWebsiteMode')) {
-    if (in_array($model::getWebsiteMode(), ['single', 'multi'], true) && $websiteId) {
-        $model->bindWebsites($websiteId);
-    }
-}
+For backend form pages, reuse the common selector partial instead of duplicating website input markup:
+
+```blade
+@include('wncms::backend.common.website_selector', ['model' => $model, 'websites' => $websites ?? []])
 ```
 
 ## When to override vs. extend

@@ -57,6 +57,8 @@ public function flush(string|array|null $tags = null): bool
 - 仅在模型支持多站点作用域时调用 `applyWebsiteScope(...)`。
 - 对 `global` 模型或无法解析当前网站时不做任何处理。
 - 对 index 工具列筛选，建议统一使用 `website_id` 作为请求参数，并兼容读取旧键 `website`。
+- 对需要预设显示全部数据的页面（例如 Posts），仅在请求明确传入 `website_id` 时才套用网站作用域。
+- 共用网站筛选器应仅在 `gss('multi_website')` 启用且模型网站模式为 `single`/`multi` 时显示；`global` 模式应隐藏。
 
 ## 内建 CRUD 操作
 
@@ -165,19 +167,25 @@ class CustomProductController extends BackendController
 
 ## WNCMS 多站点兼容写入模式
 
-当模型支援 WNCMS 多站点方法时，不要在 `create()/update()` payload 硬写旧版外键栏位（例如 `website_id`）。建议先更新一般栏位，再用 `bindWebsites(...)` 绑定站点关系：
+当模型支持 WNCMS 多站点方法时，不要在 `create()/update()` payload 硬写旧版外键栏位（例如 `website_id`）。建议先用 controller 共享 helper 解析网站 ID，再用 `syncModelWebsites(...)` 绑定站点关系：
 
 ```php
-$payload = [
+$websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
+
+if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
+    return back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
+}
+
+$model->update([
     'name' => $request->name,
     'type' => $request->type,
-];
+]);
 
-$model->update($payload);
+$this->syncModelWebsites($model, $websiteIds);
+```
 
-if (method_exists($model, 'bindWebsites') && method_exists($model, 'getWebsiteMode')) {
-    if (in_array($model::getWebsiteMode(), ['single', 'multi'], true) && $websiteId) {
-        $model->bindWebsites($websiteId);
-    }
-}
+在后台表单页面，建议复用通用网站选择器 partial，而不是重复写网站输入 UI：
+
+```blade
+@include('wncms::backend.common.website_selector', ['model' => $model, 'websites' => $websites ?? []])
 ```

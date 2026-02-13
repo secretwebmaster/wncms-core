@@ -166,6 +166,17 @@ $query = wncms()->post()->run([
 
 这些方法确保所有 WNCMS Manager 的行为一致。
 
+### 多站点模式 Helper
+
+Manager 也提供集中式模式检查方法：
+
+```php
+public function getModelMultiWebsiteMode(): string
+public function isModelWebsiteScoped(): bool
+```
+
+这些方法会优先使用模型方法（`getMultiWebsiteMode()` / `getWebsiteMode()`），因此可以尊重运行时模式覆写。
+
 ## 显式 `false` 选项值
 
 `ModelManager` 现在会把显式传入的 `false` 视为有效过滤值（例如 `status => false`），而不是当作空值忽略。

@@ -449,22 +449,11 @@ abstract class ModelManager
     protected function applyWebsiteId(Builder $q, ?int $websiteId = null): void
     {
         $modelClass = $this->getModelClass();
-
-        // Get model key (snake_case)
-        $modelKey = array_search($modelClass, array_column(config('wncms.models'), 'class'));
-        if ($modelKey === false) {
-            $modelKey = str()->snake(class_basename($modelClass));
-        }
-
-        $websiteMode = config("wncms.models.$modelKey.website_mode");
-
-        if ($websiteMode === 'global' || !method_exists($modelClass, 'applyWebsiteScope')) {
+        if (!$this->isModelWebsiteScoped() || !method_exists($modelClass, 'applyWebsiteScope')) {
             return;
         }
 
-        if (gss('multi_website') || in_array($websiteMode, ['single', 'multi'])) {
-            $modelClass::applyWebsiteScope($q, $websiteId);
-        }
+        $modelClass::applyWebsiteScope($q, $websiteId);
     }
 
     /**
@@ -569,6 +558,33 @@ abstract class ModelManager
         }
 
         return $modelKey;
+    }
+
+    /**
+     * Get website mode for current model with model-level fallback.
+     */
+    public function getModelMultiWebsiteMode(): string
+    {
+        $modelClass = $this->getModelClass();
+
+        if (method_exists($modelClass, 'getMultiWebsiteMode')) {
+            return $modelClass::getMultiWebsiteMode();
+        }
+
+        if (method_exists($modelClass, 'getWebsiteMode')) {
+            return $modelClass::getWebsiteMode();
+        }
+
+        $mode = config('wncms.models.' . $this->getModelKey() . '.website_mode', 'global');
+        return in_array($mode, ['global', 'single', 'multi'], true) ? $mode : 'global';
+    }
+
+    /**
+     * Check whether current model needs website scoping.
+     */
+    public function isModelWebsiteScoped(): bool
+    {
+        return in_array($this->getModelMultiWebsiteMode(), ['single', 'multi'], true);
     }
 
     /**

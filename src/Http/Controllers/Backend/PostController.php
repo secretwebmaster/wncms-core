@@ -13,7 +13,10 @@ class PostController extends BackendController
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
-        $this->applyBackendListWebsiteScope($q);
+        $filterWebsiteId = (int) ($request->input('website_id') ?? $request->input('website') ?? 0);
+        if ($filterWebsiteId > 0 && $this->supportsWncmsMultisite($this->modelClass) && method_exists($this->modelClass, 'applyWebsiteScope')) {
+            $this->modelClass::applyWebsiteScope($q, $filterWebsiteId);
+        }
 
         if (!isAdmin()) {
             $q->whereRelation('user', 'id', auth()->id());
@@ -96,13 +99,21 @@ class PostController extends BackendController
     {
         if (isAdmin()) {
             $user = wncms()->getModel('user')::find($request->user_id) ?? auth()->user();
-            $website_ids = wncms()->getModel('website')::whereIn("websites.id", $request->website_ids ?? [])->pluck('id')->toArray();
         } else {
             $user = auth()->user();
-            $website_ids = auth()->user()->websites()->whereIn("websites.id", $request->website_id ?? [])->pluck('websites.id')->toArray();;
         }
 
         if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
+
+        $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
+        if (!isAdmin()) {
+            $allowedWebsiteIds = auth()->user()->websites()->pluck('websites.id')->map(fn($id) => (int) $id)->values()->all();
+            $websiteIds = array_values(array_intersect($websiteIds, $allowedWebsiteIds));
+        }
+
+        if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
+            return back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
+        }
 
         $request->validate(
             [
@@ -146,7 +157,7 @@ class PostController extends BackendController
         $post->wrapTables();
 
         //attach to website models
-        // $post->websites()->sync($website_ids);
+        $this->syncModelWebsites($post, $websiteIds);
 
         //thumbnail
         if (!empty($request->post_thumbnail_remove)) {
@@ -216,10 +227,8 @@ class PostController extends BackendController
 
         if (isAdmin()) {
             $user = wncms()->getModel('user')::find($request->user_id) ?? auth()->user();
-            $website_ids = $request->website_ids;
         } else {
             $user = auth()->user();
-            $website_ids = auth()->user()->websites()->whereIn('id', $request->website_id)->pluck('id')->toArray();
 
             //只能修改自己的文章
             if ($post->user?->id != auth()->id()) {
@@ -228,8 +237,17 @@ class PostController extends BackendController
         }
 
         //TODO 改為用 FormRequest
-        // if(empty($website_ids)) return back()->withInput()->withErrors(['message' => __('wncms::word.website_ids_is_required')]);
         if (!$user) return back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
+
+        $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
+        if (!isAdmin()) {
+            $allowedWebsiteIds = auth()->user()->websites()->pluck('websites.id')->map(fn($id) => (int) $id)->values()->all();
+            $websiteIds = array_values(array_intersect($websiteIds, $allowedWebsiteIds));
+        }
+
+        if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
+            return back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
+        }
 
         $request->validate(
             [
@@ -279,7 +297,7 @@ class PostController extends BackendController
         $post->localizeImages();
         $post->wrapTables();
 
-        // $post->websites()->sync($website_ids);
+        $this->syncModelWebsites($post, $websiteIds);
 
 
         //remove image

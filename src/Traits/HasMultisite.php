@@ -10,6 +10,10 @@ trait HasMultisite
 {
     public static function getWebsiteMode(): string
     {
+        if (method_exists(static::class, 'getMultiWebsiteMode')) {
+            return static::getMultiWebsiteMode();
+        }
+
         $class = static::class;
         foreach (config('wncms.models', []) as $key => $data) {
             if (($data['class'] ?? null) === $class) {

@@ -34,7 +34,7 @@
             <div class="col-lg-9 fv-row">
                 <div class="row">
                     @foreach($websites ?? [] as $website)
-                        <div class="col-12 col-md-4 mb-2">
+                        <div class="col-12 mb-2">
                             <div class="form-check form-check-sm form-check-custom form-check-solid">
                                 <input class="form-check-input me-2" id="website_ids_{{ $website->id }}" name="website_ids[]" type="checkbox" value="{{ $website->id }}" {{ in_array((int) $website->id, $selectedWebsiteIds, true) ? 'checked' : '' }}>
                                 <label class="form-check-label text-gray-700" for="website_ids_{{ $website->id }}">{{ $website->domain }} #({{ $website->id }})</label>

@@ -161,6 +161,15 @@ $items = wncms()->advertisement()->getList([
 
 `applyWebsiteId()` automatically scopes the query when `multi_website` is enabled or when the model supports website filtering through `applyWebsiteScope()`.
 
+Manager-level helpers are available for centralized mode checks:
+
+```php
+public function getModelMultiWebsiteMode(): string
+public function isModelWebsiteScoped(): bool
+```
+
+These helpers defer to model methods (`getMultiWebsiteMode()` / `getWebsiteMode()`) so runtime mode overrides are respected.
+
 ### Tag Support
 
 #### `getAllowedTagTypes(): array`

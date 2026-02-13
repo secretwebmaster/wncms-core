@@ -238,6 +238,22 @@ public static function getModelName(?string $locale = null): string
 ```php
 Post::getModelName('zh_TW');  // → "文章"
 Post::getModelName('en');     // → "Post"
+
+## Multisite Mode Helper
+
+`BaseModel` provides a centralized mode resolver so model-level checks do not duplicate raw config logic:
+
+```php
+public static function getMultiWebsiteMode(): string
+public static function isWebsiteScopedModel(): bool
+```
+
+`getMultiWebsiteMode()` resolves mode in this order:
+1. `config('wncms.models.{model_key}.website_mode')`
+2. `config('wncms.model_website_modes.{model_key}')`
+3. `gss('model_website_modes')` runtime overrides (when available)
+
+Then normalizes to one of: `global`, `single`, `multi`.
 ```
 
 ## Default Constants

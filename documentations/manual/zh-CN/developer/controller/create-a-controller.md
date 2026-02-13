@@ -42,6 +42,27 @@ class PostController extends BackendController
 }
 ```
 
+### Backend 多站点 create/update 模式
+
+对于使用 WNCMS `single` 或 `multi` 网站模式的模型，建议使用 controller 共享 helper 解析并同步网站关系：
+
+```php
+$websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
+
+if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
+    return back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
+}
+
+$post = $this->modelClass::create($payload);
+$this->syncModelWebsites($post, $websiteIds);
+```
+
+在 backend form-items 中，网站输入建议使用共用 partial：
+
+```blade
+@include('wncms::backend.common.website_selector', ['model' => $post, 'websites' => $websites ?? []])
+```
+
 ## 范例：Frontend Controller
 
 ```php
