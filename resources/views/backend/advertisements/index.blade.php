@@ -9,15 +9,17 @@
         <form action="{{ route('advertisements.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('wncms::backend.common.default_toolbar_filters')
+                @include('wncms::backend.common.default_toolbar_filters', [
+                    'websiteFilterName' => 'website_id',
+                ])
 
                 {{-- Add custom toolbar item here --}}
 
-                {{-- Example --}}
+                {{-- Position --}}
                 @if(!empty($positions))
                     <div class="col-6 col-md-auto mb-3 ms-0">
                         <select name="position" class="form-select form-select-sm">
-                            <option value="">@lang('wncms::word.select_website')</option>
+                            <option value="">@lang('wncms::word.select')@lang('wncms::word.position')</option>
                             @foreach($positions as $position)
                                 <option value="{{ $position }}" @if($position == request()->position) selected @endif>@lang('wncms::word.' . $position)</option>
                             @endforeach
