@@ -73,15 +73,17 @@ class UserController extends BackendController
         // dd($request->all());
         $request->validate(
             [
-                'username' => 'required',
-                'email' => 'required|email',
+                'username' => 'required|unique:users,username',
+                'email' => 'required|email|unique:users,email',
                 'password' => 'required|between:6,20|same:password_confirmation',
                 'password_confirmation' => 'required',
             ],
             [
                 'username.required' => __('wncms::word.username_is_required'),
+                'username.unique' => __('wncms::word.username_has_been_used'),
                 'email.required' => __('wncms::word.email_is_required'),
                 'email.email' => __('wncms::word.please_enter_a_valid_email'),
+                'email.unique' => __('wncms::word.email_has_been_used'),
                 'password.required' => __('wncms::word.password_is_required'),
                 'password.same' => __('wncms::word.password_confirmation_is_not_the_same'),
                 'password.between' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
@@ -130,14 +132,16 @@ class UserController extends BackendController
 
         $request->validate(
             [
-                'username' => 'required',
-                'email' => 'required|email',
+                'username' => 'required|unique:users,username,' . $user->id,
+                'email' => 'required|email|unique:users,email,' . $user->id,
                 'password' => 'nullable|between:6,20|confirmed',
             ],
             [
                 'username.required' => __('wncms::word.field_is_required', ['field' => __('wncms::word.username')]),
+                'username.unique' => __('wncms::word.username_has_been_used'),
                 'email.required' => __('wncms::word.field_is_required', ['field' => __('wncms::word.email')]),
                 'email.email' => __('wncms::word.please_enter_a_valid_email'),
+                'email.unique' => __('wncms::word.email_has_been_used'),
                 'password.between' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
                 'password.confirmed' => __('wncms::word.password_confirmation_is_not_the_same'),
                 'password_confirmation.required' => __('wncms::word.password_confirmation_is_required'),

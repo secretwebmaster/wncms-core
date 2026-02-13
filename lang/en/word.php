@@ -1015,6 +1015,7 @@ $words = [
     'last_login_at' => "Last Login",
     'user_info' => "User Information",
     'email_has_been_used' => "Email has been used",
+    'username_has_been_used' => "Username has been used",
     'account_credit' => "Account Credit",
     'recharge' => "Recharge",
     'amount' => "Amount",

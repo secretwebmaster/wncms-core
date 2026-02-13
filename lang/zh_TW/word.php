@@ -1015,6 +1015,7 @@ $words = [
     'last_login_at' => "最後登入",
     'user_info' => "用戶資訊",
     'email_has_been_used' => "email已被使用",
+    'username_has_been_used' => "用戶名已被使用",
     'account_credit' => "尚餘興分",
     'recharge' => "充值",
     'amount' => "數量",
