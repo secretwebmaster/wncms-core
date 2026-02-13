@@ -38,6 +38,12 @@ protected function getModelPlural(): string
 
 // 為 single/multi 網站模式套用當前網站列表篩選。
 protected function applyBackendListWebsiteScope(Builder $q, ?Request $request = null, bool $onlyWhenExplicitFilter = false): void
+
+// 為 create/update 流程解析網站 ID。
+protected function resolveBackendMutationWebsiteIds(bool $fallbackToCurrentWhenEmpty = true): array
+
+// 為已建立/更新模型同步網站綁定。
+protected function syncBackendMutationWebsites($model, bool $fallbackToCurrentWhenEmpty = true): void
 ```
 
 ## Cache 控制
@@ -68,6 +74,14 @@ $q = $this->modelClass::query();
 $this->applyBackendListWebsiteScope($q, $request, true);
 ```
 
+## 多站點寫入輔助方法
+
+在 create/update 流程，建議使用 `syncBackendMutationWebsites($model)` 保持 `global` / `single` / `multi` 模式相容。
+
+- 對 `single`/`multi` 模型，會從請求鍵（`website_id`、`website_ids`，及舊鍵）解析網站 ID。
+- 當請求未傳網站 ID 時，可回退到當前網站上下文。
+- 對 `global` 模型會安全 no-op。
+
 ## 內建 CRUD 操作
 
 所有操作假設標準的 backend Blade 路徑：`backend.{plural}.*`。
@@ -85,6 +99,7 @@ $this->applyBackendListWebsiteScope($q, $request, true);
 - `store(Request $request)`
 
   - `create($request->all())`，然後：
+  - 透過 `syncBackendMutationWebsites($model)` 自動同步網站綁定。
 
     - 如果是 AJAX：JSON `{ status, message, redirect }`。
     - 否則：重定向到 `route('{plural}.edit', ['id' => $model->id])`。
@@ -96,6 +111,7 @@ $this->applyBackendListWebsiteScope($q, $request, true);
 - `update(Request $request, $id)`
 
   - 類似 `findOrFail` 的行為（如果缺少則回傳訊息），`update($request->all())`。
+  - 透過 `syncBackendMutationWebsites($model)` 自動同步網站綁定。
   - 如果是 AJAX：JSON `{ status, message, redirect }`。
   - 否則：重定向回編輯頁面。
 

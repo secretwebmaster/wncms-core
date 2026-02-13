@@ -104,6 +104,7 @@ class LinkController extends BackendController
             'clicks' => $request->input('clicks'),
             'contact' => $request->input('contact'),
         ]);
+        $this->syncBackendMutationWebsites($link);
 
         //thumbnail
         if (!empty($request->link_thumbnail_remove)) {
@@ -175,6 +176,7 @@ class LinkController extends BackendController
             'clicks' => $request->input('clicks'),
             'contact' => $request->input('contact'),
         ]);
+        $this->syncBackendMutationWebsites($link);
 
         // thumbnail
         if (!empty($request->link_thumbnail_remove)) {

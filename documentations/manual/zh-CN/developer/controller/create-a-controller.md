@@ -59,6 +59,13 @@ $post = $this->modelClass::create($payload);
 $this->syncModelWebsites($post, $websiteIds);
 ```
 
+对于大多数 backend controller，也可直接使用更高阶 helper：
+
+```php
+$post = $this->modelClass::create($payload);
+$this->syncBackendMutationWebsites($post);
+```
+
 在 backend form-items 中，网站输入建议使用共用 partial：
 
 ```blade

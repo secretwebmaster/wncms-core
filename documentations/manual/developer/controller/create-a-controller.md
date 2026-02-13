@@ -59,6 +59,13 @@ $post = $this->modelClass::create($payload);
 $this->syncModelWebsites($post, $websiteIds);
 ```
 
+For most backend controllers, you can use the higher-level helper:
+
+```php
+$post = $this->modelClass::create($payload);
+$this->syncBackendMutationWebsites($post);
+```
+
 For backend form-items, render website input via the shared partial:
 
 ```blade

@@ -38,6 +38,12 @@ protected function getModelPlural(): string
 
 // Apply current-website list scoping for single/multi website modes.
 protected function applyBackendListWebsiteScope(Builder $q, ?Request $request = null, bool $onlyWhenExplicitFilter = false): void
+
+// Resolve website IDs for create/update mutation flows.
+protected function resolveBackendMutationWebsiteIds(bool $fallbackToCurrentWhenEmpty = true): array
+
+// Sync website bindings for a created/updated model.
+protected function syncBackendMutationWebsites($model, bool $fallbackToCurrentWhenEmpty = true): void
 ```
 
 ## Cache control
@@ -68,6 +74,14 @@ $q = $this->modelClass::query();
 $this->applyBackendListWebsiteScope($q, $request, true);
 ```
 
+## Multisite mutation helper
+
+For create/update flows, use `syncBackendMutationWebsites($model)` to keep website bindings compatible across `global` / `single` / `multi` modes.
+
+- For scoped models (`single`/`multi`), it resolves IDs from request keys (`website_id`, `website_ids`, and legacy aliases).
+- If no IDs are provided, it can fall back to current website context.
+- For `global` models, it no-ops safely.
+
 ## Built-in CRUD actions
 
 All actions assume standard backend Blade paths: `backend.{plural}.*`.
@@ -85,6 +99,7 @@ All actions assume standard backend Blade paths: `backend.{plural}.*`.
 - `store(Request $request)`
 
   - `create($request->all())`, then:
+  - auto-sync website bindings through `syncBackendMutationWebsites($model)`.
 
     - If AJAX: JSON `{ status, message, redirect }`.
     - Else: redirect to `route('{plural}.edit', ['id' => $model->id])`.
@@ -96,6 +111,7 @@ All actions assume standard backend Blade paths: `backend.{plural}.*`.
 - `update(Request $request, $id)`
 
   - `findOrFail`-like behavior (returns message if missing), `update($request->all())`.
+  - auto-sync website bindings through `syncBackendMutationWebsites($model)`.
   - If AJAX: JSON `{ status, message, redirect }`.
   - Else: redirect back to edit.
 

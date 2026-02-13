@@ -106,6 +106,42 @@ abstract class BackendController extends Controller
     }
 
     /**
+     * Resolve website IDs for create/update mutations.
+     * Falls back to current website when request does not provide IDs.
+     */
+    protected function resolveBackendMutationWebsiteIds(bool $fallbackToCurrentWhenEmpty = true): array
+    {
+        $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
+
+        if (empty($websiteIds) && $fallbackToCurrentWhenEmpty) {
+            $fallbackWebsiteId = (int) (wncms()->website()->get()?->id ?? 0);
+            if ($fallbackWebsiteId > 0) {
+                $websiteIds = [$fallbackWebsiteId];
+            }
+        }
+
+        return $websiteIds;
+    }
+
+    /**
+     * Sync website bindings for models that support WNCMS multisite relations.
+     */
+    protected function syncBackendMutationWebsites($model, bool $fallbackToCurrentWhenEmpty = true): void
+    {
+        $modelClass = get_class($model);
+        if (!$this->supportsWncmsMultisite($modelClass)) {
+            return;
+        }
+
+        $websiteIds = $this->resolveBackendMutationWebsiteIds($fallbackToCurrentWhenEmpty);
+        if (empty($websiteIds)) {
+            return;
+        }
+
+        $this->syncModelWebsites($model, $websiteIds);
+    }
+
+    /**
      * ============================================
      * CRUD Operations
      * ============================================
@@ -145,6 +181,7 @@ abstract class BackendController extends Controller
     public function store(Request $request)
     {
         $model = $this->modelClass::create($request->all());
+        $this->syncBackendMutationWebsites($model);
 
         if ($request->ajax()) {
             return response()->json([
@@ -179,6 +216,7 @@ abstract class BackendController extends Controller
         }
 
         $model->update($request->all());
+        $this->syncBackendMutationWebsites($model);
 
         if ($request->ajax()) {
             return response()->json([

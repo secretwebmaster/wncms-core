@@ -142,6 +142,12 @@ Required: Configurable via `wncms_api_posts_store` setting
 
 \*Required if authentication is enabled
 
+Multisite binding notes:
+
+- `website_id` accepts a single ID or an array.
+- For scoped post models (`single`/`multi`), website bindings are synced after create/update.
+- If `website_id` is omitted, API falls back to current website context when available.
+
 ### Translatable Field Storage Format
 
 - For translatable fields (`title`, `excerpt`, `keywords`, `content`, `label`), base column values are persisted as plain text.

@@ -121,12 +121,11 @@ class TagController extends ApiController
 
             $tag = $tagModel::create($data);
 
-            if (gss('multi_website') && !empty($websiteInput)) {
-                $websiteIds = is_array($websiteInput)
-                    ? $websiteInput
-                    : explode(',', (string) $websiteInput);
-
-                $tag->bindWebsites($websiteIds);
+            if (!empty($websiteInput)) {
+                $websiteIds = $this->resolveModelWebsiteIds($tagModel, $websiteInput);
+                if (!empty($websiteIds)) {
+                    $this->syncModelWebsites($tag, $websiteIds);
+                }
             }
 
             wncms()->cache()->tags(['tags'])->flush();

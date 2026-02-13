@@ -9,7 +9,10 @@ class SearchKeywordController extends BackendController
 {
     public function index(Request $request)
     {
-        $search_keywords = $this->modelClass::query()->get();
+        $q = $this->modelClass::query();
+        $this->applyBackendListWebsiteScope($q);
+
+        $search_keywords = $q->get();
         return $this->view('backend.search_keywords.index', [
             'page_title' => wncms_model_word('search_keyword', 'management'),
             'search_keywords' => $search_keywords,
@@ -55,6 +58,7 @@ class SearchKeywordController extends BackendController
             'locale' => $request->locale,
             'count' => $request->count ?? 0,
         ]);
+        $this->syncBackendMutationWebsites($search_keyword);
 
         $this->flush();
 
@@ -101,6 +105,7 @@ class SearchKeywordController extends BackendController
             'locale' => $request->locale,
             'count' => $request->count ?? 0,
         ]);
+        $this->syncBackendMutationWebsites($search_keyword);
 
         $this->flush();
 

@@ -141,6 +141,7 @@ class TagController extends BackendController
             'type' => $request->type ?? 'post_category',
             'group' => $request->group ?? (is_string($request->type) ? explode('_', $request->type)[0] : null),
         ]);
+        $this->syncBackendMutationWebsites($tag);
 
         if (!empty($request->tag_thumbnail_remove)) $tag->clearMediaCollection('tag_thumbnail');
         if (!empty($request->tag_thumbnail)) $tag->addMediaFromRequest('tag_thumbnail')->toMediaCollection('tag_thumbnail');
@@ -214,6 +215,7 @@ class TagController extends BackendController
             'sort' => $request->sort,
             'group' => $request->group ?? (is_string($request->type) ? explode('_', $request->type)[0] : null),
         ]);
+        $this->syncBackendMutationWebsites($tag);
 
         if (app()->getLocale() != LaravelLocalization::getDefaultLocale()) {
             $tag->translations()->updateOrCreate(

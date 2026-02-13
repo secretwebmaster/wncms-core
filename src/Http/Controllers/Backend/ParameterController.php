@@ -48,6 +48,7 @@ class ParameterController extends BackendController
             'key' => $request->key,
             'remark' => $request->remark,
         ]);
+        $this->syncBackendMutationWebsites($parameter);
 
         $this->flush();
 
@@ -82,6 +83,7 @@ class ParameterController extends BackendController
             'key' => $request->key,
             'remark' => $request->remark,
         ]);
+        $this->syncBackendMutationWebsites($parameter);
 
         $this->flush();
 

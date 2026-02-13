@@ -185,6 +185,12 @@ Legacy compatibility: if `enable_api_tag_store` is still enabled in old setups, 
 | `website_id`             | integer/array/string | No       | -               | Website ID(s) for multi-site           |
 | `update_when_duplicated` | boolean              | No       | false           | Update existing tag if duplicate found |
 
+Multisite binding notes:
+
+- `website_id` accepts integer, array, or comma-separated string.
+- IDs are normalized through shared multisite helpers before binding.
+- Invalid/non-existing IDs are ignored during normalization.
+
 ### Request Example
 
 ```bash

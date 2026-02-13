@@ -167,6 +167,7 @@ class PageController extends BackendController
             'is_locked' => $request->boolean('is_locked'),
             'blade_name' => $request->input('blade_name'),
         ]);
+        $this->syncBackendMutationWebsites($page);
 
         // page options
         if ($request->has('options')) {
@@ -367,6 +368,7 @@ class PageController extends BackendController
             'is_locked' => $request->boolean('is_locked'),
             'blade_name' => $request->input('blade_name'),
         ]);
+        $this->syncBackendMutationWebsites($page);
 
         // save template values
         if ($page->type === 'template' && $page->blade_name && $request->has('template_inputs')) {

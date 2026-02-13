@@ -142,6 +142,12 @@ POST /api/v1/posts/store
 
 \*如果啟用了身份驗證則為必需
 
+多站點綁定說明：
+
+- `website_id` 支援單一 ID 或 ID 陣列。
+- 對 `single`/`multi` 模式的文章模型，建立/更新後會同步網站綁定。
+- 若未傳 `website_id`，API 會在可用時回退到當前網站上下文。
+
 ### 可翻譯欄位儲存格式
 
 - 對可翻譯欄位（`title`、`excerpt`、`keywords`、`content`、`label`），基礎欄位會以純文字寫入資料表。

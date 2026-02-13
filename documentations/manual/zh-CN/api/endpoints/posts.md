@@ -142,6 +142,12 @@ POST /api/v1/posts/store
 
 \*如果启用了身份验证则为必需
 
+多站点绑定说明：
+
+- `website_id` 支援单一 ID 或 ID 阵列。
+- 对 `single`/`multi` 模式的文章模型，创建/更新后会同步网站绑定。
+- 若未传 `website_id`，API 会在可用时回退到当前网站上下文。
+
 ### 可翻译栏位储存格式
 
 - 对可翻译栏位（`title`、`excerpt`、`keywords`、`content`、`label`），基础栏位会以纯文字写入资料表。

@@ -111,6 +111,16 @@ class PostController extends ApiController
         $data = $this->buildPostPayload($request, $user?->id);
         $post = $postModel::create($data);
         $this->applyModelTranslations($post, $normalizedTranslatableInputs);
+        $websiteIds = $this->resolveModelWebsiteIds($postModel, $request->input('website_id'));
+        if (empty($websiteIds)) {
+            $fallbackWebsiteId = (int) (wncms()->website()->get()?->id ?? 0);
+            if ($fallbackWebsiteId > 0) {
+                $websiteIds = [$fallbackWebsiteId];
+            }
+        }
+        if (!empty($websiteIds)) {
+            $this->syncModelWebsites($post, $websiteIds);
+        }
 
         if ($request->hasFile('thumbnail')) {
             $post->addMediaFromRequest('thumbnail')->toMediaCollection('post_thumbnail');
@@ -165,6 +175,16 @@ class PostController extends ApiController
 
         $post->update($data);
         $this->applyModelTranslations($post, $normalizedTranslatableInputs);
+        $websiteIds = $this->resolveModelWebsiteIds($post::class, $request->input('website_id'));
+        if (empty($websiteIds)) {
+            $fallbackWebsiteId = (int) (wncms()->website()->get()?->id ?? 0);
+            if ($fallbackWebsiteId > 0) {
+                $websiteIds = [$fallbackWebsiteId];
+            }
+        }
+        if (!empty($websiteIds)) {
+            $this->syncModelWebsites($post, $websiteIds);
+        }
 
         if ($request->filled('categories')) {
             $post->syncTagsWithType(explode(',', $request->categories), 'post_category');

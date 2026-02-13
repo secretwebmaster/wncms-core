@@ -185,6 +185,12 @@ POST /api/v1/tags/store
 | `website_id`             | integer/array/string | 否   | -               | 多站點的網站 ID                |
 | `update_when_duplicated` | boolean              | 否   | false           | 找到重複標籤時更新現有標籤     |
 
+多站點綁定說明：
+
+- `website_id` 支援整數、陣列或逗號分隔字串。
+- 綁定前會透過共用多站點 helper 標準化網站 ID。
+- 標準化過程中會忽略無效或不存在的網站 ID。
+
 ### 請求範例
 
 ```bash

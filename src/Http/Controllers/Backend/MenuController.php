@@ -44,6 +44,7 @@ class MenuController extends BackendController
         $menu = $this->modelClass::create([
             'name' => $request->name,
         ]);
+        $this->syncBackendMutationWebsites($menu);
 
         return redirect()->route('menus.edit', [
             'id' => $menu
@@ -133,6 +134,7 @@ class MenuController extends BackendController
             $this->add_items($menu, $menu_item, null, $sort);
         }
 
+        $this->syncBackendMutationWebsites($menu);
         $this->flush();
 
         return redirect()->route('menus.edit', [

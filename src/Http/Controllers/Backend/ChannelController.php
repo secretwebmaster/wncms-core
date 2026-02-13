@@ -58,6 +58,7 @@ class ChannelController extends BackendController
             'contact' => $request->contact,
             'remark' => $request->remark,
         ]);
+        $this->syncBackendMutationWebsites($channel);
 
         $this->flush();
 
@@ -104,6 +105,7 @@ class ChannelController extends BackendController
             'contact' => $request->contact,
             'remark' => $request->remark,
         ]);
+        $this->syncBackendMutationWebsites($channel);
 
         $this->flush();
 
