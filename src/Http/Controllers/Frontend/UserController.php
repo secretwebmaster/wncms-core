@@ -55,12 +55,13 @@ class UserController extends FrontendController
     {
         $request->validate(
             [
-                'email' => 'required_without:username',
+                'email' => 'nullable|email|required_without:username',
                 'username' => 'required_without:email',
                 'password' => 'required',
             ],
             [
                 'email.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.email')]),
+                'email.email' => __('wncms::word.please_enter_a_valid_email'),
                 'username.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.username')]),
                 'password.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.password')]),
             ]
@@ -177,12 +178,13 @@ class UserController extends FrontendController
 
         $request->validate(
             [
-                'email' => 'required_without:username',
+                'email' => 'nullable|email|required_without:username',
                 'username' => 'required_without:email',
                 'password' => 'required',
             ],
             [
                 'email.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.email')]),
+                'email.email' => __('wncms::word.please_enter_a_valid_email'),
                 'username.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.username')]),
                 'password.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.password')]),
             ]
@@ -197,7 +199,11 @@ class UserController extends FrontendController
 
         // if email is not provided, use username plus current domain as email
         if (!$request->filled('email')) {
-            $email = $request->username . '@' . request()->getHttpHost();
+            $emailLocalPart = preg_replace('/[^a-zA-Z0-9._%+-]/', '', $username);
+            if (empty($emailLocalPart)) {
+                $emailLocalPart = 'user_' . time();
+            }
+            $email = $emailLocalPart . '@' . request()->getHost();
         } else {
             $email = $request->email;
         }
@@ -205,7 +211,7 @@ class UserController extends FrontendController
         $userModel = $this->getModelClass();
 
         // check if the user already exists
-        $existingUser = $userModel::where('username', $request->username)->orWhere('email', $request->email)->first();
+        $existingUser = $userModel::where('username', $username)->orWhere('email', $email)->first();
         if ($existingUser) {
             return redirect()->back()->withErrors(['message' => __('wncms::word.user_already_exists')]);
         }

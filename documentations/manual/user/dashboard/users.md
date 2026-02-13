@@ -22,3 +22,23 @@ Validation messages use:
 ## Practical Example
 
 If user `A` already has `username=alex`, creating or editing another user to `alex` will fail validation and return an error message instead of saving duplicate data.
+
+## Frontend Registration Email Validation
+
+Frontend registration now prevents non-email values from being stored in the `email` field.
+
+## Where It Applies
+
+- Frontend register submit: `POST /user/register/submit` (`frontend.users.register.submit`)
+- Controller: `src/Http/Controllers/Frontend/UserController.php`
+
+## Validation Behavior
+
+- If `email` is provided, it must pass Laravel `email` format validation.
+- If `email` is not provided, the system generates a fallback email using a sanitized username and `request()->getHost()` (without port).
+- Duplicate checks run against the final computed `username` and `email` values before user creation.
+
+## Practical Example
+
+- Input `username=john`, `email=abc` fails validation with `wncms::word.please_enter_a_valid_email`.
+- Input `username=john`, empty `email` creates fallback email like `john@example.com`.
