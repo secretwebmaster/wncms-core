@@ -72,6 +72,23 @@ $this->syncBackendMutationWebsites($post);
 @include('wncms::backend.common.website_selector', ['model' => $post, 'websites' => $websites ?? []])
 ```
 
+### Backend 手動 sort 欄位排序模式
+
+對使用業務排序欄位（例如 `sort`）的模型，建議將該欄位作為列表預設排序，並僅把 `id desc` 當作次排序：
+
+```php
+$sort = in_array($request->sort, $this->modelClass::SORTS) ? $request->sort : 'sort';
+$direction = in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc';
+
+$query->orderBy($sort, $direction);
+
+if ($sort !== 'id') {
+    $query->orderBy('id', 'desc');
+}
+```
+
+這樣可確保後台列表排序穩定，且順序更新後可直接驗證結果。
+
 ## 範例：Frontend Controller
 
 ```php

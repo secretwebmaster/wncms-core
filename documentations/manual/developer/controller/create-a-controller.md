@@ -72,6 +72,23 @@ For backend form-items, render website input via the shared partial:
 @include('wncms::backend.common.website_selector', ['model' => $post, 'websites' => $websites ?? []])
 ```
 
+### Backend manual sort field pattern
+
+For models that use a business ordering field (for example `sort`), use that column as default list sorting and keep `id desc` only as a tie-breaker:
+
+```php
+$sort = in_array($request->sort, $this->modelClass::SORTS) ? $request->sort : 'sort';
+$direction = in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc';
+
+$query->orderBy($sort, $direction);
+
+if ($sort !== 'id') {
+    $query->orderBy('id', 'desc');
+}
+```
+
+This keeps backend ordering predictable and makes order updates easy to verify after editing.
+
 ## Example: Frontend controller
 
 ```php

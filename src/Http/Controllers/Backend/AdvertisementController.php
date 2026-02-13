@@ -33,13 +33,17 @@ class AdvertisementController extends BackendController
             });
         }
 
-        if (in_array($request->sort, $this->modelClass::SORTS)) {
-            $q->orderBy($request->sort, in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc');
+        $sort = in_array($request->sort, $this->modelClass::SORTS) ? $request->sort : 'sort';
+        $direction = in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc';
+
+        $q->orderBy($sort, $direction);
+
+        // Keep list order deterministic when primary sort values are identical.
+        if ($sort !== 'id') {
+            $q->orderBy('id', 'desc');
         }
 
         $q->with(['media']);
-
-        $q->orderBy('id', 'desc');
 
         $advertisements = $q->paginate($request->page_size ?? 20);
 

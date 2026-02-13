@@ -194,6 +194,24 @@ Use plural resource prefixes for route names:
 - For heavy lists, prefer pagination over `get()` and add indexes to frequently filtered columns.
 - For cross-version compatibility, avoid hardcoding legacy foreign-key columns (for example `website_id`) when WNCMS multisite relation binding is available.
 
+### Manual `sort` field pattern
+
+If a model has a business sort column (for example `sort`), make it the default backend index order so order updates are visible immediately after save.
+
+```php
+$sort = in_array($request->sort, $this->modelClass::SORTS) ? $request->sort : 'sort';
+$direction = in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc';
+
+$q->orderBy($sort, $direction);
+
+// Keep deterministic order for identical sort values.
+if ($sort !== 'id') {
+    $q->orderBy('id', 'desc');
+}
+```
+
+This avoids the common issue where always appending `orderBy('id', 'desc')` makes manual order adjustments hard to verify in backend lists.
+
 ### WNCMS multisite compatibility pattern
 
 When the model supports WNCMS multisite methods, resolve website IDs via controller helpers and bind relation with `syncModelWebsites(...)`:

@@ -189,6 +189,24 @@ class CustomProductController extends BackendController
 - 使用內建的 CRUD 方法或覆蓋以進行自訂邏輯。
 - 利用 cache flushing 和 WNCMS 輔助方法保持程式碼簡潔。
 
+## 手動 `sort` 欄位排序模式
+
+如果模型有業務排序欄位（例如 `sort`），建議將其設為 backend index 的預設排序，這樣更新順序後可立即在列表中看到結果。
+
+```php
+$sort = in_array($request->sort, $this->modelClass::SORTS) ? $request->sort : 'sort';
+$direction = in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc';
+
+$q->orderBy($sort, $direction);
+
+// 當主排序值相同，使用 id 維持穩定順序。
+if ($sort !== 'id') {
+    $q->orderBy('id', 'desc');
+}
+```
+
+可避免固定追加 `orderBy('id', 'desc')` 後，讓手動排序更新難以在後台列表中驗證的問題。
+
 ## WNCMS 多站點相容寫入模式
 
 當模型支援 WNCMS 多站點方法時，不要在 `create()/update()` payload 硬寫舊版外鍵欄位（例如 `website_id`）。建議先用 controller 共用 helper 解析網站 ID，再用 `syncModelWebsites(...)` 綁定站點關聯：
