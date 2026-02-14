@@ -86,6 +86,16 @@ Backend plugin index includes a `Required Plugins` column.
 
 - It shows dependency plugin ids.
 - If version constraints are defined, it shows `plugin_id (constraint)`.
+- Plugin index keeps diagnostics under `Remark` as a single detail button.
+- Clicking it opens one modal grouping `Last Load Error`, `Source File`, and raw `Remark` in terminal-style block output.
+- `Status` column is hidden in index; activation state is inferred from action buttons (`Activate` / `Deactivate`).
+- `URL`, `Path`, and `Required Plugins` columns are only shown when `show_detail` is enabled.
+
+Load failure remarks are stored in a structured format:
+
+```text
+[LOAD_ERROR] YYYY-MM-DD HH:MM:SS {error_message} | source_file={absolute_file_path}
+```
 
 ## Recommended Reading
 
