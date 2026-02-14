@@ -22,6 +22,10 @@
             @lang('wncms::word.comments')
         </a>
     </li>
+    @php($hookTabHeaders = array_filter(\Illuminate\Support\Facades\Event::dispatch('backend_posts_edit_tabs', [$post, request()])))
+    @foreach ($hookTabHeaders as $hookTabHeader)
+        {!! $hookTabHeader !!}
+    @endforeach
 </ul>
 
 <div class="tab-content">
@@ -48,6 +52,10 @@
                 ->get()
         ])
     </div>
+    @php($hookTabContents = array_filter(\Illuminate\Support\Facades\Event::dispatch('backend_posts_edit_tab_contents', [$post, request()])))
+    @foreach ($hookTabContents as $hookTabContent)
+        {!! $hookTabContent !!}
+    @endforeach
 </div>
 
 @endsection

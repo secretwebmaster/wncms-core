@@ -54,11 +54,21 @@ class PostController extends FrontendController
 
         Event::dispatch('wncms.posts.show', $post);
 
-        return $this->view(
-            $this->theme . "::posts.show",
-            compact('post'),
-            "frontend.themes.{$this->theme}.posts.show"
-        );
+        $themeView = $this->theme . "::posts.show";
+        $defaultView = "frontend.themes.{$this->theme}.posts.show";
+        $params = [
+            'post' => $post,
+            'pageTitle' => (string) $post->title,
+            'page_title' => (string) $post->title,
+        ];
+
+        Event::dispatch('wncms.frontend.posts.show.before', [&$themeView, &$params, &$defaultView, $post]);
+
+        $response = $this->view($themeView, $params, $defaultView);
+
+        Event::dispatch('wncms.frontend.posts.show.after', [$post, $response, $params, $themeView, $defaultView]);
+
+        return $response;
     }
 
     /**

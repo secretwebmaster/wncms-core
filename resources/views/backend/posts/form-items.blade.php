@@ -304,6 +304,13 @@
             </div>
         </div>
 
+        @if (request()->routeIs('posts.edit') || request()->routeIs('posts.create') || request()->routeIs('posts.clone'))
+            @php($hookSidebarCards = array_filter(\Illuminate\Support\Facades\Event::dispatch('wncms.view.backend.posts.edit.sidebar', [$post, request()])))
+            @foreach ($hookSidebarCards as $hookSidebarCard)
+                {!! $hookSidebarCard !!}
+            @endforeach
+        @endif
+
         {{-- Image --}}
         <div class="card mt-5">
             <div class="card-header border-0 cursor-pointer p-2 p-md-5">
