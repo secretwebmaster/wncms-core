@@ -8,7 +8,7 @@ WNCMS provides a comprehensive event system that allows you to hook into various
 
 ### Frontend User Events
 
-#### wncms.frontend.users.dashboard
+#### wncms.frontend.users.dashboard.resolve
 
 Triggered when displaying the user dashboard page.
 
@@ -21,13 +21,13 @@ Triggered when displaying the user dashboard page.
 **Example:**
 
 ```php
-Event::listen('wncms.frontend.users.dashboard', function(&$themeView, &$params, &$defaultView) {
+Event::listen('wncms.frontend.users.dashboard.resolve', function(&$themeView, &$params, &$defaultView) {
     // Add custom data to dashboard
     $params['customData'] = 'Custom dashboard data';
 });
 ```
 
-#### wncms.frontend.users.show_login
+#### wncms.frontend.users.login.resolve
 
 Triggered when displaying the login page.
 
@@ -41,13 +41,33 @@ Triggered when displaying the login page.
 **Example:**
 
 ```php
-Event::listen('wncms.frontend.users.show_login', function(&$themeView, &$params, &$defaultView, &$loggedInRedirectRouteName) {
+Event::listen('wncms.frontend.users.login.resolve', function(&$themeView, &$params, &$defaultView, &$loggedInRedirectRouteName) {
     // Redirect to custom page after login
     $loggedInRedirectRouteName = 'frontend.custom.dashboard';
 });
 ```
 
-#### wncms.frontend.users.show_register
+#### wncms.frontend.users.login.before
+
+Triggered before login validation.
+
+**Parameters:**
+
+- `$request` (Request)
+- `&$rules` (array)
+- `&$messages` (array)
+
+#### wncms.frontend.users.login.after
+
+Triggered after login succeeds and before redirect.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+- `&$redirectUrl` (string)
+
+#### wncms.frontend.users.register.resolve
 
 Triggered when displaying the registration page.
 
@@ -61,13 +81,13 @@ Triggered when displaying the registration page.
 **Example:**
 
 ```php
-Event::listen('wncms.frontend.users.show_register', function(&$themeView, &$params, &$defaultView, &$disabledRegistrationRedirectRouteName) {
+Event::listen('wncms.frontend.users.register.resolve', function(&$themeView, &$params, &$defaultView, &$disabledRegistrationRedirectRouteName) {
     // Add terms and conditions to registration page
     $params['termsUrl'] = route('frontend.pages.terms');
 });
 ```
 
-#### wncms.frontend.users.register
+#### wncms.frontend.users.register.before
 
 Triggered when a user submits registration form (before validation).
 
@@ -82,7 +102,7 @@ Triggered when a user submits registration form (before validation).
 **Example:**
 
 ```php
-Event::listen('wncms.frontend.users.register', function(
+Event::listen('wncms.frontend.users.register.before', function(
     &$disabledRegistrationRedirectRouteName,
     &$sendWelcomeEmail,
     &$defaultUserRoles,
@@ -100,7 +120,7 @@ Event::listen('wncms.frontend.users.register', function(
 });
 ```
 
-#### wncms.frontend.users.registered
+#### wncms.frontend.users.register.after
 
 Triggered after a user has been successfully created.
 
@@ -111,7 +131,7 @@ Triggered after a user has been successfully created.
 **Example:**
 
 ```php
-Event::listen('wncms.frontend.users.registered', function($user) {
+Event::listen('wncms.frontend.users.register.after', function($user) {
     // Send notification to admin
     Notification::route('mail', 'admin@example.com')
         ->notify(new NewUserRegistered($user));
@@ -121,7 +141,7 @@ Event::listen('wncms.frontend.users.registered', function($user) {
 });
 ```
 
-#### wncms.frontend.users.registered.credits
+#### wncms.frontend.users.register.credits.after
 
 Triggered after user registration for credit system initialization.
 
@@ -132,14 +152,14 @@ Triggered after user registration for credit system initialization.
 **Example:**
 
 ```php
-Event::listen('wncms.frontend.users.registered.credits', function($user) {
+Event::listen('wncms.frontend.users.register.credits.after', function($user) {
     // Initialize credits for new user
     $user->credits()->create(['type' => 'balance', 'amount' => 0]);
     $user->credits()->create(['type' => 'points', 'amount' => 100]); // Welcome bonus
 });
 ```
 
-#### wncms.frontend.users.registered.welcome_email
+#### wncms.frontend.users.register.welcome_email.after
 
 Triggered to handle welcome email after registration.
 
@@ -151,7 +171,7 @@ Triggered to handle welcome email after registration.
 **Example:**
 
 ```php
-Event::listen('wncms.frontend.users.registered.welcome_email', function($user, $sendWelcomeEmail) {
+Event::listen('wncms.frontend.users.register.welcome_email.after', function($user, $sendWelcomeEmail) {
     if ($sendWelcomeEmail) {
         Mail::to($user->email)->send(new WelcomeEmail($user));
     }
@@ -197,6 +217,319 @@ Event::listen('wncms.frontend.users.logout.after', function() {
 });
 ```
 
+#### wncms.frontend.users.auth.after
+
+Triggered after frontend auth is successful.
+
+**Parameters:**
+
+- `$user` (User): Authenticated user model
+
+#### wncms.frontend.users.profile.show.resolve
+
+Triggered when displaying profile page.
+
+**Parameters:**
+
+- `&$themeView` (string)
+- `&$params` (array)
+- `&$defaultView` (string)
+
+#### wncms.frontend.users.profile.edit.resolve
+
+Triggered when displaying profile edit page.
+
+**Parameters:**
+
+- `&$themeView` (string)
+- `&$params` (array)
+- `&$defaultView` (string)
+
+#### wncms.frontend.users.profile.update.before
+
+Triggered before frontend profile update persistence.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+- `&$attributes` (array)
+
+#### wncms.frontend.users.profile.update.after
+
+Triggered after frontend profile update persistence.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+
+#### wncms.frontend.users.password.forgot.resolve
+
+Triggered when displaying forgot password page.
+
+**Parameters:**
+
+- `&$themeView` (string)
+- `&$params` (array)
+- `&$defaultView` (string)
+
+#### wncms.frontend.users.password.forgot.before
+
+Triggered before forgot password form validation.
+
+**Parameters:**
+
+- `$request` (Request)
+- `&$rules` (array)
+- `&$messages` (array)
+
+#### wncms.frontend.users.password.forgot.after
+
+Triggered after forgot password token/notification flow succeeds.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+
+#### wncms.frontend.users.password.reset.resolve
+
+Triggered when displaying reset password page.
+
+**Parameters:**
+
+- `&$themeView` (string)
+- `&$params` (array)
+- `&$defaultView` (string)
+
+#### wncms.frontend.users.password.reset.before
+
+Triggered before reset password form validation.
+
+**Parameters:**
+
+- `$request` (Request)
+- `&$rules` (array)
+- `&$messages` (array)
+
+#### wncms.frontend.users.password.reset.after
+
+Triggered after reset password flow returns status.
+
+**Parameters:**
+
+- `$user` (User|null)
+- `$request` (Request)
+- `$status` (string)
+
+### Backend Users Account Events
+
+#### wncms.backend.users.account.profile.resolve
+
+Triggered before rendering backend account profile view.
+
+**Parameters:**
+
+- `&$view` (string)
+- `&$params` (array)
+
+#### wncms.backend.users.account.profile.update.before
+
+Triggered before backend account profile update.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+- `&$attributes` (array)
+
+#### wncms.backend.users.account.profile.update.after
+
+Triggered after backend account profile update.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+
+#### wncms.backend.users.account.email.update.before
+
+Triggered before backend account email update.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+
+#### wncms.backend.users.account.email.update.after
+
+Triggered after backend account email update.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+
+#### wncms.backend.users.account.password.update.before
+
+Triggered before backend account password update.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+
+#### wncms.backend.users.account.password.update.after
+
+Triggered after backend account password update.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+
+### Backend Users CRUD and View Slot Events
+
+#### wncms.backend.users.index.query.before
+
+Triggered before backend users index query is finalized.
+
+**Parameters:**
+
+- `$request` (Request)
+- `&$q` (Eloquent\Builder)
+
+#### wncms.backend.users.create.resolve
+
+Triggered before rendering backend users create page.
+
+**Parameters:**
+
+- `&$view` (string)
+- `&$params` (array)
+
+#### wncms.backend.users.edit.resolve
+
+Triggered before rendering backend users edit page.
+
+**Parameters:**
+
+- `&$view` (string)
+- `&$params` (array)
+
+#### wncms.backend.users.store.before
+
+Triggered before backend users store validation.
+
+**Parameters:**
+
+- `$request` (Request)
+- `&$rules` (array)
+- `&$messages` (array)
+
+#### wncms.backend.users.store.attributes.before
+
+Triggered before backend users store persistence.
+
+**Parameters:**
+
+- `$request` (Request)
+- `&$attributes` (array)
+
+#### wncms.backend.users.store.after
+
+Triggered after backend users store persistence.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+
+#### wncms.backend.users.update.before
+
+Triggered before backend users update validation.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+- `&$rules` (array)
+- `&$messages` (array)
+
+#### wncms.backend.users.update.attributes.before
+
+Triggered before backend users update persistence.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+- `&$attributes` (array)
+
+#### wncms.backend.users.update.after
+
+Triggered after backend users update persistence.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+
+#### wncms.view.backend.users.create.fields
+
+View slot event for injecting fields into backend users create form.
+
+**Parameters:**
+
+- `$request` (Request)
+
+#### wncms.view.backend.users.edit.fields
+
+View slot event for injecting fields into backend users edit form.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+
+#### wncms.view.backend.users.index.columns.header
+
+View slot event for injecting header columns into backend users index table.
+
+**Parameters:**
+
+- `$request` (Request)
+
+#### wncms.view.backend.users.index.columns.row
+
+View slot event for injecting row columns into backend users index table.
+
+**Parameters:**
+
+- `$user` (User)
+- `$request` (Request)
+
+#### wncms.view.frontend.users.profile.show.fields
+
+View slot event for injecting rows into frontend users profile show table.
+
+**Parameters:**
+
+- `$user` (User)
+
+### Backend Settings Events
+
+#### wncms.backend.settings.tabs.extend
+
+Triggered before backend settings tabs are rendered, allowing plugins to inject custom tabs and fields.
+
+**Parameters:**
+
+- `&$availableSettings` (array)
+- `$settings` (array)
+- `$request` (Request)
+
 ## Event Registration
 
 ### In a Service Provider
@@ -213,7 +546,7 @@ class EventServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        Event::listen('wncms.frontend.users.registered', function($user) {
+        Event::listen('wncms.frontend.users.register.after', function($user) {
             // Your logic here
         });
     }
@@ -240,7 +573,7 @@ Register in `EventServiceProvider`:
 
 ```php
 protected $listen = [
-    'wncms.frontend.users.registered' => [
+    'wncms.frontend.users.register.after' => [
         SendWelcomeEmail::class,
     ],
 ];

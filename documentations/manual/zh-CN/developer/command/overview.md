@@ -55,6 +55,36 @@ php artisan wncms:create-model-permission novel
 - `_delete`
 - `_bulk_delete`
 
+## `wncms:activate-plugin`
+
+通过 CLI 启用插件，行为与后台启用一致（`status` => `active`）。
+
+```bash
+php artisan wncms:activate-plugin wncms-users-hook-test
+```
+
+行为摘要：
+- 支援插件 `name`、`plugin_id` 或目录 `path` 作为输入。
+- 会扫描 `public/plugins`，并将未入库的目录插件同步到 `plugins` 资料表。
+- 若插件提供标准化主类，会先执行生命周期 `activate()`。
+- 命中后将插件状态更新为 `active`。
+- 若 `plugins` 资料表不存在或找不到目标插件，命令返回失败。
+
+## `wncms:verify-plugin-hooks`
+
+执行插件与 users hook 硬切迁移的发布闸门检查。
+
+```bash
+php artisan wncms:verify-plugin-hooks
+```
+
+行为摘要：
+- 检查插件根目录（`public/plugins`）是否存在。
+- 检查每个插件目录的 `plugin.json` 是否有效（必须含 `id`、`name`、`version`）。
+- 检查核心用户控制器中是否仍存在 legacy users hook 名称。
+- 检查 `plugins` 资料表是否存在，且不存在 `[MANIFEST_ERROR]` / `[LOAD_ERROR]` 记录。
+- 任一闸门失败即返回失败（应阻止发布）。
+
 ## 故障排查
 
 - `Source view file not found`：

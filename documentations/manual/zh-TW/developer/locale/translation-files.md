@@ -10,6 +10,8 @@ WNCMS 會將你的專案覆寫合併到其核心翻譯中。核心 `wncms-core` 
 lang/
 ├── en/
 │   └── custom.php
+├── zh_CN/
+│   └── custom.php
 ├── zh_TW/
 │   └── custom.php
 └── ja/
@@ -60,6 +62,7 @@ return $custom_words;
 為你實際提供的每個 locale 建立一個 `custom.php`：
 
 - `lang/en/custom.php`
+- `lang/zh_CN/custom.php`
 - `lang/zh_TW/custom.php`
 - `lang/ja/custom.php`
 

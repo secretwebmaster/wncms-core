@@ -10,6 +10,8 @@ Create a `custom.php` file for each locale you support:
 lang/
 ├── en/
 │   └── custom.php
+├── zh_CN/
+│   └── custom.php
 ├── zh_TW/
 │   └── custom.php
 └── ja/
@@ -60,6 +62,7 @@ Both methods work; `wncms::word.*` is preferred because it always reflects the m
 Create one `custom.php` per locale you actually serve:
 
 - `lang/en/custom.php`
+- `lang/zh_CN/custom.php`
 - `lang/zh_TW/custom.php`
 - `lang/ja/custom.php`
 

@@ -60,4 +60,5 @@ If you are developing locally:
 - [Model → Base Model](./model/base-model.md)
 - [Controller → Backend Controller](./controller/backend-controller.md)
 - [Manager → Base Manager](./manager/base-manager.md)
+- [Plugin → Development Overview](./plugin/overview.md)
 - [Locale → Localization Overview](./locale/localization-overview.md)

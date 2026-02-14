@@ -55,6 +55,36 @@ Typical permission suffixes include:
 - `_delete`
 - `_bulk_delete`
 
+## `wncms:activate-plugin`
+
+Activate a plugin from CLI the same way as backend activation (`status` => `active`).
+
+```bash
+php artisan wncms:activate-plugin wncms-users-hook-test
+```
+
+Behavior summary:
+- Accepts plugin `name`, `plugin_id`, or folder `path`.
+- Scans `public/plugins` and auto-syncs missing directory plugins into `plugins` table.
+- Runs plugin lifecycle `activate()` when standardized plugin class exists.
+- Activates the matched plugin by setting `status` to `active`.
+- Returns failure when `plugins` table is missing or no plugin can be matched.
+
+## `wncms:verify-plugin-hooks`
+
+Run release-gate checks for plugin manifests and users hook hard-cut migration.
+
+```bash
+php artisan wncms:verify-plugin-hooks
+```
+
+Behavior summary:
+- Verifies plugin root directory (`public/plugins`) exists.
+- Verifies every plugin directory has valid `plugin.json` (`id`, `name`, `version`).
+- Verifies legacy users hook names are removed from core user controllers.
+- Verifies `plugins` table exists and has no `[MANIFEST_ERROR]` / `[LOAD_ERROR]` records.
+- Returns failure when any gate fails (release should be blocked).
+
 ## Troubleshooting
 
 - `Source view file not found`:
