@@ -32,7 +32,7 @@
 
             {{-- Checkboxes --}}
             <div class="d-flex flex-wrap">
-                @foreach(['show_detail'] as $show)
+                @foreach(['show_detail', 'show_broken'] as $show)
                     <div class="mb-3 ms-0">
                         <div class="form-check form-check-sm form-check-custom me-2">
                             <input class="form-check-input model_index_checkbox" name="{{ $show }}" type="checkbox" @if(request()->{$show}) checked @endif/>
@@ -129,27 +129,49 @@
                                 </td>
                                 {{-- Actions --}}
                                 <td>
-                                    <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('plugins.edit' , $plugin) }}">@lang('wncms::word.edit')</a>
-                                    @include('wncms::backend.parts.modal_delete' , ['model'=>$plugin , 'route' => route('plugins.destroy' , $plugin), 'btn_class' => 'px-2 py-1'])
+                                    @if($plugin->status === 'active')
+                                        <form class="d-inline" action="{{ route('plugins.deactivate', $plugin) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-warning fw-bold px-2 py-1">@lang('wncms::word.deactivate')</button>
+                                        </form>
+                                    @else
+                                        <form class="d-inline" action="{{ route('plugins.activate', $plugin) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-success fw-bold px-2 py-1">@lang('wncms::word.activate')</button>
+                                        </form>
+                                    @endif
+
+                                    <form class="d-inline" action="{{ route('plugins.delete', $plugin) }}" method="POST" onsubmit="return confirm('@lang('wncms::word.are_you_sure')');">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-danger fw-bold px-2 py-1">@lang('wncms::word.delete')</button>
+                                    </form>
                                 </td>
 
                                 {{-- Data --}}
                                 <td>{{ $plugin->id }}</td>
-                                <td>{{ $plugin->name }}</td>
-                                <td>{{ $plugin->description }}</td>
-                                <td>{{ $plugin->url }}</td>
-                                <td>{{ $plugin->author }}</td>
+                                <td>{{ $plugin->display_name ?? $plugin->name }}</td>
+                                <td>{{ $plugin->display_description ?? $plugin->description }}</td>
+                                <td>@include('wncms::common.table_url', ['url' => $plugin->url])</td>
+                                <td>{{ $plugin->display_author ?? $plugin->author }}</td>
                                 <td>{{ $plugin->version }}</td>
-                                <td>{{ $plugin->status }}</td>
+                                <td>
+                                    @include('wncms::common.table_status', ['model' => $plugin, 'badgeStyle' => true])
+
+                                    @if(str_starts_with((string) $plugin->remark, '[MANIFEST_ERROR]'))
+                                        <span class="badge badge-light-danger">manifest_error</span>
+                                    @elseif(str_starts_with((string) $plugin->remark, '[LOAD_ERROR]'))
+                                        <span class="badge badge-light-danger">load_error</span>
+                                    @endif
+                                </td>
                                 <td>{{ $plugin->path }}</td>
                                 <td>{{ $plugin->remark }}</td>
-                                <td>{{ $plugin->created_at }}</td>
+                                <td>@include('wncms::common.table_date', ['model' => $plugin, 'column' => 'created_at'])</td>
 
                                 @if(request()->show_detail)
-                                <td>{{ $plugin->updated_at }}</td>
+                                <td>@include('wncms::common.table_date', ['model' => $plugin, 'column' => 'updated_at'])</td>
                                 @endif
                                 
-                            <tr>
+                            </tr>
                         @endforeach
                     </tbody>
 
