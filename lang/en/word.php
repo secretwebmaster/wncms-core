@@ -2310,6 +2310,16 @@ $words = [
     'multi' => 'Multi',
     'telegram_setting' => 'Telegram Settings',
     'enable_telegram_id' => 'Enable telegram_id',
+    'required_plugins' => 'Required Plugins',
+    'plugin_activation_blocked_with_reason' => 'Plugin activation blocked: :reason',
+    'plugin_activation_blocked_path_empty' => 'Plugin path is empty.',
+    'plugin_activation_blocked_manifest_invalid' => 'Plugin manifest is invalid: :reason',
+    'plugin_activation_blocked_manifest_id_mismatch' => 'Plugin manifest id does not match plugin id.',
+    'plugin_activation_blocked_dependency_invalid' => 'Plugin dependency definition is invalid: :reason',
+    'plugin_activation_blocked_dependency_missing' => 'Missing required plugin dependency: :dependency',
+    'plugin_activation_blocked_dependency_inactive' => 'Required plugin dependency is not active: :dependency',
+    'plugin_activation_blocked_dependency_version_mismatch' => 'Required plugin dependency :dependency version :version does not satisfy :constraint',
+    'plugin_deactivation_blocked_required_by' => 'Cannot deactivate :plugin because active plugins depend on it: :dependents. Please deactivate these plugins first.',
 ];
 
 $locale = basename(__DIR__);

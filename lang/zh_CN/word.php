@@ -2310,6 +2310,16 @@ $words = [
     'multi' => '多站',
     'telegram_setting' => 'Telegram 设置',
     'enable_telegram_id' => '启用 telegram_id',
+    'required_plugins' => '依赖插件',
+    'plugin_activation_blocked_with_reason' => '插件启用被阻止：:reason',
+    'plugin_activation_blocked_path_empty' => '插件路径为空。',
+    'plugin_activation_blocked_manifest_invalid' => '插件 manifest 无效：:reason',
+    'plugin_activation_blocked_manifest_id_mismatch' => '插件 manifest id 与 plugin id 不一致。',
+    'plugin_activation_blocked_dependency_invalid' => '插件依赖定义无效：:reason',
+    'plugin_activation_blocked_dependency_missing' => '缺少必要依赖插件：:dependency',
+    'plugin_activation_blocked_dependency_inactive' => '必要依赖插件未启用：:dependency',
+    'plugin_activation_blocked_dependency_version_mismatch' => '必要依赖插件 :dependency 的版本 :version 不满足 :constraint',
+    'plugin_deactivation_blocked_required_by' => '无法停用 :plugin，因为以下启用中的插件依赖它：:dependents。请先停用这些插件。',
 ];
 
 $locale = basename(__DIR__);

@@ -2314,6 +2314,16 @@ $words = [
     'webmaster_resource' => '站長資源',
     'telegram_setting' => 'Telegram 設定',
     'enable_telegram_id' => '啟用 telegram_id',
+    'required_plugins' => '依賴外掛',
+    'plugin_activation_blocked_with_reason' => '外掛啟用被阻擋：:reason',
+    'plugin_activation_blocked_path_empty' => '外掛路徑為空。',
+    'plugin_activation_blocked_manifest_invalid' => '外掛 manifest 無效：:reason',
+    'plugin_activation_blocked_manifest_id_mismatch' => '外掛 manifest id 與 plugin id 不一致。',
+    'plugin_activation_blocked_dependency_invalid' => '外掛依賴定義無效：:reason',
+    'plugin_activation_blocked_dependency_missing' => '缺少必要依賴外掛：:dependency',
+    'plugin_activation_blocked_dependency_inactive' => '必要依賴外掛尚未啟用：:dependency',
+    'plugin_activation_blocked_dependency_version_mismatch' => '必要依賴外掛 :dependency 的版本 :version 不符合 :constraint',
+    'plugin_deactivation_blocked_required_by' => '無法停用 :plugin，因為以下已啟用外掛依賴它：:dependents。請先停用這些外掛。',
 ];
 
 $locale = basename(__DIR__);

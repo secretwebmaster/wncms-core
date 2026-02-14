@@ -2304,6 +2304,16 @@ $words = [
     'use_locales_mapping_description' => '有効にすると、URL には短い言語コードが表示されます。例：cn → zh_CN、tw → zh_TW',
     'telegram_setting' => 'Telegram 設定',
     'enable_telegram_id' => 'telegram_id を有効化',
+    'required_plugins' => '必要なプラグイン',
+    'plugin_activation_blocked_with_reason' => 'プラグインの有効化はブロックされました: :reason',
+    'plugin_activation_blocked_path_empty' => 'プラグインパスが空です。',
+    'plugin_activation_blocked_manifest_invalid' => 'プラグイン manifest が無効です: :reason',
+    'plugin_activation_blocked_manifest_id_mismatch' => 'プラグイン manifest の id が plugin id と一致しません。',
+    'plugin_activation_blocked_dependency_invalid' => 'プラグイン依存関係の定義が無効です: :reason',
+    'plugin_activation_blocked_dependency_missing' => '必要な依存プラグインが見つかりません: :dependency',
+    'plugin_activation_blocked_dependency_inactive' => '必要な依存プラグインが無効です: :dependency',
+    'plugin_activation_blocked_dependency_version_mismatch' => '必要な依存プラグイン :dependency のバージョン :version は :constraint を満たしません',
+    'plugin_deactivation_blocked_required_by' => ':plugin は有効中の依存プラグインがあるため無効化できません: :dependents。先にこれらを無効化してください。',
 ];
 
 $locale = basename(__DIR__);

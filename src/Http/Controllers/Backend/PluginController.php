@@ -7,6 +7,7 @@ use Wncms\Models\Plugin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Wncms\Plugins\PluginActivationCompatibilityValidator;
 use Wncms\Plugins\PluginLifecycleManager;
 use Wncms\Plugins\PluginManifestManager;
 
@@ -32,6 +33,7 @@ class PluginController extends Controller
             $plugin->display_name = $display['name'] ?: (string) $plugin->name;
             $plugin->display_description = $display['description'] ?: (string) $plugin->description;
             $plugin->display_author = $display['author'] ?: (string) $plugin->author;
+            $plugin->required_plugins_display = $this->formatDependencyRulesForDisplay($display['dependencies'] ?? []);
 
             return $plugin;
         });
@@ -68,6 +70,13 @@ class PluginController extends Controller
 
     public function activate(Plugin $plugin)
     {
+        $validation = app(PluginActivationCompatibilityValidator::class)->validate($plugin);
+        if (!$validation['passed']) {
+            $message = $this->resolveValidationMessage($validation);
+            $plugin->update(['remark' => '[ACTIVATION_BLOCKED] ' . $message]);
+            return redirect()->route('plugins.index')->withErrors(['message' => __('wncms::word.plugin_activation_blocked_with_reason', ['reason' => $message])]);
+        }
+
         $lifecycle = app(PluginLifecycleManager::class)->run($plugin, 'activate');
         if (!$lifecycle['passed']) {
             $plugin->update(['remark' => '[LIFECYCLE_ERROR] ' . mb_substr((string) $lifecycle['message'], 0, 300)]);
@@ -81,6 +90,17 @@ class PluginController extends Controller
 
     public function deactivate(Plugin $plugin)
     {
+        $dependentPlugins = $this->findActiveDependentPlugins($plugin);
+        if (!empty($dependentPlugins)) {
+            $dependentList = implode(', ', $dependentPlugins);
+            return redirect()->route('plugins.index')->withErrors([
+                'message' => __('wncms::word.plugin_deactivation_blocked_required_by', [
+                    'plugin' => $this->formatPluginLabel($plugin),
+                    'dependents' => $dependentList,
+                ]),
+            ]);
+        }
+
         $lifecycle = app(PluginLifecycleManager::class)->run($plugin, 'deactivate');
         if (!$lifecycle['passed']) {
             $plugin->update(['remark' => '[LIFECYCLE_ERROR] ' . mb_substr((string) $lifecycle['message'], 0, 300)]);
@@ -149,6 +169,7 @@ class PluginController extends Controller
                 'name' => (string) $plugin->name,
                 'description' => (string) $plugin->description,
                 'author' => (string) $plugin->author,
+                'dependencies' => [],
             ];
         }
 
@@ -158,6 +179,7 @@ class PluginController extends Controller
                 'name' => (string) $plugin->name,
                 'description' => (string) $plugin->description,
                 'author' => (string) $plugin->author,
+                'dependencies' => [],
             ];
         }
 
@@ -165,6 +187,7 @@ class PluginController extends Controller
             'name' => $this->resolveTranslatableManifestField($manifest['name'] ?? null, (string) $plugin->name),
             'description' => $this->resolveTranslatableManifestField($manifest['description'] ?? null, (string) $plugin->description),
             'author' => $this->resolveTranslatableManifestField($manifest['author'] ?? null, (string) $plugin->author),
+            'dependencies' => $this->normalizeDependencyRules($manifest['dependencies'] ?? []),
         ];
     }
 
@@ -183,5 +206,122 @@ class PluginController extends Controller
     protected function resolveTranslatableManifestField($value, string $fallback = ''): string
     {
         return app(PluginManifestManager::class)->resolveTranslatableField($value, $fallback);
+    }
+
+    protected function resolveValidationMessage(array $validation): string
+    {
+        if (!empty($validation['message_key']) && is_string($validation['message_key'])) {
+            return __(
+                $validation['message_key'],
+                is_array($validation['message_params'] ?? null) ? $validation['message_params'] : []
+            );
+        }
+
+        return (string) ($validation['message'] ?? __('wncms::word.error'));
+    }
+
+    protected function findActiveDependentPlugins(Plugin $plugin): array
+    {
+        $targetPluginId = (string) $plugin->plugin_id;
+        if ($targetPluginId === '') {
+            return [];
+        }
+
+        $activePlugins = Plugin::query()
+            ->where('status', 'active')
+            ->where('plugin_id', '!=', $targetPluginId)
+            ->orderBy('plugin_id')
+            ->get();
+
+        $dependentPlugins = [];
+        foreach ($activePlugins as $activePlugin) {
+            $manifestPath = $this->resolvePluginManifestPath($activePlugin);
+            if (!$manifestPath || !File::exists($manifestPath)) {
+                continue;
+            }
+
+            $manifest = json_decode((string) File::get($manifestPath), true);
+            if (!is_array($manifest)) {
+                continue;
+            }
+
+            $dependencyIds = array_map(fn ($rule) => $rule['id'], $this->normalizeDependencyRules($manifest['dependencies'] ?? []));
+            if (in_array($targetPluginId, $dependencyIds, true)) {
+                $dependentPlugins[] = $this->formatPluginLabel($activePlugin);
+            }
+        }
+
+        return $dependentPlugins;
+    }
+
+    protected function normalizeDependencyRules($dependencies): array
+    {
+        if (!is_array($dependencies)) {
+            return [];
+        }
+
+        $rules = [];
+        foreach ($dependencies as $key => $value) {
+            if (is_int($key)) {
+                if (is_string($value)) {
+                    $dependencyId = trim($value);
+                    if ($dependencyId !== '') {
+                        $rules[] = ['id' => $dependencyId, 'version' => ''];
+                    }
+                    continue;
+                }
+
+                if (is_array($value)) {
+                    $dependencyId = trim((string) ($value['id'] ?? ''));
+                    if ($dependencyId !== '') {
+                        $rules[] = [
+                            'id' => $dependencyId,
+                            'version' => trim((string) ($value['version'] ?? '')),
+                        ];
+                    }
+                }
+
+                continue;
+            }
+
+            $dependencyId = trim((string) $key);
+            if ($dependencyId === '') {
+                continue;
+            }
+
+            $rules[] = [
+                'id' => $dependencyId,
+                'version' => is_string($value) || is_numeric($value) ? trim((string) $value) : '',
+            ];
+        }
+
+        return $rules;
+    }
+
+    protected function formatDependencyRulesForDisplay(array $rules): string
+    {
+        if (empty($rules)) {
+            return '-';
+        }
+
+        $labels = array_map(function ($rule) {
+            $dependencyId = (string) ($rule['id'] ?? '');
+            $version = trim((string) ($rule['version'] ?? ''));
+            return $version === '' ? $dependencyId : $dependencyId . ' (' . $version . ')';
+        }, $rules);
+
+        return implode(', ', array_filter($labels));
+    }
+
+    protected function formatPluginLabel(Plugin $plugin): string
+    {
+        $pluginId = (string) $plugin->plugin_id;
+        $pluginName = trim((string) $plugin->name);
+
+        if ($pluginName !== '' && $pluginName !== $pluginId) {
+            return $pluginId . ' (' . $pluginName . ')';
+        }
+
+        return $pluginId;
     }
 }

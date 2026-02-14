@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Wncms\Models\Plugin;
+use Wncms\Plugins\PluginActivationCompatibilityValidator;
 use Wncms\Plugins\PluginLifecycleManager;
 use Wncms\Plugins\PluginManifestManager;
 
@@ -37,10 +38,11 @@ class ActivatePlugin extends Command
             return Command::FAILURE;
         }
 
-        $validation = $this->validatePluginManifestForPlugin($plugin);
+        $validation = app(PluginActivationCompatibilityValidator::class)->validate($plugin);
         if (!$validation['passed']) {
-            $plugin->update(['remark' => '[MANIFEST_ERROR] ' . $validation['message']]);
-            $this->error("Plugin [{$plugin->name}] manifest invalid: {$validation['message']}");
+            $message = $this->resolveValidationMessage($validation);
+            $plugin->update(['remark' => '[ACTIVATION_BLOCKED] ' . $message]);
+            $this->error(__('wncms::word.plugin_activation_blocked_with_reason', ['reason' => $message]));
             return Command::FAILURE;
         }
 
@@ -105,41 +107,20 @@ class ActivatePlugin extends Command
         }
     }
 
-    protected function validatePluginManifestForPlugin(Plugin $plugin): array
-    {
-        $pluginsRoot = config('filesystems.disks.plugins.root', public_path('plugins'));
-        $pluginPath = trim((string) $plugin->path, '/\\');
-
-        if ($pluginPath === '') {
-            return [
-                'passed' => false,
-                'message' => 'plugin path is empty',
-            ];
-        }
-
-        $manifestPath = rtrim($pluginsRoot, '/\\') . DIRECTORY_SEPARATOR . $pluginPath . DIRECTORY_SEPARATOR . 'plugin.json';
-        $validation = $this->readAndValidateManifest($manifestPath);
-
-        if ($validation['passed'] && (string) $validation['manifest']['id'] !== (string) $plugin->plugin_id) {
-            return [
-                'passed' => false,
-                'message' => 'plugin.json id does not match plugin_id',
-            ];
-        }
-
-        return [
-            'passed' => $validation['passed'],
-            'message' => $validation['message'],
-        ];
-    }
-
-    protected function readAndValidateManifest(string $manifestPath): array
-    {
-        return app(PluginManifestManager::class)->readAndValidateManifestPath($manifestPath);
-    }
-
     protected function resolveTranslatableManifestField($value, string $fallback = ''): string
     {
         return app(PluginManifestManager::class)->resolveTranslatableField($value, $fallback);
+    }
+
+    protected function resolveValidationMessage(array $validation): string
+    {
+        if (!empty($validation['message_key']) && is_string($validation['message_key'])) {
+            return __(
+                $validation['message_key'],
+                is_array($validation['message_params'] ?? null) ? $validation['message_params'] : []
+            );
+        }
+
+        return (string) ($validation['message'] ?? __('wncms::word.error'));
     }
 }

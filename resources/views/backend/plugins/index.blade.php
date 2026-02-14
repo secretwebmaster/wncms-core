@@ -107,6 +107,7 @@
                             <th>@lang('wncms::word.version')</th>
                             <th>@lang('wncms::word.status')</th>
                             <th>@lang('wncms::word.path')</th>
+                            <th>@lang('wncms::word.required_plugins')</th>
                             <th>@lang('wncms::word.remark')</th>
                             <th>@lang('wncms::word.created_at')</th>
 
@@ -161,9 +162,12 @@
                                         <span class="badge badge-light-danger">manifest_error</span>
                                     @elseif(str_starts_with((string) $plugin->remark, '[LOAD_ERROR]'))
                                         <span class="badge badge-light-danger">load_error</span>
+                                    @elseif(str_starts_with((string) $plugin->remark, '[ACTIVATION_BLOCKED]'))
+                                        <span class="badge badge-light-warning">activation_blocked</span>
                                     @endif
                                 </td>
                                 <td>{{ $plugin->path }}</td>
+                                <td>{{ $plugin->required_plugins_display ?? '-' }}</td>
                                 <td>{{ $plugin->remark }}</td>
                                 <td>@include('wncms::common.table_date', ['model' => $plugin, 'column' => 'created_at'])</td>
 
