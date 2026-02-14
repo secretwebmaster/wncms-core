@@ -5,6 +5,7 @@ namespace Wncms\Providers;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 use Throwable;
 use Wncms\Models\Plugin;
 use Wncms\Plugins\PluginLifecycleManager;
@@ -49,17 +50,17 @@ class PluginServiceProvider extends ServiceProvider
                     throw new \RuntimeException($lifecycleResult['message']);
                 }
                 $this->clearPluginLoadFailure($plugin);
-                logger()->debug('Plugin loaded successfully', [
-                    'plugin_id' => $plugin->plugin_id,
-                    'path' => $plugin->path,
-                ]);
+                // logger()->debug('Plugin loaded successfully', [
+                //     'plugin_id' => $plugin->plugin_id,
+                //     'path' => $plugin->path,
+                // ]);
             } catch (Throwable $e) {
                 logger()->error('Plugin load failed', [
                     'plugin_id' => $plugin->plugin_id,
                     'path' => $plugin->path,
                     'error' => $e->getMessage(),
                 ]);
-                $this->markPluginLoadFailure($plugin, $e->getMessage());
+                $this->markPluginLoadFailure($plugin, $e->getMessage(), $e->getFile());
             }
         }
     }
@@ -144,7 +145,7 @@ class PluginServiceProvider extends ServiceProvider
         $routeFile = $this->resolvePluginPath($plugin, 'routes/web.php');
 
         if ($routeFile && file_exists($routeFile)) {
-            require $routeFile;
+            Route::middleware(['web', 'is_installed', 'has_website'])->group($routeFile);
         }
     }
 
@@ -273,14 +274,34 @@ class PluginServiceProvider extends ServiceProvider
             return [];
         }
 
-        return array_values(array_filter(array_map(function ($item) {
-            if (!is_string($item)) {
-                return null;
+        $dependencyIds = [];
+        foreach ($dependencies as $key => $value) {
+            if (is_int($key)) {
+                if (is_string($value)) {
+                    $id = trim($value);
+                    if ($id !== '') {
+                        $dependencyIds[] = $id;
+                    }
+                    continue;
+                }
+
+                if (is_array($value)) {
+                    $id = trim((string) ($value['id'] ?? ''));
+                    if ($id !== '') {
+                        $dependencyIds[] = $id;
+                    }
+                }
+
+                continue;
             }
 
-            $id = trim($item);
-            return $id === '' ? null : $id;
-        }, $dependencies)));
+            $id = trim((string) $key);
+            if ($id !== '') {
+                $dependencyIds[] = $id;
+            }
+        }
+
+        return array_values(array_unique($dependencyIds));
     }
 
     protected function getPluginPriority(array $manifest): int
@@ -292,16 +313,17 @@ class PluginServiceProvider extends ServiceProvider
         return (int) $manifest['priority'];
     }
 
-    protected function markPluginLoadFailure(Plugin $plugin, string $message): void
+    protected function markPluginLoadFailure(Plugin $plugin, string $message, ?string $sourceFile = null): void
     {
-        $errorMessage = '[LOAD_ERROR] ' . now()->toDateTimeString() . ' ' . mb_substr($message, 0, 350);
-        $plugin->update(['remark' => $errorMessage]);
+        $plugin->update([
+            'remark' => Plugin::formatLoadErrorRemark($message, $sourceFile),
+        ]);
     }
 
     protected function clearPluginLoadFailure(Plugin $plugin): void
     {
         $remark = (string) $plugin->remark;
-        if (str_starts_with($remark, '[LOAD_ERROR]')) {
+        if (str_starts_with($remark, Plugin::LOAD_ERROR_PREFIX)) {
             $plugin->update(['remark' => null]);
         }
     }

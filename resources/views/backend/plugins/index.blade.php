@@ -102,12 +102,15 @@
                             <th>@lang('wncms::word.id')</th>
                             <th>@lang('wncms::word.name')</th>
                             <th>@lang('wncms::word.description')</th>
+                            @if(request()->show_detail)
                             <th>@lang('wncms::word.url')</th>
+                            @endif
                             <th>@lang('wncms::word.author')</th>
                             <th>@lang('wncms::word.version')</th>
-                            <th>@lang('wncms::word.status')</th>
+                            @if(request()->show_detail)
                             <th>@lang('wncms::word.path')</th>
                             <th>@lang('wncms::word.required_plugins')</th>
+                            @endif
                             <th>@lang('wncms::word.remark')</th>
                             <th>@lang('wncms::word.created_at')</th>
 
@@ -152,23 +155,56 @@
                                 <td>{{ $plugin->id }}</td>
                                 <td>{{ $plugin->display_name ?? $plugin->name }}</td>
                                 <td>{{ $plugin->display_description ?? $plugin->description }}</td>
-                                <td>@include('wncms::common.table_url', ['url' => $plugin->url])</td>
+                                @if(request()->show_detail)
+                                <td>@include('wncms::common.table_url', ['url' => $plugin->display_url ?? $plugin->url])</td>
+                                @endif
                                 <td>{{ $plugin->display_author ?? $plugin->author }}</td>
                                 <td>{{ $plugin->version }}</td>
-                                <td>
-                                    @include('wncms::common.table_status', ['model' => $plugin, 'badgeStyle' => true])
-
-                                    @if(str_starts_with((string) $plugin->remark, '[MANIFEST_ERROR]'))
-                                        <span class="badge badge-light-danger">manifest_error</span>
-                                    @elseif(str_starts_with((string) $plugin->remark, '[LOAD_ERROR]'))
-                                        <span class="badge badge-light-danger">load_error</span>
-                                    @elseif(str_starts_with((string) $plugin->remark, '[ACTIVATION_BLOCKED]'))
-                                        <span class="badge badge-light-warning">activation_blocked</span>
-                                    @endif
-                                </td>
+                                @if(request()->show_detail)
                                 <td>{{ $plugin->path }}</td>
                                 <td>{{ $plugin->required_plugins_display ?? '-' }}</td>
-                                <td>{{ $plugin->remark }}</td>
+                                @endif
+                                <td>
+                                    @php
+                                        $lastLoadError = (string) ($plugin->last_load_error_display ?? '-');
+                                        $sourceFile = (string) ($plugin->last_load_error_file_display ?? '-');
+                                        $remarkText = trim((string) ($plugin->remark ?? ''));
+                                        $hasRemarkDiagnostics = $lastLoadError !== '-' || $sourceFile !== '-' || $remarkText !== '';
+                                    @endphp
+                                    @if($hasRemarkDiagnostics)
+                                        <button type="button" class="btn btn-sm btn-dark fw-bold px-2 py-1" data-bs-toggle="modal" data-bs-target="#modal_plugin_remark_{{ $plugin->id }}">@lang('wncms::word.view_detail')</button>
+                                        <div class="modal fade" tabindex="-1" id="modal_plugin_remark_{{ $plugin->id }}">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h3 class="modal-title">@lang('wncms::word.remark')</h3>
+                                                    </div>
+
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <div class="fw-bold mb-1">@lang('wncms::word.last_load_error')</div>
+                                                            <pre class="mb-0 p-3 rounded text-white bg-black border border-secondary font-monospace" style="white-space: pre-wrap; word-break: break-word;">{{ $lastLoadError }}</pre>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <div class="fw-bold mb-1">@lang('wncms::word.source_file')</div>
+                                                            <pre class="mb-0 p-3 rounded text-white bg-black border border-secondary font-monospace" style="white-space: pre-wrap; word-break: break-word;">{{ $sourceFile }}</pre>
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-bold mb-1">@lang('wncms::word.remark')</div>
+                                                            <pre class="mb-0 p-3 rounded text-white bg-black border border-secondary font-monospace" style="white-space: pre-wrap; word-break: break-word;">{{ $remarkText !== '' ? $remarkText : '-' }}</pre>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
                                 <td>@include('wncms::common.table_date', ['model' => $plugin, 'column' => 'created_at'])</td>
 
                                 @if(request()->show_detail)

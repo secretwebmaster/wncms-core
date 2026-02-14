@@ -30,10 +30,14 @@ class PluginController extends Controller
 
         $plugins = $plugins->map(function (Plugin $plugin) {
             $display = $this->resolveDisplayFieldsFromManifest($plugin);
+            $loadErrorDiagnostics = Plugin::extractLoadErrorDiagnostics((string) $plugin->remark);
             $plugin->display_name = $display['name'] ?: (string) $plugin->name;
             $plugin->display_description = $display['description'] ?: (string) $plugin->description;
             $plugin->display_author = $display['author'] ?: (string) $plugin->author;
+            $plugin->display_url = $display['url'] ?: (string) $plugin->url;
             $plugin->required_plugins_display = $this->formatDependencyRulesForDisplay($display['dependencies'] ?? []);
+            $plugin->last_load_error_display = $loadErrorDiagnostics['last_load_error'];
+            $plugin->last_load_error_file_display = $loadErrorDiagnostics['source_file'];
 
             return $plugin;
         });
@@ -142,8 +146,10 @@ class PluginController extends Controller
 
             $pluginId = $manifestManager->resolvePluginId($manifest, $folderName);
 
-            $currentStatus = Plugin::where('plugin_id', $pluginId)->value('status') ?: 'inactive';
-            $remark = $validation['passed'] ? null : '[MANIFEST_ERROR] ' . $validation['message'];
+            $existingPlugin = Plugin::where('plugin_id', $pluginId)->first();
+            $currentStatus = $existingPlugin?->status ?: 'inactive';
+            $currentRemark = (string) ($existingPlugin?->remark ?? '');
+            $remark = $this->resolvePluginSyncRemark($validation, $currentRemark);
 
             Plugin::updateOrCreate(
                 ['plugin_id' => $pluginId],
@@ -161,6 +167,19 @@ class PluginController extends Controller
         }
     }
 
+    protected function resolvePluginSyncRemark(array $validation, string $currentRemark): ?string
+    {
+        if (!$validation['passed']) {
+            return '[MANIFEST_ERROR] ' . (string) ($validation['message'] ?? __('wncms::word.error'));
+        }
+
+        if (str_starts_with($currentRemark, '[MANIFEST_ERROR]')) {
+            return null;
+        }
+
+        return $currentRemark !== '' ? $currentRemark : null;
+    }
+
     protected function resolveDisplayFieldsFromManifest(Plugin $plugin): array
     {
         $manifestPath = $this->resolvePluginManifestPath($plugin);
@@ -169,6 +188,7 @@ class PluginController extends Controller
                 'name' => (string) $plugin->name,
                 'description' => (string) $plugin->description,
                 'author' => (string) $plugin->author,
+                'url' => (string) $plugin->url,
                 'dependencies' => [],
             ];
         }
@@ -179,6 +199,7 @@ class PluginController extends Controller
                 'name' => (string) $plugin->name,
                 'description' => (string) $plugin->description,
                 'author' => (string) $plugin->author,
+                'url' => (string) $plugin->url,
                 'dependencies' => [],
             ];
         }
@@ -187,6 +208,7 @@ class PluginController extends Controller
             'name' => $this->resolveTranslatableManifestField($manifest['name'] ?? null, (string) $plugin->name),
             'description' => $this->resolveTranslatableManifestField($manifest['description'] ?? null, (string) $plugin->description),
             'author' => $this->resolveTranslatableManifestField($manifest['author'] ?? null, (string) $plugin->author),
+            'url' => trim((string) ($manifest['url'] ?? (string) $plugin->url)),
             'dependencies' => $this->normalizeDependencyRules($manifest['dependencies'] ?? []),
         ];
     }
