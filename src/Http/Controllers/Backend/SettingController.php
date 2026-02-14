@@ -4,8 +4,8 @@ namespace Wncms\Http\Controllers\Backend;
 
 use Wncms\Http\Controllers\Controller;
 use Wncms\Mails\TestMail;
-use Wncms\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -18,7 +18,7 @@ class SettingController extends Controller
             return redirect()->route('settings.index');
         }
 
-        $settings = Setting::pluck('value', 'key')->toArray();
+        $settings = wncms()->setting()->getList();
         $availableSettings = array_merge(config('wncms-system-settings'), config('wncms.custom-settings') ?? []);
 
         if (gss('multi_website')) {
@@ -29,6 +29,8 @@ class SettingController extends Controller
                 ],
             ];
         }
+
+        Event::dispatch('wncms.backend.settings.tabs.extend', [&$availableSettings, $settings, $request]);
 
         // Determine active tab
         $firstTabName = collect($availableSettings)

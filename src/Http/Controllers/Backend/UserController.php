@@ -3,6 +3,7 @@
 namespace Wncms\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Carbon\Carbon;
@@ -12,6 +13,7 @@ class UserController extends BackendController
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
+        Event::dispatch('wncms.backend.users.index.query.before', [$request, &$q]);
         $this->applyBackendListWebsiteScope($q);
 
         $q->with('roles');
@@ -62,40 +64,49 @@ class UserController extends BackendController
         // }
 
         $roles = Role::all();
-        return $this->view('backend.users.create', [
+        $view = 'backend.users.create';
+        $params = [
             'roles' => $roles,
             'page_title' => __('wncms::word.user_management')
-        ]);
+        ];
+
+        Event::dispatch('wncms.backend.users.create.resolve', [&$view, &$params]);
+
+        return $this->view($view, $params);
     }
 
     public function store(Request $request)
     {
-        // dd($request->all());
-        $request->validate(
-            [
-                'username' => 'required|unique:users,username',
-                'email' => 'required|email|unique:users,email',
-                'password' => 'required|between:6,20|same:password_confirmation',
-                'password_confirmation' => 'required',
-            ],
-            [
-                'username.required' => __('wncms::word.username_is_required'),
-                'username.unique' => __('wncms::word.username_has_been_used'),
-                'email.required' => __('wncms::word.email_is_required'),
-                'email.email' => __('wncms::word.please_enter_a_valid_email'),
-                'email.unique' => __('wncms::word.email_has_been_used'),
-                'password.required' => __('wncms::word.password_is_required'),
-                'password.same' => __('wncms::word.password_confirmation_is_not_the_same'),
-                'password.between' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
-                'password_confirmation.required' => __('wncms::word.password_confirmation_is_required'),
-            ]
-        );
+        $rules = [
+            'username' => 'required|unique:users,username',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|between:6,20|same:password_confirmation',
+            'password_confirmation' => 'required',
+        ];
+        $messages = [
+            'username.required' => __('wncms::word.username_is_required'),
+            'username.unique' => __('wncms::word.username_has_been_used'),
+            'email.required' => __('wncms::word.email_is_required'),
+            'email.email' => __('wncms::word.please_enter_a_valid_email'),
+            'email.unique' => __('wncms::word.email_has_been_used'),
+            'password.required' => __('wncms::word.password_is_required'),
+            'password.same' => __('wncms::word.password_confirmation_is_not_the_same'),
+            'password.between' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
+            'password_confirmation.required' => __('wncms::word.password_confirmation_is_required'),
+        ];
 
-        $user = $this->modelClass::create([
+        Event::dispatch('wncms.backend.users.store.before', [$request, &$rules, &$messages]);
+        $request->validate($rules, $messages);
+
+        $attributes = [
             'username' => $request->username,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-        ]);
+        ];
+
+        Event::dispatch('wncms.backend.users.store.attributes.before', [$request, &$attributes]);
+        $user = $this->modelClass::create($attributes);
+        Event::dispatch('wncms.backend.users.store.after', [$user, $request]);
 
         $user->assignRole($request->role);
 
@@ -116,11 +127,16 @@ class UserController extends BackendController
 
         $roles = Role::all();
 
-        return $this->view('backend.users.edit', [
+        $view = 'backend.users.edit';
+        $params = [
             'user' => $user,
             'roles' => $roles,
             'page_title' => __('wncms::word.user_management')
-        ]);
+        ];
+
+        Event::dispatch('wncms.backend.users.edit.resolve', [&$view, &$params]);
+
+        return $this->view($view, $params);
     }
 
     public function update(Request $request, $id)
@@ -130,28 +146,32 @@ class UserController extends BackendController
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
         }
 
-        $request->validate(
-            [
-                'username' => 'required|unique:users,username,' . $user->id,
-                'email' => 'required|email|unique:users,email,' . $user->id,
-                'password' => 'nullable|between:6,20|confirmed',
-            ],
-            [
-                'username.required' => __('wncms::word.field_is_required', ['field' => __('wncms::word.username')]),
-                'username.unique' => __('wncms::word.username_has_been_used'),
-                'email.required' => __('wncms::word.field_is_required', ['field' => __('wncms::word.email')]),
-                'email.email' => __('wncms::word.please_enter_a_valid_email'),
-                'email.unique' => __('wncms::word.email_has_been_used'),
-                'password.between' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
-                'password.confirmed' => __('wncms::word.password_confirmation_is_not_the_same'),
-                'password_confirmation.required' => __('wncms::word.password_confirmation_is_required'),
-            ]
-        );
+        $rules = [
+            'username' => 'required|unique:users,username,' . $user->id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|between:6,20|confirmed',
+        ];
+        $messages = [
+            'username.required' => __('wncms::word.field_is_required', ['field' => __('wncms::word.username')]),
+            'username.unique' => __('wncms::word.username_has_been_used'),
+            'email.required' => __('wncms::word.field_is_required', ['field' => __('wncms::word.email')]),
+            'email.email' => __('wncms::word.please_enter_a_valid_email'),
+            'email.unique' => __('wncms::word.email_has_been_used'),
+            'password.between' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
+            'password.confirmed' => __('wncms::word.password_confirmation_is_not_the_same'),
+            'password_confirmation.required' => __('wncms::word.password_confirmation_is_required'),
+        ];
 
-        $user->update([
+        Event::dispatch('wncms.backend.users.update.before', [$user, $request, &$rules, &$messages]);
+        $request->validate($rules, $messages);
+
+        $attributes = [
             'email' => $request->email,
             'username' => $request->username,
-        ]);
+        ];
+
+        Event::dispatch('wncms.backend.users.update.attributes.before', [$user, $request, &$attributes]);
+        $user->update($attributes);
 
         if (!empty($request->password) && !empty($request->password_confirmation) && $request->password == $request->password_confirmation) {
             $user->update([
@@ -162,8 +182,8 @@ class UserController extends BackendController
         if ($this->modelClass::role('admin')->count() == 1 && $user->hasRole('admin') && $request->role != 'admin') {
             return redirect()->back()->withErrors(['message' => __('wncms::word.cannot_change_role_of_last_admin')]);
         }
-        // dd($request->all());
         $user->syncRoles($request->role);
+        Event::dispatch('wncms.backend.users.update.after', [$user, $request]);
 
         return redirect()->route('users.edit', $user)->with([
             'status' => 'success',
@@ -238,24 +258,33 @@ class UserController extends BackendController
     public function show_user_profile(Request $request)
     {
         $user = auth()->user();
-        return $this->view('backend.users.account.profile', [
+        $view = 'backend.users.account.profile';
+        $params = [
             'page_title' => __('wncms::word.my_account'),
             'user' => $user,
-        ]);
+        ];
+
+        Event::dispatch('wncms.backend.users.account.profile.resolve', [&$view, &$params]);
+
+        return $this->view($view, $params);
     }
 
     public function update_user_profile(Request $request)
     {
         $user = auth()->user();
-
-        $user->update([
+        $attributes = [
             'last_name' => $request->last_name,
             'first_name' => $request->first_name,
-        ]);
+        ];
+
+        Event::dispatch('wncms.backend.users.account.profile.update.before', [$user, $request, &$attributes]);
+        $user->update($attributes);
 
         if ($request->filled('avatar')) {
             $user->addMediaFromRequest('avatar')->toMediaCollection('avatar');
         }
+
+        Event::dispatch('wncms.backend.users.account.profile.update.after', [$user, $request]);
 
         return redirect()
             ->route('users.account.profile.show')
@@ -271,8 +300,11 @@ class UserController extends BackendController
 
     public function update_user_password(Request $request)
     {
+        $user = auth()->user();
+        Event::dispatch('wncms.backend.users.account.password.update.before', [$user, $request]);
+
         // dd($request->all());
-        if (!Hash::check($request->current_password, auth()->user()->password)) {
+        if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['message' => __('wncms::word.incorrect_password')]);
         }
 
@@ -280,9 +312,11 @@ class UserController extends BackendController
             return back()->withErrors(['message' => __('wncms::word.password_confirmation_is_not_the_same')]);
         }
 
-        auth()->user()->update([
+        $user->update([
             'password' => Hash::make($request->new_password)
         ]);
+
+        Event::dispatch('wncms.backend.users.account.password.update.after', [$user, $request]);
 
         return back()->withMessage(__('wncms::word.successfully_updated'));
     }
@@ -333,6 +367,9 @@ class UserController extends BackendController
 
     public function update_user_email(Request $request)
     {
+        $user = auth()->user();
+        Event::dispatch('wncms.backend.users.account.email.update.before', [$user, $request]);
+
         // dd($request->all());
         $request->validate([
             'email' => 'required|email',
@@ -341,14 +378,15 @@ class UserController extends BackendController
             'email.email' => 'Please provide a valid email address.',
         ]);
 
-        if (Hash::check($request->password, auth()->user()->password)) {
-            // dd(auth()->user());
-            auth()->user()->update([
+        if (Hash::check($request->password, $user->password)) {
+            $user->update([
                 'email' => $request->email
             ]);
         } else {
             return back()->withErrors(['message' => __('wncms::word.invalid_password')]);
         }
+
+        Event::dispatch('wncms.backend.users.account.email.update.after', [$user, $request]);
 
         return redirect()->route('users.account.security.show');
     }

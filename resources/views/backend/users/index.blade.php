@@ -86,6 +86,10 @@
                             <th>@lang('wncms::word.' . $creditType) ({{ $creditType }})</th>
                             @endforeach
                         @endif
+                        @php($hookHeaderColumns = array_filter(\Illuminate\Support\Facades\Event::dispatch('wncms.view.backend.users.index.columns.header', [request()])))
+                        @foreach($hookHeaderColumns as $hookHeaderColumn)
+                            {!! $hookHeaderColumn !!}
+                        @endforeach
                         <th>@lang('wncms::word.created_at')</th>
                         <th>@lang('wncms::word.updated_at')</th>
                     </tr>
@@ -148,6 +152,10 @@
                             </td>
                             @endforeach
                         @endif
+                        @php($hookRowColumns = array_filter(\Illuminate\Support\Facades\Event::dispatch('wncms.view.backend.users.index.columns.row', [$user, request()])))
+                        @foreach($hookRowColumns as $hookRowColumn)
+                            {!! $hookRowColumn !!}
+                        @endforeach
                         <td>{{ $user->created_at }}</td>
                         <td>{{ $user->updated_at }}</td>
                     <tr>

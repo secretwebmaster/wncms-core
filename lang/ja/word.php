@@ -289,6 +289,7 @@ $words = [
     'height' => '高さ',
     'hide_detail' => '詳細を非表示',
     'show_detail' => '詳細を表示',
+    'show_broken' => '異常のみ表示',
     'show_trashed' => 'ゴミ箱を表示',
     'only_trashed' => 'ゴミ箱のみ表示',
     'show_usage' => '使用量を表示',
@@ -2301,6 +2302,8 @@ $words = [
     'translation_setting' => '翻訳設定',
     'use_locales_mapping' => '言語マッピングを使用する',
     'use_locales_mapping_description' => '有効にすると、URL には短い言語コードが表示されます。例：cn → zh_CN、tw → zh_TW',
+    'telegram_setting' => 'Telegram 設定',
+    'enable_telegram_id' => 'telegram_id を有効化',
 ];
 
 $locale = basename(__DIR__);

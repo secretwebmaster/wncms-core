@@ -289,6 +289,7 @@ $words = [
     'height' => '高',
     'hide_detail' => '隱藏詳情',
     'show_detail' => '顯示詳情',
+    'show_broken' => '只顯示異常',
     'show_trashed' => '顯示回收箱',
     'only_trashed' => '只顯示回收箱',
     'show_usage' => '顯示使用量',
@@ -2311,6 +2312,8 @@ $words = [
     // 6.1.7
     'wncms_official_doc' => '官方文檔',
     'webmaster_resource' => '站長資源',
+    'telegram_setting' => 'Telegram 設定',
+    'enable_telegram_id' => '啟用 telegram_id',
 ];
 
 $locale = basename(__DIR__);

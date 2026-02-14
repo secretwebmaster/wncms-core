@@ -3,11 +3,14 @@
 namespace Wncms\Services\Managers;
 
 use Wncms\Models\Setting;
+use Illuminate\Support\Facades\Schema;
 
 class SettingManager
 {
     //Cache key prefix that prepend all cache key in this page
     protected $cacheKeyPrefix = "setting";
+
+    protected ?bool $hasGroupColumn = null;
 
     /**
      * ----------------------------------------------------------------------------------------------------
@@ -26,11 +29,17 @@ class SettingManager
      */
     function get(string $key, $fallback = null, $fromCache = true)
     {
-        if (empty($fromCache)) {
-            return Setting::where('key', $key)->first()?->value ?? $fallback;
+        $parsed = $this->parseLookupKey($key);
+        if (!$parsed['valid']) {
+            return $fallback;
         }
+
+        if (empty($fromCache)) {
+            return $this->buildSettingQuery($parsed['key'], $parsed['group'])->first()?->value ?? $fallback;
+        }
+
         $systemSettings = $this->getList();
-        return $systemSettings[$key] ?? $fallback;
+        return $systemSettings[$parsed['lookup']] ?? $fallback;
     }
 
     /**
@@ -64,11 +73,56 @@ class SettingManager
                     if (is_string($keys)) {
                         $keys = explode(",", $keys);
                     }
-                    $q->whereIn('key', $keys);
+
+                    $parsedKeys = collect((array) $keys)
+                        ->map(fn($lookupKey) => $this->parseLookupKey((string) $lookupKey))
+                        ->filter(fn($item) => $item['valid'])
+                        ->values()
+                        ->all();
+
+                    if (empty($parsedKeys)) {
+                        return [];
+                    }
+
+                    $q->where(function ($query) use ($parsedKeys) {
+                        foreach ($parsedKeys as $item) {
+                            $query->orWhere(function ($subQuery) use ($item) {
+                                if (!$this->hasGroupColumn()) {
+                                    $subQuery->where('key', $this->getStorageLookupKey($item['key'], $item['group']));
+                                    return;
+                                }
+
+                                $subQuery->where('key', $item['key']);
+
+                                if ($item['group'] === null) {
+                                    $subQuery->where(function ($groupQuery) {
+                                        $groupQuery->whereNull('group')->orWhere('group', '');
+                                    });
+                                } else {
+                                    $subQuery->where('group', $item['group']);
+                                }
+                            });
+                        }
+                    });
                 }
 
-                //return all keys if empty $keys is passed
-                return $q->pluck('value', 'key')->toArray();;
+                $columns = $this->hasGroupColumn() ? ['key', 'value', 'group'] : ['key', 'value'];
+                $settings = $q->get($columns);
+                $result = [];
+
+                foreach ($settings as $setting) {
+                    if (!$this->hasGroupColumn()) {
+                        $lookup = (string) $setting->key;
+                    } else {
+                        $lookup = !empty($setting->group)
+                            ? "{$setting->group}:{$setting->key}"
+                            : (string) $setting->key;
+                    }
+
+                    $result[$lookup] = $setting->value;
+                }
+
+                return $result;
             } catch (\Exception $e) {
                 logger()->error($e);
                 return [];
@@ -92,10 +146,25 @@ class SettingManager
      */
     function update($key, $value)
     {
-        $result = Setting::query()->updateOrCreate(
-            ['key' => $key],
-            ['value' => $value]
-        );
+        $parsed = $this->parseLookupKey((string) $key);
+        if (!$parsed['valid']) {
+            return false;
+        }
+
+        if ($this->hasGroupColumn()) {
+            $result = Setting::query()->updateOrCreate(
+                [
+                    'key' => $parsed['key'],
+                    'group' => $this->normalizeGroupForStorage($parsed['group']),
+                ],
+                ['value' => $value]
+            );
+        } else {
+            $result = Setting::query()->updateOrCreate(
+                ['key' => $this->getStorageLookupKey($parsed['key'], $parsed['group'])],
+                ['value' => $value]
+            );
+        }
 
         wncms()->cache()->flush(['settings']);
         return $result !== false;
@@ -119,20 +188,114 @@ class SettingManager
      */
     function delete($key)
     {
+        $parsed = $this->parseLookupKey((string) $key);
+        if (!$parsed['valid']) {
+            return false;
+        }
+
         $core_keys = [
             'version',
             'active_models',
             'request_timeout',
         ];
 
-        if (in_array($key, $core_keys)) {
+        if ($parsed['group'] === null && in_array($parsed['key'], $core_keys)) {
             return false;
         }
 
-        $result = Setting::where('key', $key)->delete();
+        $result = $this->buildSettingQuery($parsed['key'], $parsed['group'])->delete();
 
         wncms()->cache()->tags(['settings'])->flush();
 
         return $result;
+    }
+
+    protected function parseLookupKey(string $lookupKey): array
+    {
+        $lookupKey = trim($lookupKey);
+
+        if ($lookupKey === '' || str_starts_with($lookupKey, ':')) {
+            return [
+                'valid' => false,
+                'lookup' => $lookupKey,
+                'group' => null,
+                'key' => '',
+            ];
+        }
+
+        if (!str_contains($lookupKey, ':')) {
+            return [
+                'valid' => true,
+                'lookup' => $lookupKey,
+                'group' => null,
+                'key' => $lookupKey,
+            ];
+        }
+
+        [$group, $key] = explode(':', $lookupKey, 2);
+        $group = trim($group);
+        $key = trim($key);
+
+        if ($group === '' || $key === '') {
+            return [
+                'valid' => false,
+                'lookup' => $lookupKey,
+                'group' => null,
+                'key' => '',
+            ];
+        }
+
+        return [
+            'valid' => true,
+            'lookup' => "{$group}:{$key}",
+            'group' => $group,
+            'key' => $key,
+        ];
+    }
+
+    protected function buildSettingQuery(string $key, ?string $group)
+    {
+        if (!$this->hasGroupColumn()) {
+            return Setting::query()->where('key', $this->getStorageLookupKey($key, $group));
+        }
+
+        $query = Setting::query()->where('key', $key);
+
+        if ($group === null) {
+            return $query->where(function ($q) {
+                $q->whereNull('group')->orWhere('group', '');
+            });
+        }
+
+        return $query->where('group', $this->normalizeGroupForStorage($group));
+    }
+
+    protected function normalizeGroupForStorage(?string $group): string
+    {
+        return trim((string) $group);
+    }
+
+    protected function getStorageLookupKey(string $key, ?string $group): string
+    {
+        if ($group === null || trim($group) === '') {
+            return $key;
+        }
+
+        return trim($group) . ':' . $key;
+    }
+
+    protected function hasGroupColumn(): bool
+    {
+        if ($this->hasGroupColumn !== null) {
+            return $this->hasGroupColumn;
+        }
+
+        try {
+            $this->hasGroupColumn = Schema::hasColumn('settings', 'group');
+        } catch (\Throwable $e) {
+            $this->hasGroupColumn = false;
+        }
+
+        return $this->hasGroupColumn;
     }
 }

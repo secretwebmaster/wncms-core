@@ -8,7 +8,11 @@
                 @if(!empty($nav_tab['tab_name']) && !empty($nav_tab['tab_content']))
                 <li class="nav-item fw-bold me-0 wncms-settings-nav-item">
                     <a class="nav-link {{ $isActive ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab_{{ $nav_tab['tab_name'] }}" href="javascript:void(0);">
-                        @lang("wncms::word." . $nav_tab['tab_name'] . "_setting")
+                        @if(!empty($nav_tab['tab_label_key']))
+                            @lang($nav_tab['tab_label_key'])
+                        @else
+                            @lang("wncms::word." . $nav_tab['tab_name'] . "_setting")
+                        @endif
                     </a>
                 </li>
                 @endif

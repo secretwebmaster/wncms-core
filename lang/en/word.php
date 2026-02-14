@@ -289,6 +289,7 @@ $words = [
     'height' => 'Height',
     'hide_detail' => 'Hide Details',
     'show_detail' => 'Show Details',
+    'show_broken' => 'Show Broken',
     'show_trashed' => 'Show Trash',
     'only_trashed' => 'Show Only Trash',
     'show_usage' => 'Show Usage',
@@ -2307,6 +2308,8 @@ $words = [
     'global' => 'Global',
     'single' => 'Single',
     'multi' => 'Multi',
+    'telegram_setting' => 'Telegram Settings',
+    'enable_telegram_id' => 'Enable telegram_id',
 ];
 
 $locale = basename(__DIR__);

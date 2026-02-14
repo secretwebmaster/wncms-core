@@ -21,7 +21,7 @@ class UserController extends FrontendController
         $defaultView = 'default::users.dashboard';
 
         // add event hook for plugins to modify dashboard view
-        Event::dispatch('wncms.frontend.users.dashboard', [&$themeView, &$params, &$defaultView]);
+        Event::dispatch('wncms.frontend.users.dashboard.resolve', [&$themeView, &$params, &$defaultView]);
 
         return $this->view($themeView, $params, $defaultView);
     }
@@ -39,7 +39,7 @@ class UserController extends FrontendController
         $loggedInRedirectRouteName = 'frontend.pages.home';
 
         // add event hook for plugins to modify login view
-        Event::dispatch('wncms.frontend.users.show_login', [&$themeView, &$params, &$defaultView, &$loggedInRedirectRouteName]);
+        Event::dispatch('wncms.frontend.users.login.resolve', [&$themeView, &$params, &$defaultView, &$loggedInRedirectRouteName]);
 
         if (auth()->check()) {
             return redirect()->route($loggedInRedirectRouteName);
@@ -53,46 +53,48 @@ class UserController extends FrontendController
      */
     public function login(Request $request)
     {
-        $request->validate(
-            [
-                'email' => 'nullable|email|required_without:username',
-                'username' => 'required_without:email',
-                'password' => 'required',
-            ],
-            [
-                'email.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.email')]),
-                'email.email' => __('wncms::word.please_enter_a_valid_email'),
-                'username.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.username')]),
-                'password.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.password')]),
-            ]
-        );
+        $rules = [
+            'email' => 'nullable|email|required_without:username',
+            'username' => 'required_without:email',
+            'password' => 'required',
+        ];
+        $messages = [
+            'email.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.email')]),
+            'email.email' => __('wncms::word.please_enter_a_valid_email'),
+            'username.required_without' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.username')]),
+            'password.required' => __('wncms::word.field_is_required', ['field_name' => __('wncms::word.password')]),
+        ];
+
+        Event::dispatch('wncms.frontend.users.login.before', [$request, &$rules, &$messages]);
+        $request->validate($rules, $messages);
 
         // Determine which credential is provided
         $credentialKey = $request->filled('email') ? 'email' : 'username';
         $credentials = $request->only($credentialKey, 'password');
-
         // Perform authentication
         $user = $this->auth($credentials[$credentialKey], $credentials['password']);
 
         if ($user) {
+            $redirectUrl = route('frontend.pages.home');
+
             // if user has intented url
             if ($request->has('intended')) {
-                dd("intended");
-                return redirect($request->intended);
+                $redirectUrl = $request->intended;
             }
 
             // if theme has set rediret page after login
-            if (gto('redirect_after_login')) {
-                dd("redirect_after_login");
-                return redirect(gto('redirect_after_login'));
+            if (gto('redirect_after_login') && !$request->has('intended')) {
+                $redirectUrl = gto('redirect_after_login');
             }
 
             // if theme has dashboard page
-            if (view()->exists("{$this->theme}::users.dashboard")) {
-                return redirect()->route('frontend.users.dashboard');
+            if (!gto('redirect_after_login') && !$request->has('intended') && view()->exists("{$this->theme}::users.dashboard")) {
+                $redirectUrl = route('frontend.users.dashboard');
             }
 
-            return redirect()->route('frontend.pages.home');
+            Event::dispatch('wncms.frontend.users.login.after', [$user, $request, &$redirectUrl]);
+
+            return redirect($redirectUrl);
         } else {
             return redirect()->back()->withErrors(['message' => __('wncms::word.invalid_credentials')]);
         }
@@ -136,7 +138,7 @@ class UserController extends FrontendController
         $disabledRegistrationRedirectRouteName = 'frontend.pages.home';
 
         // add event hook for plugins to modify registration view
-        Event::dispatch('wncms.frontend.users.show_register', [&$themeView, &$params, &$defaultView, &$disabledRegistrationRedirectRouteName]);
+        Event::dispatch('wncms.frontend.users.register.resolve', [&$themeView, &$params, &$defaultView, &$disabledRegistrationRedirectRouteName]);
 
         if (!$this->enabledRegistration()) {
             return redirect()->route($disabledRegistrationRedirectRouteName);
@@ -164,7 +166,7 @@ class UserController extends FrontendController
         $intendedUrl = session()->get('url.intended');
         
         // Add event hook for plugins to modify registration configs
-        Event::dispatch('wncms.frontend.users.register', [
+        Event::dispatch('wncms.frontend.users.register.before', [
             &$disabledRegistrationRedirectRouteName,
             &$sendWelcomeEmail,
             &$defaultUserRoles,
@@ -227,7 +229,7 @@ class UserController extends FrontendController
         ]);
 
         // Add event hook for credit system (moved to package)
-        Event::dispatch('wncms.frontend.users.registered.credits', [$user]);
+        Event::dispatch('wncms.frontend.users.register.credits.after', [$user]);
 
         // Assign default roles
         $defaultUserRoleOption = gto('default_user_roles', $defaultUserRoles);
@@ -238,10 +240,10 @@ class UserController extends FrontendController
         $user->assignRole($roles);
 
         // Dispatch registered event
-        Event::dispatch('wncms.frontend.users.registered', [$user]);
+        Event::dispatch('wncms.frontend.users.register.after', [$user]);
 
         // Add event hook for welcome email
-        Event::dispatch('wncms.frontend.users.registered.welcome_email', [$user, $sendWelcomeEmail]);
+        Event::dispatch('wncms.frontend.users.register.welcome_email.after', [$user, $sendWelcomeEmail]);
 
         // Authenticate user
         $this->auth($username, $request->password);
@@ -284,7 +286,7 @@ class UserController extends FrontendController
 
         if ($user && Hash::check($password, $user->password)) {
             auth()->login($user);
-            Event::dispatch('wncms.frontend.users.auth', $user);
+            Event::dispatch('wncms.frontend.users.auth.after', $user);
             return $user;
         }
     }
@@ -320,6 +322,8 @@ class UserController extends FrontendController
             'user' => auth()->user(),
         ];
         $defaultView = 'default::users.profile.show';
+
+        Event::dispatch('wncms.frontend.users.profile.show.resolve', [&$themeView, &$params, &$defaultView]);
         
         return $this->view($themeView, $params, $defaultView);
     }
@@ -334,6 +338,8 @@ class UserController extends FrontendController
             'user' => auth()->user(),
         ];
         $defaultView = 'default::users.profile.edit';
+
+        Event::dispatch('wncms.frontend.users.profile.edit.resolve', [&$themeView, &$params, &$defaultView]);
         
         return $this->view($themeView, $params, $defaultView);
     }
@@ -344,32 +350,34 @@ class UserController extends FrontendController
     public function update_profile(Request $request)
     {
         $user = auth()->user();
+        $rules = [
+            'nickname' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|min:6|max:20|confirmed',
+        ];
+        $messages = [
+            'email.email' => __('wncms::word.email_is_invalid'),
+            'email.unique' => __('wncms::word.email_is_already_taken'),
+            'password.min' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
+            'password.max' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
+            'password.confirmed' => __('wncms::word.password_confirmation_is_not_the_same'),
+        ];
 
         // Validate the input
-        $request->validate(
-            [
-                'nickname' => 'nullable|string|max:255',
-                'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
-                'password' => 'nullable|min:6|max:20|confirmed',
-            ],
-            [
-                'email.email' => __('wncms::word.email_is_invalid'),
-                'email.unique' => __('wncms::word.email_is_already_taken'),
-                'password.min' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
-                'password.max' => __('wncms::word.password_length_should_between', ['min' => 6, 'max' => 20]),
-                'password.confirmed' => __('wncms::word.password_confirmation_is_not_the_same'),
-            ]
-        );
+        $request->validate($rules, $messages);
 
-        // Update user details
-        $user->nickname = $request->nickname;
-        $user->email = $request->email;
+        $attributes = [
+            'nickname' => $request->nickname,
+            'email' => $request->email,
+        ];
 
         if ($request->filled('password')) {
-            $user->password = bcrypt($request->password);
+            $attributes['password'] = bcrypt($request->password);
         }
 
-        $user->save();
+        Event::dispatch('wncms.frontend.users.profile.update.before', [$user, $request, &$attributes]);
+        $user->update($attributes);
+        Event::dispatch('wncms.frontend.users.profile.update.after', [$user, $request]);
 
         return redirect()
             ->back()
@@ -391,6 +399,8 @@ class UserController extends FrontendController
         $params = [];
         $defaultView = 'default::users.password.forgot';
 
+        Event::dispatch('wncms.frontend.users.password.forgot.resolve', [&$themeView, &$params, &$defaultView]);
+
         return $this->view($themeView, $params, $defaultView);
     }
 
@@ -402,9 +412,13 @@ class UserController extends FrontendController
      */
     public function handle_password_forgot(Request $request)
     {
-        $request->validate([
+        $rules = [
             'email' => 'required|email|exists:users,email',
-        ]);
+        ];
+        $messages = [];
+
+        Event::dispatch('wncms.frontend.users.password.forgot.before', [$request, &$rules, &$messages]);
+        $request->validate($rules, $messages);
 
         $modelClass = $this->getModelClass();
         $user = $modelClass::where('email', $request->email)->first();
@@ -417,6 +431,8 @@ class UserController extends FrontendController
             $themeView = "{$this->theme}::users.password.sent";
             $params = ['email' => $request->email];
             $defaultView = 'default::users.password.sent';
+
+            Event::dispatch('wncms.frontend.users.password.forgot.after', [$user, $request]);
 
             return $this->view($themeView, $params, $defaultView);
         }
@@ -438,6 +454,8 @@ class UserController extends FrontendController
             'email' => $request->email,
         ];
         $defaultView = 'default::users.password.reset';
+
+        Event::dispatch('wncms.frontend.users.password.reset.resolve', [&$themeView, &$params, &$defaultView]);
         
         return $this->view($themeView, $params, $defaultView);
     }
@@ -450,11 +468,12 @@ class UserController extends FrontendController
      */
     public function handle_password_reset(Request $request)
     {
-        $request->validate([
+        $rules = [
             'token' => 'required',
             'email' => 'required|email|exists:users,email',
             'password' => 'required|min:8|confirmed',
-        ], [
+        ];
+        $messages = [
             'token.required' => __('wncms::word.token.required'),
             'email.required' => __('wncms::word.email.required'),
             'email.email' => __('wncms::word.email.email'),
@@ -462,17 +481,25 @@ class UserController extends FrontendController
             'password.required' => __('wncms::word.password.required'),
             'password.min' => __('wncms::word.password.min'),
             'password.confirmed' => __('wncms::word.password.confirmed'),
-        ]);
+        ];
+
+        Event::dispatch('wncms.frontend.users.password.reset.before', [$request, &$rules, &$messages]);
+        $request->validate($rules, $messages);
+
+        $resetUser = null;
 
         // Reset the password
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
+            function ($user, $password) use (&$resetUser) {
                 $user->forceFill([
                     'password' => bcrypt($password),
                 ])->save();
+                $resetUser = $user;
             }
         );
+
+        Event::dispatch('wncms.frontend.users.password.reset.after', [$resetUser, $request, $status]);
 
         return $this->view(
             "{$this->theme}::users.password.completed",

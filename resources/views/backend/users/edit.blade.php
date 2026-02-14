@@ -64,6 +64,11 @@
                 </div>
             </div>
 
+            @php($hookFields = array_filter(\Illuminate\Support\Facades\Event::dispatch('wncms.view.backend.users.edit.fields', [$user, request()])))
+            @foreach($hookFields as $hookField)
+                {!! $hookField !!}
+            @endforeach
+
         </div>
     </div> 
 

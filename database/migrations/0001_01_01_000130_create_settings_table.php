@@ -16,10 +16,11 @@ return new class extends Migration
         if (!Schema::hasTable('settings')) {
             Schema::create('settings', function (Blueprint $table) {
                 $table->id();
-                $table->string('key')->unique();
+                $table->string('key');
                 $table->text('value')->nullable();
                 $table->string('type')->nullable();
-                $table->string('group')->nullable();
+                $table->string('group')->default('');
+                $table->unique(['group', 'key']);
                 $table->timestamps();
             });
         }

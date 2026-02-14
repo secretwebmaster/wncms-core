@@ -30,6 +30,11 @@
         </tr>
         @endforeach
 
+        @php($hookRows = array_filter(\Illuminate\Support\Facades\Event::dispatch('wncms.view.frontend.users.profile.show.fields', [$user])))
+        @foreach($hookRows as $hookRow)
+            {!! $hookRow !!}
+        @endforeach
+
         @if(wncms()->hasPackage('wncms-ecommerce'))
         <tr>
             <th>plans</th>

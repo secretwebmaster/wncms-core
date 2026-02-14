@@ -289,6 +289,7 @@ $words = [
     'height' => '高',
     'hide_detail' => '隐藏详情',
     'show_detail' => '显示详情',
+    'show_broken' => '只显示异常',
     'show_trashed' => '显示回收箱',
     'only_trashed' => '只显示回收箱',
     'show_usage' => '显示使用量',
@@ -2307,6 +2308,8 @@ $words = [
     'global' => '全局',
     'single' => '单站',
     'multi' => '多站',
+    'telegram_setting' => 'Telegram 设置',
+    'enable_telegram_id' => '启用 telegram_id',
 ];
 
 $locale = basename(__DIR__);
