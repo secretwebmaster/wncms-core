@@ -3,12 +3,14 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Secretwebmaster\LaravelOptionable\Traits\HasOptions;
 use Wncms\Interfaces\BaseModelInterface;
 use Wncms\Tags\HasTags;
 use Wncms\Traits\HasMultisite;
 
 abstract class BaseModel extends Model implements BaseModelInterface
 {
+    use HasOptions;
     use HasMultisite;
     use HasTags;
 
