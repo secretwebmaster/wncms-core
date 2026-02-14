@@ -33,9 +33,17 @@ mkdir -p public/plugins/wncms-users-telegram-option/{classes,routes,system,views
     "zh_TW": "本地開發者"
   },
   "version": "0.1.0",
+  "dependencies": {
+    "wncms-seo-core": "^1.0"
+  },
   "priority": 20
 }
 ```
+
+### Dependency and version compatibility
+
+During activation, WNCMS checks `dependencies` before running plugin lifecycle `activate()`.
+If any dependency is missing, inactive, or version-incompatible, activation is blocked.
 
 ## 3. Add lifecycle class
 
@@ -118,6 +126,53 @@ Event::listen('wncms.view.backend.users.edit.fields', function ($user, $request)
 });
 ```
 
+### Sidebar card + modal + plugin backend route example (posts SEO)
+
+Use canonical view hook naming with plural target names for post edit sidebar:
+
+- `wncms.view.backend.posts.edit.sidebar`
+
+```php
+Event::listen('wncms.view.backend.posts.edit.sidebar', function ($post, $request) {
+    return seo_analysis_plugin_view('backend/posts/seo_analysis/sidebar-card.blade.php', [
+        'post' => $post,
+        'analyze_url' => route('plugins.wncms_seo_analysis.posts.analyze'),
+    ]);
+});
+```
+
+Add a plugin backend POST route and keep access aligned with backend post edit permission:
+
+`routes/web.php` files are loaded by core with base middleware: `web`, `is_installed`, `has_website`. Add only plugin-specific guards here (for example `auth`, `can:*`).
+
+```php
+Route::prefix('panel/plugins/wncms-seo-analysis')->middleware(['auth', 'can:post_edit'])->group(function () {
+    Route::post('/posts/analyze', function (Request $request) {
+        $payload = $request->validate([
+            'title' => 'nullable|string',
+            'excerpt' => 'nullable|string',
+            'content' => 'nullable|string',
+        ]);
+
+        Event::dispatch('wncms.backend.posts.seo_analyze.before', [&$payload, $request]);
+        $result = SeoAnalysisEngine::analyze($payload);
+        Event::dispatch('wncms.backend.posts.seo_analyze.after', [&$result, $payload, $request]);
+
+        return response()->json(['success' => true, 'data' => $result]);
+    })->name('plugins.wncms_seo_analysis.posts.analyze');
+});
+```
+
+In the injected sidebar view:
+
+- Show a score badge + progress bar.
+- Provide a `View details` button.
+- Open a modal and `POST` current post form data to `plugins.wncms_seo_analysis.posts.analyze`.
+- Render returned JSON checks and suggestions inside the modal.
+- Render checks as accordion rows with expandable fix guidance (`How to fix`, `Current`, `Target`) and run live re-check with a 1-second debounce.
+- Recommended pro checks include: internal links, external references, primary keyword in first paragraph, keyword density overuse/underuse, and sentence duplication risk.
+- Keep built-in rules structure-first. For semantic/AI quality checks, use extension hook `wncms.backend.posts.seo_analyze.extend` to append custom checks/result fields from another plugin.
+
 ## 6. Add translations
 
 Create `word.php` in all default locales:
@@ -143,6 +198,8 @@ php artisan wncms:verify-plugin-hooks
 Verify:
 
 - Plugin appears on backend plugin list.
+- Backend plugin list shows dependency field in `Required Plugins` column.
 - Backend users create/edit shows injected fields.
 - Frontend profile shows injected rows.
 - Plugin settings tab appears and grouped key is saved.
+- If another active plugin depends on this plugin, deactivation is blocked until dependent plugins are deactivated first.

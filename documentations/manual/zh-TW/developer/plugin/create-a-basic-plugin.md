@@ -33,9 +33,17 @@ mkdir -p public/plugins/wncms-users-telegram-option/{classes,routes,system,views
     "zh_TW": "本地開發者"
   },
   "version": "0.1.0",
+  "dependencies": {
+    "wncms-seo-core": "^1.0"
+  },
   "priority": 20
 }
 ```
+
+### 依賴與版本相容性
+
+WNCMS 在啟用時會先檢查 `dependencies`，再執行外掛生命週期 `activate()`。
+只要出現缺失依賴、依賴未啟用或版本不相容，外掛啟用會被阻擋。
 
 ## 3. 新增生命週期類別
 
@@ -116,6 +124,53 @@ Event::listen('wncms.view.backend.users.edit.fields', function ($user, $request)
 });
 ```
 
+### 側邊欄卡片 + 彈窗 + 外掛後端路由範例（文章 SEO）
+
+文章編輯側邊欄建議使用複數 target 的標準視圖 hook：
+
+- `wncms.view.backend.posts.edit.sidebar`
+
+```php
+Event::listen('wncms.view.backend.posts.edit.sidebar', function ($post, $request) {
+    return seo_analysis_plugin_view('backend/posts/seo_analysis/sidebar-card.blade.php', [
+        'post' => $post,
+        'analyze_url' => route('plugins.wncms_seo_analysis.posts.analyze'),
+    ]);
+});
+```
+
+外掛後端分析路由建議使用 POST，並沿用後台文章編輯權限：
+
+`routes/web.php` 會由 core 自動套用基礎中介層：`web`、`is_installed`、`has_website`。此處只需加上外掛自身限制（例如 `auth`、`can:*`）。
+
+```php
+Route::prefix('panel/plugins/wncms-seo-analysis')->middleware(['auth', 'can:post_edit'])->group(function () {
+    Route::post('/posts/analyze', function (Request $request) {
+        $payload = $request->validate([
+            'title' => 'nullable|string',
+            'excerpt' => 'nullable|string',
+            'content' => 'nullable|string',
+        ]);
+
+        Event::dispatch('wncms.backend.posts.seo_analyze.before', [&$payload, $request]);
+        $result = SeoAnalysisEngine::analyze($payload);
+        Event::dispatch('wncms.backend.posts.seo_analyze.after', [&$result, $payload, $request]);
+
+        return response()->json(['success' => true, 'data' => $result]);
+    })->name('plugins.wncms_seo_analysis.posts.analyze');
+});
+```
+
+在注入視圖中：
+
+- 顯示分數徽章與進度條。
+- 提供「查看詳情」按鈕。
+- 開啟彈窗後，POST 目前文章表單資料到 `plugins.wncms_seo_analysis.posts.analyze`。
+- 將回傳 JSON 分析結果渲染在彈窗內。
+- 建議將每個檢查結果渲染成可展開手風琴，顯示「修正建議 / 目前值 / 目標值」，並以 1 秒防抖做即時重算。
+- 建議加入更專業的檢查項：內部連結、外部參考連結、主關鍵字首段出現、關鍵字密度過高/過低，以及句子重複風險。
+- 內建規則建議以結構訊號為主。語意/AI 品質檢查可透過擴充事件 `wncms.backend.posts.seo_analyze.extend` 由其他外掛注入自訂檢查結果。
+
 ## 6. 新增翻譯
 
 在預設 locale 都建立 `word.php`：
@@ -141,6 +196,8 @@ php artisan wncms:verify-plugin-hooks
 驗證項目：
 
 - 後台外掛列表可見該外掛。
+- 後台外掛列表會在 `依賴外掛` 欄位顯示依賴關係。
 - 後台 users create/edit 出現注入欄位。
 - 前台 profile 出現注入欄位。
 - 外掛 settings 分頁可見並保存分組 key。
+- 若有其他已啟用外掛依賴該外掛，停用時會被阻擋，並提示先停用依賴方外掛。

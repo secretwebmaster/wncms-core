@@ -33,9 +33,17 @@ mkdir -p public/plugins/wncms-users-telegram-option/{classes,routes,system,views
     "zh_CN": "本地开发者"
   },
   "version": "0.1.0",
+  "dependencies": {
+    "wncms-seo-core": "^1.0"
+  },
   "priority": 20
 }
 ```
+
+### 依赖与版本相容性
+
+WNCMS 在启用时会先检查 `dependencies`，然后才执行插件生命周期 `activate()`。
+只要存在缺失依赖、依赖未启用或版本不相容，插件启用会被阻止。
 
 ## 3. 新增生命周期类
 
@@ -118,6 +126,53 @@ Event::listen('wncms.view.backend.users.edit.fields', function ($user, $request)
 });
 ```
 
+### 侧边栏卡片 + 弹窗 + 插件后端路由示例（文章 SEO）
+
+文章编辑侧边栏建议使用复数 target 的标准视图 hook：
+
+- `wncms.view.backend.posts.edit.sidebar`
+
+```php
+Event::listen('wncms.view.backend.posts.edit.sidebar', function ($post, $request) {
+    return seo_analysis_plugin_view('backend/posts/seo_analysis/sidebar-card.blade.php', [
+        'post' => $post,
+        'analyze_url' => route('plugins.wncms_seo_analysis.posts.analyze'),
+    ]);
+});
+```
+
+插件后端分析路由建议使用 POST，并沿用后台文章编辑权限：
+
+`routes/web.php` 会由 core 自动套用基础中间件：`web`、`is_installed`、`has_website`。此处只需添加插件自身限制（例如 `auth`、`can:*`）。
+
+```php
+Route::prefix('panel/plugins/wncms-seo-analysis')->middleware(['auth', 'can:post_edit'])->group(function () {
+    Route::post('/posts/analyze', function (Request $request) {
+        $payload = $request->validate([
+            'title' => 'nullable|string',
+            'excerpt' => 'nullable|string',
+            'content' => 'nullable|string',
+        ]);
+
+        Event::dispatch('wncms.backend.posts.seo_analyze.before', [&$payload, $request]);
+        $result = SeoAnalysisEngine::analyze($payload);
+        Event::dispatch('wncms.backend.posts.seo_analyze.after', [&$result, $payload, $request]);
+
+        return response()->json(['success' => true, 'data' => $result]);
+    })->name('plugins.wncms_seo_analysis.posts.analyze');
+});
+```
+
+在注入视图中：
+
+- 显示分数徽章与进度条。
+- 提供“查看详情”按钮。
+- 打开弹窗后，POST 当前文章表单数据到 `plugins.wncms_seo_analysis.posts.analyze`。
+- 将回传 JSON 分析结果渲染在弹窗内。
+- 建议将每个检查结果渲染为可展开手风琴，并显示“修复建议 / 当前值 / 目标值”，同时以 1 秒防抖进行实时重算。
+- 建议加入更专业的检查项：内链、外部参考链接、主关键词首段出现、关键词密度过高/过低、以及句子重复风险。
+- 内置规则建议以结构信号为主。语义/AI 质量检查可通过扩展事件 `wncms.backend.posts.seo_analyze.extend` 由其他插件注入自定义检查结果。
+
 ## 6. 新增翻译
 
 在默认 locale 都建立 `word.php`：
@@ -143,6 +198,8 @@ php artisan wncms:verify-plugin-hooks
 验证项目：
 
 - 后台插件列表可见该插件。
+- 后台插件列表会在 `依赖插件` 字段显示依赖关系。
 - 后台 users create/edit 出现注入字段。
 - 前台 profile 出现注入字段。
 - 插件 settings 分页可见并保存分组 key。
+- 若有其他启用中的插件依赖该插件，停用时会被阻止，并提示先停用依赖方插件。
