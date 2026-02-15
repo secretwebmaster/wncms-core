@@ -293,7 +293,7 @@
                     {{-- language list --}}
                     <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-muted menu-active-bg menu-state-color fw-semibold py-4 fs-base w-100px" data-kt-menu="true" data-kt-element="theme-mode-menu">
                         <div class="menu-item px-3 my-0">
-                            @foreach(wncms()->locale()->getSupportedLocales() as $locale_key => $locale)
+                            @foreach(wncms()->locale()->getLocalesOrder() as $locale_key => $locale)
                             <div class="d-flex align-item-center">
                                 <img class="w-20px" src="/wncms/media/flags/{{ $locale_key }}.svg" alt="{{ $locale['native'] }} Flag">
                                 <a class="menu-link px-3 py-2" href="{{ wncms()->locale()->getLocalizedURL($locale_key, null, [], true) }}" title="{{ $locale['native'] }}">{{ $locale['native'] }}</a>

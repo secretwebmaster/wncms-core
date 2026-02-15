@@ -117,6 +117,8 @@ return [
         'tab_content' => [
             ['type' => 'switch', 'name' => 'enable_translation'],
             ['type' => 'select', 'name' => 'app_locale', 'options' => 'supported_locales'],
+            ['type' => 'text', 'name' => 'supported_locales', 'badge' => 'Beta'],
+            ['type' => 'text', 'name' => 'locales_order', 'badge' => 'Beta'],
             ['type' => 'switch', 'name' => 'use_accept_language_header'],
             ['type' => 'switch', 'name' => 'hide_default_locale_in_url'],
             ['type' => 'switch', 'name' => 'use_locales_mapping'],

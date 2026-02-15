@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Str;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class WncmsServiceProvider extends ServiceProvider
 {
@@ -297,18 +298,89 @@ class WncmsServiceProvider extends ServiceProvider
             return;
         }
 
+        $baseSupportedLocales = (array) config('laravellocalization.supportedLocales', []);
+        $configuredSupportedLocaleKeys = $this->parseLocaleSettingList(gss('supported_locales', ''));
+        $resolvedSupportedLocales = $baseSupportedLocales;
+
+        if (!empty($configuredSupportedLocaleKeys)) {
+            $resolvedSupportedLocales = [];
+            foreach ($configuredSupportedLocaleKeys as $localeKey) {
+                if (isset($baseSupportedLocales[$localeKey])) {
+                    $resolvedSupportedLocales[$localeKey] = $baseSupportedLocales[$localeKey];
+                }
+            }
+
+            if (empty($resolvedSupportedLocales)) {
+                $resolvedSupportedLocales = $baseSupportedLocales;
+            }
+        }
+
         $locale = gss('app_locale', config('app.locale'));
+        $resolvedLocale = isset($resolvedSupportedLocales[$locale])
+            ? $locale
+            : (array_key_first($resolvedSupportedLocales) ?: config('app.locale', 'en'));
+
+        $configuredLocalesOrder = $this->parseLocaleSettingList(gss('locales_order', ''));
+        $resolvedLocalesOrder = [];
+        if (!empty($configuredLocalesOrder)) {
+            foreach ($configuredLocalesOrder as $localeKey) {
+                if (isset($resolvedSupportedLocales[$localeKey])) {
+                    $resolvedLocalesOrder[] = $localeKey;
+                }
+            }
+        }
+
+        $baseLocalesMapping = (array) config('laravellocalization.localesMapping', []);
+        $resolvedLocalesMapping = [];
+        foreach ($baseLocalesMapping as $localeKey => $alias) {
+            if (isset($resolvedSupportedLocales[$localeKey])) {
+                $resolvedLocalesMapping[$localeKey] = $alias;
+            }
+        }
 
         // override runtime config
         config([
-            'app.locale' => $locale,
+            'app.locale' => $resolvedLocale,
+            'laravellocalization.supportedLocales' => $resolvedSupportedLocales,
+            'laravellocalization.localesOrder' => $resolvedLocalesOrder,
             'laravellocalization.hideDefaultLocaleInURL' => gss('hide_default_locale_in_url', config('laravellocalization.hideDefaultLocaleInURL', false)),
             'laravellocalization.useAcceptLanguageHeader' => gss('use_accept_language_header', config('laravellocalization.useAcceptLanguageHeader', false)),
+            'laravellocalization.localesMapping' => gss('use_locales_mapping', false) ? $resolvedLocalesMapping : [],
         ]);
 
-        wncms()->setDefaultLocale($locale);
+        // laravel-localization caches supported locales internally, so update the singleton too.
+        LaravelLocalization::setSupportedLocales($resolvedSupportedLocales);
 
-        wncms()->setLocalesMapping(gss('use_locales_mapping', false) ? config('laravellocalization.localesMapping', []) : []);
+        wncms()->setDefaultLocale($resolvedLocale);
+
+        wncms()->setLocalesMapping(gss('use_locales_mapping', false) ? $resolvedLocalesMapping : []);
+    }
+
+    protected function parseLocaleSettingList(mixed $rawValue): array
+    {
+        if (is_array($rawValue)) {
+            $candidates = $rawValue;
+        } else {
+            $value = trim((string) $rawValue);
+
+            if ($value === '') {
+                return [];
+            }
+
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $candidates = $decoded;
+            } else {
+                $candidates = explode(',', $value);
+            }
+        }
+
+        return collect($candidates)
+            ->map(fn($item) => trim((string) $item))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

@@ -56,6 +56,35 @@ app()->setLocale('zh_TW');
 
 在 backend 中，管理員可以在 **Settings → Language** 選擇預設語言並啟用其他語言。
 
+## 系統設定執行期覆寫
+
+WNCMS 可透過 **Settings -> Translation** 在執行期覆寫 LaravelLocalization 設定。
+
+支援鍵值：
+
+- `app_locale`：用於 `app.locale` 與 LaravelLocalization 預設語言。
+- `supported_locales`：逗號分隔的語言代碼（例如 `en,zh_TW,zh_CN,ja`）。
+- `locales_order`：選填，逗號分隔的語言順序（例如 `zh_TW,zh_CN,en,ja`）。
+- `use_accept_language_header`：對應 `laravellocalization.useAcceptLanguageHeader`。
+- `hide_default_locale_in_url`：對應 `laravellocalization.hideDefaultLocaleInURL`。
+- `use_locales_mapping`：啟用或停用執行期 `localesMapping`。
+
+`WncmsServiceProvider` 中的執行期流程：
+
+```php
+config([
+    'laravellocalization.supportedLocales' => $resolvedSupportedLocales,
+    'laravellocalization.localesOrder' => $resolvedLocalesOrder,
+    'laravellocalization.useAcceptLanguageHeader' => gss('use_accept_language_header', false),
+    'laravellocalization.hideDefaultLocaleInURL' => gss('hide_default_locale_in_url', false),
+]);
+```
+
+說明：
+
+- `supported_locales` 只接受 `config/laravellocalization.php` 內已定義的語言代碼。
+- 若設定的 `app_locale` 不在最終支援列表中，WNCMS 會回退到第一個可用語言。
+
 ## 整合點
 
 - **Frontend Themes**：在 Blade templates 中使用 `@lang('wncms::word.xxx')`。

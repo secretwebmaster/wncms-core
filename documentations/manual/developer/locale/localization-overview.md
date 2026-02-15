@@ -60,6 +60,35 @@ app()->setLocale('zh_TW');
 
 In the backend, the admin can select the default language and enable additional languages in **Settings → Language**.
 
+## System Settings Runtime Overrides
+
+WNCMS can override LaravelLocalization config at runtime from **Settings -> Translation**.
+
+Supported keys:
+
+- `app_locale`: default locale used for `app.locale` and LaravelLocalization default locale.
+- `supported_locales`: comma-separated locale keys (for example `en,zh_TW,zh_CN,ja`).
+- `locales_order`: optional comma-separated locale order (for example `zh_TW,zh_CN,en,ja`).
+- `use_accept_language_header`: maps to `laravellocalization.useAcceptLanguageHeader`.
+- `hide_default_locale_in_url`: maps to `laravellocalization.hideDefaultLocaleInURL`.
+- `use_locales_mapping`: enables or disables runtime `localesMapping`.
+
+Runtime flow in `WncmsServiceProvider`:
+
+```php
+config([
+    'laravellocalization.supportedLocales' => $resolvedSupportedLocales,
+    'laravellocalization.localesOrder' => $resolvedLocalesOrder,
+    'laravellocalization.useAcceptLanguageHeader' => gss('use_accept_language_header', false),
+    'laravellocalization.hideDefaultLocaleInURL' => gss('hide_default_locale_in_url', false),
+]);
+```
+
+Notes:
+
+- `supported_locales` only accepts locale keys that already exist in `config/laravellocalization.php`.
+- If configured `app_locale` is not in the resolved supported list, WNCMS falls back to the first supported locale.
+
 ## Integration Points
 
 - **Frontend Themes**: Use `@lang('wncms::word.xxx')` in Blade templates.

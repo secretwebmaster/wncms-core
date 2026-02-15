@@ -35,7 +35,7 @@ trait LocaleMethods
         if (!app()->bound('translator')) {
             return [];
         }
-        return LaravelLocalization::getSupportedLocales();
+        return LaravelLocalization::getLocalesOrder();
     }
 
     public function setDefaultLocale($locale)
