@@ -28,7 +28,7 @@ class InstallerManager
 
             'app_name' => $input['app_name'] ?? 'WNCMS',
             'app_url' => $input['app_url'] ?? 'http://localhost',
-            'app_locale' => $input['app_locale'] ?? 'zh_TW',
+            'app_locale' => $this->resolveInstallerLocale($input['app_locale'] ?? null),
             'app_env' => $input['app_env'] ?? 'production',
 
             'app_debug' => filter_var($input['app_debug'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false',
@@ -61,6 +61,46 @@ class InstallerManager
             'domain' => $input['domain'] ?? 'localhost',
             'theme' => $input['theme'] ?? 'default',
         ];
+    }
+
+    protected function resolveInstallerLocale($localeInput): string
+    {
+        $supportedLocales = (array) config('laravellocalization.supportedLocales', []);
+        $fallbackLocale = $this->normalizeLocaleKey((string) config('app.locale', 'en'));
+
+        if (!isset($supportedLocales[$fallbackLocale])) {
+            $fallbackLocale = array_key_first($supportedLocales) ?: 'en';
+        }
+
+        $rawLocale = trim((string) ($localeInput ?? ''));
+        if ($rawLocale === '') {
+            return $fallbackLocale;
+        }
+
+        $normalizedLocale = $this->normalizeLocaleKey($rawLocale);
+        if (isset($supportedLocales[$normalizedLocale])) {
+            return $normalizedLocale;
+        }
+
+        return $fallbackLocale;
+    }
+
+    protected function normalizeLocaleKey(string $locale): string
+    {
+        $locale = str_replace('-', '_', trim($locale));
+        if ($locale === '') {
+            return $locale;
+        }
+
+        $parts = explode('_', $locale);
+        if (count($parts) === 1) {
+            return strtolower($parts[0]);
+        }
+
+        $language = strtolower(array_shift($parts));
+        $region = strtoupper(array_shift($parts));
+
+        return $language . '_' . $region . (empty($parts) ? '' : '_' . implode('_', $parts));
     }
 
 

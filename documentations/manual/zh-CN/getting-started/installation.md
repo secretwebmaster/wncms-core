@@ -61,10 +61,15 @@ php artisan wncms:install \
     {db_driver} {db_host} {db_port} {db_name} {db_user} {db_pass} \
     --app_name="YourApp" \
     --app_url="https://your-domain.com" \
+    --app_locale="en" \
     --force_https \
     --domain="your-domain.com" \
     --site_name="Your Site Name"
 ```
+
+`--app_locale` 用于在安装时设置默认语言。
+- 如果未提供，安装器会使用 `config('app.locale')`。
+- 如果提供了不受支持的语言代码，安装器会回退到配置中的默认语言。
 
 在运行安装程序之前,创建一个空的 MySQL 数据库并准备好您的连接详细信息。
 
@@ -85,6 +90,7 @@ php artisan wncms:install \
 php artisan wncms:install mysql 127.0.0.1 3306 example_com example_com "ABCDCF12345678" \
     --app_name="example" \
     --app_url="https://example.com" \
+    --app_locale="en" \
     --force_https \
     --domain="example.com" \
     --site_name="我的网站"

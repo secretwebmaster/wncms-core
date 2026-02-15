@@ -61,10 +61,15 @@ php artisan wncms:install \
     {db_driver} {db_host} {db_port} {db_name} {db_user} {db_pass} \
     --app_name="YourApp" \
     --app_url="https://your-domain.com" \
+    --app_locale="en" \
     --force_https \
     --domain="your-domain.com" \
     --site_name="Your Site Name"
 ```
+
+`--app_locale` sets the default language during installation.
+- If omitted, installer uses `config('app.locale')`.
+- If an unsupported locale is provided, installer falls back to the configured default locale.
 
 Before running the installer, create an empty MySQL database and prepare your connection details.
 
@@ -85,6 +90,7 @@ Before running the installer, create an empty MySQL database and prepare your co
 php artisan wncms:install mysql 127.0.0.1 3306 example_com example_com "ABCDCF12345678" \
     --app_name="example" \
     --app_url="https://example.com" \
+    --app_locale="en" \
     --force_https \
     --domain="example.com" \
     --site_name="My Website"
