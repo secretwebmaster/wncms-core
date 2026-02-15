@@ -146,9 +146,10 @@ class PluginLifecycleUpgradeMapTest extends TestCase
     protected function writeUpgradeFile(string $pluginId, string $fileName): void
     {
         $pluginDirectory = $this->pluginsRoot . DIRECTORY_SEPARATOR . $pluginId;
-        File::ensureDirectoryExists($pluginDirectory);
+        $upgradesDirectory = $pluginDirectory . DIRECTORY_SEPARATOR . 'upgrades';
+        File::ensureDirectoryExists($upgradesDirectory);
         File::put(
-            $pluginDirectory . DIRECTORY_SEPARATOR . $fileName,
+            $upgradesDirectory . DIRECTORY_SEPARATOR . $fileName,
             "<?php\n\n"
             . "return function (array \$context) {\n"
             . "    file_put_contents(__DIR__ . '/upgrade.log', \$context['from_version'] . '=>' . \$context['to_version'] . \"\\n\", FILE_APPEND);\n"

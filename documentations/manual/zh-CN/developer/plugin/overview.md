@@ -21,10 +21,11 @@ public/plugins/{plugin_id}/
 
 ## 插件生命周期
 
-插件可透过标准化 `Plugin.php`（继承 `Wncms\Plugins\AbstractPlugin`）实现生命周期。
+插件可透过 `Plugin.php` 直接返回实例（继承 `Wncms\Plugins\AbstractPlugin`）实现生命周期。
 
 - 额外 class 由根目录 `Plugin.php` 统一载入。
 - `system/events.php` 仅放 listener，`system/functions.php` 仅放 helper 函数。
+- 当 `Plugin.php` 已返回实例时，`plugin.json` 的 `class` 可省略。
 
 - `init()`：注册运行时 hooks/events。
 - `activate()`：执行启用逻辑（例如写入预设 setting）。
@@ -61,6 +62,7 @@ public array $upgrades = [
 - key 为目标版本。
 - 按版本升序执行。
 - 运行条件：`installed_version < target_version <= available_version`。
+- 升级文件从 `{plugin_root}/upgrades/` 解析；若写裸文件名，运行时会自动补上此前缀目录。
 - 若可用版本更高但升级链无法到达该版本，则升级失败。
 - 任一步骤失败立即停止，已安装版本保持不变。
 - 全部成功后，`plugins.version` 更新为可用版本。

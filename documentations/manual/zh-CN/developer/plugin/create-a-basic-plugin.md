@@ -17,7 +17,6 @@ mkdir -p public/plugins/wncms-users-telegram-option/{classes,routes,system,views
 ```json
 {
   "id": "wncms-users-telegram-option",
-  "class": "WncmsPlugin_wncms_users_telegram_option",
   "name": {
     "en": "WNCMS Users Telegram Option",
     "zh_CN": "WNCMS 用户 Telegram 选项",
@@ -45,9 +44,7 @@ mkdir -p public/plugins/wncms-users-telegram-option/{classes,routes,system,views
 WNCMS 在启用时会先检查 `dependencies`，然后才执行插件生命周期 `activate()`。
 只要存在缺失依赖、依赖未启用或版本不相容，插件启用会被阻止。
 
-## 3. 新增生命周期类
-
-在 `plugin.json` 设定 `class`，让 core 直接解析生命周期类，避免 class name 猜测。
+## 3. 新增生命周期入口
 
 `public/plugins/wncms-users-telegram-option/Plugin.php`
 
@@ -64,8 +61,7 @@ require_once __DIR__ . '/classes/TelegramOptionPlugin.php';
 use Illuminate\Support\Facades\Event;
 use Wncms\Plugins\AbstractPlugin;
 
-class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
-{
+return new class extends AbstractPlugin {
     public array $upgrades = [
         '0.2.0' => 'upgrade_0_2_0.php',
         '0.3.0' => 'upgrade_0_3_0.php',
@@ -94,14 +90,17 @@ class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
     {
         $this->setDefaultSetting('enable_telegram_id', '1');
     }
-}
+};
 ```
+
+`Plugin.php` 应直接返回插件实例（`return new class extends AbstractPlugin`）。
+`plugin.json` 的 `class` 为可选，只有在 `Plugin.php` 不返回实例时才需要。
 
 ### 新增升级步骤文件
 
-将升级文件放在插件根目录，并在 `$upgrades` 中显式映射。
+将升级文件放在插件 `upgrades/` 目录，并在 `$upgrades` 中显式映射。
 
-`public/plugins/wncms-users-telegram-option/upgrade_0_2_0.php`
+`public/plugins/wncms-users-telegram-option/upgrades/upgrade_0_2_0.php`
 
 ```php
 <?php
@@ -113,6 +112,7 @@ return function (array $context, AbstractPlugin $instance, \Wncms\Models\Plugin 
 ```
 
 升级文件仅通过 `$upgrades` 映射执行（不做自动发现）。
+当 `$upgrades` 的值是 `upgrade_0_2_0.php` 时，运行时会解析为 `upgrades/upgrade_0_2_0.php`。
 
 ## 4. 新增可选插件类
 

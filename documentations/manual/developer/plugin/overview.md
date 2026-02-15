@@ -21,10 +21,11 @@ public/plugins/{plugin_id}/
 
 ## Plugin Lifecycle
 
-A plugin can implement lifecycle hooks through a standardized `Plugin.php` class extending `Wncms\Plugins\AbstractPlugin`.
+A plugin can implement lifecycle hooks through `Plugin.php` returning an instance extending `Wncms\Plugins\AbstractPlugin`.
 
 - Load extra plugin class files from root `Plugin.php`.
 - Keep `system/events.php` for listeners and `system/functions.php` for helper functions only.
+- `plugin.json` `class` is optional when `Plugin.php` already returns an instance.
 
 - `init()` registers runtime hooks/events.
 - `activate()` runs activation logic (for example default settings).
@@ -61,6 +62,7 @@ Execution rules:
 - Keys are target versions.
 - Entries run in ascending version order.
 - Runner executes steps where `installed_version < target_version <= available_version`.
+- Upgrade files are resolved from `{plugin_root}/upgrades/`. Bare filenames are prefixed to that directory at runtime.
 - If available version is newer but no chain reaches it, upgrade fails.
 - On first failed step, process stops and installed version is unchanged.
 - On success, `plugins.version` is updated to available version.

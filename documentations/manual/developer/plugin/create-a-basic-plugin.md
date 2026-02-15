@@ -17,7 +17,6 @@ mkdir -p public/plugins/wncms-users-telegram-option/{classes,routes,system,views
 ```json
 {
   "id": "wncms-users-telegram-option",
-  "class": "WncmsPlugin_wncms_users_telegram_option",
   "name": {
     "en": "WNCMS Users Telegram Option",
     "zh_CN": "WNCMS 用户 Telegram 选项",
@@ -45,9 +44,7 @@ mkdir -p public/plugins/wncms-users-telegram-option/{classes,routes,system,views
 During activation, WNCMS checks `dependencies` before running plugin lifecycle `activate()`.
 If any dependency is missing, inactive, or version-incompatible, activation is blocked.
 
-## 3. Add lifecycle class
-
-Set `class` in `plugin.json` so core can resolve the lifecycle class without class-name guessing.
+## 3. Add lifecycle entry
 
 `public/plugins/wncms-users-telegram-option/Plugin.php`
 
@@ -64,8 +61,7 @@ require_once __DIR__ . '/classes/TelegramOptionPlugin.php';
 use Illuminate\Support\Facades\Event;
 use Wncms\Plugins\AbstractPlugin;
 
-class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
-{
+return new class extends AbstractPlugin {
     public array $upgrades = [
         '0.2.0' => 'upgrade_0_2_0.php',
         '0.3.0' => 'upgrade_0_3_0.php',
@@ -94,14 +90,17 @@ class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
     {
         $this->setDefaultSetting('enable_telegram_id', '1');
     }
-}
+};
 ```
+
+`Plugin.php` should return a plugin instance directly (`return new class extends AbstractPlugin`).
+`plugin.json` `class` is optional and only needed when `Plugin.php` does not return an instance.
 
 ### Add upgrade step files
 
-Place upgrade files at plugin root and map them in `$upgrades`.
+Place upgrade files under plugin `upgrades/` directory and map them in `$upgrades`.
 
-`public/plugins/wncms-users-telegram-option/upgrade_0_2_0.php`
+`public/plugins/wncms-users-telegram-option/upgrades/upgrade_0_2_0.php`
 
 ```php
 <?php
@@ -113,6 +112,7 @@ return function (array $context, AbstractPlugin $instance, \Wncms\Models\Plugin 
 ```
 
 Upgrade files run only through `$upgrades` mapping (no auto-discovery).
+When `$upgrades` value is `upgrade_0_2_0.php`, runtime resolves it as `upgrades/upgrade_0_2_0.php`.
 
 ## 4. Add optional plugin classes
 

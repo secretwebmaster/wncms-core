@@ -356,9 +356,14 @@ class PluginLifecycleManager
             throw new RuntimeException('plugin root path not found');
         }
 
-        $filePath = rtrim($pluginRootPath, '/\\') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativeFilePath);
+        $normalizedRelativeFilePath = str_replace('\\\\', '/', ltrim($relativeFilePath, '/'));
+        if (!str_starts_with($normalizedRelativeFilePath, 'upgrades/')) {
+            $normalizedRelativeFilePath = 'upgrades/' . $normalizedRelativeFilePath;
+        }
+
+        $filePath = rtrim($pluginRootPath, '/\\') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $normalizedRelativeFilePath);
         if (!File::exists($filePath)) {
-            throw new RuntimeException("upgrade file not found: {$relativeFilePath}");
+            throw new RuntimeException("upgrade file not found: {$normalizedRelativeFilePath}");
         }
 
         $upgrade = require $filePath;
@@ -373,7 +378,7 @@ class PluginLifecycleManager
         }
 
         if ($upgrade === false) {
-            throw new RuntimeException("upgrade file returned false: {$relativeFilePath}");
+            throw new RuntimeException("upgrade file returned false: {$normalizedRelativeFilePath}");
         }
     }
 }

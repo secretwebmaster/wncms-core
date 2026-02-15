@@ -17,7 +17,6 @@ mkdir -p public/plugins/wncms-users-telegram-option/{classes,routes,system,views
 ```json
 {
   "id": "wncms-users-telegram-option",
-  "class": "WncmsPlugin_wncms_users_telegram_option",
   "name": {
     "en": "WNCMS Users Telegram Option",
     "zh_CN": "WNCMS 用户 Telegram 选项",
@@ -45,7 +44,7 @@ mkdir -p public/plugins/wncms-users-telegram-option/{classes,routes,system,views
 WNCMS 在啟用時會先檢查 `dependencies`，再執行外掛生命週期 `activate()`。
 只要出現缺失依賴、依賴未啟用或版本不相容，外掛啟用會被阻擋。
 
-## 3. 新增生命週期類別
+## 3. 新增生命週期入口
 
 `public/plugins/wncms-users-telegram-option/Plugin.php`
 
@@ -62,8 +61,7 @@ require_once __DIR__ . '/classes/TelegramOptionPlugin.php';
 use Illuminate\Support\Facades\Event;
 use Wncms\Plugins\AbstractPlugin;
 
-class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
-{
+return new class extends AbstractPlugin {
     public array $upgrades = [
         '0.2.0' => 'upgrade_0_2_0.php',
         '0.3.0' => 'upgrade_0_3_0.php',
@@ -92,14 +90,17 @@ class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
     {
         $this->setDefaultSetting('enable_telegram_id', '1');
     }
-}
+};
 ```
+
+`Plugin.php` 應直接回傳外掛實例（`return new class extends AbstractPlugin`）。
+`plugin.json` 的 `class` 為可選，只有在 `Plugin.php` 不回傳實例時才需要。
 
 ### 新增升級步驟檔案
 
-將升級檔案放在外掛根目錄，並在 `$upgrades` 中顯式對應。
+將升級檔案放在外掛 `upgrades/` 目錄，並在 `$upgrades` 中顯式對應。
 
-`public/plugins/wncms-users-telegram-option/upgrade_0_2_0.php`
+`public/plugins/wncms-users-telegram-option/upgrades/upgrade_0_2_0.php`
 
 ```php
 <?php
@@ -111,6 +112,7 @@ return function (array $context, AbstractPlugin $instance, \Wncms\Models\Plugin 
 ```
 
 升級檔案僅透過 `$upgrades` 對應執行（不做自動發現）。
+當 `$upgrades` 的值是 `upgrade_0_2_0.php` 時，執行期會解析為 `upgrades/upgrade_0_2_0.php`。
 
 ## 4. 新增可選外掛類別
 

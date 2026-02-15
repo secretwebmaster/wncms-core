@@ -21,10 +21,11 @@ public/plugins/{plugin_id}/
 
 ## 外掛生命週期
 
-外掛可透過標準化 `Plugin.php`（繼承 `Wncms\Plugins\AbstractPlugin`）實作生命週期。
+外掛可透過 `Plugin.php` 直接回傳實例（繼承 `Wncms\Plugins\AbstractPlugin`）實作生命週期。
 
 - 額外 class 由根目錄 `Plugin.php` 統一載入。
 - `system/events.php` 僅放 listener，`system/functions.php` 僅放 helper 函數。
+- 當 `Plugin.php` 已回傳實例時，`plugin.json` 的 `class` 可省略。
 
 - `init()`：註冊執行期 hooks/events。
 - `activate()`：執行啟用邏輯（例如寫入預設 setting）。
@@ -61,6 +62,7 @@ public array $upgrades = [
 - key 為目標版本。
 - 依版本升序執行。
 - 執行條件：`installed_version < target_version <= available_version`。
+- 升級檔案從 `{plugin_root}/upgrades/` 解析；若使用裸檔名，執行期會自動補上此前綴目錄。
 - 若可用版本更高但升級鏈無法到達該版本，升級失敗。
 - 任一步驟失敗即停止，已安裝版本維持不變。
 - 全部成功後，`plugins.version` 更新為可用版本。
