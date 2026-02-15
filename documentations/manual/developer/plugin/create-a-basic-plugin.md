@@ -66,6 +66,11 @@ use Wncms\Plugins\AbstractPlugin;
 
 class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
 {
+    public array $upgrades = [
+        '0.2.0' => 'upgrade_0_2_0.php',
+        '0.3.0' => 'upgrade_0_3_0.php',
+    ];
+
     public function init(): void
     {
         Event::listen('wncms.backend.settings.tabs.extend', function (&$availableSettings) {
@@ -91,6 +96,23 @@ class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
     }
 }
 ```
+
+### Add upgrade step files
+
+Place upgrade files at plugin root and map them in `$upgrades`.
+
+`public/plugins/wncms-users-telegram-option/upgrade_0_2_0.php`
+
+```php
+<?php
+
+return function (array $context, AbstractPlugin $instance, \Wncms\Models\Plugin $plugin) {
+    // migrate data from $context['from_version'] to $context['to_version']
+    // throw exception to stop upgrade on failure
+};
+```
+
+Upgrade files run only through `$upgrades` mapping (no auto-discovery).
 
 ## 4. Add optional plugin classes
 

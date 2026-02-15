@@ -38,6 +38,21 @@ class ActivatePlugin extends Command
             return Command::FAILURE;
         }
 
+        $sync = $this->syncSinglePluginFromManifest($plugin, true);
+        if (!$sync['passed']) {
+            $this->error($sync['message']);
+            return Command::FAILURE;
+        }
+
+        $plugin = $plugin->fresh();
+        $upgrade = app(PluginLifecycleManager::class)->upgradePlugin($plugin);
+        if (!$upgrade['passed']) {
+            $remark = '[UPGRADE_ERROR] ' . mb_substr((string) $upgrade['message'], 0, 300);
+            $plugin->update(['remark' => $remark]);
+            $this->error(__('wncms::word.plugin_upgrade_failed_with_reason', ['reason' => $upgrade['message']]));
+            return Command::FAILURE;
+        }
+
         $validation = app(PluginActivationCompatibilityValidator::class)->validate($plugin);
         if (!$validation['passed']) {
             $message = $this->resolveValidationMessage($validation);
@@ -87,23 +102,33 @@ class ActivatePlugin extends Command
             $validation = $manifestManager->readAndValidateManifestPath($manifestPath);
             $manifest = $validation['manifest'];
             $pluginId = $manifestManager->resolvePluginId($manifest, $folderName);
+            $existingPlugin = Plugin::where('plugin_id', $pluginId)->first();
+            if ($existingPlugin) {
+                $currentRemark = (string) ($existingPlugin->remark ?? '');
+                $remark = $validation['passed'] ? $currentRemark : '[MANIFEST_ERROR] ' . (string) $validation['message'];
+                if ($validation['passed'] && str_starts_with($currentRemark, '[MANIFEST_ERROR]')) {
+                    $remark = null;
+                }
 
-            $currentStatus = Plugin::where('plugin_id', $pluginId)->value('status') ?: 'inactive';
-            $remark = $validation['passed'] ? null : '[MANIFEST_ERROR] ' . $validation['message'];
-
-            Plugin::updateOrCreate(
-                ['plugin_id' => $pluginId],
-                [
-                    'name' => $this->resolveTranslatableManifestField($manifest['name'] ?? null, Str::headline($folderName)),
-                    'description' => $manifestManager->resolveTranslatableField($manifest['description'] ?? null, ''),
-                    'author' => $manifestManager->resolveTranslatableField($manifest['author'] ?? null, ''),
-                    'version' => (string) ($manifest['version'] ?? '1.0.0'),
-                    'url' => (string) ($manifest['url'] ?? ''),
+                $existingPlugin->forceFill([
                     'path' => $folderName,
-                    'status' => $currentStatus,
                     'remark' => $remark,
-                ]
-            );
+                ])->save();
+                continue;
+            }
+
+            $remark = $validation['passed'] ? null : '[MANIFEST_ERROR] ' . (string) $validation['message'];
+            Plugin::create([
+                'plugin_id' => $pluginId,
+                'name' => $this->resolveTranslatableManifestField($manifest['name'] ?? null, Str::headline($folderName)),
+                'description' => $manifestManager->resolveTranslatableField($manifest['description'] ?? null, ''),
+                'author' => $manifestManager->resolveTranslatableField($manifest['author'] ?? null, ''),
+                'version' => (string) ($manifest['version'] ?? '1.0.0'),
+                'url' => (string) ($manifest['url'] ?? ''),
+                'path' => $folderName,
+                'status' => 'inactive',
+                'remark' => $remark,
+            ]);
         }
     }
 
@@ -123,4 +148,45 @@ class ActivatePlugin extends Command
 
         return (string) ($validation['message'] ?? __('wncms::word.error'));
     }
+
+    protected function syncSinglePluginFromManifest(Plugin $plugin, bool $preserveVersion): array
+    {
+        $pluginsRoot = config('filesystems.disks.plugins.root', public_path('plugins'));
+        $pluginPath = trim((string) $plugin->path, '/\\');
+        if ($pluginPath === '') {
+            return [
+                'passed' => false,
+                'message' => __('wncms::word.plugin_manifest_sync_failed_with_reason', ['reason' => 'plugin path is empty']),
+            ];
+        }
+
+        $manifestPath = rtrim($pluginsRoot, '/\\') . DIRECTORY_SEPARATOR . $pluginPath . DIRECTORY_SEPARATOR . 'plugin.json';
+        $manifestManager = app(PluginManifestManager::class);
+        $validation = $manifestManager->readAndValidateManifestPath($manifestPath);
+        if (!$validation['passed']) {
+            return [
+                'passed' => false,
+                'message' => __('wncms::word.plugin_manifest_sync_failed_with_reason', ['reason' => (string) $validation['message']]),
+            ];
+        }
+
+        $manifest = $validation['manifest'];
+        $version = $preserveVersion ? (string) $plugin->version : (string) ($manifest['version'] ?? (string) $plugin->version);
+
+        $plugin->forceFill([
+            'name' => $manifestManager->resolveTranslatableField($manifest['name'] ?? null, (string) $plugin->name),
+            'description' => $manifestManager->resolveTranslatableField($manifest['description'] ?? null, (string) $plugin->description),
+            'author' => $manifestManager->resolveTranslatableField($manifest['author'] ?? null, (string) $plugin->author),
+            'url' => (string) ($manifest['url'] ?? (string) $plugin->url),
+            'path' => $pluginPath,
+            'version' => $version,
+            'remark' => str_starts_with((string) $plugin->remark, '[MANIFEST_ERROR]') ? null : $plugin->remark,
+        ])->save();
+
+        return [
+            'passed' => true,
+            'message' => '',
+        ];
+    }
+
 }

@@ -213,6 +213,8 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     Route::prefix('plugins')->controller(PluginController::class)->group(function () {
         Route::get('/', 'index')->middleware('can:plugin_index')->name('plugins.index');
         Route::post('/upload', 'upload')->middleware('can:plugin_upload')->name('plugins.upload');
+        Route::post('/upgrade/{plugin}', 'upgrade')->middleware('can:plugin_activate')->name('plugins.upgrade');
+        Route::post('/activate-raw/{pluginId}', 'activate_raw')->middleware('can:plugin_activate')->name('plugins.activate_raw');
         Route::post('/activate/{plugin}', 'activate')->middleware('can:plugin_activate')->name('plugins.activate');
         Route::post('/deactivate/{plugin}', 'deactivate')->middleware('can:plugin_deactivate')->name('plugins.deactivate');
         Route::post('/delete/{plugin}', 'delete')->middleware('can:plugin_delete')->name('plugins.delete');

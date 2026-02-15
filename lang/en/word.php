@@ -2322,6 +2322,17 @@ $words = [
     'plugin_activation_blocked_dependency_inactive' => 'Required plugin dependency is not active: :dependency',
     'plugin_activation_blocked_dependency_version_mismatch' => 'Required plugin dependency :dependency version :version does not satisfy :constraint',
     'plugin_deactivation_blocked_required_by' => 'Cannot deactivate :plugin because active plugins depend on it: :dependents. Please deactivate these plugins first.',
+    'available_version' => 'Available Version',
+    'update_status' => 'Update Status',
+    'update_available' => 'Update Available',
+    'unknown' => 'Unknown',
+    'plugin_upgrade_already_latest' => 'Plugin is already at the latest version.',
+    'plugin_upgrade_failed_with_reason' => 'Plugin upgrade failed: :reason',
+    'plugin_upgrade_success_with_versions' => 'Plugin :plugin upgraded successfully from :from to :to.',
+    'plugin_manifest_sync_failed_with_reason' => 'Plugin manifest sync failed: :reason',
+    'raw_plugins' => 'Raw Plugins',
+    'plugins_pending_first_activation' => 'Plugins Pending First Activation',
+    'plugins_index' => 'Plugins Index',
 ];
 
 $locale = basename(__DIR__);

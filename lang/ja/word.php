@@ -2316,6 +2316,17 @@ $words = [
     'plugin_activation_blocked_dependency_inactive' => '必要な依存プラグインが無効です: :dependency',
     'plugin_activation_blocked_dependency_version_mismatch' => '必要な依存プラグイン :dependency のバージョン :version は :constraint を満たしません',
     'plugin_deactivation_blocked_required_by' => ':plugin は有効中の依存プラグインがあるため無効化できません: :dependents。先にこれらを無効化してください。',
+    'available_version' => '利用可能バージョン',
+    'update_status' => '更新ステータス',
+    'update_available' => '更新あり',
+    'unknown' => '不明',
+    'plugin_upgrade_already_latest' => 'プラグインはすでに最新バージョンです。',
+    'plugin_upgrade_failed_with_reason' => 'プラグインのアップグレードに失敗しました: :reason',
+    'plugin_upgrade_success_with_versions' => 'プラグイン :plugin を :from から :to にアップグレードしました。',
+    'plugin_manifest_sync_failed_with_reason' => 'プラグイン manifest の同期に失敗しました: :reason',
+    'raw_plugins' => '生プラグイン',
+    'plugins_pending_first_activation' => '初回有効化待ちプラグイン',
+    'plugins_index' => 'プラグイン一覧',
 ];
 
 $locale = basename(__DIR__);

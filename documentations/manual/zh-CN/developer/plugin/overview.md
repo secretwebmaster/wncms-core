@@ -31,6 +31,40 @@ public/plugins/{plugin_id}/
 - `deactivate()`：停用插件时执行。
 - `delete()`：删除插件时执行。
 
+## 插件升级生命周期
+
+已安装版本存储于 `plugins.version`。
+可用版本读取自 `public/plugins/{plugin_id}/plugin.json` 的 `version`。
+
+- 若 `plugin.json` 版本高于 `plugins.version`，则存在可用更新。
+- 插件列表仅显示数据库字段。
+- 直接修改 `plugin.json` 不会立即覆盖插件表中的显示字段。
+- 升级通过显式操作执行（后台升级按钮），成功后再同步 manifest 信息到插件表。
+- `插件列表` 仅显示 `plugins` 表中已有记录的插件。
+- 在 `public/plugins` 中存在但没有匹配 `plugin_id` 记录的插件，会显示在独立的 `原始插件` 表格中。
+- 首次启用创建记录后，该插件会显示在常规 `插件列表` 表格中。
+
+### 升级定义（仅 deterministic map）
+
+在插件生命周期类中定义：
+
+```php
+public array $upgrades = [
+    '1.2.0' => 'upgrade_1_2_0.php',
+    '1.3.0' => 'upgrade_1_3_0.php',
+];
+```
+
+执行规则：
+
+- 仅执行 `$upgrades` 显式声明的步骤。
+- key 为目标版本。
+- 按版本升序执行。
+- 运行条件：`installed_version < target_version <= available_version`。
+- 若可用版本更高但升级链无法到达该版本，则升级失败。
+- 任一步骤失败立即停止，已安装版本保持不变。
+- 全部成功后，`plugins.version` 更新为可用版本。
+
 ## 启用相容性检查
 
 WNCMS 在插件启用前会根据 `plugin.json` 验证依赖与版本相容性。

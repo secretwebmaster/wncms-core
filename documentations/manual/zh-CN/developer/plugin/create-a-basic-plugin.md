@@ -66,6 +66,11 @@ use Wncms\Plugins\AbstractPlugin;
 
 class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
 {
+    public array $upgrades = [
+        '0.2.0' => 'upgrade_0_2_0.php',
+        '0.3.0' => 'upgrade_0_3_0.php',
+    ];
+
     public function init(): void
     {
         Event::listen('wncms.backend.settings.tabs.extend', function (&$availableSettings) {
@@ -91,6 +96,23 @@ class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
     }
 }
 ```
+
+### 新增升级步骤文件
+
+将升级文件放在插件根目录，并在 `$upgrades` 中显式映射。
+
+`public/plugins/wncms-users-telegram-option/upgrade_0_2_0.php`
+
+```php
+<?php
+
+return function (array $context, AbstractPlugin $instance, \Wncms\Models\Plugin $plugin) {
+    // 从 $context['from_version'] 迁移到 $context['to_version']
+    // 失败时抛出异常以中止升级
+};
+```
+
+升级文件仅通过 `$upgrades` 映射执行（不做自动发现）。
 
 ## 4. 新增可选插件类
 

@@ -13,6 +13,8 @@ abstract class AbstractPlugin implements PluginInterface
 
     protected string $pluginRootPath = '';
 
+    public array $upgrades = [];
+
     public function setContext(Plugin $plugin, array $manifest = [], string $pluginRootPath = ''): static
     {
         $this->plugin = $plugin;

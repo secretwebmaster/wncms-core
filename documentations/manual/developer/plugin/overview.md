@@ -31,6 +31,40 @@ A plugin can implement lifecycle hooks through a standardized `Plugin.php` class
 - `deactivate()` runs when plugin is disabled.
 - `delete()` runs when plugin is removed.
 
+## Plugin Upgrade Lifecycle
+
+Installed version is stored in `plugins.version`.
+Available package version is read from `public/plugins/{plugin_id}/plugin.json` `version`.
+
+- If `plugin.json` version is newer than `plugins.version`, update is available.
+- Plugin index keeps displaying database fields only.
+- Editing `plugin.json` directly does not immediately overwrite plugin table display fields.
+- Upgrade is executed explicitly (backend upgrade action), then table metadata is synchronized from manifest.
+- Plugin rows shown in `Plugins Index` must come from `plugins` table records.
+- Plugins found in `public/plugins` without matching `plugin_id` record are shown in a separate `Raw Plugins` table.
+- After first activation creates a matching table record, plugin appears in the regular `Plugins Index` table.
+
+### Upgrade definition (deterministic map only)
+
+Define upgrades in plugin lifecycle class:
+
+```php
+public array $upgrades = [
+    '1.2.0' => 'upgrade_1_2_0.php',
+    '1.3.0' => 'upgrade_1_3_0.php',
+];
+```
+
+Execution rules:
+
+- Only `$upgrades` entries are executable.
+- Keys are target versions.
+- Entries run in ascending version order.
+- Runner executes steps where `installed_version < target_version <= available_version`.
+- If available version is newer but no chain reaches it, upgrade fails.
+- On first failed step, process stops and installed version is unchanged.
+- On success, `plugins.version` is updated to available version.
+
 ## Activation Compatibility Checks
 
 Before activation, WNCMS validates plugin dependency and version compatibility from `plugin.json`.

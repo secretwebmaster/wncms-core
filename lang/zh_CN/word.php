@@ -2322,6 +2322,17 @@ $words = [
     'plugin_activation_blocked_dependency_inactive' => '必要依赖插件未启用：:dependency',
     'plugin_activation_blocked_dependency_version_mismatch' => '必要依赖插件 :dependency 的版本 :version 不满足 :constraint',
     'plugin_deactivation_blocked_required_by' => '无法停用 :plugin，因为以下启用中的插件依赖它：:dependents。请先停用这些插件。',
+    'available_version' => '可用版本',
+    'update_status' => '更新状态',
+    'update_available' => '有可用更新',
+    'unknown' => '未知',
+    'plugin_upgrade_already_latest' => '插件已经是最新版本。',
+    'plugin_upgrade_failed_with_reason' => '插件升级失败：:reason',
+    'plugin_upgrade_success_with_versions' => '插件 :plugin 已成功从 :from 升级到 :to。',
+    'plugin_manifest_sync_failed_with_reason' => '插件 manifest 同步失败：:reason',
+    'raw_plugins' => '原始插件',
+    'plugins_pending_first_activation' => '待首次启用插件',
+    'plugins_index' => '插件列表',
 ];
 
 $locale = basename(__DIR__);

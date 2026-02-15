@@ -2326,6 +2326,17 @@ $words = [
     'plugin_activation_blocked_dependency_inactive' => '必要依賴外掛尚未啟用：:dependency',
     'plugin_activation_blocked_dependency_version_mismatch' => '必要依賴外掛 :dependency 的版本 :version 不符合 :constraint',
     'plugin_deactivation_blocked_required_by' => '無法停用 :plugin，因為以下已啟用外掛依賴它：:dependents。請先停用這些外掛。',
+    'available_version' => '可用版本',
+    'update_status' => '更新狀態',
+    'update_available' => '有可用更新',
+    'unknown' => '未知',
+    'plugin_upgrade_already_latest' => '外掛已是最新版本。',
+    'plugin_upgrade_failed_with_reason' => '外掛升級失敗：:reason',
+    'plugin_upgrade_success_with_versions' => '外掛 :plugin 已成功從 :from 升級到 :to。',
+    'plugin_manifest_sync_failed_with_reason' => '外掛 manifest 同步失敗：:reason',
+    'raw_plugins' => '原始外掛',
+    'plugins_pending_first_activation' => '待首次啟用外掛',
+    'plugins_index' => '外掛列表',
 ];
 
 $locale = basename(__DIR__);

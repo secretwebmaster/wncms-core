@@ -80,148 +80,204 @@
         </div>
     </div>
 
-    {{-- Index --}}
-    @include('wncms::backend.common.showing_item_of_total', ['models' => $plugins])
-
-    {{-- Model Data --}}
-    <div class="card card-flush rounded overflow-hidden">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm table-hover table-bordered align-middle text-nowrap mb-0">
-
-                    {{-- thead --}}
-                    <thead class="table-dark">
-                        <tr class="text-start fw-bold gs-0">
-                            {{-- Checkbox --}}
-                            <th class="w-10px pe-2">
-                                <div class="form-check form-check-sm form-check-custom me-3">
-                                    <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks .form-check-input" value="1" />
-                                </div>
-                            </th>
-                            <th>@lang('wncms::word.action')</th>
-                            <th>@lang('wncms::word.id')</th>
-                            <th>@lang('wncms::word.name')</th>
-                            <th>@lang('wncms::word.description')</th>
-                            @if(request()->show_detail)
-                            <th>@lang('wncms::word.url')</th>
-                            @endif
-                            <th>@lang('wncms::word.author')</th>
-                            <th>@lang('wncms::word.version')</th>
-                            @if(request()->show_detail)
-                            <th>@lang('wncms::word.path')</th>
-                            <th>@lang('wncms::word.required_plugins')</th>
-                            @endif
-                            <th>@lang('wncms::word.remark')</th>
-                            <th>@lang('wncms::word.created_at')</th>
-
-                            @if(request()->show_detail)
-                            <th>@lang('wncms::word.updated_at')</th>
-                            @endif
-                            
-                        </tr>
-                    </thead>
-
-                    {{-- tbody --}}
-                    <tbody id="table_with_checks" class="fw-semibold text-gray-600">
-                        @foreach($plugins as $plugin)
-                            <tr>
-                                {{-- Checkboxes --}}
-                                <td>
-                                    <div class="form-check form-check-sm form-check-custom form-check-solid">
-                                        <input class="form-check-input" type="checkbox" value="1" data-model-id="{{ $plugin->id }}"/>
-                                    </div>
-                                </td>
-                                {{-- Actions --}}
-                                <td>
-                                    @if($plugin->status === 'active')
-                                        <form class="d-inline" action="{{ route('plugins.deactivate', $plugin) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-warning fw-bold px-2 py-1">@lang('wncms::word.deactivate')</button>
-                                        </form>
-                                    @else
-                                        <form class="d-inline" action="{{ route('plugins.activate', $plugin) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-success fw-bold px-2 py-1">@lang('wncms::word.activate')</button>
-                                        </form>
+    @if(($rawPlugins ?? collect())->count() > 0)
+        <div class="mb-4">
+            <h4 class="fw-bold mb-3">@lang('wncms::word.raw_plugins')</h4>
+            @include('wncms::backend.common.showing_item_of_total', ['models' => $rawPlugins])
+            <div class="card card-flush rounded overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered align-middle text-nowrap mb-0">
+                            <thead class="table-dark">
+                                <tr class="text-start fw-bold gs-0">
+                                    <th>@lang('wncms::word.action')</th>
+                                    <th>@lang('wncms::word.id')</th>
+                                    <th>@lang('wncms::word.name')</th>
+                                    <th>@lang('wncms::word.description')</th>
+                                    @if(request()->show_detail)
+                                    <th>@lang('wncms::word.url')</th>
                                     @endif
+                                    <th>@lang('wncms::word.author')</th>
+                                    <th>@lang('wncms::word.version')</th>
+                                    @if(request()->show_detail)
+                                    <th>@lang('wncms::word.path')</th>
+                                    @endif
+                                    <th>@lang('wncms::word.remark')</th>
+                                </tr>
+                            </thead>
+                            <tbody class="fw-semibold text-gray-600">
+                                @foreach($rawPlugins as $plugin)
+                                    <tr>
+                                        <td>
+                                            <form class="d-inline" action="{{ route('plugins.activate_raw', ['pluginId' => $plugin->plugin_id]) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-success fw-bold px-2 py-1">@lang('wncms::word.activate')</button>
+                                            </form>
+                                        </td>
+                                        <td>{{ $plugin->id }}</td>
+                                        <td>{{ $plugin->name }}</td>
+                                        <td>{{ $plugin->description }}</td>
+                                        @if(request()->show_detail)
+                                        <td>@include('wncms::common.table_url', ['url' => $plugin->url])</td>
+                                        @endif
+                                        <td>{{ $plugin->author }}</td>
+                                        <td>
+                                            {{ $plugin->version }}
+                                            @if(!empty($plugin->update_available) && !empty($plugin->available_version_display) && $plugin->available_version_display !== '-')
+                                                <span class="badge bg-info ms-1">{{ $plugin->available_version_display }}</span>
+                                            @endif
+                                        </td>
+                                        @if(request()->show_detail)
+                                        <td>{{ $plugin->path }}</td>
+                                        @endif
+                                        <td>{{ $plugin->remark }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            @include('wncms::backend.common.showing_item_of_total', ['models' => $rawPlugins])
+        </div>
+    @endif
 
-                                    <form class="d-inline" action="{{ route('plugins.delete', $plugin) }}" method="POST" onsubmit="return confirm('@lang('wncms::word.are_you_sure')');">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-danger fw-bold px-2 py-1">@lang('wncms::word.delete')</button>
-                                    </form>
-                                </td>
-
-                                {{-- Data --}}
-                                <td>{{ $plugin->id }}</td>
-                                <td>{{ $plugin->display_name ?? $plugin->name }}</td>
-                                <td>{{ $plugin->display_description ?? $plugin->description }}</td>
+    <div>
+        <h4 class="fw-bold mb-3">@lang('wncms::word.plugins_index')</h4>
+        @include('wncms::backend.common.showing_item_of_total', ['models' => $plugins])
+        <div class="card card-flush rounded overflow-hidden">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover table-bordered align-middle text-nowrap mb-0">
+                        <thead class="table-dark">
+                            <tr class="text-start fw-bold gs-0">
+                                <th class="w-10px pe-2">
+                                    <div class="form-check form-check-sm form-check-custom me-3">
+                                        <input class="form-check-input border border-2 border-white" type="checkbox" data-kt-check="true" data-kt-check-target="#table_with_checks_plugins_main .form-check-input" value="1" />
+                                    </div>
+                                </th>
+                                <th>@lang('wncms::word.action')</th>
+                                <th>@lang('wncms::word.id')</th>
+                                <th>@lang('wncms::word.name')</th>
+                                <th>@lang('wncms::word.description')</th>
                                 @if(request()->show_detail)
-                                <td>@include('wncms::common.table_url', ['url' => $plugin->display_url ?? $plugin->url])</td>
+                                <th>@lang('wncms::word.url')</th>
                                 @endif
-                                <td>{{ $plugin->display_author ?? $plugin->author }}</td>
-                                <td>{{ $plugin->version }}</td>
+                                <th>@lang('wncms::word.author')</th>
+                                <th>@lang('wncms::word.version')</th>
                                 @if(request()->show_detail)
-                                <td>{{ $plugin->path }}</td>
-                                <td>{{ $plugin->required_plugins_display ?? '-' }}</td>
+                                <th>@lang('wncms::word.path')</th>
+                                <th>@lang('wncms::word.required_plugins')</th>
                                 @endif
-                                <td>
-                                    @php
-                                        $lastLoadError = (string) ($plugin->last_load_error_display ?? '-');
-                                        $sourceFile = (string) ($plugin->last_load_error_file_display ?? '-');
-                                        $remarkText = trim((string) ($plugin->remark ?? ''));
-                                        $hasRemarkDiagnostics = $lastLoadError !== '-' || $sourceFile !== '-' || $remarkText !== '';
-                                    @endphp
-                                    @if($hasRemarkDiagnostics)
-                                        <button type="button" class="btn btn-sm btn-dark fw-bold px-2 py-1" data-bs-toggle="modal" data-bs-target="#modal_plugin_remark_{{ $plugin->id }}">@lang('wncms::word.view_detail')</button>
-                                        <div class="modal fade" tabindex="-1" id="modal_plugin_remark_{{ $plugin->id }}">
-                                            <div class="modal-dialog modal-lg">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h3 class="modal-title">@lang('wncms::word.remark')</h3>
-                                                    </div>
+                                <th>@lang('wncms::word.remark')</th>
+                                <th>@lang('wncms::word.created_at')</th>
+                                @if(request()->show_detail)
+                                <th>@lang('wncms::word.updated_at')</th>
+                                @endif
+                            </tr>
+                        </thead>
+                        <tbody id="table_with_checks_plugins_main" class="fw-semibold text-gray-600">
+                            @foreach($plugins as $plugin)
+                                <tr>
+                                    <td>
+                                        <div class="form-check form-check-sm form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="checkbox" value="1" data-model-id="{{ $plugin->id }}"/>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if($plugin->update_available)
+                                            <form class="d-inline" action="{{ route('plugins.upgrade', $plugin) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-info fw-bold px-2 py-1">@lang('wncms::word.upgrade')</button>
+                                            </form>
+                                        @endif
 
-                                                    <div class="modal-body">
-                                                        <div class="mb-3">
-                                                            <div class="fw-bold mb-1">@lang('wncms::word.last_load_error')</div>
-                                                            <pre class="mb-0 p-3 rounded text-white bg-black border border-secondary font-monospace" style="white-space: pre-wrap; word-break: break-word;">{{ $lastLoadError }}</pre>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <div class="fw-bold mb-1">@lang('wncms::word.source_file')</div>
-                                                            <pre class="mb-0 p-3 rounded text-white bg-black border border-secondary font-monospace" style="white-space: pre-wrap; word-break: break-word;">{{ $sourceFile }}</pre>
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-bold mb-1">@lang('wncms::word.remark')</div>
-                                                            <pre class="mb-0 p-3 rounded text-white bg-black border border-secondary font-monospace" style="white-space: pre-wrap; word-break: break-word;">{{ $remarkText !== '' ? $remarkText : '-' }}</pre>
-                                                        </div>
-                                                    </div>
+                                        @if($plugin->status === 'active')
+                                            <form class="d-inline" action="{{ route('plugins.deactivate', $plugin) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-warning fw-bold px-2 py-1">@lang('wncms::word.deactivate')</button>
+                                            </form>
+                                        @else
+                                            <form class="d-inline" action="{{ route('plugins.activate', $plugin) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-success fw-bold px-2 py-1">@lang('wncms::word.activate')</button>
+                                            </form>
+                                        @endif
 
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                        <form class="d-inline" action="{{ route('plugins.delete', $plugin) }}" method="POST" onsubmit="return confirm('@lang('wncms::word.are_you_sure')');">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-danger fw-bold px-2 py-1">@lang('wncms::word.delete')</button>
+                                        </form>
+                                    </td>
+                                    <td>{{ $plugin->id }}</td>
+                                    <td>{{ $plugin->name }}</td>
+                                    <td>{{ $plugin->description }}</td>
+                                    @if(request()->show_detail)
+                                    <td>@include('wncms::common.table_url', ['url' => $plugin->url])</td>
+                                    @endif
+                                    <td>{{ $plugin->author }}</td>
+                                    <td>
+                                        {{ $plugin->version }}
+                                        @if(!empty($plugin->update_available) && !empty($plugin->available_version_display) && $plugin->available_version_display !== '-')
+                                            <span class="badge bg-info ms-1">{{ $plugin->available_version_display }}</span>
+                                        @endif
+                                    </td>
+                                    @if(request()->show_detail)
+                                    <td>{{ $plugin->path }}</td>
+                                    <td>{{ $plugin->required_plugins_display ?? '-' }}</td>
+                                    @endif
+                                    <td>
+                                        @php
+                                            $lastLoadError = (string) ($plugin->last_load_error_display ?? '-');
+                                            $sourceFile = (string) ($plugin->last_load_error_file_display ?? '-');
+                                            $remarkText = trim((string) ($plugin->remark ?? ''));
+                                            $hasRemarkDiagnostics = $lastLoadError !== '-' || $sourceFile !== '-' || $remarkText !== '';
+                                        @endphp
+                                        @if($hasRemarkDiagnostics)
+                                            <button type="button" class="btn btn-sm btn-dark fw-bold px-2 py-1" data-bs-toggle="modal" data-bs-target="#modal_plugin_remark_{{ $plugin->id }}">@lang('wncms::word.view_detail')</button>
+                                            <div class="modal fade" tabindex="-1" id="modal_plugin_remark_{{ $plugin->id }}">
+                                                <div class="modal-dialog modal-lg">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h3 class="modal-title">@lang('wncms::word.remark')</h3>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <div class="fw-bold mb-1">@lang('wncms::word.last_load_error')</div>
+                                                                <pre class="mb-0 p-3 rounded text-white bg-black border border-secondary font-monospace" style="white-space: pre-wrap; word-break: break-word;">{{ $lastLoadError }}</pre>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <div class="fw-bold mb-1">@lang('wncms::word.source_file')</div>
+                                                                <pre class="mb-0 p-3 rounded text-white bg-black border border-secondary font-monospace" style="white-space: pre-wrap; word-break: break-word;">{{ $sourceFile }}</pre>
+                                                            </div>
+                                                            <div>
+                                                                <div class="fw-bold mb-1">@lang('wncms::word.remark')</div>
+                                                                <pre class="mb-0 p-3 rounded text-white bg-black border border-secondary font-monospace" style="white-space: pre-wrap; word-break: break-word;">{{ $remarkText !== '' ? $remarkText : '-' }}</pre>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">@lang('wncms::word.close')</button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    @else
-                                        -
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>@include('wncms::common.table_date', ['model' => $plugin, 'column' => 'created_at'])</td>
+                                    @if(request()->show_detail)
+                                    <td>@include('wncms::common.table_date', ['model' => $plugin, 'column' => 'updated_at'])</td>
                                     @endif
-                                </td>
-                                <td>@include('wncms::common.table_date', ['model' => $plugin, 'column' => 'created_at'])</td>
-
-                                @if(request()->show_detail)
-                                <td>@include('wncms::common.table_date', ['model' => $plugin, 'column' => 'updated_at'])</td>
-                                @endif
-                                
-                            </tr>
-                        @endforeach
-                    </tbody>
-
-                </table>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
+        @include('wncms::backend.common.showing_item_of_total', ['models' => $plugins])
     </div>
-
-    {{-- Index --}}
-    @include('wncms::backend.common.showing_item_of_total', ['models' => $plugins])
 
     {{-- Pagination --}}
     {{-- <div class="mt-5">

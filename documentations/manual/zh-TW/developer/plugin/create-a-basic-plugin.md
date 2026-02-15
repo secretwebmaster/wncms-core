@@ -64,6 +64,11 @@ use Wncms\Plugins\AbstractPlugin;
 
 class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
 {
+    public array $upgrades = [
+        '0.2.0' => 'upgrade_0_2_0.php',
+        '0.3.0' => 'upgrade_0_3_0.php',
+    ];
+
     public function init(): void
     {
         Event::listen('wncms.backend.settings.tabs.extend', function (&$availableSettings) {
@@ -89,6 +94,23 @@ class WncmsPlugin_wncms_users_telegram_option extends AbstractPlugin
     }
 }
 ```
+
+### 新增升級步驟檔案
+
+將升級檔案放在外掛根目錄，並在 `$upgrades` 中顯式對應。
+
+`public/plugins/wncms-users-telegram-option/upgrade_0_2_0.php`
+
+```php
+<?php
+
+return function (array $context, AbstractPlugin $instance, \Wncms\Models\Plugin $plugin) {
+    // 從 $context['from_version'] 遷移到 $context['to_version']
+    // 失敗時拋出例外以中止升級
+};
+```
+
+升級檔案僅透過 `$upgrades` 對應執行（不做自動發現）。
 
 ## 4. 新增可選外掛類別
 

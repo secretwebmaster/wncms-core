@@ -31,6 +31,40 @@ public/plugins/{plugin_id}/
 - `deactivate()`：停用外掛時執行。
 - `delete()`：刪除外掛時執行。
 
+## 外掛升級生命週期
+
+已安裝版本儲存在 `plugins.version`。
+可用版本讀取自 `public/plugins/{plugin_id}/plugin.json` 的 `version`。
+
+- 若 `plugin.json` 版本高於 `plugins.version`，代表有可用更新。
+- 外掛列表僅顯示資料庫欄位。
+- 直接修改 `plugin.json` 不會立即覆蓋外掛表的顯示欄位。
+- 升級透過顯式操作執行（後台升級按鈕），成功後再同步 manifest 資訊到外掛表。
+- `外掛列表` 僅顯示 `plugins` 資料表中已有紀錄的外掛。
+- 在 `public/plugins` 存在但沒有匹配 `plugin_id` 紀錄的外掛，會顯示在獨立的 `原始外掛` 表格中。
+- 首次啟用建立紀錄後，該外掛會顯示在一般 `外掛列表` 表格中。
+
+### 升級定義（僅 deterministic map）
+
+在外掛生命週期類別中定義：
+
+```php
+public array $upgrades = [
+    '1.2.0' => 'upgrade_1_2_0.php',
+    '1.3.0' => 'upgrade_1_3_0.php',
+];
+```
+
+執行規則：
+
+- 只執行 `$upgrades` 明確宣告的步驟。
+- key 為目標版本。
+- 依版本升序執行。
+- 執行條件：`installed_version < target_version <= available_version`。
+- 若可用版本更高但升級鏈無法到達該版本，升級失敗。
+- 任一步驟失敗即停止，已安裝版本維持不變。
+- 全部成功後，`plugins.version` 更新為可用版本。
+
 ## 啟用相容性檢查
 
 WNCMS 在外掛啟用前會依據 `plugin.json` 驗證依賴與版本相容性。

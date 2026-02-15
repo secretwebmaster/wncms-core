@@ -3,6 +3,7 @@
 namespace Wncms\Plugins;
 
 use Illuminate\Support\Facades\File;
+use ReflectionClass;
 use RuntimeException;
 use Throwable;
 use Wncms\Models\Plugin;
@@ -45,6 +46,105 @@ class PluginLifecycleManager
             return [
                 'passed' => false,
                 'message' => $e->getMessage(),
+            ];
+        }
+    }
+
+    public function getManifestVersion(Plugin $plugin): ?string
+    {
+        $pluginRootPath = $this->resolvePluginRootPath($plugin);
+        if (!$pluginRootPath || !File::isDirectory($pluginRootPath)) {
+            return null;
+        }
+
+        $manifest = $this->readManifest($pluginRootPath);
+        $manifestVersion = $this->normalizeVersion((string) ($manifest['version'] ?? ''));
+
+        return $manifestVersion === '' ? null : $manifestVersion;
+    }
+
+    public function upgradePlugin(Plugin $plugin): array
+    {
+        try {
+            $instance = $this->resolveInstance($plugin);
+            if (!$instance) {
+                return [
+                    'passed' => false,
+                    'changed' => false,
+                    'message' => 'plugin class not found',
+                    'from_version' => $this->normalizeVersion((string) ($plugin->version ?? '')),
+                    'to_version' => $this->normalizeVersion((string) ($plugin->version ?? '')),
+                ];
+            }
+
+            $installedVersion = $this->normalizeVersion((string) ($plugin->version ?? ''));
+            $availableVersion = $this->normalizeVersion((string) ($this->getManifestVersion($plugin) ?? ''));
+
+            if ($installedVersion === '' || $availableVersion === '') {
+                return [
+                    'passed' => false,
+                    'changed' => false,
+                    'message' => 'plugin installed/available version is invalid',
+                    'from_version' => $installedVersion,
+                    'to_version' => $availableVersion,
+                ];
+            }
+
+            if (version_compare($availableVersion, $installedVersion, '<=')) {
+                return [
+                    'passed' => true,
+                    'changed' => false,
+                    'message' => '',
+                    'from_version' => $installedVersion,
+                    'to_version' => $availableVersion,
+                ];
+            }
+
+            $upgradeMap = $this->resolveUpgradeMap($instance);
+            $steps = $this->resolveUpgradeSteps($upgradeMap, $installedVersion, $availableVersion);
+            if (empty($steps)) {
+                return [
+                    'passed' => false,
+                    'changed' => false,
+                    'message' => 'no upgrade steps defined for target version',
+                    'from_version' => $installedVersion,
+                    'to_version' => $availableVersion,
+                ];
+            }
+
+            $currentVersion = $installedVersion;
+            foreach ($steps as $stepVersion => $relativeFilePath) {
+                $this->runUpgradeStepFile($plugin, $instance, $relativeFilePath, [
+                    'plugin' => $plugin,
+                    'plugin_id' => (string) $plugin->plugin_id,
+                    'installed_version' => $installedVersion,
+                    'available_version' => $availableVersion,
+                    'from_version' => $currentVersion,
+                    'to_version' => $stepVersion,
+                    'step_version' => $stepVersion,
+                ]);
+
+                $currentVersion = $stepVersion;
+            }
+
+            $plugin->forceFill([
+                'version' => $availableVersion,
+            ])->save();
+
+            return [
+                'passed' => true,
+                'changed' => true,
+                'message' => '',
+                'from_version' => $installedVersion,
+                'to_version' => $availableVersion,
+            ];
+        } catch (Throwable $e) {
+            return [
+                'passed' => false,
+                'changed' => false,
+                'message' => $e->getMessage(),
+                'from_version' => $this->normalizeVersion((string) ($plugin->version ?? '')),
+                'to_version' => $this->normalizeVersion((string) ($this->getManifestVersion($plugin) ?? '')),
             ];
         }
     }
@@ -162,5 +262,118 @@ class PluginLifecycleManager
         }
 
         return $instance;
+    }
+
+    protected function normalizeVersion(string $version): string
+    {
+        $normalized = ltrim(trim($version), 'vV');
+
+        if ($normalized === '') {
+            return '';
+        }
+
+        if (!preg_match('/^\d+(?:\.\d+){1,2}(?:[-+][A-Za-z0-9\.-]+)?$/', $normalized)) {
+            return '';
+        }
+
+        return $normalized;
+    }
+
+    protected function resolveUpgradeMap(PluginInterface $instance): array
+    {
+        $reflection = new ReflectionClass($instance);
+        if (!$reflection->hasProperty('upgrades')) {
+            return [];
+        }
+
+        $property = $reflection->getProperty('upgrades');
+        $property->setAccessible(true);
+        $value = $property->getValue($instance);
+
+        if (!is_array($value)) {
+            throw new RuntimeException('plugin upgrades definition must be an array');
+        }
+
+        $normalized = [];
+        foreach ($value as $toVersion => $filePath) {
+            $normalizedVersion = $this->normalizeVersion((string) $toVersion);
+            if ($normalizedVersion === '') {
+                throw new RuntimeException("invalid upgrade target version: {$toVersion}");
+            }
+
+            if (!is_string($filePath) && !is_numeric($filePath)) {
+                throw new RuntimeException("invalid upgrade file for version {$normalizedVersion}");
+            }
+
+            $normalizedFilePath = trim((string) $filePath);
+            if ($normalizedFilePath === '' || str_contains($normalizedFilePath, '..')) {
+                throw new RuntimeException("invalid upgrade file path for version {$normalizedVersion}");
+            }
+
+            if (isset($normalized[$normalizedVersion])) {
+                throw new RuntimeException("duplicate upgrade target version: {$normalizedVersion}");
+            }
+
+            $normalized[$normalizedVersion] = str_replace('\\\\', '/', ltrim($normalizedFilePath, '/'));
+        }
+
+        return $normalized;
+    }
+
+    protected function resolveUpgradeSteps(array $upgradeMap, string $installedVersion, string $availableVersion): array
+    {
+        if (empty($upgradeMap)) {
+            return [];
+        }
+
+        uksort($upgradeMap, 'version_compare');
+
+        $steps = [];
+        foreach ($upgradeMap as $toVersion => $filePath) {
+            if (version_compare($toVersion, $installedVersion, '<=') || version_compare($toVersion, $availableVersion, '>')) {
+                continue;
+            }
+
+            $steps[$toVersion] = $filePath;
+        }
+
+        if (empty($steps)) {
+            return [];
+        }
+
+        $lastStepVersion = array_key_last($steps);
+        if (!is_string($lastStepVersion) || version_compare($lastStepVersion, $availableVersion, '!=')) {
+            throw new RuntimeException("upgrade steps do not reach available version {$availableVersion}");
+        }
+
+        return $steps;
+    }
+
+    protected function runUpgradeStepFile(Plugin $plugin, PluginInterface $instance, string $relativeFilePath, array $context): void
+    {
+        $pluginRootPath = $this->resolvePluginRootPath($plugin);
+        if (!$pluginRootPath) {
+            throw new RuntimeException('plugin root path not found');
+        }
+
+        $filePath = rtrim($pluginRootPath, '/\\') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativeFilePath);
+        if (!File::exists($filePath)) {
+            throw new RuntimeException("upgrade file not found: {$relativeFilePath}");
+        }
+
+        $upgrade = require $filePath;
+        if (is_callable($upgrade)) {
+            $upgrade($context, $instance, $plugin);
+            return;
+        }
+
+        if (is_array($upgrade) && array_key_exists('passed', $upgrade) && empty($upgrade['passed'])) {
+            $message = trim((string) ($upgrade['message'] ?? 'upgrade step failed'));
+            throw new RuntimeException($message);
+        }
+
+        if ($upgrade === false) {
+            throw new RuntimeException("upgrade file returned false: {$relativeFilePath}");
+        }
     }
 }
