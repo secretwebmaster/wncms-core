@@ -73,8 +73,8 @@ Common options include:
 | ------------------ | -------------- | ------------------------ |
 | `page_size`        | int            | Number of items per page |
 | `page`             | int            | Current page number      |
-| `order`            | string         | Order column             |
-| `sequence`         | string         | asc / desc               |
+| `sort`             | string         | Preferred sort column    |
+| `direction`        | string         | `asc` / `desc`           |
 | `tags`             | array / string | Filter by tag name or ID |
 | `excluded_tag_ids` | array / string | Exclude tag IDs          |
 | `keywords`         | array / string | Keyword search           |
@@ -106,6 +106,10 @@ These methods help apply query conditions consistently:
 | `applySelect()`        | Limit selected columns              |
 | `applyOffset()`        | Apply offset                        |
 | `applyLimit()`         | Limit result count                  |
+
+### Sort option standard
+
+Prefer `sort` and `direction` in manager options.
 
 ### Explicit `false` option values
 

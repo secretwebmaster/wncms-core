@@ -73,8 +73,8 @@ class ProductManager extends ModelManager
         $this->applyWebsiteId($q, $options['website_id'] ?? null);
 
         // Sorting and limit
-        $sort = $options['sort'] ?? $options['order'] ?? 'id';
-        $direction = $options['direction'] ?? $options['sequence'] ?? 'desc';
+        $sort = $options['sort'] ?? 'id';
+        $direction = $options['direction'] ?? 'desc';
         $this->applyOrdering($q, $sort, $direction, $sort === 'random');
         $this->applyLimit($q, $options['count'] ?? 0);
         $this->applyOffset($q, $options['offset'] ?? 0);
@@ -152,7 +152,7 @@ After creating `app/Services/Managers/ProductManager.php`, WNCMS resolves it aut
 - Use `applyWebsiteId()` when your model supports multi-website scope.
 - Use `distinct()` in the query if joining tags or counts.
 - When supporting boolean filters, pass explicit `false` values directly (for example `'status' => false`) and let `ModelManager` helpers apply them.
-- Prefer `sort`/`direction` in public options and keep `order`/`sequence` as backward-compatible aliases when needed.
+- Use `sort`/`direction` in public options.
 
 ## Example Folder Structure
 

@@ -70,7 +70,13 @@ class MenuManager extends ModelManager
             });
         }
 
-        $this->applyOrdering($q, $options['sort'] ?? 'id', $options['direction'] ?? 'asc');
+        $sort = (string) ($options['sort'] ?? 'id');
+        $direction = strtolower((string) ($options['direction'] ?? 'asc'));
+        $direction = in_array($direction, ['asc', 'desc'], true) ? $direction : 'asc';
+        $isRandom = $options['is_random'] ?? ($sort === 'random');
+        $sort = $this->normalizeSortColumn($sort);
+
+        $this->applyOrdering($q, $sort, $direction, $isRandom);
 
         return $q;
     }
@@ -166,5 +172,23 @@ class MenuManager extends ModelManager
         }
 
         return "javascript:;";
+    }
+
+    protected function normalizeSortColumn(string $sort): string
+    {
+        $sort = trim(str_replace('menus.', '', $sort));
+        if ($sort === '') {
+            return 'id';
+        }
+
+        if ($sort === 'random') {
+            return $sort;
+        }
+
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $sort)) {
+            return 'id';
+        }
+
+        return $sort;
     }
 }

@@ -107,16 +107,6 @@ $link = wncms()->link()->getBySlug('my-link', websiteId: 12);
 - **类型**：string
 - **用途**：`asc` 或 `desc`（预设 `desc`）
 
-**`order`**
-
-- **类型**：string
-- **用途**：`sort` 的向后相容别名
-
-**`sequence`**
-
-- **类型**：string
-- **用途**：`direction` 的向后相容别名
-
 **`select`**
 
 - **类型**：array / string

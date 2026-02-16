@@ -61,8 +61,9 @@ class PostManager extends ModelManager
         $searchFields = $options['search_fields'] ?? ['title', 'label', 'excerpt', 'content'];
         $count = $options['count'] ?? 0;
         $offset = $options['offset'] ?? 0;
-        $sort = $options['sort'] ?? 'id';
-        $direction= $options['direction'] ?? 'desc';
+        $sort = $this->normalizeSortColumn((string) ($options['sort'] ?? 'id'));
+        $direction = strtolower((string) ($options['direction'] ?? 'desc'));
+        $direction = in_array($direction, ['asc', 'desc'], true) ? $direction : 'desc';
         $status = $options['status'] ?? 'published';
         $wheres = $options['wheres'] ?? [];
         $websiteId = $options['website_id'] ?? null;
@@ -71,7 +72,7 @@ class PostManager extends ModelManager
         $ids = $options['ids'] ?? [];
         $select = $options['select'] ?? ['*'];
         $withs = $options['withs'] ?? [];
-        $isRandom = $options['is_random'] ?? false;
+        $isRandom = $options['is_random'] ?? ($sort === 'random');
         $userId = $options['user_id'] ?? null;
 
         // $pageSize = $options['page_size'] ?? 0;
@@ -87,21 +88,15 @@ class PostManager extends ModelManager
         $this->applyWhereConditions($q, $wheres);
         $this->applyIds($q, 'posts.id', $ids);
         $this->applyExcludeIds($q, 'posts.id', $excludedPostIds);
+        if (is_string($select)) {
+            $select = array_filter(array_map('trim', explode(',', $select)));
+        }
+        $select = $this->autoAddOrderByColumnsToSelect($q, $select);
         $this->applySelect($q, $select);
         $this->applyOffset($q, $offset);
         $this->applyLimit($q, $count);
 
-        if (!empty($excludedTagIds)) {
-            if (is_string($excludedTagIds)) {
-                $excludedTagIds = explode(',', $excludedTagIds);
-            }
-
-            $q->where(function ($subq) use ($excludedTagIds) {
-                $subq->whereHas("tags", function ($subsubq) use ($excludedTagIds) {
-                    $subsubq->whereNotIn('tags.id', (array) $excludedTagIds);
-                })->orWhereDoesntHave('tags');
-            });
-        }
+        $this->applyExcludedTags($q, $excludedTagIds);
 
         $this->applyStatus($q, 'status', $status);
         $this->applyOrdering($q, $sort, $direction, $isRandom);
@@ -112,5 +107,23 @@ class PostManager extends ModelManager
         }
 
         return $q;
+    }
+
+    protected function normalizeSortColumn(string $sort): string
+    {
+        $sort = trim(str_replace('posts.', '', $sort));
+        if ($sort === '') {
+            return 'id';
+        }
+
+        if ($sort === 'random') {
+            return $sort;
+        }
+
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $sort)) {
+            return 'id';
+        }
+
+        return $sort;
     }
 }

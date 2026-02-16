@@ -71,7 +71,9 @@ protected function buildListQuery(array $options): mixed
     $this->applyTagFilter($q, $options['tags'] ?? [], $options['tag_type'] ?? 'post_category');
     $this->applyKeywordFilter($q, $options['keywords'] ?? [], ['title', 'content']);
     $this->applyStatus($q, 'status', $options['status'] ?? 'published');
-    $this->applyOrdering($q, $options['order'] ?? 'id', $options['sequence'] ?? 'desc');
+    $sort = $options['sort'] ?? 'id';
+    $direction = $options['direction'] ?? 'desc';
+    $this->applyOrdering($q, $sort, $direction, $sort === 'random');
 
     return $q;
 }
@@ -117,8 +119,8 @@ $post = wncms()->post()->get(['slug' => 'hello-world']);
 | `seconds`   | int    | 快取时间（秒），预设为 `gss('data_cache_time')` 或 `3600` |
 | `withs`     | array  | 要 eager load 的 relations                                |
 | `wheres`    | array  | 额外的 where 条件                                         |
-| `order`     | string | 排序栏位                                                  |
-| `sequence`  | string | `asc` 或 `desc`                                           |
+| `sort`      | string | 建议使用的排序栏位                                        |
+| `direction` | string | 建议使用的排序方向：`asc` 或 `desc`                       |
 
 **范例：**
 
@@ -126,10 +128,14 @@ $post = wncms()->post()->get(['slug' => 'hello-world']);
 $posts = wncms()->post()->getList([
     'page_size' => 10,
     'status' => 'published',
-    'order' => 'created_at',
-    'sequence' => 'desc',
+    'sort' => 'created_at',
+    'direction' => 'desc',
 ]);
 ```
+
+### 排序参数规范
+
+建议在 Manager 对外选项中优先使用 `sort` 与 `direction`。
 
 ### `run(array $options = []): mixed`
 

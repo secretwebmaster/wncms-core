@@ -28,6 +28,10 @@ class AdvertisementManager extends ModelManager
     protected function buildListQuery(array $options): mixed
     {
         $q = $this->query();
+        $sort = $this->normalizeSortColumn((string) ($options['sort'] ?? 'sort'));
+        $direction = strtolower((string) ($options['direction'] ?? 'desc'));
+        $direction = in_array($direction, ['asc', 'desc'], true) ? $direction : 'desc';
+        $isRandom = $options['is_random'] ?? ($sort === 'random');
 
         // Website scope
         if (!empty($options['website_id'])) {
@@ -91,15 +95,15 @@ class AdvertisementManager extends ModelManager
         $this->applyKeywordFilter($q, $options['keywords'] ?? [], ['name', 'remark', 'cta_text', 'url']);
         $this->applyWhereConditions($q, $options['wheres'] ?? []);
         $this->applyWiths($q, array_merge(['media'], $options['withs'] ?? []));
-        $this->applyOrdering(
-            $q,
-            $options['sort'] ?? 'sort',
-            $options['direction'] ?? 'desc',
-            ($options['sort'] ?? '') === 'random'
-        );
+        $this->applyOrdering($q, $sort, $direction, $isRandom);
 
 
-        $this->applySelect($q, $options['select'] ?? ['*']);
+        $select = $options['select'] ?? ['*'];
+        if (is_string($select)) {
+            $select = array_filter(array_map('trim', explode(',', $select)));
+        }
+        $select = $this->autoAddOrderByColumnsToSelect($q, $select);
+        $this->applySelect($q, $select);
         $this->applyOffset($q, $options['offset'] ?? 0);
         $this->applyLimit($q, $options['count'] ?? 0);
         $q->distinct();
@@ -114,5 +118,23 @@ class AdvertisementManager extends ModelManager
             'website_id' => $websiteId,
             'count' => 1,
         ])?->first();
+    }
+
+    protected function normalizeSortColumn(string $sort): string
+    {
+        $sort = trim(str_replace('advertisements.', '', $sort));
+        if ($sort === '') {
+            return 'sort';
+        }
+
+        if ($sort === 'random') {
+            return $sort;
+        }
+
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $sort)) {
+            return 'sort';
+        }
+
+        return $sort;
     }
 }

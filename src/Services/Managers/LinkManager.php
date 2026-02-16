@@ -60,10 +60,10 @@ class LinkManager extends ModelManager
         // info("In buildListQuery");
         // info($options);
         $q = $this->query();
-        $sort = $this->normalizeSortColumn((string) ($options['sort'] ?? $options['order'] ?? 'sort'));
-        $direction = strtolower((string) ($options['direction'] ?? $options['sequence'] ?? 'desc'));
+        $sort = $this->normalizeSortColumn((string) ($options['sort'] ?? 'sort'));
+        $direction = strtolower((string) ($options['direction'] ?? 'desc'));
         $direction = in_array($direction, ['asc', 'desc'], true) ? $direction : 'desc';
-        $isRandom = $sort === 'random';
+        $isRandom = (bool) ($options['is_random'] ?? false) || $sort === 'random';
 
         $this->applyIds($q, 'links.id', $options['ids'] ?? []);
         $this->applyExcludeIds($q, 'links.id', $options['excluded_ids'] ?? []);

@@ -67,8 +67,8 @@ It merges the same default relations as `get()`.
 ```php
 $posts = wncms()->post()->getList([
     'status' => 'published',
-    'order' => 'created_at',
-    'sequence' => 'desc',
+    'sort' => 'created_at',
+    'direction' => 'desc',
     'page_size' => 10,
 ]);
 ```
@@ -124,8 +124,8 @@ This is the core of the `getList()` process.
 | `keywords`          | array/string | Search in title, label, excerpt, content |
 | `count`             | int          | Limit number of posts                    |
 | `offset`            | int          | Skip posts before limit                  |
-| `order`             | string       | Column to order by (default: `id`)       |
-| `sequence`          | string       | asc / desc                               |
+| `sort`              | string       | Preferred sort column (default: `id`)    |
+| `direction`         | string       | Preferred direction (`asc` / `desc`)     |
 | `status`            | string       | Post status (default: `published`)       |
 | `wheres`            | array        | Extra where conditions                   |
 | `website_id`        | int          | Scope by website                         |
@@ -153,7 +153,7 @@ This is the core of the `getList()` process.
   Skips posts or tags defined in `excluded_post_ids` or `excluded_tag_ids`.
 
 - **Ordering:**
-  Defaults to `orderBy('id', 'desc')`, or random order when `is_random = true`.
+  Defaults to `orderBy('id', 'desc')`, or random order when `is_random = true` or `sort = random`.
 
 - **Status Filter:**
   Only includes posts with `status = 'published'` by default.

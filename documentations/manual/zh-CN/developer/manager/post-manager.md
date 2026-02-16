@@ -67,8 +67,8 @@ public function getList(array $options = []): Collection|LengthAwarePaginator
 ```php
 $posts = wncms()->post()->getList([
     'status' => 'published',
-    'order' => 'created_at',
-    'sequence' => 'desc',
+    'sort' => 'created_at',
+    'direction' => 'desc',
     'page_size' => 10,
 ]);
 ```
@@ -124,8 +124,8 @@ protected function buildListQuery(array $options): mixed
 | `keywords`          | array/string | 在 title、label、excerpt、content 搜寻 |
 | `count`             | int          | 限制 posts 数量                        |
 | `offset`            | int          | 在限制前跳过 posts                     |
-| `order`             | string       | 排序栏位（预设：`id`）                 |
-| `sequence`          | string       | asc / desc                             |
+| `sort`              | string       | 建议使用的排序栏位（预设：`id`）       |
+| `direction`         | string       | 建议使用的排序方向（`asc` / `desc`）   |
 | `status`            | string       | Post 状态（预设：`published`）         |
 | `wheres`            | array        | 额外的 where 条件                      |
 | `website_id`        | int          | 依 website 限定范围                    |
@@ -153,7 +153,7 @@ protected function buildListQuery(array $options): mixed
 跳过在 `excluded_post_ids` 或 `excluded_tag_ids` 中定义的 posts 或 tags。
 
 **Ordering：**
-预设为 `orderBy('id', 'desc')`，或当 `is_random = true` 时随机排序。
+预设为 `orderBy('id', 'desc')`，或当 `is_random = true` / `sort = random` 时随机排序。
 
 **Status Filter：**
 预设仅包含 `status = 'published'` 的 posts。

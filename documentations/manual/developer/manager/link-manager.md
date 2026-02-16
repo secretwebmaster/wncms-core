@@ -65,8 +65,6 @@ $link = wncms()->link()->getBySlug('my-link', websiteId: 12);
 | `withs` | array | Relations to eager load |
 | `sort` | string | Preferred sort key. Special values: `random`, `total_views_yesterday` |
 | `direction` | string | Preferred direction: `asc` or `desc` (default `desc`) |
-| `order` | string | Backward-compatible alias of `sort` |
-| `sequence` | string | Backward-compatible alias of `direction` |
 | `select` | array/string | Columns to select (default `['links.*']`) |
 | `offset` | int | Offset for batching |
 | `count` | int | Limit result size (0 = no limit) |
