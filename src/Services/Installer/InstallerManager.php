@@ -247,7 +247,7 @@ class InstallerManager
     public function publishAssets(): void
     {
         Artisan::call('vendor:publish', ['--tag' => 'wncms-core-assets']);
-        Artisan::call('vendor:publish', ['--tag' => 'wncms-theme-assets']);
+        Artisan::call('vendor:publish', ['--tag' => 'wncms-default-assets']);
 
         info('assets published');
     }

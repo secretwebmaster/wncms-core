@@ -429,7 +429,7 @@ class WncmsServiceProvider extends ServiceProvider
 
             $this->publishes([
                 $themeDir . '/assets' => public_path('themes/' . $themeId . '/assets'),
-            ], 'wncms-theme-assets');
+            ], 'wncms-default-assets');
         }
     }
 

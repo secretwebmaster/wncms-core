@@ -52,6 +52,14 @@ composer update secretwebmaster/wncms-core -W
 # COMPOSER_ALLOW_SUPERUSER=1 composer update secretwebmaster/wncms-core -W
 ```
 
+> [!NOTE]
+> Theme assets are no longer synced on every Composer update.
+> If you need to reinstall core theme assets manually, run:
+>
+> ```bash
+> php artisan vendor:publish --tag=wncms-default-assets --force
+> ```
+
 ## Run Installer
 
 WNCMS offers a full command-line installer:

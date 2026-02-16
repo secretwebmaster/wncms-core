@@ -52,6 +52,14 @@ composer update secretwebmaster/wncms-core -W
 # COMPOSER_ALLOW_SUPERUSER=1 composer update secretwebmaster/wncms-core -W
 ```
 
+> [!NOTE]
+> 主题资源不再在每次 Composer update 时自动同步。
+> 如果需要手动重新安装核心主题资源，请执行:
+>
+> ```bash
+> php artisan vendor:publish --tag=wncms-default-assets --force
+> ```
+
 ## 运行安装程序
 
 WNCMS 提供了完整的命令行安装程序:
