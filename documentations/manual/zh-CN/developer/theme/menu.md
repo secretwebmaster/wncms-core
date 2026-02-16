@@ -82,6 +82,7 @@ WNCMS 提供强大的选单系统，让您可以为主题建立导航选单。�
    - **顺序**：显示位置
    - **新视窗**：在新分页开启
    - **图示**：图示类别（选填）
+     - Font Awesome 免费图示查询：`https://fontawesome.com/v6/search?ic=free-collection`
    - **CSS 类别**：自订样式（选填）
 
 ### 3. 组织阶层

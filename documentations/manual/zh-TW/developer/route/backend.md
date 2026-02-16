@@ -242,6 +242,7 @@ Route::prefix('tags')->controller(TagController::class)->group(function () {
 - `GET /panel/tags?type=post_category`：只顯示該標籤類型。
 - `GET /panel/tags?type=all`：顯示所有標籤類型（不會套用 `where type = all`）。
 - 當 `type` 為空時，後端會重新導向並預設使用 `type=post_category`。
+- 在標籤新增/編輯頁中，`parent_id` 使用 Tagify 單選（`maxTags=1`），並會載入目前所選類型下的**所有標籤**作為父標籤候選。
 
 ### 主題
 

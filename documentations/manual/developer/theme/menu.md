@@ -82,6 +82,7 @@ For each menu item:
    - **Order**: Display position
    - **New Window**: Open in new tab
    - **Icon**: Icon class (optional)
+     - Font Awesome free icon search: `https://fontawesome.com/v6/search?ic=free-collection`
    - **CSS Class**: Custom styling (optional)
 
 ### 3. Organize Hierarchy

@@ -82,6 +82,7 @@ WNCMS 提供強大的選單系統，讓您可以為主題建立導航選單。�
    - **順序**：顯示位置
    - **新視窗**：在新分頁開啟
    - **圖示**：圖示類別（選填）
+     - Font Awesome 免費圖示查詢：`https://fontawesome.com/v6/search?ic=free-collection`
    - **CSS 類別**：自訂樣式（選填）
 
 ### 3. 組織階層

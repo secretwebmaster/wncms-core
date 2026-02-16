@@ -242,6 +242,7 @@ Tag list filter behavior:
 - `GET /panel/tags?type=post_category`: shows only that tag type.
 - `GET /panel/tags?type=all`: shows all tag types (does not apply `where type = all`).
 - If `type` is missing, backend redirects with default `type=post_category`.
+- In tag create/edit, `parent_id` uses Tagify (single select, `maxTags=1`) and loads **all tags** of the selected type as parent candidates.
 
 ### Themes
 
