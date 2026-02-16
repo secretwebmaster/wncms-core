@@ -40,10 +40,10 @@ protected function getModelPlural(): string
 protected function applyBackendListWebsiteScope(Builder $q, ?Request $request = null, bool $onlyWhenExplicitFilter = false): void
 
 // 為 create/update 流程解析網站 ID。
-protected function resolveBackendMutationWebsiteIds(bool $fallbackToCurrentWhenEmpty = true): array
+protected function resolveBackendMutationWebsiteIds(bool $fallbackToCurrentWhenEmpty = false): array
 
 // 為已建立/更新模型同步網站綁定。
-protected function syncBackendMutationWebsites($model, bool $fallbackToCurrentWhenEmpty = true): void
+protected function syncBackendMutationWebsites($model, bool $fallbackToCurrentWhenEmpty = false): void
 ```
 
 ## Cache 控制
@@ -79,7 +79,9 @@ $this->applyBackendListWebsiteScope($q, $request, true);
 在 create/update 流程，建議使用 `syncBackendMutationWebsites($model)` 保持 `global` / `single` / `multi` 模式相容。
 
 - 對 `single`/`multi` 模型，會從請求鍵（`website_id`、`website_ids`，及舊鍵）解析網站 ID。
-- 當請求未傳網站 ID 時，可回退到當前網站上下文。
+- 對非管理員使用者，會自動將請求網站 ID 與目前使用者可存取網站做交集過濾。
+- 預設不會在網站 ID 為空時強制回退到當前網站。
+- 若業務流程需要回退，請改為呼叫 `syncBackendMutationWebsites($model, true)`。
 - 對 `global` 模型會安全 no-op。
 
 ## 內建 CRUD 操作
@@ -213,10 +215,6 @@ if ($sort !== 'id') {
 
 ```php
 $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
-
-if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
-    return back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
-}
 
 $model->update([
     'name' => $request->name,

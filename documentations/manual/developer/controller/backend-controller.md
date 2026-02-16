@@ -40,10 +40,10 @@ protected function getModelPlural(): string
 protected function applyBackendListWebsiteScope(Builder $q, ?Request $request = null, bool $onlyWhenExplicitFilter = false): void
 
 // Resolve website IDs for create/update mutation flows.
-protected function resolveBackendMutationWebsiteIds(bool $fallbackToCurrentWhenEmpty = true): array
+protected function resolveBackendMutationWebsiteIds(bool $fallbackToCurrentWhenEmpty = false): array
 
 // Sync website bindings for a created/updated model.
-protected function syncBackendMutationWebsites($model, bool $fallbackToCurrentWhenEmpty = true): void
+protected function syncBackendMutationWebsites($model, bool $fallbackToCurrentWhenEmpty = false): void
 ```
 
 ## Cache control
@@ -79,8 +79,12 @@ $this->applyBackendListWebsiteScope($q, $request, true);
 For create/update flows, use `syncBackendMutationWebsites($model)` to keep website bindings compatible across `global` / `single` / `multi` modes.
 
 - For scoped models (`single`/`multi`), it resolves IDs from request keys (`website_id`, `website_ids`, and legacy aliases).
-- If no IDs are provided, it can fall back to current website context.
+- For non-admin users, it automatically intersects requested website IDs with websites bound to the current user.
+- By default it does not force fallback to current website when IDs are empty.
+- If your flow needs fallback, call `syncBackendMutationWebsites($model, true)`.
 - For `global` models, it no-ops safely.
+- Backend save flow should not hard-fail when website IDs are empty; models may exist without website bindings.
+- In shared backend website selector, create forms may default to `session('selected_website_id')` (sidebar website switcher), while edit forms should keep existing bindings and avoid auto-selecting new websites when none are currently bound.
 
 ## Built-in CRUD actions
 
@@ -218,10 +222,6 @@ When the model supports WNCMS multisite methods, resolve website IDs via control
 
 ```php
 $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
-
-if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
-    return back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
-}
 
 $model->update([
     'name' => $request->name,

@@ -109,9 +109,14 @@ abstract class BackendController extends Controller
      * Resolve website IDs for create/update mutations.
      * Falls back to current website when request does not provide IDs.
      */
-    protected function resolveBackendMutationWebsiteIds(bool $fallbackToCurrentWhenEmpty = true): array
+    protected function resolveBackendMutationWebsiteIds(bool $fallbackToCurrentWhenEmpty = false): array
     {
         $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
+
+        if (!isAdmin()) {
+            $allowedWebsiteIds = auth()->user()?->websites()->pluck('websites.id')->map(fn($id) => (int) $id)->values()->all() ?? [];
+            $websiteIds = array_values(array_intersect($websiteIds, $allowedWebsiteIds));
+        }
 
         if (empty($websiteIds) && $fallbackToCurrentWhenEmpty) {
             $fallbackWebsiteId = (int) (wncms()->website()->get()?->id ?? 0);
@@ -126,7 +131,7 @@ abstract class BackendController extends Controller
     /**
      * Sync website bindings for models that support WNCMS multisite relations.
      */
-    protected function syncBackendMutationWebsites($model, bool $fallbackToCurrentWhenEmpty = true): void
+    protected function syncBackendMutationWebsites($model, bool $fallbackToCurrentWhenEmpty = false): void
     {
         $modelClass = get_class($model);
         if (!$this->supportsWncmsMultisite($modelClass)) {
@@ -134,10 +139,6 @@ abstract class BackendController extends Controller
         }
 
         $websiteIds = $this->resolveBackendMutationWebsiteIds($fallbackToCurrentWhenEmpty);
-        if (empty($websiteIds)) {
-            return;
-        }
-
         $this->syncModelWebsites($model, $websiteIds);
     }
 

@@ -1,7 +1,18 @@
 @php
     $websiteMode = method_exists($model, 'getWebsiteMode') ? $model::getWebsiteMode() : 'global';
-    $selectedWebsiteId = (int) old('website_id', $model?->website?->id ?? 0);
-    $selectedWebsiteIds = old('website_ids', $model?->websites?->pluck('id')->toArray() ?? []);
+    $isEditing = (bool) ($model?->exists ?? false);
+    $workingWebsiteId = (int) (session('selected_website_id') ?: (wncms()->website()->get()?->id ?? 0));
+    $modelWebsiteId = (int) ($model?->website?->id ?? 0);
+    $modelWebsiteIds = $model?->websites?->pluck('id')->map(fn($id) => (int) $id)->toArray() ?? [];
+
+    $defaultSingleWebsiteId = $isEditing ? $modelWebsiteId : ($modelWebsiteId ?: $workingWebsiteId);
+    $defaultMultiWebsiteIds = $isEditing
+        ? $modelWebsiteIds
+        : (!empty($modelWebsiteIds) ? $modelWebsiteIds : ($workingWebsiteId ? [$workingWebsiteId] : []));
+
+    $selectedWebsiteId = (int) old('website_id', $defaultSingleWebsiteId);
+    $selectedWebsiteIds = old('website_ids', $defaultMultiWebsiteIds);
+
     if (is_string($selectedWebsiteIds)) {
         $selectedWebsiteIds = explode(',', $selectedWebsiteIds);
     }
@@ -16,9 +27,9 @@
 @if(gss('multi_website') && in_array($websiteMode, ['single', 'multi']))
     @if($websiteMode === 'single')
         <div class="row mb-3">
-            <label class="col-lg-3 col-form-label required fw-bold fs-6" for="website_id">@lang('wncms::word.website')</label>
+            <label class="col-lg-3 col-form-label fw-bold fs-6" for="website_id">@lang('wncms::word.website')</label>
             <div class="col-lg-9 fv-row">
-                <select id="website_id" name="website_id" class="form-select form-select-sm" required>
+                <select id="website_id" name="website_id" class="form-select form-select-sm">
                     <option value="">@lang('wncms::word.please_select')</option>
                     @foreach($websites ?? [] as $website)
                         <option value="{{ $website->id }}" {{ (int) $website->id === $selectedWebsiteId ? 'selected' : '' }}>{{ $website->domain }} #({{ $website->id }})</option>

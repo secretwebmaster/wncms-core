@@ -50,7 +50,7 @@ class PostController extends BackendController
 
         $q->orderBy('created_at', 'desc');
         $q->orderBy('id', 'desc');
-        
+
         $posts = $q->paginate($request->page_size ?? 20);
 
         $post_category_parants = wncms()->getModel('tag')::where('type', 'post_category')->whereNull('parent_id')->with('children')->get();
@@ -102,16 +102,6 @@ class PostController extends BackendController
 
         if (!$user) return redirect()->back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
 
-        $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
-        if (!isAdmin()) {
-            $allowedWebsiteIds = auth()->user()->websites()->pluck('websites.id')->map(fn($id) => (int) $id)->values()->all();
-            $websiteIds = array_values(array_intersect($websiteIds, $allowedWebsiteIds));
-        }
-
-        if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
-            return back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
-        }
-
         $request->validate(
             [
                 'title' => 'required|max:255',
@@ -154,7 +144,7 @@ class PostController extends BackendController
         $post->wrapTables();
 
         //attach to website models
-        $this->syncModelWebsites($post, $websiteIds);
+        $this->syncBackendMutationWebsites($post);
 
         //thumbnail
         if (!empty($request->post_thumbnail_remove)) {
@@ -173,8 +163,18 @@ class PostController extends BackendController
         }
 
         //tags
-        $post->syncTagsFromRequest($request->post_categories, 'post_category', $request->auto_generate_category, [$request->title, $request->input('content')]);
-        $post->syncTagsFromRequest($request->post_tags, 'post_tag', $request->auto_generate_tag, [$request->title, $request->input('content')]);
+        $bindingContents = [
+            'title' => (string) $request->input('title'),
+            'content' => (string) $request->input('content'),
+            'excerpt' => (string) $request->input('excerpt'),
+            'keywords' => (string) $request->input('keywords'),
+            'label' => (string) $request->input('label'),
+            'remark' => (string) $request->input('remark'),
+            'slug' => (string) $request->input('slug'),
+        ];
+
+        $post->syncTagsFromRequest($request->post_categories, 'post_category', $request->auto_generate_category, $bindingContents);
+        $post->syncTagsFromRequest($request->post_tags, 'post_tag', $request->auto_generate_tag, $bindingContents);
 
         //clear cache
         $this->flush();
@@ -236,16 +236,6 @@ class PostController extends BackendController
         //TODO 改為用 FormRequest
         if (!$user) return back()->withInput()->withErrors(['message' => __('wncms::word.user_not_found')]);
 
-        $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
-        if (!isAdmin()) {
-            $allowedWebsiteIds = auth()->user()->websites()->pluck('websites.id')->map(fn($id) => (int) $id)->values()->all();
-            $websiteIds = array_values(array_intersect($websiteIds, $allowedWebsiteIds));
-        }
-
-        if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
-            return back()->withInput()->withErrors(['message' => __('wncms::word.website_not_found')]);
-        }
-
         $request->validate(
             [
                 'title' => 'required|max:255',
@@ -294,7 +284,7 @@ class PostController extends BackendController
         $post->localizeImages();
         $post->wrapTables();
 
-        $this->syncModelWebsites($post, $websiteIds);
+        $this->syncBackendMutationWebsites($post);
 
 
         //remove image

@@ -83,11 +83,6 @@ class AdvertisementController extends BackendController
     public function store(Request $request)
     {
         // dd($request->all());
-        $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
-        if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
-            return back()->withMessage(__('wncms::word.website_not_found'));
-        }
-
         $payload = [
             'status' => $request->status,
             'expired_at' => $request->expired_at,
@@ -109,7 +104,7 @@ class AdvertisementController extends BackendController
 
         $advertisement = $this->modelClass::create($payload);
 
-        $this->syncModelWebsites($advertisement, $websiteIds);
+        $this->syncBackendMutationWebsites($advertisement);
 
         //thumbnail
         if (!empty($request->advertisement_thumbnail_remove)) {
@@ -161,11 +156,6 @@ class AdvertisementController extends BackendController
     {
         // dd($request->all());
 
-        $websiteIds = $this->resolveModelWebsiteIds($this->modelClass);
-        if ($this->supportsWncmsMultisite($this->modelClass) && empty($websiteIds)) {
-            return back()->withMessage(__('wncms::word.website_not_found'));
-        }
-
         $advertisement = $this->modelClass::find($id);
         if (!$advertisement) {
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.advertisement')]));
@@ -192,7 +182,7 @@ class AdvertisementController extends BackendController
 
         $advertisement->update($payload);
 
-        $this->syncModelWebsites($advertisement, $websiteIds);
+        $this->syncBackendMutationWebsites($advertisement);
 
         // thumbnail
         if (!empty($request->advertisement_thumbnail_remove)) {

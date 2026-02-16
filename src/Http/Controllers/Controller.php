@@ -83,6 +83,10 @@ abstract class Controller extends BaseController
         $websiteIds = $this->normalizeWebsiteIds($websiteIds);
 
         if ($websiteMode === 'single') {
+            if (method_exists($model, 'unbindAllWebsites')) {
+                $model->unbindAllWebsites();
+            }
+
             if (!empty($websiteIds)) {
                 $model->bindWebsites(reset($websiteIds));
             }
