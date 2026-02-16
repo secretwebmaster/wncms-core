@@ -557,6 +557,20 @@ config(["theme.{$themeId}" => $config]);
 這個回退會同時套用到設定、視圖、翻譯與 `functions.php`。
 如果目前啟用的主題不是核心主題且公開目錄遺失，系統仍維持「主題未啟用」行為。
 
+### 主題啟用校驗規則
+
+只有在以下必要結構都存在時，主題才會被視為可載入：
+
+- `config.php`
+- `views/`
+
+`lang/` 與 `functions.php` 為可選項。
+
+如果 public 主題目錄存在但必要結構不完整，WNCMS 會將其視為無效並套用回退邏輯：
+
+- 核心主題：回退到 `{WNCMS_RESOURCES_PATH}/themes/{themeId}` 內建主題
+- 非核心主題：保持「主題未啟用」行為
+
 ### 3. 註冊視圖
 
 ```php
@@ -739,7 +753,7 @@ return view("{$themeId}::pages.show", compact('page'));
 ### 主題未載入
 
 1. 檢查主題資料夾是否存在於 `/public/themes/{themeId}`
-2. 驗證 `config.php` 存在且有效
+2. 驗證必要結構存在：`config.php` 與 `views/`
 3. 檢查檔案權限（目錄 755，檔案 644）
 4. 清除快取：`php artisan cache:clear`
 

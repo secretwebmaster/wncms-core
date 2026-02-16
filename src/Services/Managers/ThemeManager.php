@@ -35,7 +35,7 @@ class ThemeManager
         foreach ($this->getThemes() as $themeId) {
             [$configFile, $themePath] = $this->resolveThemeConfigFile($themeId);
 
-            if ($configFile) {
+            if ($configFile && $themePath && $this->isThemeStructureValid($themePath)) {
                 $config = include $configFile;
                 $metas[$themeId] = $this->buildMetaFromConfig($themeId, $config, $themePath);
                 continue;
@@ -78,6 +78,30 @@ class ThemeManager
     }
 
     /**
+     * Resolve loadable theme path with core fallback.
+     */
+    public function resolveLoadableThemePath(string $themeId, ?string $preferredPath = null): ?string
+    {
+        if (!empty($preferredPath) && $this->isThemeStructureValid($preferredPath)) {
+            return $preferredPath;
+        }
+
+        $publicThemePath = public_path("themes/{$themeId}");
+        if ($this->isThemeStructureValid($publicThemePath)) {
+            return $publicThemePath;
+        }
+
+        if (in_array($themeId, self::CORE_THEMES, true) && defined('WNCMS_RESOURCES_PATH')) {
+            $coreThemePath = WNCMS_RESOURCES_PATH . 'themes' . DIRECTORY_SEPARATOR . $themeId;
+            if ($this->isThemeStructureValid($coreThemePath)) {
+                return $coreThemePath;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Resolve the configuration file path for a given theme ID.
      */
     protected function resolveThemeConfigFile(string $themeId): array
@@ -99,6 +123,23 @@ class ThemeManager
         }
 
         return [null, null];
+    }
+
+    public function isThemeStructureValid(string $themePath): bool
+    {
+        if (!File::isDirectory($themePath)) {
+            return false;
+        }
+
+        if (!File::exists($themePath . '/config.php')) {
+            return false;
+        }
+
+        if (!File::isDirectory($themePath . '/views')) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

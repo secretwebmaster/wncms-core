@@ -557,6 +557,20 @@ If `public/themes/{themeId}` does not exist and `{themeId}` is a core theme, WNC
 This fallback applies to config, views, translations, and `functions.php`.
 If the active theme is not a core theme and its public folder is missing, WNCMS keeps the inactive-theme behavior.
 
+### Theme Activation Validation
+
+A theme is treated as loadable only when both required structure parts exist:
+
+- `config.php`
+- `views/`
+
+`lang/` and `functions.php` are optional.
+
+If a public theme folder exists but misses required structure, WNCMS treats it as invalid and applies fallback logic:
+
+- for core themes: fallback to packaged core theme under `{WNCMS_RESOURCES_PATH}/themes/{themeId}`
+- for non-core themes: keep inactive-theme behavior
+
 ### 3. View Registration
 
 ```php
@@ -739,7 +753,7 @@ return view("{$themeId}::pages.show", compact('page'));
 ### Theme Not Loading
 
 1. Check theme folder exists in `/public/themes/{themeId}`
-2. Verify `config.php` exists and is valid
+2. Verify required structure exists: `config.php` and `views/`
 3. Check file permissions (755 for directories, 644 for files)
 4. Clear cache: `php artisan cache:clear`
 

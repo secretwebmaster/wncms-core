@@ -5,8 +5,6 @@ namespace Wncms\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Response;
 use Wncms\Services\Managers\ThemeManager;
 
 class ThemeServiceProvider extends ServiceProvider
@@ -35,14 +33,16 @@ class ThemeServiceProvider extends ServiceProvider
 
         $themeId = $website->theme ?: 'default';
         Event::dispatch('wncms.frontend.themes.boot.before', [&$themeId, $website]);
+        $themeManager = app(ThemeManager::class);
         view()->share('themeId', $themeId);
 
         if (gss('multi_website')) {
             $themes = wncms()->website()->getList()->pluck('theme')->unique()->toArray();
             foreach ($themes as $theme) {
                 $theme = $theme ?: 'default';
-                $themePath = $this->resolveThemePath($theme);
+                $themePath = $themeManager->resolveLoadableThemePath($theme);
                 Event::dispatch('wncms.frontend.themes.load.before', [&$theme, &$themePath, $website]);
+                $themePath = $themeManager->resolveLoadableThemePath($theme, $themePath);
                 if (!$themePath) {
                     continue;
                 }
@@ -62,8 +62,10 @@ class ThemeServiceProvider extends ServiceProvider
             }
         } else {
             // Determine theme path
-            $themePath = $this->resolveThemePath($themeId);
+            $themePath = $themeManager->resolveLoadableThemePath($themeId);
             Event::dispatch('wncms.frontend.themes.load.before', [&$themeId, &$themePath, $website]);
+            $themePath = $themeManager->resolveLoadableThemePath($themeId, $themePath);
+            view()->share('themeId', $themeId);
 
             // Missing non-core themes still show inactive screen
             if (!$themePath) {
@@ -86,23 +88,6 @@ class ThemeServiceProvider extends ServiceProvider
         }
 
         Event::dispatch('wncms.frontend.themes.boot.after', [$themeId, $website]);
-    }
-
-    protected function resolveThemePath(string $themeId): ?string
-    {
-        $publicThemePath = public_path("themes/{$themeId}");
-        if (File::exists($publicThemePath)) {
-            return $publicThemePath;
-        }
-
-        if (in_array($themeId, ThemeManager::CORE_THEMES)) {
-            $coreThemePath = WNCMS_RESOURCES_PATH . 'themes' . DIRECTORY_SEPARATOR . $themeId;
-            if (File::exists($coreThemePath)) {
-                return $coreThemePath;
-            }
-        }
-
-        return null;
     }
 
     /**
