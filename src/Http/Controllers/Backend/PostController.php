@@ -56,7 +56,7 @@ class PostController extends BackendController
         $post_category_parants = wncms()->getModel('tag')::where('type', 'post_category')->whereNull('parent_id')->with('children')->get();
 
         return $this->view('backend.posts.index', [
-            'page_title' => wncms_model_word('post', 'management'),
+            'page_title' => wncms()->getModelWord('post', 'management'),
             'posts' => $posts,
             'post_category_parants' => $post_category_parants,
             'sorts' => $this->modelClass::SORTS,
@@ -81,7 +81,7 @@ class PostController extends BackendController
         }
 
         return $this->view('backend.posts.create', [
-            'page_title' => wncms_model_word('post', 'management'),
+            'page_title' => wncms()->getModelWord('post', 'management'),
             'statuses' => $this->modelClass::STATUSES,
             'visibilities' => $this->modelClass::VISIBILITIES,
             'post_categories' => wncms()->tag()->getArray(tagType: "post_category", columnName: "name"),
@@ -203,7 +203,7 @@ class PostController extends BackendController
             $websites = auth()->user()->websites;
         }
         return $this->view('backend.posts.edit', [
-            'page_title' => wncms_model_word('post', 'management'),
+            'page_title' => wncms()->getModelWord('post', 'management'),
             'statuses' => $this->modelClass::STATUSES,
             'visibilities' => $this->modelClass::VISIBILITIES,
             'post_categories' => wncms()->tag()->getArray(tagType: "post_category", columnName: "name"),
@@ -413,7 +413,7 @@ class PostController extends BackendController
                 // $tempImageUrl = str_replace("../../..", $post->websites()->first()?->domain, $imageUrl);
                 $tempImageUrl = str_replace("../../..", "/", $imageUrl);
 
-                $tempImageUrl = wncms_add_https($tempImageUrl);
+                $tempImageUrl = wncms()->addHttps($tempImageUrl);
 
                 if (!$post->imageUrlExists($tempImageUrl)) {
                     continue;

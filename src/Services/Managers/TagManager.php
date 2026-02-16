@@ -255,10 +255,10 @@ class TagManager extends ModelManager
         $meta = collect($this->getAllTagTypes())->where('key', $tag->type)->first();
 
         // if($tag->type == 'post_category') {
-        //     dd($meta['route'], wncms_route_exists($meta['route']));
+        //     dd($meta['route'], wncms()->hasRoute($meta['route']));
         // }
 
-        if (!empty($meta['route']) && wncms_route_exists($meta['route'])) {
+        if (!empty($meta['route']) && wncms()->hasRoute($meta['route'])) {
             return route($meta['route'], [
                 'type' => $meta['short'],
                 'slug' => $tag->slug,

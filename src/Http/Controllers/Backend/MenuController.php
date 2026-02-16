@@ -22,7 +22,7 @@ class MenuController extends BackendController
         return $this->view('backend.menus.index', [
             'menus' => $menus,
             'websites' => $websites,
-            'page_title' => wncms_model_word('menu', 'management'),
+            'page_title' => wncms()->getModelWord('menu', 'management'),
         ]);
     }
 
@@ -98,7 +98,7 @@ class MenuController extends BackendController
         $menus = $this->modelClass::all();
 
         return $this->view('backend.menus.edit', [
-            'page_title' => wncms_model_word('menu', 'management'),
+            'page_title' => wncms()->getModelWord('menu', 'management'),
             'menus' => $menus,
             'menu' => $menu,
             'tagTypeArr' => $tagTypeArr,
@@ -220,11 +220,11 @@ class MenuController extends BackendController
         $success = $menu_item->update([
             'url' => $request->menu_item_url,
             'description' => $request->menu_item_description,
-            'icon' => wncms_get_fontawesome_class($request->menu_item_icon),
+            'icon' => str_replace(['<i class="', '"></i>'], '', (string) $request->menu_item_icon),
             'is_new_window' => !$request->menu_item_new_window ? false : true,
         ]);
 
-        // info(wncms_get_fontawesome_class($request->menu_item_icon));
+        // info(str_replace(['<i class="', '"></i>'], '', (string) $request->menu_item_icon));
 
         $menu_item->save();
 

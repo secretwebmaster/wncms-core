@@ -19,7 +19,7 @@ class RecordController extends BackendController
         $records = $q->paginate(50);
 
         return $this->view('backend.records.index',[
-            'page_title' => wncms_model_word('record', 'management'),
+            'page_title' => wncms()->getModelWord('record', 'management'),
             'records' => $records,
             'types' => $this->modelClass::TYPES,
             'sorts' => $this->modelClass::SORTS,

@@ -6,6 +6,11 @@ use Illuminate\Support\Facades\Route;
 
 trait RouteMethods
 {
+    public function hasRoute(string $name): bool
+    {
+        return Route::has($name);
+    }
+
     public function isActiveUrl(string $url, string $activeClass = 'active', ?string $inActiveClass = null): ?string
     {
         if ($url !== '/') {
@@ -36,7 +41,7 @@ trait RouteMethods
     {
         if (Route::has($name)) {
             if (!empty($domain)) {
-                return wncms_add_https($domain) . route($name, $params, false);
+                return wncms()->addHttps($domain) . route($name, $params, false);
             }
 
             return route($name, $params, $isFullPath);

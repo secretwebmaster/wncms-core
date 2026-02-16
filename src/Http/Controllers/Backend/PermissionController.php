@@ -40,7 +40,7 @@ class PermissionController extends Controller
         $permissions = $q->paginate($request->page_size ?? 50);
 
         return $this->view('backend.permissions.index', [
-            'page_title' => wncms_model_word('permission', 'management'),
+            'page_title' => wncms()->getModelWord('permission', 'management'),
             'permissions' => $permissions,
             'roles' => $roles,
         ]);
@@ -51,7 +51,7 @@ class PermissionController extends Controller
         $roles = Role::all();
         $permissions = Permission::all();
         return $this->view('backend.permissions.create', [
-            'page_title' => wncms_model_word('permission', 'management'),
+            'page_title' => wncms()->getModelWord('permission', 'management'),
             'roles' => $roles,
             'common_suffixes' => $this->common_suffixes,
             'permissions' => $permissions,
@@ -110,7 +110,7 @@ class PermissionController extends Controller
         $roles = Role::all();
 
         return $this->view('backend.permissions.edit', [
-            'page_title' => wncms_model_word('permission', 'management'),
+            'page_title' => wncms()->getModelWord('permission', 'management'),
             'permission' => $permission,
             'roles' => $roles,
         ]);

@@ -14,7 +14,7 @@ class SearchKeywordController extends BackendController
 
         $search_keywords = $q->get();
         return $this->view('backend.search_keywords.index', [
-            'page_title' => wncms_model_word('search_keyword', 'management'),
+            'page_title' => wncms()->getModelWord('search_keyword', 'management'),
             'search_keywords' => $search_keywords,
         ]);
     }
@@ -31,7 +31,7 @@ class SearchKeywordController extends BackendController
         }
 
         return $this->view('backend.search_keywords.create', [
-            'page_title' => wncms_model_word('search_keyword', 'management'),
+            'page_title' => wncms()->getModelWord('search_keyword', 'management'),
             'search_keyword' => $search_keyword,
         ]);
     }
@@ -75,7 +75,7 @@ class SearchKeywordController extends BackendController
         }
 
         return $this->view('backend.search_keywords.edit', [
-            'page_title' => wncms_model_word('search_keyword', 'management'),
+            'page_title' => wncms()->getModelWord('search_keyword', 'management'),
             'search_keyword' => $search_keyword,
         ]);
     }

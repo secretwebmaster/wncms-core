@@ -26,7 +26,7 @@ class ThemeController
         return wncms()->view('backend.themes.index', [
             'themes' => $themes,
             'invalidThemes' => $invalidThemes,
-            'page_title' => wncms_model_word('theme', 'management'),
+            'page_title' => wncms()->getModelWord('theme', 'management'),
         ]);
     }
 

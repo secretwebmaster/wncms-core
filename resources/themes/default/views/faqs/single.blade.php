@@ -21,7 +21,7 @@
 @endpush
 @section('content')
     <a href="{{ route('frontend.pages.blog') }}">@lang('wncms::word.blog')</a>
-    <h2>{{ wncms_model_word('faq', 'single') }}</h2>
+    <h2>{{ wncms()->getModelWord('faq', 'single') }}</h2>
 
     <h4>@lang('wncms::word.faq_detail')</h4>
     <div style="max-width: 100%;overflow-x:scroll">

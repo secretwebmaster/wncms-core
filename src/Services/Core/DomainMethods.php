@@ -4,6 +4,36 @@ namespace Wncms\Services\Core;
 
 trait DomainMethods
 {
+    public function addHttp(?string $link): ?string
+    {
+        if ($link === null) {
+            return null;
+        }
+
+        $scheme = parse_url($link, PHP_URL_SCHEME);
+
+        if (empty($scheme)) {
+            $link = 'http://' . ltrim($link, '/');
+        }
+
+        return $link;
+    }
+
+    public function addHttps(?string $link): ?string
+    {
+        if ($link === null) {
+            return null;
+        }
+
+        $scheme = parse_url($link, PHP_URL_SCHEME);
+
+        if (empty($scheme)) {
+            $link = 'https://' . ltrim($link, '/');
+        }
+
+        return $link;
+    }
+
     public function getDomain(?string $url = null): ?string
     {
         if (!$url) {

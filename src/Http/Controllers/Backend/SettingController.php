@@ -99,7 +99,7 @@ class SettingController extends Controller
         // Other actions (not in common list), maintain original order
         $otherActions = array_diff($allActions, $commonActionsOriginal);
 
-        $modelDisplayList = wncms_get_model_names();
+        $modelDisplayList = wncms()->getModelNames();
         $resolvedWebsiteModes = $this->getResolvedModelWebsiteModes($settings);
 
         $multisiteModels = collect($modelDisplayList)
@@ -135,7 +135,7 @@ class SettingController extends Controller
     public function update(Request $request)
     {
         if ($request->has('model_website_modes')) {
-            $allowedModelKeys = collect(wncms_get_model_names())
+            $allowedModelKeys = collect(wncms()->getModelNames())
                 ->filter(fn($modelData) => !empty($modelData['routes']))
                 ->map(function ($modelData) {
                     return !empty($modelData['model_key'])

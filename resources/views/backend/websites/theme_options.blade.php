@@ -52,7 +52,7 @@
 
 @push('head_js')
     <script src="{{ asset('wncms/js/sortable.min.js') }}"></script>
-    <script src="{{ asset('wncms/js/jquery.dragsort.min.js?v=' . wncms_get_version('js')) }}"></script>
+    <script src="{{ asset('wncms/js/jquery.dragsort.min.js') . wncms()->addVersion('js') }}"></script>
 @endpush
 
 @section('content')
@@ -60,7 +60,7 @@
     @include('wncms::backend.parts.message')
 
     <div class="row mx-auto mb-3 gx-1">
-        <div class="ms-0 mb-1 mb-md-0 col-12 col-md-auto"><a href="{{ wncms_add_https($_website->domain) }}" target="_blank" class="btn btn-sm btn-info fw-bold text-truncate w-100">@lang('wncms::word.current_website'): {{ $_website->site_name }} ({{ $_website->domain }})</a></div>
+        <div class="ms-0 mb-1 mb-md-0 col-12 col-md-auto"><a href="{{ wncms()->addHttps($_website->domain) }}" target="_blank" class="btn btn-sm btn-info fw-bold text-truncate w-100">@lang('wncms::word.current_website'): {{ $_website->site_name }} ({{ $_website->domain }})</a></div>
         <div class="ms-0 ms-md-1 mb-1 mb-md-0 col-6 col-md-auto"><span class="btn btn-sm btn-danger fw-bold text-truncate w-100">@lang('wncms::word.current_theme'): {{ $_website->theme }}</span></div>
         <div class="ms-0 ms-md-1 mb-1 mb-md-0 col-6 col-md-auto"><a href="{{ route('websites.edit', $_website) }}" class="btn btn-sm btn-primary fw-bold text-truncate w-100">@lang('wncms::word.switch_to_edit_website')</a></div>
         <div class="ms-0 ms-md-1 mb-1 mb-md-0 col-6 col-md-auto"><button type="button" class="btn btn-sm btn-primary fw-bold text-truncate w-100" data-bs-toggle="modal" data-bs-target="#clone_theme_options_from_another_website">@lang('wncms::word.clone_theme_options_from_another_website')</button></div>

@@ -164,7 +164,7 @@ class Website extends BaseModel implements HasMedia, ApiModelInterface
 
     public function getUrlAttribute()
     {
-        return wncms_add_https($this->domain);
+        return wncms()->addHttps($this->domain);
     }
 
 

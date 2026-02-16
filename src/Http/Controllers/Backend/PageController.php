@@ -41,7 +41,7 @@ class PageController extends BackendController
             ->toArray();
 
         return $this->view('backend.pages.index', [
-            'page_title' => wncms_model_word('page', 'management'),
+            'page_title' => wncms()->getModelWord('page', 'management'),
             'pages' => $pages,
             'sorts' => $this->modelClass::SORTS,
             'statuses' => $this->modelClass::STATUSES,
@@ -119,7 +119,7 @@ class PageController extends BackendController
         // dd($page_template_options, $page_template_values);
 
         return $this->view('backend.pages.create', [
-            'page_title' => wncms_model_word('page', 'management'),
+            'page_title' => wncms()->getModelWord('page', 'management'),
             'users'     => $users,
             'sorts'     => $this->modelClass::SORTS,
             'types'     => $this->modelClass::TYPES,
@@ -295,7 +295,7 @@ class PageController extends BackendController
         // dd($page->option('gallery_images'));
 
         return $this->view('backend.pages.edit', [
-            'page_title' => wncms_model_word('page', 'management'),
+            'page_title' => wncms()->getModelWord('page', 'management'),
             'page'     => $page,
             'users'    => $users,
             'statuses' => $this->modelClass::STATUSES,

@@ -53,7 +53,7 @@ class LinkController extends BackendController
         $parentLinkCategories = wncms()->getModelClass('tag')::where('type', 'link_category')->whereNull('parent_id')->get()->unique();
 
         return $this->view('backend.links.index', [
-            'page_title' =>  wncms_model_word('link', 'management'),
+            'page_title' =>  wncms()->getModelWord('link', 'management'),
             'links' => $links,
             'statuses' => $this->modelClass::STATUSES,
             'parentLinkCategories' => $parentLinkCategories,
@@ -73,7 +73,7 @@ class LinkController extends BackendController
         }
 
         return $this->view('backend.links.create', [
-            'page_title' =>  wncms_model_word('link', 'management'),
+            'page_title' =>  wncms()->getModelWord('link', 'management'),
             'link' => $link,
             'statuses' => $this->modelClass::STATUSES,
         ]);
@@ -143,7 +143,7 @@ class LinkController extends BackendController
         }
 
         return $this->view('backend.links.edit', [
-            'page_title' => wncms_model_word('link', 'management'),
+            'page_title' => wncms()->getModelWord('link', 'management'),
             'link' => $link,
             'statuses' => $this->modelClass::STATUSES,
         ]);

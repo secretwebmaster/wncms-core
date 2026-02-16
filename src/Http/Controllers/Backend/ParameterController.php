@@ -17,7 +17,7 @@ class ParameterController extends BackendController
         $parameters = $q->paginate($request->page_size ?? 100);
 
         return $this->view('backend.parameters.index', [
-            'page_title' =>  wncms_model_word('parameter', 'management'),
+            'page_title' =>  wncms()->getModelWord('parameter', 'management'),
             'parameters' => $parameters,
         ]);
     }
@@ -34,7 +34,7 @@ class ParameterController extends BackendController
         }
 
         return $this->view('backend.parameters.create', [
-            'page_title' =>  wncms_model_word('parameter', 'management'),
+            'page_title' =>  wncms()->getModelWord('parameter', 'management'),
             'parameter' => $parameter,
         ]);
     }
@@ -65,7 +65,7 @@ class ParameterController extends BackendController
         }
 
         return $this->view('backend.parameters.edit', [
-            'page_title' =>  wncms_model_word('parameter', 'management'),
+            'page_title' =>  wncms()->getModelWord('parameter', 'management'),
             'parameter' => $parameter,
         ]);
     }

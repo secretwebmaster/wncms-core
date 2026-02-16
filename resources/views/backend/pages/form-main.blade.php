@@ -8,7 +8,7 @@
             <div class="card-header border-0 cursor-pointer px-3 px-md-9 bg-dark">
                 <div class="card-title m-0">
                     <h3 class="fw-bolder m-0 d-block d-md-flex align-items-center text-gray-100">
-                        {{ $page->exists ? wncms_model_word('page', 'edit') : wncms_model_word('page', 'create') }}
+                        {{ $page->exists ? wncms()->getModelWord('page', 'edit') : wncms()->getModelWord('page', 'create') }}
                     </h3>
                 </div>
             </div>

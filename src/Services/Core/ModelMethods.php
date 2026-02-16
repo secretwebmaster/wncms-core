@@ -3,24 +3,90 @@
 namespace Wncms\Services\Core;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use ReflectionClass;
 
 trait ModelMethods
 {
     protected array $modelClassCache = [];
 
+    public function getModelWord(string $modelName, ?string $action = null): string
+    {
+        $modelTranslationKey = "wncms::word.{$modelName}";
+        $translatedModelName = __($modelTranslationKey);
+
+        if ($translatedModelName === $modelTranslationKey) {
+            $translatedModelName = ucfirst(str_replace('_', ' ', $modelName));
+        }
+
+        if (empty($action)) {
+            return $translatedModelName;
+        }
+
+        $actionKey = "wncms::word.model_{$action}";
+        $translatedAction = __($actionKey, ['model_name' => $translatedModelName]);
+
+        if ($translatedAction === $actionKey) {
+            $translatedAction = __("wncms::word.{$action}", ['model_name' => $translatedModelName]);
+        }
+
+        if ($translatedAction === $actionKey || empty($translatedAction)) {
+            return $translatedModelName . ' ' . ucfirst($action);
+        }
+
+        return $translatedAction;
+    }
+
     public function getModelNames()
     {
-        $path = app_path('Models') . '/*.php';
-        return collect(glob($path))->map(function ($file) {
-            $modelName = "\Wncms\Models\\" . basename($file, '.php');
-            $model = new $modelName;
-            return [
-                'name' => basename($file, '.php'),
-                'priority' => $model->menuPriority ?? 0,
-                'routes' => defined(get_class($model) . "::ROUTES") ? $model::ROUTES : null,
-            ];
-        });
+        $appModelPath = app_path('Models');
+        $packageModelPath = dirname(__DIR__, 2) . '/Models';
+
+        $appModels = collect(is_dir($appModelPath) ? File::allFiles($appModelPath) : [])
+            ->map(function ($file) use ($appModelPath) {
+                $relativePath = Str::replaceFirst($appModelPath . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                $namespacePath = str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath);
+                return 'App\\Models\\' . Str::replace('.php', '', $namespacePath);
+            });
+
+        $appModelBasenames = $appModels->map(fn($model) => class_basename($model))->unique();
+
+        $packageModels = collect(is_dir($packageModelPath) ? File::allFiles($packageModelPath) : [])
+            ->map(function ($file) use ($packageModelPath) {
+                $relativePath = Str::replaceFirst($packageModelPath . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                $namespacePath = str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath);
+                return 'Wncms\\Models\\' . Str::replace('.php', '', $namespacePath);
+            })
+            ->filter(fn($modelName) => !$appModelBasenames->contains(class_basename($modelName)));
+
+        return $appModels->merge($packageModels)
+            ->map(function ($modelName) {
+                if (!class_exists($modelName)) {
+                    return null;
+                }
+
+                $ref = new ReflectionClass($modelName);
+                if ($ref->isAbstract()) {
+                    return null;
+                }
+
+                $model = new $modelName;
+                $modelNameBase = class_basename($modelName);
+
+                return [
+                    // Legacy helper-compatible keys
+                    'model_name' => $modelNameBase,
+                    'model_key' => property_exists($model, 'modelKey') ? $model::$modelKey : null,
+                    'model_name_with_namespace' => $modelName,
+                    'priority' => property_exists($model, 'menuPriority') ? $model->menuPriority : 0,
+                    'routes' => defined($modelName . '::ROUTES') ? $modelName::ROUTES : null,
+                    // Backward compatibility for existing getModelNames() consumers
+                    'name' => $modelNameBase,
+                ];
+            })
+            ->filter()
+            ->values();
     }
 
     public function getModel(string $key): Model

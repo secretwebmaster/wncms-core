@@ -95,7 +95,7 @@
             <div class="menu-item">
                 <a class="menu-link @if(request()->routeIs('tags.index') && in_array($tag_type, request()->route()->parameters)) active @endif" href="{{ route('tags.index' , ['type'=>$tag_type]) }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                    <span class="menu-title fw-bold">{{ wncms_tag_word($tag_type) }}</span>
+                    <span class="menu-title fw-bold">{{ __('wncms::word.' . str($tag_type)->beforeLast('_')) . __('wncms::word.word_separator') . __('wncms::word.' . str($tag_type)->afterLast('_')) }}</span>
                 </a>
             </div>
             @endforeach --}}
@@ -196,7 +196,6 @@ vendor/secretwebmaster/wncms-core/src/Services/Managers/AdvertisementManager.php
     </div> --}}
 
 @endrole
-
 
 
 

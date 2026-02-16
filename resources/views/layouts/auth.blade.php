@@ -6,7 +6,7 @@
         <title>{{ $website?->site_name ?? gss('system_name') ?? __('wncms::word.wncms') }}</title>
         <meta name="description" content="{{ $website?->site_seo_description ?? gss('system_description') }}">
         <meta name="keywords" content="{{ $website?->site_keyword  ?? gss('system_keyword') }}">
-        <link rel="canonical" href="{{ wncms_add_https($website?->domain) }}">
+        <link rel="canonical" href="{{ wncms()->addHttps($website?->domain) }}">
         <link rel="shortcut icon" href="{{ $website?->site_favicon ?: asset('wncms/images/logos/favicon.png') }}">
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <meta name="csrf-token" content="{{ csrf_token() }}">

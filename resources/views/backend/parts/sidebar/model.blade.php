@@ -8,7 +8,7 @@
 </div>
 
 @php
-    $models = wncms_get_model_names()->sortByDesc('priority');
+    $models = wncms()->getModelNames()->sortByDesc('priority');
     $modelMenuItems = [];
 
     foreach ($models as $modelData) {
@@ -67,12 +67,12 @@
 
             <div class="menu-sub menu-sub-accordion">
                 @foreach($menuItem['model']::ROUTES as $route_name)
-                    @if(wncms_route_exists($menuItem['table_name'] . '.' . $route_name))
+                    @if(wncms()->hasRoute($menuItem['table_name'] . '.' . $route_name))
                         @can($menuItem['snake_name'] . "_" . $route_name)
                             <div class="menu-item">
                                 <a class="menu-link @if(request()->routeIs($menuItem['table_name'] . '.'. $route_name .'*')) active @endif" href="{{ route($menuItem['table_name'] . '.' . $route_name) }}">
                                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                    <span class="menu-title fw-bold">{{ wncms_model_word($menuItem['snake_name'] . '', $route_name) }}</span>
+                                    <span class="menu-title fw-bold">{{ wncms()->getModelWord($menuItem['snake_name'] . '', $route_name) }}</span>
                                 </a>
                             </div>
                         @endcan
@@ -80,12 +80,12 @@
                 @endforeach
 
                 @foreach($menuItem['sub_routes'] as $subRoute)
-                    @if(wncms_route_exists($subRoute['route_name']))
+                    @if(wncms()->hasRoute($subRoute['route_name']))
                         @can($subRoute['permission_name'])
                             <div class="menu-item">
                                 <a class="menu-link @if(request()->routeIs($subRoute['sub_model_class_name'] . '.' . $subRoute['route_suffix'])) active @endif" href="{{ route($subRoute['route_name']) }}">
                                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                    <span class="menu-title fw-bold">{{ wncms_model_word($subRoute['sub_snake_name'] . '', $subRoute['route_suffix']) }}</span>
+                                    <span class="menu-title fw-bold">{{ wncms()->getModelWord($subRoute['sub_snake_name'] . '', $subRoute['route_suffix']) }}</span>
                                 </a>
                             </div>
                         @endcan
@@ -121,13 +121,13 @@
 
                 <div class="menu-sub menu-sub-accordion">
                     @foreach($model::ROUTES as $route_name)
-                        @if(wncms_route_exists($table_name . '.' . $route_name))
+                        @if(wncms()->hasRoute($table_name . '.' . $route_name))
                             @can($snake_name . "_" . $route_name)
                                 <div class="menu-item">
                                     <a class="menu-link @if(request()->routeIs($table_name . '.'. $route_name .'*')) active @endif" href="{{ route($table_name . '.' . $route_name) }}">
                                         <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
                                         {{-- <span class="menu-title fw-bold">@lang('wncms::word.' . $table_name . "_" . $route_name)</span> --}}
-                                        <span class="menu-title fw-bold">{{ wncms_model_word($snake_name . '', $route_name) }}</span>
+                                        <span class="menu-title fw-bold">{{ wncms()->getModelWord($snake_name . '', $route_name) }}</span>
                                     </a>
                                 </div>
                             @endcan
@@ -147,12 +147,12 @@
                                 $permission_name = $sub_snake_name . "_" . $route_suffix;
                             @endphp
 
-                            @if(wncms_route_exists($route_name))
+                            @if(wncms()->hasRoute($route_name))
                                 @can($permission_name)
                                     <div class="menu-item">
                                         <a class="menu-link @if(request()->routeIs($sub_model_class_name . '.' . $route_suffix)) active @endif" href="{{ route($route_name) }}">
                                             <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                            <span class="menu-title fw-bold">{{ wncms_model_word($sub_snake_name . '', $route_suffix) }}</span>
+                                            <span class="menu-title fw-bold">{{ wncms()->getModelWord($sub_snake_name . '', $route_suffix) }}</span>
                                         </a>
                                     </div>
                                 @endcan

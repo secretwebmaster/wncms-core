@@ -44,7 +44,7 @@
 
 @push('head_js')
     <script src="{{ asset('wncms/js/sortable.min.js') }}"></script>
-    <script src="{{ asset('wncms/js/jquery.dragsort.min.js?v=' . wncms_get_version('js')) }}"></script>
+    <script src="{{ asset('wncms/js/jquery.dragsort.min.js') . wncms()->addVersion('js') }}"></script>
 @endpush
 
 <div class="row">

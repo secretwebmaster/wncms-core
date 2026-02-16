@@ -10,7 +10,7 @@
 <div class="card">
     <div class="card-header border-0 cursor-pointer px-3 px-md-9 bg-dark">
         <div class="card-title m-0">
-            <h3 class="fw-bolder m-0 text-gray-100">{{ wncms_model_word('link', 'create') }}</h3>
+            <h3 class="fw-bolder m-0 text-gray-100">{{ wncms()->getModelWord('link', 'create') }}</h3>
         </div>
     </div>
 

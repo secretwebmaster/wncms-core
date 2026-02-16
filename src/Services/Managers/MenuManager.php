@@ -157,7 +157,7 @@ class MenuManager extends ModelManager
             $table = (new $modelClass)->getTable();
             $routeName = "frontend.{$table}.show";
 
-            if (wncms_route_exists($routeName)) {
+            if (wncms()->hasRoute($routeName)) {
                 $model = wncms()->getModel(strtolower($menuItem->model_type))->get(['id' => $menuItem->model_id]);
                 if ($model && $model->slug) {
                     return route($routeName, ['slug' => $model->slug]);

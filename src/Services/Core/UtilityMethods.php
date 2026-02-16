@@ -114,6 +114,26 @@ trait UtilityMethods
         return rtrim(rtrim(number_format($number, $digits), '0'), '.');
     }
 
+    public function getImageType(?string $imagePath): string
+    {
+        if (empty($imagePath)) {
+            return 'image/jpeg';
+        }
+
+        try {
+            if (file_exists($imagePath)) {
+                $imageInfo = getimagesize($imagePath);
+
+                if (is_array($imageInfo) && isset($imageInfo['mime'])) {
+                    return $imageInfo['mime'];
+                }
+            }
+        } catch (\Exception $e) {
+        }
+
+        return 'image/jpeg';
+    }
+
     /**
      * Normalize a width/height value.
      *

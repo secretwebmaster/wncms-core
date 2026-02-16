@@ -12,10 +12,10 @@
 
 {{-- Create --}}
 @if(!$hideToolbarCreateButton)
-    @if(wncms_route_exists($model_prefix . '.create'))
+    @if(wncms()->hasRoute($model_prefix . '.create'))
         @if(auth()->user()->can(str($model_prefix)->singular() . '_create'))
             <a href="{{ route($model_prefix . '.create') }}" class="btn btn-sm btn-primary fw-bold mb-1">
-                {{ wncms_model_word($label_prefix, 'create') }}
+                {{ wncms()->getModelWord($label_prefix, 'create') }}
             </a>
         @endif
     @endif
@@ -24,10 +24,10 @@
 
 {{-- Bulk Create --}}
 @if(!$hideToolbarBulkCreateButton)
-    @if(wncms_route_exists($model_prefix . '.create.bulk'))
+    @if(wncms()->hasRoute($model_prefix . '.create.bulk'))
         @if(auth()->user()->can(str($model_prefix)->singular() . '_bulk_create'))
             <a href="{{ route($model_prefix . '.create.bulk') }}" class="btn btn-sm btn-primary fw-bold mb-1">
-                {{ wncms_model_word($label_prefix, 'bulk_create') }}
+                {{ wncms()->getModelWord($label_prefix, 'bulk_create') }}
             </a>
         @endif
     @endif
@@ -36,10 +36,10 @@
 
 {{-- Clone --}}
 @if(!$hideToolbarCloneButton)
-    @if(wncms_route_exists($model_prefix . '.clone.bulk'))
+    @if(wncms()->hasRoute($model_prefix . '.clone.bulk'))
         @if(auth()->user()->can(str($model_prefix)->singular() . '_clone'))
             <button class="btn btn-sm btn-info fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_clone_{{ $model_prefix }}">
-                {{ wncms_model_word($label_prefix, 'clone') }}
+                {{ wncms()->getModelWord($label_prefix, 'clone') }}
             </button>
 
             {{-- Modal --}}
@@ -52,7 +52,7 @@
                         </div>
 
                         <div class="modal-body">
-                            <p>{{ wncms_model_word($label_prefix, 'clone') }}</p>
+                            <p>{{ wncms()->getModelWord($label_prefix, 'clone') }}</p>
 
                             <div class="row mb-6">
                                 <div class="col">
@@ -83,10 +83,10 @@
 
 {{-- Bulk Delete --}}
 @if(!$hideToolbarBulkDeleteButton)
-    @if(wncms_route_exists($model_prefix . '.bulk_delete'))
+    @if(wncms()->hasRoute($model_prefix . '.bulk_delete'))
         @if(auth()->user()->can(str($model_prefix)->singular() . '_bulk_delete'))
             <button class="btn btn-sm btn-danger fw-bold mb-1" data-bs-toggle="modal" data-bs-target="#modal_delete_{{ $model_prefix }}">
-                {{ wncms_model_word($label_prefix, 'bulk_delete') }}
+                {{ wncms()->getModelWord($label_prefix, 'bulk_delete') }}
             </button>
 
             {{-- Modal --}}
@@ -94,7 +94,7 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3 class="modal-title">{{ wncms_model_word($label_prefix, 'bulk_delete') }}</h3>
+                            <h3 class="modal-title">{{ wncms()->getModelWord($label_prefix, 'bulk_delete') }}</h3>
                             <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal"></div>
                         </div>
 
@@ -105,7 +105,7 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">@lang('wncms::word.cancel')</button>
                             <button class="btn btn-sm btn-danger fw-bold bulk_delete_models" data-model="{{ $model_prefix }}" data-route="{{ route($model_prefix . '.bulk_delete') }}">
-                                <span class="indicator-label">{{ wncms_model_word($label_prefix, 'bulk_delete') }}</span>
+                                <span class="indicator-label">{{ wncms()->getModelWord($label_prefix, 'bulk_delete') }}</span>
                                 <span class="indicator-progress">@lang('wncms::word.please_wait')...<span class="spinner-border spinner-border-sm ms-2"></span></span>
                             </button>
                         </div>

@@ -48,7 +48,7 @@ class AdvertisementController extends BackendController
         $advertisements = $q->paginate($request->page_size ?? 20);
 
         return $this->view('backend.advertisements.index', [
-            'page_title' => wncms_model_word('advertisement', 'management'),
+            'page_title' => wncms()->getModelWord('advertisement', 'management'),
             'advertisements' => $advertisements,
             'sorts' => $this->modelClass::SORTS,
             'statuses' => $this->modelClass::STATUSES,
@@ -71,7 +71,7 @@ class AdvertisementController extends BackendController
         $websites = wncms()->website()->getList();
 
         return $this->view('backend.advertisements.create', [
-            'page_title' => wncms_model_word('advertisement', 'management'),
+            'page_title' => wncms()->getModelWord('advertisement', 'management'),
             'advertisement' => $advertisement ?? new $this->modelClass,
             'advertisement_tags' => $advertisementTags,
             'positions' => $this->modelClass::POSITIONS,
@@ -148,7 +148,7 @@ class AdvertisementController extends BackendController
         $websites = wncms()->website()->getList();
 
         return $this->view('backend.advertisements.edit', [
-            'page_title' => wncms_model_word('advertisement', 'management'),
+            'page_title' => wncms()->getModelWord('advertisement', 'management'),
             'advertisement' => $advertisement,
             'advertisement_tags' => $advertisementTags,
             'positions' => $this->modelClass::POSITIONS,

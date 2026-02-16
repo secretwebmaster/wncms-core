@@ -14,7 +14,7 @@
                     <span class="text-gray-100">@lang('wncms::word.edit_website')</span>
                 </h3>
                 <div class="d-none d-md-flex">
-                    <a href="{{ wncms_add_https($website->domain) }}" target="_blank" class="btn btn-sm btn-info fw-bold ms-0 ms-md-3">@lang('wncms::word.current_website'): {{ $website->site_name }} ({{ $website->domain }})</a>
+                    <a href="{{ wncms()->addHttps($website->domain) }}" target="_blank" class="btn btn-sm btn-info fw-bold ms-0 ms-md-3">@lang('wncms::word.current_website'): {{ $website->site_name }} ({{ $website->domain }})</a>
                 </div>
                 <div class="card-toolbar flex-row-fluid justify-content-end text-nowrap ms-3">
                     <a href="{{ route('websites.theme.options', $website) }}" class="btn btn-sm btn-light fw-bold">@lang('wncms::word.switch_to_theme_options')</a>

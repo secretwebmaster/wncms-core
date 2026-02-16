@@ -16,7 +16,7 @@ class ChannelController extends BackendController
         $channels = $q->paginate($request->page_size ?? 100);
 
         return $this->view('backend.channels.index', [
-            'page_title' =>  wncms_model_word('channel', 'management'),
+            'page_title' =>  wncms()->getModelWord('channel', 'management'),
             'channels' => $channels,
         ]);
     }
@@ -33,7 +33,7 @@ class ChannelController extends BackendController
         }
 
         return $this->view('backend.channels.create', [
-            'page_title' =>  wncms_model_word('channel', 'management'),
+            'page_title' =>  wncms()->getModelWord('channel', 'management'),
             'channel' => $channel,
         ]);
     }
@@ -75,7 +75,7 @@ class ChannelController extends BackendController
         }
 
         return $this->view('backend.channels.edit', [
-            'page_title' =>  wncms_model_word('channel', 'management'),
+            'page_title' =>  wncms()->getModelWord('channel', 'management'),
             'channel' => $channel,
         ]);
     }

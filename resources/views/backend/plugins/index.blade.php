@@ -53,7 +53,7 @@
             ])
 
             {{-- upload_plugin --}}
-            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#modal_upload_plugin">{{ wncms_model_word('plugin', 'upload') }}</button>
+            <button type="button" class="btn btn-sm btn-primary fw-bold mb-1 mb-1" data-bs-toggle="modal" data-bs-target="#modal_upload_plugin">{{ wncms()->getModelWord('plugin', 'upload') }}</button>
             <div class="modal fade" tabindex="-1" id="modal_upload_plugin">
                 <div class="modal-dialog">
                     <form action="{{ route('plugins.upload') }}" method="POST" enctype="multipart/form-data">

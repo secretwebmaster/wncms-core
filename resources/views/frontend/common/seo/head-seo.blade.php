@@ -19,7 +19,7 @@
 <meta property="og:image" content="{{ $seoImage ?? '' }}" />
 <meta property="og:image:width" content="{{ $seoImageWidth ?? '800' }}" />
 <meta property="og:image:height" content="{{ $seoImageHeight ?? '450' }}" />
-<meta property="og:image:type" content="{{ !empty($seoImage) ? getSeoImageType($seoImage) : 'image/jpeg' }}">
+<meta property="og:image:type" content="{{ !empty($seoImage) ? wncms()->getImageType($seoImage) : 'image/jpeg' }}">
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="{{ $seoTitle ?? ($$page_title ?? ($pageTitle ?? ($website?->site_name ?? ''))) }}" />
 <meta name="twitter:description" content="{{ $seoDescription ?? ($website?->site_seo_description ?? '') }}" />

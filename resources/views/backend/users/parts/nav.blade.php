@@ -10,8 +10,8 @@
             // ['icon' => 'fa-solid fa-file-lines','tab' => 'credit_records'],
         ] as $user_tab)
     <li class="nav-item">
-        <a class="nav-link text-gray-600 text-active-primary text-hover-primary ms-0 mt-0 pt-0 pb-5 {{ wncms_route_is("users.account.{$user_tab['tab']}.show", 'active') }}" href="{{ route("users.account.{$user_tab['tab']}.show") }}">
-            <i class="{{ $user_tab['icon'] }} {{ wncms_route_is("users.account.{$user_tab['tab']}.show", 'fa-beat') }}"></i>
+        <a class="nav-link text-gray-600 text-active-primary text-hover-primary ms-0 mt-0 pt-0 pb-5 {{ request()->routeIs("users.account.{$user_tab['tab']}.show") ? 'active' : '' }}" href="{{ route("users.account.{$user_tab['tab']}.show") }}">
+            <i class="{{ $user_tab['icon'] }} {{ request()->routeIs("users.account.{$user_tab['tab']}.show") ? 'fa-beat' : '' }}"></i>
             @lang("wncms::word.user_{$user_tab['tab']}")
         </a>
     </li>

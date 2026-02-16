@@ -11,19 +11,19 @@
 
     {{-- Dashboard --}}
     <div class="menu-item">
-        <a class="menu-link py-2 {{ wncms_route_is('dashboard', 'active') }}" href="{{ route('dashboard') }}">
+        <a class="menu-link py-2 {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
             <span class="menu-icon">
-                <i class="fa-lg fa-solid fa-computer {{ wncms_route_is('dashboard', 'fa-beat') }}"></i>
+                <i class="fa-lg fa-solid fa-computer {{ request()->routeIs('dashboard') ? 'fa-beat' : '' }}"></i>
             </span>
             <span class="menu-title fw-bold">@lang('wncms::word.dashboard')</span>
         </a>
     </div>
 
     {{-- user info --}}
-    <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ wncms_route_is('users.account.*', 'show') }}">
+    <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ request()->routeIs('users.account.*') ? 'show' : '' }}">
         <span class="menu-link py-2">
             <span class="menu-icon">
-                <i class="fa-lg fa-solid fa-user {{ wncms_route_is('users.account.*', 'fa-beat') }}"></i>
+                <i class="fa-lg fa-solid fa-user {{ request()->routeIs('users.account.*') ? 'fa-beat' : '' }}"></i>
             </span>
             <span class="menu-title fw-bold">@lang('wncms::word.my_account')</span>
             <span class="menu-arrow"></span>
@@ -31,19 +31,19 @@
 
         <div class="menu-sub menu-sub-accordion">
             <div class="menu-item">
-                <a class="menu-link {{ wncms_route_is('users.account.profile.show', 'active') }}" href="{{ route('users.account.profile.show') }}">
+                <a class="menu-link {{ request()->routeIs('users.account.profile.show') ? 'active' : '' }}" href="{{ route('users.account.profile.show') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
                     <span class="menu-title fw-bold">@lang('wncms::word.user_profile')</span>
                 </a>
             </div>
             <div class="menu-item">
-                <a class="menu-link {{ wncms_route_is('users.account.security.show', 'active') }}" href="{{ route('users.account.security.show') }}">
+                <a class="menu-link {{ request()->routeIs('users.account.security.show') ? 'active' : '' }}" href="{{ route('users.account.security.show') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
                     <span class="menu-title fw-bold">@lang('wncms::word.user_security')</span>
                 </a>
             </div>
             <div class="menu-item">
-                <a class="menu-link {{ wncms_route_is('users.account.api.show', 'active') }}" href="{{ route('users.account.api.show') }}">
+                <a class="menu-link {{ request()->routeIs('users.account.api.show') ? 'active' : '' }}" href="{{ route('users.account.api.show') }}">
                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
                     <span class="menu-title fw-bold">@lang('wncms::word.user_api')</span>
                 </a>

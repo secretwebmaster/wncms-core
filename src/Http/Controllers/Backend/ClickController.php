@@ -109,7 +109,7 @@ class ClickController extends BackendController
         $channels = Channel::all();
 
         return $this->view('backend.clicks.index', [
-            'page_title' => wncms_model_word('click', 'management'),
+            'page_title' => wncms()->getModelWord('click', 'management'),
             'clicks' => $clicks,
             'channels' => $channels,
             'parameters' => $parameters,

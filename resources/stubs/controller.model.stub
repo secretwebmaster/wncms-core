@@ -24,7 +24,7 @@ class {{ class }} extends BackendController
         ${{ modelVariable }}s = $q->paginate($request->page_size ?? 100);
 
         return $this->view('backend.{{ modelVariable }}s.index', [
-            'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
+            'page_title' => wncms()->getModelWord('{{ modelVariable }}', 'management'),
             '{{ modelVariable }}s' => ${{ modelVariable }}s,
         ]);
     }
@@ -34,7 +34,7 @@ class {{ class }} extends BackendController
         ${{ modelVariable }} ??= new {{ model }};
 
         return $this->view('backend.{{ modelVariable }}s.create', [
-            'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
+            'page_title' => wncms()->getModelWord('{{ modelVariable }}', 'management'),
             '{{ modelVariable }}' => ${{ modelVariable }},
         ]);
     }
@@ -55,7 +55,7 @@ class {{ class }} extends BackendController
     public function edit({{ model }} ${{ modelVariable }})
     {
         return $this->view('backend.{{ modelVariable }}s.edit', [
-            'page_title' => wncms_model_word('{{ modelVariable }}', 'management'),
+            'page_title' => wncms()->getModelWord('{{ modelVariable }}', 'management'),
             '{{ modelVariable }}' => ${{ modelVariable }},
         ]);
     }

@@ -36,7 +36,7 @@
         @if(!empty($menu['items']))
             <div class="menu-sub menu-sub-accordion">
                 @foreach($menu['items'] as $item)
-                    @if(!empty($item['route']) && wncms_route_exists($item['route']))
+                    @if(!empty($item['route']) && wncms()->hasRoute($item['route']))
                         <div class="menu-item">
                             <a class="menu-link @if(request()->routeIs(($item['route'] ?? '') . '*')) active @endif" href="{{ route($item['route']) }}">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>

@@ -365,7 +365,7 @@
                             </td>
                             <td>{{ $website->id }}</td>
                             <td><span class="px-2 py-1 rounded fw-bold">{{ $website->site_name }}</span></td>
-                            <td><a href="{{ wncms_add_http($website->domain) }}" target="_blank">{{ $website->domain }}</a></td>
+                            <td><a href="{{ wncms()->addHttp($website->domain) }}" target="_blank">{{ $website->domain }}</a></td>
                             <td>{{ $website->traffics_count }}</td>
                             <td>
                                 @foreach($website->users as $user)

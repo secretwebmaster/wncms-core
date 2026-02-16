@@ -14,7 +14,7 @@ class RoleController extends Controller
     {
         $roles = Role::query()->get();
         return $this->view('backend.roles.index', [
-            'page_title' => wncms_model_word('role', 'management'),
+            'page_title' => wncms()->getModelWord('role', 'management'),
             'roles' => $roles,
         ]);
     }
@@ -22,7 +22,7 @@ class RoleController extends Controller
     public function create()
     {
         return $this->view('backend.roles.create', [
-            'page_title' => wncms_model_word('role', 'management'),
+            'page_title' => wncms()->getModelWord('role', 'management'),
         ]);
     }
 
@@ -48,7 +48,7 @@ class RoleController extends Controller
     {
         $permissions = Permission::all();
         return $this->view('backend.roles.edit', [
-            'page_title' => wncms_model_word('role', 'management'),
+            'page_title' => wncms()->getModelWord('role', 'management'),
             'role' => $role,
             'permissions' => $permissions,
         ]);

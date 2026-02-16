@@ -63,7 +63,7 @@ class CreateModel extends Command
             $content = str_replace("backend.{$plural_camel}.", "backend.{$plural_snake}.", $content);
             $content = str_replace("route('{$plural_camel}.", "route('{$plural_snake}.", $content);
             $content = str_replace("->tags(['{$plural_camel}'])", "->tags(['{$plural_snake}'])", $content);
-            $content = str_replace("wncms_model_word('{$singular_camel}'", "wncms_model_word('{$singular_snake}'", $content);
+            $content = str_replace("wncms()->getModelWord('{$singular_camel}'", "wncms()->getModelWord('{$singular_snake}'", $content);
 
             File::put($controller_file, $content);
             $this->info("Controller {$controller_file} has been updated");

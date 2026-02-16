@@ -43,7 +43,7 @@
                         @if(gss('multi_website'))
                         <div class="menu-item me-lg-1">
                             <a class="menu-link p-2" href="{{ route('websites.index') }}">
-                                <span class="menu-title text-dark fw-bold">{{ wncms_model_word('website', 'index') }}</span>
+                                <span class="menu-title text-dark fw-bold">{{ wncms()->getModelWord('website', 'index') }}</span>
                             </a>
                         </div>
                         @else
@@ -116,7 +116,7 @@
 
                             @foreach($wncms->website()->getList() as $website)
                                 <div class="menu-item">
-                                    <a href="{{ wncms_add_http($website->domain) }}" class="menu-link" target="_blank">
+                                    <a href="{{ wncms()->addHttp($website->domain) }}" class="menu-link" target="_blank">
                                         <span class="menu-text">{{ $website->domain }}</span>
                                         @if($website->created_at > today()->addDays(-7))
                                         <span class="menu-badge"><span class="badge badge-light-danger fw-bold fs-7">@lang('wncms::word.new')</span></span>

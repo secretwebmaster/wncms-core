@@ -23,7 +23,7 @@
         <div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8">
             @include('wncms::auth.btn-force-https')
             
-            @if (Route::has('password.request'))
+            @if (wncms()->hasRoute('password.request'))
                 <a href="{{ route('password.request') }}" class="link-light fw-bold">@lang('wncms::word.forgot_password') ?</a>
             @endif
         </div>

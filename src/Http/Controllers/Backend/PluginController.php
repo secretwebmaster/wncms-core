@@ -45,7 +45,7 @@ class PluginController extends Controller
         // dd($rawPlugins);
 
         return $this->view('backend.plugins.index', [
-            'page_title' => wncms_model_word('plugin', 'management'),
+            'page_title' => wncms()->getModelWord('plugin', 'management'),
             'rawPlugins' => $rawPlugins,
             'plugins' => $plugins,
         ]);

@@ -399,7 +399,7 @@ class TagController extends BackendController
     public function create_type()
     {
         return $this->view('backend.tags.types.create', [
-            'page_title' => wncms_model_word('tag', 'management'),
+            'page_title' => wncms()->getModelWord('tag', 'management'),
         ]);
     }
 
