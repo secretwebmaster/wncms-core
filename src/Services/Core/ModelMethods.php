@@ -169,4 +169,56 @@ trait ModelMethods
             return new $class;
         }
     }
+
+    public function isModelActive(string|Model $model): bool
+    {
+        $modelClass = $model instanceof Model ? get_class($model) : (string) $model;
+
+        if (!class_exists($modelClass)) {
+            try {
+                $modelClass = $this->getModelClass($modelClass);
+            } catch (\Throwable $e) {
+                return false;
+            }
+        }
+
+        $isPackageModel = !str_starts_with($modelClass, 'Wncms\\') && !str_starts_with($modelClass, 'App\\');
+        if ($isPackageModel) {
+            return true;
+        }
+
+        $raw = function_exists('gss') ? gss('active_models', '[]') : '[]';
+        $activeModels = is_array($raw) ? $raw : json_decode((string) $raw, true);
+
+        if (!is_array($activeModels) || empty($activeModels)) {
+            return true;
+        }
+
+        $modelBaseName = class_basename($modelClass);
+        $modelKey = Str::snake(Str::singular($modelBaseName));
+
+        if (property_exists($modelClass, 'modelKey') && !empty($modelClass::$modelKey)) {
+            $modelKey = Str::snake(Str::singular((string) $modelClass::$modelKey));
+        }
+
+        $activeTokens = collect($activeModels)
+            ->map(fn($item) => Str::lower((string) $item))
+            ->filter()
+            ->flatMap(function (string $item) {
+                $base = class_basename($item);
+                return [
+                    $item,
+                    Str::lower($base),
+                    Str::lower(Str::snake(Str::singular($item))),
+                    Str::lower(Str::snake(Str::singular($base))),
+                ];
+            })
+            ->unique()
+            ->values()
+            ->all();
+
+        return in_array(Str::lower($modelClass), $activeTokens, true)
+            || in_array(Str::lower($modelBaseName), $activeTokens, true)
+            || in_array(Str::lower($modelKey), $activeTokens, true);
+    }
 }

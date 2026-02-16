@@ -100,6 +100,19 @@ abstract class BaseModel extends Model implements BaseModelInterface
         return in_array(static::getMultiWebsiteMode(), ['single', 'multi'], true);
     }
 
+    public function isActive(): bool
+    {
+        if (!function_exists('wncms')) {
+            return true;
+        }
+
+        try {
+            return (bool) wncms()->isModelActive(static::class);
+        } catch (\Throwable $e) {
+            return true;
+        }
+    }
+
     public static function getTagMeta(): array
     {
         $raw = static::$tagMetas ?? [];

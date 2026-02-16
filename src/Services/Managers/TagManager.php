@@ -413,45 +413,14 @@ class TagManager extends ModelManager
     public function getActiveModelTagTypes(): array
     {
         $allTagTypes = $this->getRegisteredTagTypes();
-        $activeModels = json_decode((string) gss('active_models', '[]'), true);
-
-        if (!is_array($activeModels)) {
-            return $allTagTypes;
-        }
-
-        $activeTokens = collect($activeModels)
-            ->map(fn($modelName) => (string) $modelName)
-            ->filter()
-            ->flatMap(function (string $modelName) {
-                $base = class_basename($modelName);
-                return [
-                    Str::lower($modelName),
-                    Str::lower($base),
-                    Str::lower(Str::snake(Str::singular($modelName))),
-                    Str::lower(Str::snake(Str::singular($base))),
-                ];
-            })
-            ->unique()
-            ->values()
-            ->all();
-
-        if (empty($activeTokens)) {
-            return $allTagTypes;
-        }
-
-        return array_values(array_filter($allTagTypes, function ($meta) use ($activeTokens) {
+        
+        return array_values(array_filter($allTagTypes, function ($meta) {
             $modelClass = (string) ($meta['model'] ?? '');
-            $modelBaseName = class_basename($modelClass);
-            $modelKey = (string) ($meta['model_key'] ?? Str::snake(Str::singular($modelBaseName)));
-
-            $isPackageModel = !str_starts_with($modelClass, 'Wncms\\') && !str_starts_with($modelClass, 'App\\');
-            if ($isPackageModel) {
-                return true;
+            if (empty($modelClass)) {
+                return false;
             }
 
-            return in_array(Str::lower($modelBaseName), $activeTokens, true)
-                || in_array(Str::lower(Str::snake(Str::singular($modelBaseName))), $activeTokens, true)
-                || in_array(Str::lower($modelKey), $activeTokens, true);
+            return wncms()->isModelActive($modelClass);
         }));
     }
 
