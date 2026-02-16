@@ -73,7 +73,9 @@ class ProductManager extends ModelManager
         $this->applyWebsiteId($q, $options['website_id'] ?? null);
 
         // 排序与限制
-        $this->applyOrdering($q, $options['order'] ?? 'id', $options['sequence'] ?? 'desc');
+        $sort = $options['sort'] ?? $options['order'] ?? 'id';
+        $direction = $options['direction'] ?? $options['sequence'] ?? 'desc';
+        $this->applyOrdering($q, $sort, $direction, $sort === 'random');
         $this->applyLimit($q, $options['count'] ?? 0);
         $this->applyOffset($q, $options['offset'] ?? 0);
 
@@ -122,8 +124,8 @@ class ProductManager extends ModelManager
 $products = wncms()->product()->getList([
     'status' => 'active',
     'tags' => ['featured'],
-    'order' => 'price',
-    'sequence' => 'asc',
+    'sort' => 'price',
+    'direction' => 'asc',
     'count' => 10,
 ]);
 ```
@@ -150,6 +152,7 @@ $product = wncms()->product()->get(['slug' => 'premium-plan']);
 - 当你的 model 支援 multi-website 范围时，使用 `applyWebsiteId()`。
 - 若 join tags 或 counts，在查询中使用 `distinct()`。
 - 若有布林过滤条件，可直接传入显式 `false`（例如 `'status' => false`），`ModelManager` helper 会正确套用。
+- 对外选项建议使用 `sort`/`direction`，必要时可保留 `order`/`sequence` 作为向后相容别名。
 
 ## 范例资料夹结构
 

@@ -97,15 +97,25 @@ $link = wncms()->link()->getBySlug('my-link', websiteId: 12);
 - **类型**：array
 - **用途**：要 eager load 的 relations
 
+**`sort`**
+
+- **类型**：string
+- **用途**：建议使用的排序栏位。特殊值：`random`、`total_views_yesterday`
+
+**`direction`**
+
+- **类型**：string
+- **用途**：`asc` 或 `desc`（预设 `desc`）
+
 **`order`**
 
 - **类型**：string
-- **用途**：排序栏位。特殊值：`random`、`total_views_yesterday`
+- **用途**：`sort` 的向后相容别名
 
 **`sequence`**
 
 - **类型**：string
-- **用途**：`asc` 或 `desc`（预设 `desc`）
+- **用途**：`direction` 的向后相容别名
 
 **`select`**
 
@@ -132,6 +142,7 @@ $link = wncms()->link()->getBySlug('my-link', websiteId: 12);
 - 总是 eager-load `media`。
 - 套用 `distinct()` 以避免重复的资料列。
 - 自动将排序栏位加入 `select` 子句以防止 SQL 错误。
+- 无效排序值会自动回退为 `sort`。
 
 ## Tag 过滤
 
@@ -183,7 +194,7 @@ Manager 以特殊情况覆写 `applyOrdering()`：
 ### 随机排序
 
 ```php
-$links = wncms()->link()->getList(['order' => 'random']);
+$links = wncms()->link()->getList(['sort' => 'random']);
 ```
 
 使用 `inRandomOrder()`。
@@ -192,35 +203,29 @@ $links = wncms()->link()->getList(['order' => 'random']);
 
 ```php
 $links = wncms()->link()->getList([
-    'order' => 'total_views_yesterday',
-    'sequence' => 'desc',
+    'sort' => 'total_views_yesterday',
+    'direction' => 'desc',
 ]);
 ```
 
 行为：
 
-- 首先加入 `orderBy('links.is_pinned', 'desc')`。
-- Left join `total_views as tv_y` 于昨日日期：
-
-  ```sql
-  ON links.id = tv_y.link_id AND tv_y.date = YESTERDAY
-  ```
-
-- 依 `tv_y.total` 排序，接着 `links.id desc`。
-- 确保 `tv_y.total` 若需要会出现在 `select` 中。
+- 当前阶段临时停用（不依赖 `wn_total_views`）。
+- 会回退为 `links.sort`，再按 `links.id desc` 排序。
+- 保留该参数以兼容旧调用，后续可重新启用。
 
 ### 预设 / 自订栏位
 
 ```php
 $links = wncms()->link()->getList([
-    'order' => 'order',     // 或 links.* 上的任何栏位
-    'sequence' => 'asc',
+    'sort' => 'sort',     // 或 links.* 上的安全栏位
+    'direction' => 'asc',
 ]);
 ```
 
 行为：
 
-- 依 `links.{order}` 排序，接着 `links.id desc`。
+- 依 `links.{sort}` 排序，接着 `links.id desc`。
 - 自动选取任何不在 `select` 中的排序栏位。
 
 ## 使用范例
@@ -237,8 +242,8 @@ $link = wncms()->link()->get(['id' => 42]);
 $links = wncms()->link()->getList([
     'status'    => 'active',
     'page_size' => 20,
-    'order'     => 'order',
-    'sequence'  => 'asc',
+    'sort'      => 'sort',
+    'direction' => 'asc',
 ]);
 ```
 
@@ -259,7 +264,7 @@ $links = wncms()->link()->getList([
 $links = wncms()->link()->getList([
     'website_id' => wncms()->website()->id(),
     'wheres'     => [['is_featured', true]],
-    'order'      => 'random',
+    'sort'       => 'random',
     'count'      => 6,
 ]);
 ```
@@ -268,8 +273,8 @@ $links = wncms()->link()->getList([
 
 ```php
 $links = wncms()->link()->getList([
-    'order'    => 'total_views_yesterday',
-    'sequence' => 'desc',
+    'sort'      => 'total_views_yesterday',
+    'direction' => 'desc',
     'count'    => 10,
 ]);
 ```

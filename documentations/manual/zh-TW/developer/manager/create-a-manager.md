@@ -73,7 +73,9 @@ class ProductManager extends ModelManager
         $this->applyWebsiteId($q, $options['website_id'] ?? null);
 
         // 排序與限制
-        $this->applyOrdering($q, $options['order'] ?? 'id', $options['sequence'] ?? 'desc');
+        $sort = $options['sort'] ?? $options['order'] ?? 'id';
+        $direction = $options['direction'] ?? $options['sequence'] ?? 'desc';
+        $this->applyOrdering($q, $sort, $direction, $sort === 'random');
         $this->applyLimit($q, $options['count'] ?? 0);
         $this->applyOffset($q, $options['offset'] ?? 0);
 
@@ -122,8 +124,8 @@ class ProductManager extends ModelManager
 $products = wncms()->product()->getList([
     'status' => 'active',
     'tags' => ['featured'],
-    'order' => 'price',
-    'sequence' => 'asc',
+    'sort' => 'price',
+    'direction' => 'asc',
     'count' => 10,
 ]);
 ```
@@ -150,6 +152,7 @@ $product = wncms()->product()->get(['slug' => 'premium-plan']);
 - 當你的 model 支援 multi-website 範圍時，使用 `applyWebsiteId()`。
 - 若 join tags 或 counts，在查詢中使用 `distinct()`。
 - 若有布林過濾條件，可直接傳入顯式 `false`（例如 `'status' => false`），`ModelManager` helper 會正確套用。
+- 對外選項建議使用 `sort`/`direction`，必要時可保留 `order`/`sequence` 作為向後相容別名。
 
 ## 範例資料夾結構
 

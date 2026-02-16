@@ -60,6 +60,10 @@ class LinkManager extends ModelManager
         // info("In buildListQuery");
         // info($options);
         $q = $this->query();
+        $sort = $this->normalizeSortColumn((string) ($options['sort'] ?? $options['order'] ?? 'sort'));
+        $direction = strtolower((string) ($options['direction'] ?? $options['sequence'] ?? 'desc'));
+        $direction = in_array($direction, ['asc', 'desc'], true) ? $direction : 'desc';
+        $isRandom = $sort === 'random';
 
         $this->applyIds($q, 'links.id', $options['ids'] ?? []);
         $this->applyExcludeIds($q, 'links.id', $options['excluded_ids'] ?? []);
@@ -69,18 +73,18 @@ class LinkManager extends ModelManager
         $this->applyWhereConditions($q, $options['wheres'] ?? []);
         $this->applyStatus($q, 'status', $options['status'] ?? 'active');
         $this->applyWiths($q, $options['withs'] ?? []);
-        $this->applyOrdering($q, $options['sort'] ?? 'sort', $options['direction'] ?? 'desc', ($options['sort'] ?? '') === 'random');
+        $this->applyOrdering($q, $sort, $direction, $isRandom);
         $this->applyWebsiteId($q, $options['website_id'] ?? null);
-        
+
         $select = $options['select'] ?? ['links.*'];
+        if (is_string($select)) {
+            $select = array_filter(array_map('trim', explode(',', $select)));
+        }
 
         // Auto-add any orderBy columns into select
         $select = $this->autoAddOrderByColumnsToSelect($q, $select);
 
-        // Optional: if sorting by total_views_yesterday, make sure to explicitly join tv_y
-        if (($options['sort'] ?? null) === 'total_views_yesterday' && !in_array('tv_y.total', $select)) {
-            $select[] = 'tv_y.total';
-        }
+        // Temporarily disabled total_views_yesterday select injection until wn_total_views is available.
 
         $this->applySelect($q, $select);
 
@@ -107,32 +111,33 @@ class LinkManager extends ModelManager
             $q->inRandomOrder();
             return;
         }
-    
+
         if ($sort === 'total_views_yesterday') {
-
-            // info("pinned");
-            $q->orderBy('links.is_pinned', 'desc');
-
-            info("triggered yesterday");
-            $yesterday = now()->subDay()->toDateString();
-    
-            $q->leftJoin('total_views as tv_y', function ($join) use ($yesterday) {
-                $join->on('links.id', '=', 'tv_y.link_id')
-                    ->where('tv_y.date', $yesterday);
-            });
-    
-            $q->orderBy('tv_y.total', in_array($direction, ['asc', 'desc']) ? $direction : 'desc');
+            // Temporarily disable yesterday-views ordering to avoid SQL errors when wn_total_views is missing.
+            $q->orderBy('links.sort', in_array($direction, ['asc', 'desc'], true) ? $direction : 'desc');
             $q->orderBy('links.id', 'desc');
             return;
         }
-    
-        // Final fallback: just use requested column but preserve pinned
-        if (!in_array($sort, ['is_pinned', 'total_views_yesterday', 'random'])) {
-            $q->orderBy("links.{$sort}", in_array($direction, ['asc', 'desc']) ? $direction : 'desc');
-            $q->orderBy('links.id', 'desc');
-            return;
-        }
+
+        $q->orderBy("links.{$sort}", in_array($direction, ['asc', 'desc'], true) ? $direction : 'desc');
+        $q->orderBy('links.id', 'desc');
     }
-    
 
+    protected function normalizeSortColumn(string $sort): string
+    {
+        $sort = trim(str_replace('links.', '', $sort));
+        if ($sort === '') {
+            return 'sort';
+        }
+
+        if (in_array($sort, ['random', 'total_views_yesterday'], true)) {
+            return $sort;
+        }
+
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $sort)) {
+            return 'sort';
+        }
+
+        return $sort;
+    }
 }

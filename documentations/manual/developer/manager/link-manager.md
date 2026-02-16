@@ -52,29 +52,32 @@ $link = wncms()->link()->getBySlug('my-link', websiteId: 12);
 
 `buildListQuery()` supports the following options:
 
-| Key                | Type   | Purpose                                                        |
-| ------------------ | ------ | -------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------ |
-| `ids`              | array  | string                                                         | int                                          | Include specific link IDs                  |
-| `excluded_ids`     | array  | string                                                         | int                                          | Exclude link IDs                           |
-| `excluded_tag_ids` | array  | string                                                         | int                                          | Exclude links having these tag IDs         |
-| `tags`             | array  | string                                                         | int                                          | Filter by tags (names, IDs, or Tag models) |
-| `tag_type`         | string | null                                                           | Tag type to use, defaults to `link_category` |
-| `keywords`         | array  | string                                                         | Keyword search on `name`                     |
-| `wheres`           | array  | Additional where conditions and closures                       |
-| `status`           | string | null                                                           | Link status (default `active`)               |
-| `withs`            | array  | Relations to eager load                                        |
-| `order`            | string | Sort column. Special values: `random`, `total_views_yesterday` |
-| `sequence`         | string | `asc` or `desc` (default `desc`)                               |
-| `select`           | array  | string                                                         | Columns to select (default `['links.*']`)    |
-| `offset`           | int    | Offset for batching                                            |
-| `count`            | int    | Limit result size (0 = no limit)                               |
-| `website_id`       | int    | null                                                           | Scope to website (multi-site aware)          |
+| Key | Type | Purpose |
+| --- | --- | --- |
+| `ids` | array/string/int | Include specific link IDs |
+| `excluded_ids` | array/string/int | Exclude link IDs |
+| `excluded_tag_ids` | array/string/int | Exclude links having these tag IDs |
+| `tags` | array/string/int | Filter by tags (names, IDs, or Tag models) |
+| `tag_type` | string/null | Tag type to use, defaults to `link_category` |
+| `keywords` | array/string | Keyword search on `name` |
+| `wheres` | array | Additional where conditions and closures |
+| `status` | string/null | Link status (default `active`) |
+| `withs` | array | Relations to eager load |
+| `sort` | string | Preferred sort key. Special values: `random`, `total_views_yesterday` |
+| `direction` | string | Preferred direction: `asc` or `desc` (default `desc`) |
+| `order` | string | Backward-compatible alias of `sort` |
+| `sequence` | string | Backward-compatible alias of `direction` |
+| `select` | array/string | Columns to select (default `['links.*']`) |
+| `offset` | int | Offset for batching |
+| `count` | int | Limit result size (0 = no limit) |
+| `website_id` | int/null | Scope to website (multi-site aware) |
 
 Additional behavior:
 
 - Always eager-loads `media`.
 - Applies `distinct()` to avoid duplicated rows.
 - Auto-adds orderBy columns to the `select` clause to prevent SQL errors.
+- Invalid sort values are normalized to `sort`.
 
 ## Tag filtering
 
@@ -126,7 +129,7 @@ The manager overrides `applyOrdering()` with special cases:
 - **Random**
 
   ```php
-  $links = wncms()->link()->getList(['order' => 'random']);
+  $links = wncms()->link()->getList(['sort' => 'random']);
   ```
 
   Uses `inRandomOrder()`.
@@ -135,35 +138,29 @@ The manager overrides `applyOrdering()` with special cases:
 
   ```php
   $links = wncms()->link()->getList([
-      'order' => 'total_views_yesterday',
-      'sequence' => 'desc',
+      'sort' => 'total_views_yesterday',
+      'direction' => 'desc',
   ]);
   ```
 
   Behavior:
 
-  - Adds `orderBy('links.is_pinned', 'desc')` first.
-  - Left joins `total_views as tv_y` on yesterday’s date:
-
-    ```sql
-    ON links.id = tv_y.link_id AND tv_y.date = YESTERDAY
-    ```
-
-  - Orders by `tv_y.total`, then `links.id desc`.
-  - Ensures `tv_y.total` is present in `select` if needed.
+  - Temporarily disabled in current phase (no `wn_total_views` dependency).
+  - Falls back to ordering by `links.sort` then `links.id desc`.
+  - Keep this option for backward compatibility and future re-enable.
 
 - **Default / custom column**
 
   ```php
   $links = wncms()->link()->getList([
-      'order' => 'order',     // or any column on links.*
-      'sequence' => 'asc',
+      'sort' => 'sort',     // or any safe column on links.*
+      'direction' => 'asc',
   ]);
   ```
 
   Behavior:
 
-  - Orders by `links.{order}` then `links.id desc`.
+  - Orders by `links.{sort}` then `links.id desc`.
   - Auto-selects any order columns not present in `select`.
 
 ## Example usages
@@ -180,8 +177,8 @@ List latest active links with pagination:
 $links = wncms()->link()->getList([
     'status'    => 'active',
     'page_size' => 20,
-    'order'     => 'order',
-    'sequence'  => 'asc',
+    'sort'      => 'sort',
+    'direction' => 'asc',
 ]);
 ```
 
@@ -202,7 +199,7 @@ Random featured links on current website:
 $links = wncms()->link()->getList([
     'website_id' => wncms()->website()->id(),
     'wheres'     => [['is_featured', true]],
-    'order'      => 'random',
+    'sort'       => 'random',
     'count'      => 6,
 ]);
 ```
@@ -211,8 +208,8 @@ Top links by yesterday’s views, pinned first:
 
 ```php
 $links = wncms()->link()->getList([
-    'order'    => 'total_views_yesterday',
-    'sequence' => 'desc',
+    'sort'      => 'total_views_yesterday',
+    'direction' => 'desc',
     'count'    => 10,
 ]);
 ```
