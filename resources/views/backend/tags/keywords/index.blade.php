@@ -17,7 +17,7 @@
                         <select name="type" class="form-select form-select-sm">
                             <option value="all">@lang('wncms::word.tag_type')</option>
                             @foreach($tagTypes as $tagType)
-                                <option value="{{ $tagType['key'] }}" @if($tagType['key'] == request()->type) selected @endif>{{ __($tagType['label']) }}</option>
+                                <option value="{{ $tagType['key'] }}" @if($tagType['key'] == request()->type) selected @endif>{{ wncms()->tag()->getTagTypeDisplayName($tagType['key']) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -91,7 +91,7 @@
                                     ])
                                 </td>
                                 <td class="ps-3">{{ $parent->id }}</td>
-                                <td>@lang('wncms::word.' . $parent->type)</td>
+                                <td>{{ wncms()->tag()->getTagTypeDisplayName($parent->type) }}</td>
                                 <td class="mw-200px text-truncate text-info fw-bold" title="{{ $parent->description }}">{{ $parent->name }}</td>
                                 <td>{{ $parent->keywords->first(fn($keyword) => !empty($keyword->binding_field))?->binding_field ?: '*' }}</td>
                                 <td>{{ $parent->keywords->pluck('name')->implode(",") }}</td>

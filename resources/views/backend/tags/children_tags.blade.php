@@ -11,7 +11,7 @@
             @include('wncms::backend.parts.modal_delete' , ['model'=>$child , 'route' => route('tags.destroy' , $child)])
         </td>
         <td class="ps-3">{{ $child->id }}</td>
-        <td>@lang('wncms::word.' . $child->type)</td>
+        <td>{{ wncms()->tag()->getTagTypeDisplayName($child->type) }}</td>
         <td class="@if($level < 2)text-info @endif" title="{{ $child->description }}">{{ $level === 1 ? "├─" : str_repeat('├─', $level)}} {{ $child->name }}</td>
         <td>{{ $child->slug }}</td>
         <td>{{ $child->sort }}</td>

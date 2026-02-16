@@ -11,7 +11,7 @@
             ])
         </td>
         <td class="ps-3">{{ $child->id }}</td>
-        <td>@lang('wncms::word.' . $child->type)</td>
+        <td>{{ wncms()->tag()->getTagTypeDisplayName($child->type) }}</td>
         <td class="text-info" title="{{ $child->description }}">{{ $level === 1 ? "├─" : str_repeat('├─', $level)}} #{{ $child->id}} {{ $child->name }}</td>
         <td>{{ $child->keywords->first(fn($keyword) => !empty($keyword->binding_field))?->binding_field ?: '*' }}</td>
         <td>{{ $child->keywords->pluck('name')->implode(",") }}</td>

@@ -419,18 +419,39 @@ class TagManager extends ModelManager
             return $allTagTypes;
         }
 
-        $activeModels = array_values(array_filter(array_map(
-            fn($modelName) => class_basename((string) $modelName),
-            $activeModels
-        )));
+        $activeTokens = collect($activeModels)
+            ->map(fn($modelName) => (string) $modelName)
+            ->filter()
+            ->flatMap(function (string $modelName) {
+                $base = class_basename($modelName);
+                return [
+                    Str::lower($modelName),
+                    Str::lower($base),
+                    Str::lower(Str::snake(Str::singular($modelName))),
+                    Str::lower(Str::snake(Str::singular($base))),
+                ];
+            })
+            ->unique()
+            ->values()
+            ->all();
 
-        if (empty($activeModels)) {
+        if (empty($activeTokens)) {
             return $allTagTypes;
         }
 
-        return array_values(array_filter($allTagTypes, function ($meta) use ($activeModels) {
-            $metaModel = class_basename((string) ($meta['model'] ?? ''));
-            return in_array($metaModel, $activeModels, true);
+        return array_values(array_filter($allTagTypes, function ($meta) use ($activeTokens) {
+            $modelClass = (string) ($meta['model'] ?? '');
+            $modelBaseName = class_basename($modelClass);
+            $modelKey = (string) ($meta['model_key'] ?? Str::snake(Str::singular($modelBaseName)));
+
+            $isPackageModel = !str_starts_with($modelClass, 'Wncms\\') && !str_starts_with($modelClass, 'App\\');
+            if ($isPackageModel) {
+                return true;
+            }
+
+            return in_array(Str::lower($modelBaseName), $activeTokens, true)
+                || in_array(Str::lower(Str::snake(Str::singular($modelBaseName))), $activeTokens, true)
+                || in_array(Str::lower($modelKey), $activeTokens, true);
         }));
     }
 
@@ -508,6 +529,30 @@ class TagManager extends ModelManager
         }
 
         // 3. Final fallback: human readable text
+        return ucfirst(str_replace('_', ' ', $tagType));
+    }
+
+    public function getTagTypeDisplayName(string $tagType): string
+    {
+        $meta = collect($this->getRegisteredTagTypes())->firstWhere('key', $tagType);
+        $modelClass = $meta['model'] ?? null;
+
+        if (is_string($modelClass) && class_exists($modelClass)) {
+            return $this->getTagTypeLabel($modelClass, $tagType);
+        }
+
+        if (!empty($meta['label'])) {
+            $translated = __((string) $meta['label']);
+            if ($translated !== (string) $meta['label']) {
+                return $translated;
+            }
+        }
+
+        $coreTranslated = __('wncms::word.' . $tagType);
+        if ($coreTranslated !== 'wncms::word.' . $tagType) {
+            return $coreTranslated;
+        }
+
         return ucfirst(str_replace('_', ' ', $tagType));
     }
 

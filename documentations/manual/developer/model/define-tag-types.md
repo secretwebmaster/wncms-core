@@ -86,7 +86,23 @@ protected static array $tagMetas = [];
 In backend tag pages (`tags.index`, `tags.create`, `tags.edit`, and `tags.keywords.index`), type dropdown options are now filtered by active models.
 
 - Source setting: `active_models` (System Settings -> display model)
-- Matching rule: compare each tag meta `model` class basename with enabled model names
+- Matching rule: compare each tag meta model basename/model_key with enabled model values (case-insensitive normalization)
+- Package model behavior: tag types registered by composer package models remain visible in backend tag pages, even if package models are not listed in `active_models`
 - Fallback behavior: if `active_models` is empty, backend keeps showing all registered tag types
 
 This keeps backend tag operations aligned with models currently enabled in admin navigation.
+
+## 7. Backend Type Name Resolution (Composer Packages)
+
+Backend tag pages now resolve type names through `TagManager` helper methods instead of hardcoded `wncms::word.{type}` only.
+
+- Preferred path: `TagManager::getTagTypeDisplayName($tagType)`
+- If a type is registered by a package model, backend uses:
+1. `<package>::word.{tag_type}`
+2. `<package>::word.{short}` (fallback)
+- If package translations are missing, fallback goes to `wncms::word.{tag_type}` and then a humanized text.
+
+This allows composer packages to provide custom tag type names consistently in:
+
+- `tags.index` type filter and table rows
+- `tags.keywords.index` type filter and table rows

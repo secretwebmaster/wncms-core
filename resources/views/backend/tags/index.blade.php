@@ -18,7 +18,7 @@
                         <select name="type" class="form-select form-select-sm">
                             <option value="all">@lang('wncms::word.tag_type')</option>
                             @foreach($tagTypes as $tagType)
-                                <option value="{{ $tagType['key'] }}" @if($tagType['key'] == (request()->type ?: 'post_category')) selected @endif>{{ __($tagType['label']) }}</option>
+                                <option value="{{ $tagType['key'] }}" @if($tagType['key'] == (request()->type ?: 'post_category')) selected @endif>{{ wncms()->tag()->getTagTypeDisplayName($tagType['key']) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -142,7 +142,7 @@
                                     @include('wncms::backend.parts.modal_delete' , ['model'=>$parent , 'route' => route('tags.destroy' , $parent)])
                                 </td>
                                 <td class="ps-3">{{ $parent->id }}</td>
-                                <td>@lang('wncms::word.' . $parent->type)</td>
+                                <td>{{ wncms()->tag()->getTagTypeDisplayName($parent->type) }}</td>
                                 <td class="mw-200px text-truncate text-info fw-bold" title="{{ $parent->description }}">{{ $parent->name }}</td>
                                 <td class="mw-200px text-truncate">{{ $parent->slug }}</td>
                                 <td>{{ $parent->sort }}</td>

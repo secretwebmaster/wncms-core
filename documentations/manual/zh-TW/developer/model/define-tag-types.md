@@ -86,7 +86,23 @@ protected static array $tagMetas = [];
 在後台標籤頁面（`tags.index`、`tags.create`、`tags.edit`、`tags.keywords.index`）中，標籤類型下拉選項現在會依啟用模型過濾。
 
 - 設定來源：`active_models`（系統設定 -> 顯示模型）
-- 比對規則：以 tag meta 的 `model` 類別短名（basename）比對啟用的模型名稱
+- 比對規則：以 tag meta 的 model basename/model_key 與啟用模型值做不分大小寫標準化比對
+- 套件模型行為：composer 套件 model 註冊的標籤類型會保持顯示，即使該套件 model 不在 `active_models` 清單內
 - 回退行為：若 `active_models` 為空，後台仍顯示所有已註冊的標籤類型
 
 這樣可讓後台標籤操作與目前在後台導覽中啟用的模型保持一致。
+
+## 後台類型名稱解析（Composer 套件）
+
+後台標籤頁面現在會透過 `TagManager` 輔助方法解析類型名稱，而不是只依賴硬編碼 `wncms::word.{type}`。
+
+- 首選方法：`TagManager::getTagTypeDisplayName($tagType)`
+- 當類型來自套件 model 時，後台會依序嘗試：
+1. `<package>::word.{tag_type}`
+2. `<package>::word.{short}`（回退）
+- 若套件翻譯不存在，再回退到 `wncms::word.{tag_type}`，最後使用可讀化文字。
+
+這樣可讓 composer 套件自訂的標籤類型名稱在以下頁面一致顯示：
+
+- `tags.index` 類型篩選與表格列
+- `tags.keywords.index` 類型篩選與表格列
