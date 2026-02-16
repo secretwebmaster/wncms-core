@@ -93,3 +93,5 @@ php artisan wncms:verify-plugin-hooks
   确认 `resources/views/backend/{plural}/` 下目标文件不是已存在状态。
 - 路由权限被拒绝：
   重新执行 `wncms:create-model-permission {model}`，并在后台确认角色已分配对应权限。
+- 升级项目中 Link 后台路由权限被拒绝：
+  升级到 core `6.1.9+` 并执行 `php artisan wncms:update core`，更新流程会自动补齐 Link 权限。

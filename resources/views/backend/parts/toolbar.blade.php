@@ -1,18 +1,34 @@
 <div id="wncms_app_toolbar" class="app-toolbar py-3 py-lg-3">
 	<div id="wncms_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
+        @php
+            $currentRoute = request()->route()?->getName();
+            $currentUrl = request()->getPathInfo();
+            $quickLinks = collect(json_decode(gss('quick_links'), true) ?: []);
+            $hasCurrentQuickLink = $quickLinks->contains(function ($quickLink) use ($currentRoute, $currentUrl) {
+                if (($quickLink['url'] ?? '') === $currentUrl) {
+                    return true;
+                }
+
+                if (!empty($currentRoute) && ($quickLink['route'] ?? null) === $currentRoute) {
+                    return true;
+                }
+
+                return false;
+            });
+        @endphp
         {{-- Page Title --}}
         <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
             <h1 class="page-heading d-flex text-dark fw-bold fs-3 justify-content-center align-items-center my-0">
                 <span>{{ $page_title ?? (gss('hide_empty_page_title') ? '' : __('wncms::word.page_title_not_set')) }}</span>
 
 
-                @role(['super-admin', 'admin'])
-                    @if(!empty($quickLinks = collect(json_decode(gss('quick_links'), true))) && !$quickLinks->where('route', request()->route()->getName())->count())
+                @role(['superadmin', 'admin'])
+                    @if(!$hasCurrentQuickLink)
                         <form class="ms-1 small" action="{{ route('settings.quick.add') }}" method="POST">
                             @csrf
                             <input type="hidden" name="name" value="{{ $page_title ?? '' }}">
-                            <input type="hidden" name="route" value="{{ request()->route()->getName() }}">
-                            <input type="hidden" name="url" value="{{ request()->getPathInfo() }}">
+                            <input type="hidden" name="route" value="{{ $currentRoute }}">
+                            <input type="hidden" name="url" value="{{ $currentUrl }}">
                             <button type="submit" class="btn btn-link d-flex align-items-center" title="@lang('wncms::word.add_to_quick_link')">
                                 <i class="fs-6 text-warning fa-regular fa-star"></i>
                             </button>
@@ -20,9 +36,9 @@
                     @else
                         <form class="ms-1 small" action="{{ route('settings.quick.remove') }}" method="POST">
                             @csrf
-                            <input type="hidden" name="route" value="{{ request()->route()->getName() }}">
+                            <input type="hidden" name="route" value="{{ $currentRoute }}">
                             <input type="hidden" name="name" value="{{ $page_title ?? '' }}">
-                            <input type="hidden" name="url" value="{{ request()->getPathInfo() }}">
+                            <input type="hidden" name="url" value="{{ $currentUrl }}">
                             <button type="submit" class="btn btn-link d-flex align-items-center" title="@lang('wncms::word.remove_from_quick_link')">
                                 <i class="fs-6 text-warning fas fa-star"></i>
                             </button>

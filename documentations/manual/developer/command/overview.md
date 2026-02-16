@@ -93,3 +93,5 @@ Behavior summary:
   Confirm target files do not already exist in `resources/views/backend/{plural}/`.
 - Route permission denied:
   Re-run `wncms:create-model-permission {model}` and verify role assignment in backend.
+- Link backend route permission denied on upgraded projects:
+  Update to core `6.1.9+` and run `php artisan wncms:update core` so Link permissions are backfilled during update.

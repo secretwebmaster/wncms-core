@@ -199,48 +199,89 @@ class SettingController extends Controller
 
     public function add_quick_link(Request $request)
     {
-        // get current quick links
-        $quickLinkStr = gss('quick_links');
-        $quickLinks = json_decode($quickLinkStr, true) ?? [];
-
-        // prepare new quick link data
+        $quickLinks = $this->normalizeQuickLinks(json_decode((string) gss('quick_links'), true) ?? []);
         $quickLinkData = [
-            'route' => $request->route,
-            'name' => $request->name,
-            'url' => $request->url,
+            'route' => $request->filled('route') ? (string) $request->route : null,
+            'name' => (string) ($request->name ?: $request->url ?: $request->route),
+            'url' => (string) ($request->url ?: '/'),
         ];
 
-        // append new quick link
-        if (!in_array($quickLinkData, $quickLinks)) {
+        if (!$this->quickLinkExists($quickLinks, $quickLinkData)) {
             $quickLinks[] = $quickLinkData;
         }
 
-        // save quick links
-        uss('quick_links', json_encode($quickLinks));
+        uss('quick_links', json_encode($this->normalizeQuickLinks($quickLinks)));
 
         return back()->withMessage(__('wncms::word.successfully_updated'));
     }
 
     public function remove_quick_link(Request $request)
     {
-        $quickLinkStr = gss('quick_links');
-        $quickLinks = json_decode($quickLinkStr, true) ?? [];
+        $quickLinks = $this->normalizeQuickLinks(json_decode((string) gss('quick_links'), true) ?? []);
 
         $quickLinkData = [
-            'route' => $request->route,
-            'url' => $request->url,
+            'route' => $request->filled('route') ? (string) $request->route : null,
+            'url' => (string) ($request->url ?: ''),
         ];
 
-        $quickLinks = array_filter($quickLinks, function ($quickLink) use ($quickLinkData) {
-            return !(
-                ($quickLink['route'] ?? null) === $quickLinkData['route'] ||
-                ($quickLink['url'] ?? null) === $quickLinkData['url']
-            );
-        });
+        $quickLinks = array_values(array_filter($quickLinks, function (array $quickLink) use ($quickLinkData) {
+            if (!empty($quickLinkData['url']) && ($quickLink['url'] ?? '') === $quickLinkData['url']) {
+                return false;
+            }
 
-        uss('quick_links', json_encode(array_values($quickLinks)));
+            if (!empty($quickLinkData['route']) && ($quickLink['route'] ?? null) === $quickLinkData['route']) {
+                return false;
+            }
+
+            return true;
+        }));
+
+        uss('quick_links', json_encode($quickLinks));
 
         return back()->withMessage(__('wncms::word.successfully_updated'));
+    }
+
+    protected function quickLinkExists(array $quickLinks, array $candidate): bool
+    {
+        foreach ($quickLinks as $quickLink) {
+            if (($quickLink['url'] ?? '') === ($candidate['url'] ?? '')) {
+                return true;
+            }
+
+            if (!empty($candidate['route']) && ($quickLink['route'] ?? null) === $candidate['route']) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function normalizeQuickLinks(array $quickLinks): array
+    {
+        $normalized = [];
+
+        foreach ($quickLinks as $quickLink) {
+            if (!is_array($quickLink)) {
+                continue;
+            }
+
+            $url = (string) ($quickLink['url'] ?? '');
+            $route = !empty($quickLink['route']) ? (string) $quickLink['route'] : null;
+            $name = (string) ($quickLink['name'] ?? ($url !== '' ? $url : ($route ?? '')));
+
+            if ($url === '' && $route === null) {
+                continue;
+            }
+
+            $key = $url !== '' ? "url:{$url}" : "route:{$route}";
+            $normalized[$key] = [
+                'route' => $route,
+                'name' => $name,
+                'url' => $url,
+            ];
+        }
+
+        return array_values($normalized);
     }
 
     protected function getResolvedModelWebsiteModes(array $settings = []): array

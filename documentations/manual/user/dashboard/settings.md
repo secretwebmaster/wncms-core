@@ -21,3 +21,9 @@
 - Tabs no longer wrap; they are horizontally scrollable.
 - Scrollbar is hidden for a cleaner mobile layout.
 - The nav auto-scrolls to bring the active tab into view on page load and tab switch.
+
+## Quick Link Behavior
+
+- The page toolbar star button now detects existing quick links by current URL first, then route name as fallback.
+- Quick links are normalized and deduplicated before save.
+- Superadmin role name is `superadmin` (without hyphen), and now matches toolbar visibility checks.
