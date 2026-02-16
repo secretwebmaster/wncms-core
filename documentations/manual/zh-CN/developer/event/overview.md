@@ -9,6 +9,7 @@ WNCMS 事件文档按领域分组维护。新增 core hook 时，请在对应分
 - [Users 事件](./users.md)
 - [Posts 事件](./posts.md)
 - [Settings 事件](./settings.md)
+- [Themes 事件](./themes.md)
 
 ## 事件注册
 

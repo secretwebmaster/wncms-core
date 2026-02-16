@@ -586,6 +586,18 @@ if (file_exists($functionsFile)) {
 }
 ```
 
+### 6. 主题生命周期 Hooks
+
+ThemeServiceProvider 现在会派发生命周期 hooks，让主题/插件开发者无需覆写 provider 即可扩充载入行为：
+
+- `wncms.frontend.themes.boot.before`
+- `wncms.frontend.themes.load.before`
+- `wncms.frontend.themes.load.after`
+- `wncms.frontend.themes.boot.after`
+
+`load.before` 对 `$themeId` 与 `$themePath` 使用引用参数，监听器可在运行时调整解析结果。
+完整参数说明请见 [Themes 事件](../event/themes.md)。
+
 ## 辅助函数
 
 ### 主题资源载入

@@ -3,6 +3,7 @@
 namespace Wncms\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Response;
@@ -33,6 +34,7 @@ class ThemeServiceProvider extends ServiceProvider
         }
 
         $themeId = $website->theme ?: 'default';
+        Event::dispatch('wncms.frontend.themes.boot.before', [&$themeId, $website]);
         view()->share('themeId', $themeId);
 
         if (gss('multi_website')) {
@@ -40,6 +42,7 @@ class ThemeServiceProvider extends ServiceProvider
             foreach ($themes as $theme) {
                 $theme = $theme ?: 'default';
                 $themePath = $this->resolveThemePath($theme);
+                Event::dispatch('wncms.frontend.themes.load.before', [&$theme, &$themePath, $website]);
                 if (!$themePath) {
                     continue;
                 }
@@ -55,10 +58,12 @@ class ThemeServiceProvider extends ServiceProvider
 
                 // Load functions.php
                 $this->loadThemeFunctions($themePath);
+                Event::dispatch('wncms.frontend.themes.load.after', [$theme, $themePath, $website]);
             }
         } else {
             // Determine theme path
             $themePath = $this->resolveThemePath($themeId);
+            Event::dispatch('wncms.frontend.themes.load.before', [&$themeId, &$themePath, $website]);
 
             // Missing non-core themes still show inactive screen
             if (!$themePath) {
@@ -77,7 +82,10 @@ class ThemeServiceProvider extends ServiceProvider
 
             // Load functions.php
             $this->loadThemeFunctions($themePath);
+            Event::dispatch('wncms.frontend.themes.load.after', [$themeId, $themePath, $website]);
         }
+
+        Event::dispatch('wncms.frontend.themes.boot.after', [$themeId, $website]);
     }
 
     protected function resolveThemePath(string $themeId): ?string

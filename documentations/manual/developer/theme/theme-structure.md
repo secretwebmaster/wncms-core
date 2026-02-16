@@ -586,6 +586,18 @@ if (file_exists($functionsFile)) {
 }
 ```
 
+### 6. Theme Lifecycle Hooks
+
+ThemeServiceProvider now dispatches lifecycle hooks so theme/plugin developers can extend loading behavior without overriding the provider:
+
+- `wncms.frontend.themes.boot.before`
+- `wncms.frontend.themes.load.before`
+- `wncms.frontend.themes.load.after`
+- `wncms.frontend.themes.boot.after`
+
+`load.before` uses references for `$themeId` and `$themePath`, so listeners can adjust the resolved theme at runtime.
+See full payload details in [Themes Events](../event/themes.md).
+
 ## Helper Functions
 
 ### Theme Asset Loading
