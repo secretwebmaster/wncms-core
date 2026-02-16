@@ -1,62 +1,150 @@
-{{-- @dd($tag) --}}
 <script>
     $(document).ready(function () {
+        var typeInput = document.querySelector('[name="type"]');
+        var parentInput = document.querySelector('#tag_parent_id');
+        var currentTag = @json($tag ?? null);
+        var allParentTags = @json($tagifyParents ?? []);
+        var preselectedParentId = @json(old('parent_id', request()->parent_id ?? ''));
+        var parentTagify = null;
 
-        var select_parent = $('[name="parent_id"]');
-        var select_type = $('[name="type"]');
-        var current_tag = @json($tag??'') ;
-        console.log(current_tag);
-        var type = select_type.val();
-        console.log(type)
+        function initParentTagify() {
+            if (parentTagify) {
+                return parentTagify;
+            }
 
-        get_parent_tags(type)
-
-        select_type.on('change', function () {
-            var new_type = $(this).val();
-            console.log(new_type)
-            get_parent_tags(new_type)
-        });
-
-        function get_parent_tags(type){
-            $.ajax({
-                headers:{'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                url:"{{ route('api.v1.tags.index', ['locale' => app()->getLocale()]) }}",
-                data:{
-                    type:type,
+            parentTagify = new Tagify(parentInput, {
+                whitelist: [],
+                className: 'form-control form-control-sm',
+                mode: 'select',
+                enforceWhitelist: true,
+                skipInvalid: true,
+                duplicates: false,
+                tagTextProp: 'name',
+                maxTags: 1,
+                dropdown: {
+                    maxItems: 100,
+                    mapValueTo: 'name',
+                    classname: "tagify__inline__suggestions",
+                    enabled: 0,
+                    closeOnSelect: true,
+                    searchKeys: ['name', 'value'],
                 },
-                type:"POST",
-                success:function(data){
-                    console.log(data);
-
-                    var select_parent = $('[name="parent_id"]');
-
-                    // Clear existing options in the parent select
-                    select_parent.empty();
-
-                    // Add a default option
-                    select_parent.append('<option value="">@lang("wncms::word.do_not_have")</option>');
-
-                    // Populate options based on the AJAX response
-                    populateSelectWithTags(data);
-                }
             });
+
+            return parentTagify;
         }
 
-        function populateSelectWithTags(tags, prefix = '') {
-            $.each(tags, function (key, value) {
-                var id = value.id;
-                var name = prefix + value.name;
+        function getSelectedParentId() {
+            var normalizedFromOld = normalizeParentId(preselectedParentId);
+            if (normalizedFromOld) {
+                return normalizedFromOld;
+            }
 
-                // Check if the current tag's parent ID matches the current option's ID
-                var isSelected = (current_tag.parent_id == id || "{{ request()->parent_id }}" == id) ? 'selected' : '';
+            if (currentTag && currentTag.parent_id) {
+                return String(currentTag.parent_id);
+            }
 
-                select_parent.append('<option value="' + id + '" ' + isSelected + '>' + name + '</option>');
+            return '';
+        }
 
-                // Check if children exist and recursively add options for them
-                if (value.children && value.children.length > 0) {
-                    var childPrefix = '├─' + prefix; // Add '--' as a prefix for child names
-                    populateSelectWithTags(value.children, childPrefix);
+        function normalizeParentId(input) {
+            if (!input) {
+                return '';
+            }
+
+            if (typeof input === 'number') {
+                return String(input);
+            }
+
+            if (typeof input === 'string') {
+                if (/^\d+$/.test(input)) {
+                    return input;
                 }
+
+                try {
+                    return normalizeParentId(JSON.parse(input));
+                } catch (e) {
+                    return '';
+                }
+            }
+
+            if (Array.isArray(input)) {
+                if (!input.length) {
+                    return '';
+                }
+
+                return normalizeParentId(input[0]);
+            }
+
+            if (typeof input === 'object') {
+                if (input.value) {
+                    return String(input.value);
+                }
+
+                if (input.id) {
+                    return String(input.id);
+                }
+            }
+
+            return '';
+        }
+
+        function normalizeTagList(payload) {
+            var rows = Array.isArray(payload) ? payload : [];
+            var selectedId = getSelectedParentId();
+            var currentTagId = currentTag && currentTag.id ? String(currentTag.id) : '';
+            var selectedType = typeInput && typeInput.value ? String(typeInput.value) : '';
+            var items = [];
+
+            rows.forEach(function (row) {
+                var id = row && row.value ? String(row.value) : '';
+                var name = row && row.name ? String(row.name) : '';
+                var type = row && row.type ? String(row.type) : '';
+
+                if (!id || !name) {
+                    return;
+                }
+
+                if (selectedType && type && type !== selectedType) {
+                    return;
+                }
+
+                if (currentTagId && id === currentTagId) {
+                    return;
+                }
+
+                items.push({
+                    value: id,
+                    name: name,
+                    selected: selectedId && id === selectedId,
+                });
+            });
+
+            return items;
+        }
+
+        function refreshParentTags(tagType) {
+            var tagify = initParentTagify();
+            var items = normalizeTagList(allParentTags);
+            var selected = items.filter(function (item) {
+                return item.selected;
+            });
+
+            tagify.removeAllTags();
+            tagify.settings.whitelist = items;
+            tagify.dropdown.hide();
+
+            if (selected.length > 0) {
+                tagify.addTags(selected.slice(0, 1), true, true);
+            }
+        }
+
+        if (typeInput && parentInput) {
+            refreshParentTags(typeInput.value);
+
+            $(typeInput).on('change', function () {
+                preselectedParentId = '';
+                refreshParentTags($(this).val());
             });
         }
     });

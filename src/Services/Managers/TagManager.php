@@ -252,7 +252,7 @@ class TagManager extends ModelManager
             return 'javascript:;';
         }
 
-        $meta = collect($this->getAllTagTypes())->where('key', $tag->type)->first();
+        $meta = collect($this->getRegisteredTagTypes())->where('key', $tag->type)->first();
 
         // if($tag->type == 'post_category') {
         //     dd($meta['route'], wncms()->hasRoute($meta['route']));
@@ -268,7 +268,7 @@ class TagManager extends ModelManager
         return 'javascript:;';
     }
 
-    public function getAllTagTypes()
+    public function getRegisteredTagTypes()
     {
         $models = wncms()->getModels();
 
@@ -284,6 +284,30 @@ class TagManager extends ModelManager
         }
 
         return $metas;
+    }
+
+    public function getActiveModelTagTypes(): array
+    {
+        $allTagTypes = $this->getRegisteredTagTypes();
+        $activeModels = json_decode((string) gss('active_models', '[]'), true);
+
+        if (!is_array($activeModels)) {
+            return $allTagTypes;
+        }
+
+        $activeModels = array_values(array_filter(array_map(
+            fn($modelName) => class_basename((string) $modelName),
+            $activeModels
+        )));
+
+        if (empty($activeModels)) {
+            return $allTagTypes;
+        }
+
+        return array_values(array_filter($allTagTypes, function ($meta) use ($activeModels) {
+            $metaModel = class_basename((string) ($meta['model'] ?? ''));
+            return in_array($metaModel, $activeModels, true);
+        }));
     }
 
     public function getTagTypes($modelClass, $key = 'key', $implode = false)

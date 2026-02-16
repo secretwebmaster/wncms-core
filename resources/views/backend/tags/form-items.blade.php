@@ -75,12 +75,41 @@
 <div class="row mb-3">
     <label class="col-lg-3 col-form-label fw-bold fs-6">@lang('wncms::word.parent_tag')</label>
     <div class="col-lg-9 fv-row">
-        <select name="parent_id" class="form-select form-select-sm">
-            {{-- load options from js --}}
-            <option value="">@lang('wncms::word.do_not_have')</option>
-        </select>
+        <input id="tag_parent_id" class="form-control form-control-sm tag-parent-select-input" name="parent_id" value="" />
+        <div class="text-muted p-2">@lang('wncms::word.please_select') @lang('wncms::word.parent_tag')</div>
     </div>
 </div>
+
+@push('foot_css')
+<style>
+    .tagify.tag-parent-select-input {
+        /* min-height: calc(1.5em + .5rem + 2px); */
+        height: calc(1.5em + .5rem + 2px);
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        padding-top: 0;
+        padding-bottom: 0;
+        overflow: hidden;
+    }
+
+    .tagify.tag-parent-select-input .tagify__tag {
+        margin: 0;
+        max-width: calc(100% - 2rem);
+    }
+
+    .tagify.tag-parent-select-input .tagify__tag > div {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    .tagify.tag-parent-select-input .tagify__input {
+        margin: 0;
+        padding: 0;
+        min-width: 0;
+    }
+</style>
+@endpush
 
 {{-- Tag name --}}
 <div class="row mb-3">
@@ -168,7 +197,7 @@
     <div class="col-lg-9 fv-row">
         <input type="text" name="icon" class="form-control form-control-sm" value="{{ $tag->icon ?? old('tag_icon') }}" />
         <p>
-            icon: <a href="https://fontawesome.com/search?o=r&m=free" target="_blank">https://fontawesome.com/search</a>，只需複製class部分<br>
+            icon: <a href="https://fontawesome.com/v6/search?ic=free-collection" target="_blank">https://fontawesome.com/v6/search?ic=free-collection</a>，只需複製class部分<br>
             例如&#x3C;i class=&#x22;fa-solid fa-thumbs-up&#x22;&#x3E;&#x3C;/i&#x3E;，只填寫fa-solid fa-thumbs-up，其他部分去掉
         </p>
     </div>

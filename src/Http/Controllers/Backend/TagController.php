@@ -11,6 +11,39 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class TagController extends BackendController
 {
+    protected function resolveParentIdInput(mixed $raw): ?int
+    {
+        if (empty($raw)) {
+            return null;
+        }
+
+        if (is_numeric($raw)) {
+            return (int) $raw;
+        }
+
+        if (is_array($raw)) {
+            if (array_is_list($raw)) {
+                $first = $raw[0] ?? null;
+                if (is_array($first)) {
+                    $candidate = $first['value'] ?? $first['id'] ?? null;
+                    return is_numeric($candidate) ? (int) $candidate : null;
+                }
+            }
+
+            $candidate = $raw['value'] ?? $raw['id'] ?? null;
+            return is_numeric($candidate) ? (int) $candidate : null;
+        }
+
+        if (is_string($raw)) {
+            $decoded = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $this->resolveParentIdInput($decoded);
+            }
+        }
+
+        return null;
+    }
+
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
@@ -50,7 +83,7 @@ class TagController extends BackendController
         $q->orderBy('sort', 'desc');
 
         $parents = $q->paginate($request->page_size ?? 50);
-        $tagTypes = wncms()->tag()->getAllTagTypes();
+        $tagTypes = wncms()->tag()->getActiveModelTagTypes();
 
         $allParents = $this->modelClass::whereNull('parent_id')
             ->when($request->type && $request->type !== 'all', function ($subq) use ($request) {
@@ -72,13 +105,14 @@ class TagController extends BackendController
     public function create($id = null)
     {
         // Get allowed tag types registered by all models
-        $tagTypes = wncms()->tag()->getAllTagTypes();
+        $tagTypes = wncms()->tag()->getActiveModelTagTypes();
 
         $request = request();
+        $selectedType = $request->type ?: 'post_category';
 
         // Load parent tags if type is selected
-        if ($request->type) {
-            $parents = $this->modelClass::whereType($request->type)
+        if ($selectedType) {
+            $parents = $this->modelClass::whereType($selectedType)
                 ->whereNull('parent_id')
                 ->with('children')
                 ->get();
@@ -96,6 +130,7 @@ class TagController extends BackendController
             }
         } else {
             $tag = new $this->modelClass;
+            $tag->type = $selectedType;
         }
 
         $modelGroups = collect(wncms()->getModels())
@@ -105,12 +140,33 @@ class TagController extends BackendController
             ->values()
             ->toArray();
 
+        $tagifyParents = $this->modelClass::query()
+            ->orderBy('sort', 'desc')
+            ->orderBy('id', 'desc')
+            ->with('translations')
+            ->get()
+            ->map(function ($model) {
+                $name = $model->getTranslation('name', app()->getLocale());
+                if (empty($name)) {
+                    $name = $model->name;
+                }
+
+                return [
+                    'value' => (string) $model->id,
+                    'name' => (string) $name,
+                    'type' => (string) $model->type,
+                ];
+            })
+            ->values()
+            ->toArray();
+
         return $this->view('backend.tags.create', [
             'page_title' => __('wncms::word.category_management'),
             'tagTypes'   => $tagTypes,
             'parents'    => $parents,
             'tag'        => $tag,
             'modelGroups' => $modelGroups,
+            'tagifyParents' => $tagifyParents,
         ]);
     }
 
@@ -118,9 +174,17 @@ class TagController extends BackendController
     {
         $icon_name = str_replace('<i class="', '', $request->icon);
         $icon_name = str_replace('"></i>', '', $icon_name);
+        $parentId = $this->resolveParentIdInput($request->parent_id);
 
         if (empty($request->type)) {
             return back()->withErrors(['message' => __('wncms::word.tag_type_is_required')]);
+        }
+
+        if (!empty($parentId)) {
+            $parentTag = $this->modelClass::where('id', $parentId)->where('type', $request->type)->first();
+            if (!$parentTag) {
+                return back()->withInput()->withErrors(['message' => __('wncms::word.parent_tag_is_not_found')]);
+            }
         }
 
         if (!empty($request->slug)) {
@@ -134,7 +198,7 @@ class TagController extends BackendController
         if ($existingTag) return back()->withInput()->withErrors(['message' => __('wncms::word.tag_with_same_name_already_exists')]);
 
         $tag = $this->modelClass::Create([
-            'parent_id' => $request->parent_id,
+            'parent_id' => $parentId,
             'name' => $request->name,
             'slug' => $request->slug ?? $request->name,
             'description' => $request->description,
@@ -164,7 +228,13 @@ class TagController extends BackendController
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
         }
 
-        $tagTypes = wncms()->tag()->getAllTagTypes();
+        $tagTypes = wncms()->tag()->getActiveModelTagTypes();
+        if (!collect($tagTypes)->contains(fn($meta) => ($meta['key'] ?? null) === $tag->type)) {
+            $currentTypeMeta = collect(wncms()->tag()->getRegisteredTagTypes())->firstWhere('key', $tag->type);
+            if (!empty($currentTypeMeta)) {
+                $tagTypes[] = $currentTypeMeta;
+            }
+        }
 
         $modelGroups = collect(wncms()->getModels())
             ->map(fn($model) => $model::$modelKey ?? null)
@@ -173,11 +243,32 @@ class TagController extends BackendController
             ->values()
             ->toArray();
 
+        $tagifyParents = $this->modelClass::query()
+            ->orderBy('sort', 'desc')
+            ->orderBy('id', 'desc')
+            ->with('translations')
+            ->get()
+            ->map(function ($model) {
+                $name = $model->getTranslation('name', app()->getLocale());
+                if (empty($name)) {
+                    $name = $model->name;
+                }
+
+                return [
+                    'value' => (string) $model->id,
+                    'name' => (string) $name,
+                    'type' => (string) $model->type,
+                ];
+            })
+            ->values()
+            ->toArray();
+
         return $this->view('backend.tags.edit', [
             'page_title' => __('wncms::word.edit_tag'),
             'tagTypes' => $tagTypes,
             'tag' => $tag,
             'modelGroups' => $modelGroups,
+            'tagifyParents' => $tagifyParents,
         ]);
     }
 
@@ -187,9 +278,26 @@ class TagController extends BackendController
         if (!$tag) {
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
         }
+        $parentId = $this->resolveParentIdInput($request->parent_id);
 
         if (empty($request->type)) {
             return back()->withErrors(['message' => __('wncms::word.tag_type_is_required')]);
+        }
+
+        if (!empty($parentId)) {
+            if ((int) $parentId === (int) $tag->id) {
+                return back()->withInput()->withErrors(['message' => __('wncms::word.cannot_set_child_as_parent')]);
+            }
+
+            $childIds = $tag->getAllDescendantsAndSelf()->pluck('id')->map(fn($i) => (int) $i)->toArray();
+            if (in_array((int) $parentId, $childIds, true)) {
+                return back()->withInput()->withErrors(['message' => __('wncms::word.cannot_set_child_as_parent')]);
+            }
+
+            $parentTag = $this->modelClass::where('id', $parentId)->where('type', $request->type)->first();
+            if (!$parentTag) {
+                return back()->withInput()->withErrors(['message' => __('wncms::word.parent_tag_is_not_found')]);
+            }
         }
 
         $existing_tag = $this->modelClass::where('type', $request->type)->where('slug', $request->slug)->where('id', '<>', $tag?->id)->first();
@@ -208,7 +316,7 @@ class TagController extends BackendController
         }
 
         $tag->update([
-            'parent_id' => $request->parent_id,
+            'parent_id' => $parentId,
             'name' => $newName,
             'type' => $request->type,
             'slug' => $request->slug,
@@ -360,7 +468,7 @@ class TagController extends BackendController
 
         $parents = $q->paginate($request->page_size ?? 50);
 
-        $tagTypes = wncms()->tag()->getAllTagTypes();
+        $tagTypes = wncms()->tag()->getActiveModelTagTypes();
 
         $allKeywords = TagKeyword::whereRelation('tag', 'type', $selectedType)->get()->map(function ($keyword) {
             return ['value' => $keyword->id, 'name' => $keyword->name];

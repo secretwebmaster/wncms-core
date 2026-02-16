@@ -519,7 +519,7 @@
 // //     Result: 0 matches.
 // //
 // //     Migration syntax:
-// //     - Use manager API: wncms()->tag()->getAllTagTypes()
+// //     - Use manager API: wncms()->tag()->getRegisteredTagTypes()
 // //
 // //     if (!function_exists('wncms_get_all_tag_types')) {
 // //         function wncms_get_all_tag_types()
