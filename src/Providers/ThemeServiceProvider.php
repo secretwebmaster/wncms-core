@@ -38,11 +38,11 @@ class ThemeServiceProvider extends ServiceProvider
         if (gss('multi_website')) {
             $themes = wncms()->website()->getList()->pluck('theme')->unique()->toArray();
             foreach ($themes as $theme) {
-                $themePath = public_path("themes/{$theme}");
-                if (!File::exists($themePath)) {
+                $theme = $theme ?: 'default';
+                $themePath = $this->resolveThemePath($theme);
+                if (!$themePath) {
                     continue;
                 }
-                $this->loadThemeConfig($theme, $themePath);
 
                 // Load config.php
                 $this->loadThemeConfig($theme, $themePath);
@@ -58,10 +58,10 @@ class ThemeServiceProvider extends ServiceProvider
             }
         } else {
             // Determine theme path
-            $themePath = public_path("themes/{$themeId}");
+            $themePath = $this->resolveThemePath($themeId);
 
-            // If theme folder is missing → immediately show inactive theme screen
-            if (!File::exists($themePath)) {
+            // Missing non-core themes still show inactive screen
+            if (!$themePath) {
                 $this->showThemeInactiveScreen();
                 return; // STOP further boot process
             }
@@ -78,6 +78,23 @@ class ThemeServiceProvider extends ServiceProvider
             // Load functions.php
             $this->loadThemeFunctions($themePath);
         }
+    }
+
+    protected function resolveThemePath(string $themeId): ?string
+    {
+        $publicThemePath = public_path("themes/{$themeId}");
+        if (File::exists($publicThemePath)) {
+            return $publicThemePath;
+        }
+
+        if (in_array($themeId, ThemeManager::CORE_THEMES)) {
+            $coreThemePath = WNCMS_RESOURCES_PATH . 'themes' . DIRECTORY_SEPARATOR . $themeId;
+            if (File::exists($coreThemePath)) {
+                return $coreThemePath;
+            }
+        }
+
+        return null;
     }
 
     /**

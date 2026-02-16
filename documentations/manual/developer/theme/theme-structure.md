@@ -546,6 +546,17 @@ $config = include public_path("themes/{$themeId}/config.php");
 config(["theme.{$themeId}" => $config]);
 ```
 
+### Core Theme Fallback When `/public/themes` Is Missing
+
+If `public/themes/{themeId}` does not exist and `{themeId}` is a core theme, WNCMS now falls back to packaged theme files under:
+
+```text
+{WNCMS_RESOURCES_PATH}/themes/{themeId}
+```
+
+This fallback applies to config, views, translations, and `functions.php`.
+If the active theme is not a core theme and its public folder is missing, WNCMS keeps the inactive-theme behavior.
+
 ### 3. View Registration
 
 ```php

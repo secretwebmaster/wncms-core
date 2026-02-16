@@ -546,6 +546,17 @@ $config = include public_path("themes/{$themeId}/config.php");
 config(["theme.{$themeId}" => $config]);
 ```
 
+### 当 `/public/themes` 缺失时的核心主题回退
+
+如果 `public/themes/{themeId}` 不存在，且 `{themeId}` 属于核心主题，WNCMS 会回退到以下内建主题目录：
+
+```text
+{WNCMS_RESOURCES_PATH}/themes/{themeId}
+```
+
+这个回退会同时套用于配置、视图、翻译与 `functions.php`。
+如果当前启用的主题不是核心主题且公开目录缺失，系统仍会保持“主题未启用”行为。
+
 ### 3. 注册视图
 
 ```php
