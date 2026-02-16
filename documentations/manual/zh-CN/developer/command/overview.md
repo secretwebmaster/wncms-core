@@ -98,6 +98,39 @@ php artisan wncms:install-default-theme --force
 - 适用于默认主题资源被修改、缺失或损坏后的恢复场景。
 - 该命令也会被安装流程（CLI 与浏览器安装向导）通过共用安装逻辑调用。
 
+## 安装方式（`wncms:install` + 浏览器向导）
+
+WNCMS 支持两种安装入口：
+
+1. CLI 命令：`php artisan wncms:install ...`
+2. 浏览器向导：`/install/wizard`
+
+两种方式现在都使用 `InstallerManager` 的同一套共用安装流程，因此以下步骤行为一致：
+- 数据库连接检查
+- 写入 `.env`
+- 生成应用密钥
+- 数据库初始化
+- 发布资源
+- 初始化自定义语言/路由文件
+- 初始化系统设置
+- 写入安装标记并清理缓存
+
+### 多站点默认行为
+
+- `multi_website` 默认值为 `false`。
+- CLI：仅在传入 `--multi_website` 时启用多站点。
+- 向导：仅在勾选复选框时启用多站点。
+
+安装后可执行以下验证：
+
+```bash
+php artisan tinker
+```
+
+```php
+gss('multi_website');
+```
+
 ## 故障排查
 
 - `Source view file not found`：

@@ -11,6 +11,36 @@ use Str;
 class InstallerManager
 {
     /**
+     * Run the shared installation pipeline used by both command and wizard.
+     *
+     * @param array $input Normalized installer input.
+     * @return array{passed: bool, error?: string}
+     */
+    public function runInstallation(array $input): array
+    {
+        if (!$this->checkDatabaseConnection($input)) {
+            return [
+                'passed' => false,
+                'error' => 'database_connection_failed',
+            ];
+        }
+
+        $this->writeEnvFile($input);
+        $this->generateAppKey();
+        $this->runDatabaseSetup();
+        $this->publishAssets();
+        $this->installCustomLangFiles();
+        $this->installCustomRouteFiles();
+        $this->updateSystemSettings($input);
+        $this->markInstalled();
+        $this->finalize();
+
+        return [
+            'passed' => true,
+        ];
+    }
+
+    /**
      * Normalize and validate environment input.
      * Ensures all values are safe, non-empty (when required),
      * and boolean values become '1' or '0'.
@@ -338,7 +368,7 @@ class InstallerManager
         }
 
         // multi website mode
-        $multiWebsite = !empty($input['multi_website']) && $input['multi_website'] == '1';
+        $multiWebsite = filter_var($input['multi_website'] ?? '0', FILTER_VALIDATE_BOOLEAN);
         uss('multi_website', $multiWebsite);
         info("Set multi_website to " . ($multiWebsite ? 'true' : 'false'));
 

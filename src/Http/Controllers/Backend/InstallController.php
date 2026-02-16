@@ -97,40 +97,14 @@ class InstallController extends Controller
             ]);
         }
 
-        // Step 1: DB connection test
-        if (!$this->installer->checkDatabaseConnection($input)) {
+        $result = $this->installer->runInstallation($input);
+
+        if (!$result['passed']) {
             return response()->json([
                 'status' => 'fail',
                 'message' => __('wncms::installer.environment.wizard.form.db_connection_failed'),
             ]);
         }
-
-        // Step 2: Write .env
-        $this->installer->writeEnvFile($input);
-
-        // Step 3: Generate key
-        $this->installer->generateAppKey();
-
-        // Step 4: Database setup (SQL import or migrate:fresh fallback)
-        $this->installer->runDatabaseSetup();
-
-        // Step 5: Publish assets
-        $this->installer->publishAssets();
-
-        // Step 6: Custom lang files
-        $this->installer->installCustomLangFiles();
-
-        // Step 7: Custom route files
-        $this->installer->installCustomRouteFiles();
-
-        // Step 8: System settings (locale, multi-website, force_https, version)
-        $this->installer->updateSystemSettings($input);
-
-        // Step 9: Mark installed
-        $this->installer->markInstalled();
-
-        // Step 10: Final cleanup
-        $this->installer->finalize();
 
         return response()->json([
             'status' => 'success',

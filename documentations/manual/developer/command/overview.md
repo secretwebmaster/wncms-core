@@ -98,6 +98,39 @@ Behavior summary:
 - Intended for recovery when default theme assets are edited, missing, or corrupted.
 - This command is also used by installer flows (CLI and browser wizard) via shared installer logic.
 
+## Installation Modes (`wncms:install` + Browser Wizard)
+
+WNCMS supports two installation entry points:
+
+1. CLI command: `php artisan wncms:install ...`
+2. Browser wizard: `/install/wizard`
+
+Both modes now use the same shared installer pipeline in `InstallerManager`, so behavior is aligned across:
+- DB connection check
+- `.env` write
+- app key generation
+- database setup
+- asset publishing
+- custom language/route file bootstrap
+- system settings initialization
+- install marker + cache finalize
+
+### Multi-site default behavior
+
+- `multi_website` default is `false`.
+- CLI: multi-site is enabled only when passing `--multi_website`.
+- Wizard: multi-site is enabled only when the checkbox is checked.
+
+After installation you can verify:
+
+```bash
+php artisan tinker
+```
+
+```php
+gss('multi_website');
+```
+
 ## Troubleshooting
 
 - `Source view file not found`:

@@ -157,8 +157,8 @@ class Install extends Command
             'pusher_app_key' => $options['pusher_app_key'],
             'pusher_app_secret' => $options['pusher_app_secret'],
 
-            'multi_website' => $options['multi_website'] ? '1' : null,
-            'force_https' => $options['force_https'] ? '1' : null,
+            'multi_website' => $options['multi_website'] ? '1' : '0',
+            'force_https' => $options['force_https'] ? '1' : '0',
 
             'site_name' => $options['site_name'],
             'domain' => $options['domain'],
@@ -171,48 +171,13 @@ class Install extends Command
         // Prepare and normalize input
         $input = $installer->normalizeInput($input);
 
-        // Step 5.1: Test DB connection
-        if (!$installer->checkDatabaseConnection($input)) {
+        $result = $installer->runInstallation($input);
+
+        if (!$result['passed']) {
             $this->error('Database connection failed');
             return Command::FAILURE;
         }
-        $this->info('Step 5.1: Database connection verified');
-
-        // Step 5.2: Write ENV
-        $installer->writeEnvFile($input);
-        $this->info('Step 5.2: .env file written');
-
-        // Step 5.3: Generate app key
-        $installer->generateAppKey();
-        $this->info('Step 5.3: APP_KEY generated');
-
-        // Step 5.4: Setup database (SQL import or migrate)
-        $installer->runDatabaseSetup();
-        $this->info('Step 5.4: Database migration and seeding completed');
-
-        // Step 5.5: Publish assets
-        $installer->publishAssets();
-        $this->info('Step 5.5: Vendor assets published');
-
-        // Step 5.6: Install custom language files
-        $installer->installCustomLangFiles();
-        $this->info('Step 5.6: Custom language files installed');
-
-        // Step 5.7: Install custom route files
-        $installer->installCustomRouteFiles();
-        $this->info('Step 5.7: Custom route files installed');
-
-        // Step 5.8: Update system settings (locale, multi-site, https)
-        $installer->updateSystemSettings($input);
-        $this->info('Step 5.8: System settings saved');
-
-        // Step 5.9: Mark installed
-        $installer->markInstalled();
-        $this->info('Step 5.9: Installation marker created');
-
-        // Step 5.10: Final cleanup
-        $installer->finalize();
-        $this->info('Step 5.10: Cache cleared and installation finalized');
+        $this->info('Step 5: Shared installation pipeline completed');
 
         $this->info('WNCMS installation completed successfully.');
 
