@@ -9,7 +9,7 @@
         <form action="{{ route('starters.index') }}">
             <div class="row gx-1 align-items-center position-relative my-1">
 
-                @include('wncms::backend.common.default_toolbar_filters', [
+                @include('backend.common.default_toolbar_filters', [
                     'websiteFilterName' => 'website_id',
                 ])
 
@@ -50,14 +50,14 @@
     <div class="wncms-toolbar-buttons mb-5">
         <div class="card-toolbar flex-row-fluid gap-1">
             {{-- Create + Bilk Create + Clone + Bulk Delete --}}
-            @include('wncms::backend.common.default_toolbar_buttons', [
+            @include('backend.common.default_toolbar_buttons', [
                 'model_prefix' => 'starters',
             ])
         </div>
     </div>
 
     {{-- Index --}}
-    @include('wncms::backend.common.showing_item_of_total', ['models' => $starters])
+    @include('backend.common.showing_item_of_total', ['models' => $starters])
 
     {{-- Model Data --}}
     <div class="card card-flush rounded overflow-hidden">
@@ -99,7 +99,7 @@
                                 {{-- Actions --}}
                                 <td>
                                     <a class="btn btn-sm btn-dark fw-bold px-2 py-1" href="{{ route('starters.edit' , $starter) }}">@lang('wncms::word.edit')</a>
-                                    @include('wncms::backend.parts.modal_delete' , ['model'=>$starter , 'route' => route('starters.destroy' , $starter), 'btn_class' => 'px-2 py-1'])
+                                    @include('backend.parts.modal_delete' , ['model'=>$starter , 'route' => route('starters.destroy' , $starter), 'btn_class' => 'px-2 py-1'])
                                 </td>
 
                                 {{-- Data --}}
@@ -121,7 +121,7 @@
     </div>
 
     {{-- Index --}}
-    @include('wncms::backend.common.showing_item_of_total', ['models' => $starters])
+    @include('backend.common.showing_item_of_total', ['models' => $starters])
 
     {{-- Pagination --}}
     {{-- <div class="mt-5">

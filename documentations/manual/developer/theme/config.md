@@ -245,6 +245,50 @@ Example:
 | type    | string | yes      | "textarea" |
 | default | string | no       | ""         |
 
+# Color
+
+## color
+
+| Key         | Type   | Required | Example    |
+| ----------- | ------ | -------- | ---------- |
+| label       | string | yes      | "Brand"    |
+| name        | string | yes      | "brand"    |
+| type        | string | yes      | "color"    |
+| required    | bool   | no       | true       |
+| placeholder | string | no       | "#FFA218"  |
+| default     | string | no       | "#FFA218"  |
+
+Behavior:
+
+- Color input now supports `required` and placeholder.
+- Default display value is `#FFA218` when empty.
+
+# Repeater
+
+## repeater
+
+| Key       | Type   | Required | Example       |
+| --------- | ------ | -------- | ------------- |
+| label     | string | yes      | "Slides"      |
+| name      | string | yes      | "hero_slides" |
+| type      | string | yes      | "repeater"    |
+| fields    | array  | yes      | field schema  |
+| add_label | string | no       | "Add Slide"   |
+
+`fields` supports simple input configs:
+
+```php
+[
+    'label' => 'Hero Slides',
+    'name' => 'hero_slides',
+    'type' => 'repeater',
+    'fields' => [
+        ['name' => 'text', 'type' => 'text', 'label' => 'Text'],
+        ['name' => 'number', 'type' => 'number', 'label' => 'Number'],
+    ],
+]
+```
+
 # Editor (TinyMCE)
 
 ## editor

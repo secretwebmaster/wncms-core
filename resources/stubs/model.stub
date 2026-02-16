@@ -2,12 +2,14 @@
 
 namespace {{ namespace }};
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Wncms\Models\BaseModel;
 
-class {{ class }} extends Model
+class {{ class }} extends BaseModel
 {
-    use HasFactory;
+    /**
+     * Model key (snake_case singular). Can be set explicitly.
+     */
+    public static $modelKey = '';
 
     protected $guarded = [];
 

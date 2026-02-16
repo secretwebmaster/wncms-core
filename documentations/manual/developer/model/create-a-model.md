@@ -179,6 +179,7 @@ php artisan wncms:create-model Article
 What it does:
 
 - `make:model Article`
+  - Generated model now extends `Wncms\Models\BaseModel` and includes a `modelKey` fallback (auto-derived from class name when left empty)
 - `make:migration create_articles_table`
 - `make:controller Backend/ArticleController --resource --model=Article`
 
@@ -198,9 +199,9 @@ php artisan migrate
 
 ## After scaffolding
 
-### Update your model (important for v6.x.x)
+### Customize your model (v6.x.x)
 
-After using `wncms:create-model`, manually update the generated model file to include v6.x.x requirements:
+After using `wncms:create-model`, the generated model already uses `BaseModel` and has a safe `modelKey` fallback. Update it as needed for your feature requirements:
 
 ```php
 <?php

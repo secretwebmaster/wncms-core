@@ -42,12 +42,14 @@ This method does not require rsync and works on all systems. If your server alre
 ## Install Dependencies
 
 ```bash
+composer self-update
 composer install --no-interaction --prefer-dist
 composer update secretwebmaster/wncms-core -W
 
 # OR
 # if you are running as root user and want to install programmatically without interaction. You can run this
 
+# COMPOSER_ALLOW_SUPERUSER=1 composer self-update
 # COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist
 # COMPOSER_ALLOW_SUPERUSER=1 composer update secretwebmaster/wncms-core -W
 ```

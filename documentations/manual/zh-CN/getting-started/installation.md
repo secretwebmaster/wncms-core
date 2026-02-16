@@ -42,12 +42,14 @@ rm -rf .temp
 ## 安装依赖项
 
 ```bash
+composer self-update
 composer install --no-interaction --prefer-dist
 composer update secretwebmaster/wncms-core -W
 
 # 或者
 # 如果您以 root 用户身份运行并希望在没有交互的情况下以编程方式安装。您可以运行此命令
 
+# COMPOSER_ALLOW_SUPERUSER=1 composer self-update
 # COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist
 # COMPOSER_ALLOW_SUPERUSER=1 composer update secretwebmaster/wncms-core -W
 ```

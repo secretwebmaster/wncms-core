@@ -12,8 +12,10 @@ php artisan wncms:create-model Novel
 
 Behavior summary:
 - Generates `app/Models/Novel.php` when missing.
+- Generated model extends `Wncms\Models\BaseModel` and includes a `modelKey` fallback (auto-derived from class name when left empty).
 - Generates a migration for `novels` table.
 - Generates `app/Http/Controllers/Backend/NovelController.php`.
+- Generated backend controller methods follow `BackendController` compatible signatures (`create($id)`, `edit($id)`, `update(Request, $id)`, `destroy($id)`).
 - Runs `wncms:create-model-view novel`.
 - Runs `wncms:create-model-permission novel`.
 - Optionally appends routes into `routes/custom_backend.php`.

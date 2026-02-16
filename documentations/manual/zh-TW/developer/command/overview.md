@@ -12,8 +12,10 @@ php artisan wncms:create-model Novel
 
 行為摘要：
 - 不存在時建立 `app/Models/Novel.php`。
+- 產生的模型擴展 `Wncms\Models\BaseModel`，並包含 `modelKey` 保底邏輯（留空時按類名自動推導）。
 - 建立 `novels` 資料表遷移檔。
 - 建立 `app/Http/Controllers/Backend/NovelController.php`。
+- 產生的後台控制器方法簽名與 `BackendController` 相容（`create($id)`、`edit($id)`、`update(Request, $id)`、`destroy($id)`）。
 - 呼叫 `wncms:create-model-view novel`。
 - 呼叫 `wncms:create-model-permission novel`。
 - 可選擇將路由附加到 `routes/custom_backend.php`。

@@ -18,7 +18,7 @@
         <form class="form" method="POST" action="{{ route('starters.update', $starter) }}" enctype="multipart/form-data">
             @csrf
             @method('PATCH')
-            @include('wncms::backend.starters.form-items')
+            @include('backend.starters.form-items')
 
             <div class="card-footer d-flex justify-content-end py-6 px-9">
                 <button type="submit" wncms-btn-loading class="btn btn-primary wncms-submit">

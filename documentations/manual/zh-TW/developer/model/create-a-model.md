@@ -179,6 +179,7 @@ php artisan wncms:create-model Article
 它會執行以下操作：
 
 - `make:model Article`
+  - 產生的模型現已擴展 `Wncms\Models\BaseModel`，並包含 `modelKey` 保底邏輯（留空時會依類名自動推導）
 - `make:migration create_articles_table`
 - `make:controller Backend/ArticleController --resource --model=Article`
 
@@ -198,9 +199,9 @@ php artisan migrate
 
 ## 建立架構後
 
-### 更新模型（v6.x.x 重要）
+### 自訂模型（v6.x.x）
 
-使用 `wncms:create-model` 之後，手動更新產生的模型檔案以包含 v6.x.x 要求：
+使用 `wncms:create-model` 之後，產生的模型已預設使用 `BaseModel`，並帶有安全的 `modelKey` 保底邏輯。請按功能需求繼續調整：
 
 ```php
 <?php

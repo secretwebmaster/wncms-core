@@ -3,8 +3,8 @@
 namespace {{ namespace }};
 
 use {{ namespacedModel }};
-use {{ rootNamespace }}Http\Controllers\Backend\BackendController;
-use {{ namespacedRequests }}
+use Illuminate\Http\Request;
+use Wncms\Http\Controllers\Backend\BackendController;
 
 class {{ class }} extends BackendController
 {
@@ -29,9 +29,16 @@ class {{ class }} extends BackendController
         ]);
     }
 
-    public function create(?{{ model }} ${{ modelVariable }})
+    public function create(int|string|null $id = null)
     {
-        ${{ modelVariable }} ??= new {{ model }};
+        if ($id) {
+            ${{ modelVariable }} = $this->modelClass::find($id);
+            if (!${{ modelVariable }}) {
+                return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.{{ modelVariable }}')]));
+            }
+        } else {
+            ${{ modelVariable }} = new {{ model }};
+        }
 
         return $this->view('backend.{{ modelVariable }}s.create', [
             'page_title' => wncms()->getModelWord('{{ modelVariable }}', 'management'),
@@ -39,7 +46,7 @@ class {{ class }} extends BackendController
         ]);
     }
 
-    public function store({{ storeRequest }} $request)
+    public function store(Request $request)
     {
         ${{ modelVariable }} = $this->modelClass::create([
             'xxxx' => $request->xxxx,
@@ -52,16 +59,26 @@ class {{ class }} extends BackendController
         ])->withMessage(__('wncms::word.successfully_created'));
     }
 
-    public function edit({{ model }} ${{ modelVariable }})
+    public function edit(int|string $id)
     {
+        ${{ modelVariable }} = $this->modelClass::find($id);
+        if (!${{ modelVariable }}) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.{{ modelVariable }}')]));
+        }
+
         return $this->view('backend.{{ modelVariable }}s.edit', [
             'page_title' => wncms()->getModelWord('{{ modelVariable }}', 'management'),
             '{{ modelVariable }}' => ${{ modelVariable }},
         ]);
     }
 
-    public function update({{ updateRequest }} $request, {{ model }} ${{ modelVariable }})
+    public function update(Request $request, $id)
     {
+        ${{ modelVariable }} = $this->modelClass::find($id);
+        if (!${{ modelVariable }}) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.{{ modelVariable }}')]));
+        }
+
         ${{ modelVariable }}->update([
             'xxxx' => $request->xxxx,
         ]);
@@ -73,8 +90,13 @@ class {{ class }} extends BackendController
         ])->withMessage(__('wncms::word.successfully_updated'));
     }
 
-    public function destroy({{ model }} ${{ modelVariable }})
+    public function destroy($id)
     {
+        ${{ modelVariable }} = $this->modelClass::find($id);
+        if (!${{ modelVariable }}) {
+            return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.{{ modelVariable }}')]));
+        }
+
         ${{ modelVariable }}->delete();
 
         $this->flush();

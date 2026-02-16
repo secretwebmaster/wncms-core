@@ -245,6 +245,50 @@ Config 範例：
 | type    | string | yes      | "textarea" |
 | default | string | no       | ""         |
 
+# Color
+
+## color
+
+| Key         | Type   | Required | Example    |
+| ----------- | ------ | -------- | ---------- |
+| label       | string | yes      | "Brand"    |
+| name        | string | yes      | "brand"    |
+| type        | string | yes      | "color"    |
+| required    | bool   | no       | true       |
+| placeholder | string | no       | "#FFA218"  |
+| default     | string | no       | "#FFA218"  |
+
+行為：
+
+- 顏色輸入現在支援 `required` 與 placeholder。
+- 為空時顯示預設值 `#FFA218`。
+
+# Repeater
+
+## repeater
+
+| Key       | Type   | Required | Example       |
+| --------- | ------ | -------- | ------------- |
+| label     | string | yes      | "Slides"      |
+| name      | string | yes      | "hero_slides" |
+| type      | string | yes      | "repeater"    |
+| fields    | array  | yes      | 欄位定義      |
+| add_label | string | no       | "Add Slide"   |
+
+`fields` 支援簡單輸入定義：
+
+```php
+[
+    'label' => 'Hero Slides',
+    'name' => 'hero_slides',
+    'type' => 'repeater',
+    'fields' => [
+        ['name' => 'text', 'type' => 'text', 'label' => 'Text'],
+        ['name' => 'number', 'type' => 'number', 'label' => 'Number'],
+    ],
+]
+```
+
 # Editor (TinyMCE)
 
 ## editor

@@ -134,6 +134,14 @@
                     'currentOptions' => $currentOptions,
                     'disabled' => $disabled ?? null,
                 ])
+            @elseif($option['type'] === 'repeater')
+                @include('wncms::backend.parts.inputs.repeater', [
+                    'option' => $option,
+                    'inputName' => $inputName,
+                    'currentValue' => $currentValue,
+                    'uniqueDomId' => $uniqueDomId,
+                    'disabled' => $disabled ?? null,
+                ])
             @elseif($option['type'] === 'tagify')
                 @include('wncms::backend.parts.inputs.tagify', [
                     'option' => $option,
