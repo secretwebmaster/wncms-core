@@ -57,7 +57,7 @@ composer update secretwebmaster/wncms-core -W
 > 如果需要手動重新安裝核心主題資源，請執行:
 >
 > ```bash
-> php artisan vendor:publish --tag=wncms-default-assets --force
+> php artisan wncms:install-default-theme --force
 > ```
 
 ## 運行安裝程序

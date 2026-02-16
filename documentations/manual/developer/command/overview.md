@@ -85,6 +85,19 @@ Behavior summary:
 - Verifies `plugins` table exists and has no `[MANIFEST_ERROR]` / `[LOAD_ERROR]` records.
 - Returns failure when any gate fails (release should be blocked).
 
+## `wncms:install-default-theme`
+
+Install or reinstall core default theme assets into `public/themes`.
+
+```bash
+php artisan wncms:install-default-theme --force
+```
+
+Behavior summary:
+- Publishes assets from the `wncms-default-assets` publish tag.
+- Intended for recovery when default theme assets are edited, missing, or corrupted.
+- This command is also used by installer flows (CLI and browser wizard) via shared installer logic.
+
 ## Troubleshooting
 
 - `Source view file not found`:

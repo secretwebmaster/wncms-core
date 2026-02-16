@@ -85,6 +85,19 @@ php artisan wncms:verify-plugin-hooks
 - 檢查 `plugins` 資料表是否存在，且不存在 `[MANIFEST_ERROR]` / `[LOAD_ERROR]` 記錄。
 - 任一閘門失敗即回傳失敗（應阻止發佈）。
 
+## `wncms:install-default-theme`
+
+安裝或重新安裝核心預設主題資源到 `public/themes`。
+
+```bash
+php artisan wncms:install-default-theme --force
+```
+
+行為摘要：
+- 發佈 `wncms-default-assets` 發佈標籤對應的資源。
+- 適用於預設主題資源被修改、遺失或損壞後的復原場景。
+- 該命令也會被安裝流程（CLI 與瀏覽器安裝精靈）透過共用安裝邏輯呼叫。
+
 ## 疑難排解
 
 - `Source view file not found`：

@@ -8,9 +8,12 @@
         @include('wncms::backend.tools.parts.fix-permission')
     </div>
 
-    {{-- Future tools --}}
     <div class="col-12 col-md-6 col-lg-3 d-flex">
         @include('wncms::backend.tools.parts.clear-cache')
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-3 d-flex">
+        @include('wncms::backend.tools.parts.install-default-theme')
     </div>
 </div>
 

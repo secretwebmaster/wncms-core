@@ -57,7 +57,7 @@ composer update secretwebmaster/wncms-core -W
 > If you need to reinstall core theme assets manually, run:
 >
 > ```bash
-> php artisan vendor:publish --tag=wncms-default-assets --force
+> php artisan wncms:install-default-theme --force
 > ```
 
 ## Run Installer

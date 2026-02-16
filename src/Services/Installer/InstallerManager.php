@@ -247,9 +247,29 @@ class InstallerManager
     public function publishAssets(): void
     {
         Artisan::call('vendor:publish', ['--tag' => 'wncms-core-assets']);
-        Artisan::call('vendor:publish', ['--tag' => 'wncms-default-assets']);
+        $this->installDefaultThemeAssets();
 
         info('assets published');
+    }
+
+    /**
+     * Install or reinstall default theme assets into public directory.
+     */
+    public function installDefaultThemeAssets(bool $force = true): array
+    {
+        $payload = ['--tag' => 'wncms-default-assets'];
+        if ($force) {
+            $payload['--force'] = true;
+        }
+
+        $status = Artisan::call('vendor:publish', $payload);
+        $output = trim((string) Artisan::output());
+
+        return [
+            'passed' => $status === 0,
+            'status' => $status,
+            'output' => $output,
+        ];
     }
 
     /**

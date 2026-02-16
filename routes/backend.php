@@ -44,6 +44,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
 
     Route::prefix('tools')->name('tools.')->group(function () {
         Route::get('/', [ToolController::class, 'index'])->name('index');
+        Route::post('/install_default_theme', [ToolController::class, 'install_default_theme'])->middleware('can:theme_upload')->name('install_default_theme');
     });
 
     //advertisement
