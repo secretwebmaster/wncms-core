@@ -487,7 +487,8 @@ class Post extends BaseModel implements HasMedia, ApiModelInterface
             $tagIdsFromKeywordBinding = wncms()->tag()->getTagsToBind(
                 tagType: $tagType,
                 contents: $content,
-                column: 'name'
+                column: 'name',
+                modelKey: static::$modelKey
             );
             $tagNames = array_merge($tagNames, $tagIdsFromKeywordBinding);
         }

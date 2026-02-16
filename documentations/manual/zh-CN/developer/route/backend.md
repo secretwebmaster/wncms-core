@@ -243,6 +243,7 @@ Route::prefix('tags')->controller(TagController::class)->group(function () {
 - `GET /panel/tags?type=all`：显示所有标签类型（不会套用 `where type = all`）。
 - 当 `type` 为空时，后端会重定向并默认使用 `type=post_category`。
 - 在标签新增/编辑页中，`parent_id` 使用 Tagify 单选（`maxTags=1`），并会加载当前所选类型下的**所有标签**作为父标签候选。
+- 在 `tags.keywords.index` 中，关键字绑定现已支持每个标签类型选择 `field`（例如 `title`、`content`、`excerpt`）。自动生成仅比对所选栏位；当 `field=*` 时会比对所有栏位。
 
 ### 主题
 

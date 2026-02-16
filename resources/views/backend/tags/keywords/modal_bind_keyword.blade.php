@@ -13,7 +13,25 @@
                         <input id="tagify_tag_keyword_{{ $binding_model->id }}"
                             class="w-100"
                             name="tag_keywords"
-                            value="{{ $binding_model->keywords()->pluck('name')->implode(" ,", 'name' ) }}" />
+                            value="{{ $binding_model->keywords()->pluck('name')->implode(',') }}" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold fs-7">@lang('wncms::word.field')</label>
+                        <select name="binding_field" class="form-select form-select-sm">
+                            @php
+                                $selectedBindingField = $binding_model->keywords->first(fn($keyword) => !empty($keyword->binding_field))?->binding_field ?: '*';
+                            @endphp
+                            @foreach(($bindingFieldOptions ?? ['*' => __('wncms::word.all')]) as $fieldKey => $fieldLabel)
+                                <option value="{{ $fieldKey }}" @if($selectedBindingField === (string) $fieldKey) selected @endif>
+                                    @if($fieldKey === '*')
+                                        @lang('wncms::word.all')
+                                    @else
+                                        {{ $fieldLabel }}
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 

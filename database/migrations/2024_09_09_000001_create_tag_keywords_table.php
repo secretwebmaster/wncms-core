@@ -15,7 +15,9 @@ return new class extends Migration
             Schema::create('tag_keywords', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
+                $table->string('model_key')->nullable();
                 $table->string('name');
+                $table->string('binding_field')->nullable();
                 $table->timestamps();
             });
         }

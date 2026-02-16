@@ -348,6 +348,26 @@ $post->syncTags($tags);
 $posts = Post::with('tags')->get();
 ```
 
+## 按模型字段进行关键字绑定
+
+`TagManager::getTagsToBind()` 现在支援按字段匹配，用于自动生成标签场景。
+
+```php
+$tagNames = wncms()->tag()->getTagsToBind(
+    tagType: 'post_category',
+    contents: [
+        'title' => $request->title,
+        'content' => $request->content,
+        'excerpt' => $request->excerpt,
+    ],
+    column: 'name',
+    modelKey: 'post'
+);
+```
+
+在后台关键字绑定页（`tags.keywords.index`）中，可为每组关键字选择 `field`（例如 `title`、`content`）。  
+当 `field=*` 时，会对所有传入字段进行匹配。
+
 ## 进阶用法
 
 ### 自订标签关联

@@ -444,7 +444,7 @@ class TagController extends BackendController
         }
 
         $q->whereNull('parent_id');
-        $q->with('children');
+        $q->with(['keywords', 'children.keywords', 'children.children.keywords', 'children']);
 
         if ($request->keyword) {
             $q->where('name->' . LaravelLocalization::getCurrentLocale(), 'like', "%$request->keyword%")
@@ -469,6 +469,9 @@ class TagController extends BackendController
         $parents = $q->paginate($request->page_size ?? 50);
 
         $tagTypes = wncms()->tag()->getActiveModelTagTypes();
+        $bindingFieldOptions = $selectedType !== 'all'
+            ? wncms()->tag()->getKeywordBindingFieldOptions($selectedType)
+            : ['*' => __('wncms::word.all')];
 
         $allKeywords = TagKeyword::whereRelation('tag', 'type', $selectedType)->get()->map(function ($keyword) {
             return ['value' => $keyword->id, 'name' => $keyword->name];
@@ -478,20 +481,43 @@ class TagController extends BackendController
             'tagTypes' => $tagTypes,
             'parents' => $parents,
             'allKeywords' => $allKeywords,
+            'bindingFieldOptions' => $bindingFieldOptions,
             'type' => $selectedType,
         ]);
     }
 
     public function update_keyword(Request $request, $id)
     {
-        $keywordsToUpdate = collect(json_decode($request->tag_keywords, true))->pluck('name')->toArray();
+        $keywordsToUpdate = collect(json_decode((string) $request->tag_keywords, true))
+            ->pluck('name')
+            ->map(fn($name) => trim((string) $name))
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
         $tag = $this->modelClass::find($id);
         if (!$tag) {
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
         }
 
+        $bindingFieldOptions = wncms()->tag()->getKeywordBindingFieldOptions($tag->type);
+        $bindingField = (string) $request->input('binding_field', '*');
+        if (!array_key_exists($bindingField, $bindingFieldOptions)) {
+            $bindingField = '*';
+        }
+
+        $tagMeta = collect(wncms()->tag()->getRegisteredTagTypes())->firstWhere('key', $tag->type);
+        $modelKey = !empty($tagMeta['model_key']) ? (string) $tagMeta['model_key'] : null;
+
         foreach ($keywordsToUpdate as $keywordName) {
-            $tag->keywords()->updateOrCreate(['name' => $keywordName]);
+            $tag->keywords()->updateOrCreate(
+                ['name' => $keywordName],
+                [
+                    'model_key' => $modelKey,
+                    'binding_field' => $bindingField,
+                ]
+            );
         }
 
         $keywordNameList = $tag->keywords()->pluck('name')->toArray();

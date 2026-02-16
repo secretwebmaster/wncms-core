@@ -348,6 +348,26 @@ $post->syncTags($tags);
 $posts = Post::with('tags')->get();
 ```
 
+## 依模型欄位進行關鍵字綁定
+
+`TagManager::getTagsToBind()` 現在支援依欄位比對，適用於自動產生標籤流程。
+
+```php
+$tagNames = wncms()->tag()->getTagsToBind(
+    tagType: 'post_category',
+    contents: [
+        'title' => $request->title,
+        'content' => $request->content,
+        'excerpt' => $request->excerpt,
+    ],
+    column: 'name',
+    modelKey: 'post'
+);
+```
+
+在後台關鍵字綁定頁（`tags.keywords.index`）中，可為每組關鍵字選擇 `field`（例如 `title`、`content`）。  
+當 `field=*` 時，會對所有傳入欄位進行比對。
+
 ## 進階用法
 
 ### 自訂標籤關聯

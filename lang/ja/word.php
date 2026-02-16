@@ -2238,6 +2238,7 @@ $words = [
     'enable_api_post_show' => '投稿詳細APIを有効化',
     'enable_api_tag_store' => 'タグ作成APIを有効化',
     'model' => 'モデル',
+    'field' => 'フィールド',
     'enable' => '有効化',
     'disable' => '無効化',
     'actions' => '操作',

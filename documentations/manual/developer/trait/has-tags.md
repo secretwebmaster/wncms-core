@@ -220,6 +220,26 @@ $posts = wncms()->post()->getList([
 ]);
 ```
 
+### Keyword Binding by Model Field
+
+`TagManager::getTagsToBind()` supports field-level matching for auto-generate flows.
+
+```php
+$tagNames = wncms()->tag()->getTagsToBind(
+    tagType: 'post_category',
+    contents: [
+        'title' => $request->title,
+        'content' => $request->content,
+        'excerpt' => $request->excerpt,
+    ],
+    column: 'name',
+    modelKey: 'post'
+);
+```
+
+In backend keyword binding (`tags.keywords.index`), each keyword set can choose `field` (for example `title` or `content`).  
+When `field` is `*`, matching checks all provided content fields.
+
 ## Best Practices
 
 1. **Define Tag Metas** - Always configure `$tagMetas` in your models

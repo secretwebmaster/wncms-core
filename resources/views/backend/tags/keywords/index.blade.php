@@ -72,6 +72,7 @@
                             <th class="ps-3">@lang('wncms::word.tag_id')</th>
                             <th>@lang('wncms::word.tag_type')</th>
                             <th>@lang('wncms::word.tag_name')</th>
+                            <th>@lang('wncms::word.field')</th>
                             <th>@lang('wncms::word.keywords')</th>
                         </tr>
                     </thead>
@@ -92,6 +93,7 @@
                                 <td class="ps-3">{{ $parent->id }}</td>
                                 <td>@lang('wncms::word.' . $parent->type)</td>
                                 <td class="mw-200px text-truncate text-info fw-bold" title="{{ $parent->description }}">{{ $parent->name }}</td>
+                                <td>{{ $parent->keywords->first(fn($keyword) => !empty($keyword->binding_field))?->binding_field ?: '*' }}</td>
                                 <td>{{ $parent->keywords->pluck('name')->implode(",") }}</td>
                             <tr>
 

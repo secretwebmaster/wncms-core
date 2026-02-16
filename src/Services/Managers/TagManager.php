@@ -3,6 +3,7 @@
 namespace Wncms\Services\Managers;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -203,22 +204,145 @@ class TagManager extends ModelManager
         return $availableTagKeywords;
     }
 
-    public function getTagsToBind(string $tagType = 'post_category', array $contents = [], $column = 'id'): array
+    public function getTagsToBind(string $tagType = 'post_category', array $contents = [], $column = 'id', ?string $modelKey = null): array
     {
-        $availableTagKeywords = $this->getTagKeywordList($tagType, $column);
+        $normalizedContents = $this->normalizeBindingContents($contents);
+        $allContentPool = collect($normalizedContents)
+            ->flatten()
+            ->filter(fn($value) => is_string($value) && $value !== '')
+            ->values()
+            ->all();
+
+        if (empty($allContentPool)) {
+            return [];
+        }
+
+        $tags = $this->getList([
+            'tag_type' => $tagType,
+            'withs' => ['keywords'],
+            'cache' => true,
+        ]);
+
         $tagKeysToBind = [];
 
-        foreach ($availableTagKeywords as $tagKey => $keywords) {
-            foreach ($contents as $content) {
-                foreach ($keywords as $keyword) {
-                    if (stripos($content, $keyword) !== false) {
-                        $tagKeysToBind[] = $tagKey;
+        foreach ($tags as $tag) {
+            /** @var \Wncms\Models\Tag|\Illuminate\Database\Eloquent\Model $tag */
+
+            foreach ($tag->keywords as $keywordModel) {
+                $keyword = trim((string) ($keywordModel->name ?? ''));
+                if ($keyword === '') {
+                    continue;
+                }
+
+                $keywordModelKey = trim((string) ($keywordModel->model_key ?? ''));
+                if ($modelKey !== null && $keywordModelKey !== '' && $keywordModelKey !== $modelKey) {
+                    continue;
+                }
+
+                $bindingField = trim((string) ($keywordModel->binding_field ?? '*'));
+                $candidateContents = $bindingField !== '' && $bindingField !== '*' && isset($normalizedContents[$bindingField])
+                    ? $normalizedContents[$bindingField]
+                    : $allContentPool;
+
+                foreach ($candidateContents as $content) {
+                    if (is_string($content) && stripos($content, $keyword) !== false) {
+                        $tagKeysToBind[] = $tag->{$column};
+                        break;
                     }
                 }
             }
         }
 
         return array_unique($tagKeysToBind);
+    }
+
+    public function getKeywordBindingFieldOptions(string $tagType): array
+    {
+        $meta = collect($this->getRegisteredTagTypes())->firstWhere('key', $tagType);
+        $modelClass = $meta['model'] ?? null;
+
+        if (empty($modelClass) || !class_exists($modelClass)) {
+            return ['*' => __('wncms::word.all')];
+        }
+
+        $model = new $modelClass;
+        $fields = [];
+
+        if (method_exists($model, 'getFillable')) {
+            $fields = array_merge($fields, $model->getFillable());
+        }
+
+        if (method_exists($model, 'getTranslatableAttributes')) {
+            $fields = array_merge($fields, $model->getTranslatableAttributes());
+        }
+
+        if (empty($fields) && method_exists($model, 'getTable')) {
+            try {
+                $fields = array_merge($fields, Schema::getColumnListing($model->getTable()));
+            } catch (\Throwable $e) {
+                // ignore table-inspection errors and keep current options
+            }
+        }
+
+        $ignoredFields = ['id', 'created_at', 'updated_at', 'deleted_at'];
+        $fields = array_values(array_unique(array_filter($fields, function ($field) use ($ignoredFields) {
+            return is_string($field) && $field !== '' && !in_array($field, $ignoredFields, true);
+        })));
+
+        $preferredOrder = ['title', 'name', 'label', 'excerpt', 'description', 'keywords', 'content', 'slug', 'remark'];
+        usort($fields, function ($a, $b) use ($preferredOrder) {
+            $aIndex = array_search($a, $preferredOrder, true);
+            $bIndex = array_search($b, $preferredOrder, true);
+
+            if ($aIndex === false && $bIndex === false) {
+                return strcmp($a, $b);
+            }
+            if ($aIndex === false) {
+                return 1;
+            }
+            if ($bIndex === false) {
+                return -1;
+            }
+            return $aIndex <=> $bIndex;
+        });
+
+        $options = ['*' => __('wncms::word.all')];
+        foreach ($fields as $field) {
+            $options[$field] = $field;
+        }
+
+        return $options;
+    }
+
+    protected function normalizeBindingContents(array $contents): array
+    {
+        if (empty($contents)) {
+            return [];
+        }
+
+        $isAssoc = array_keys($contents) !== range(0, count($contents) - 1);
+        if (!$isAssoc) {
+            return ['*' => array_values(array_filter($contents, fn($value) => is_string($value) && trim($value) !== ''))];
+        }
+
+        $normalized = [];
+        foreach ($contents as $field => $value) {
+            $field = trim((string) $field);
+            if ($field === '') {
+                continue;
+            }
+
+            if (is_array($value)) {
+                $normalized[$field] = array_values(array_filter($value, fn($v) => is_string($v) && trim($v) !== ''));
+                continue;
+            }
+
+            if (is_string($value) && trim($value) !== '') {
+                $normalized[$field] = [$value];
+            }
+        }
+
+        return $normalized;
     }
 
     public function getWord(string $modelName = 'post', $subType = 'category')

@@ -2238,6 +2238,7 @@ $words = [
     'enable_api_post_show' => '启用文章详情API',
     'enable_api_tag_store' => '启用标签创建API',
     'model' => '模型',
+    'field' => '欄位',
     'enable' => '启用',
     'disable' => '停用',
     'actions' => '操作',

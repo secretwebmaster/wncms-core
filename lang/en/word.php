@@ -2238,6 +2238,7 @@ $words = [
     'enable_api_post_show' => 'Enable Post Detail API',
     'enable_api_tag_store' => 'Enable Tag Create API',
     'model' => 'Model',
+    'field' => 'Field',
     'enable' => 'Enable',
     'disable' => 'Disable',
     'actions' => 'Actions',
