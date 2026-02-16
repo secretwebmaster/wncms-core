@@ -288,3 +288,21 @@ class ProductManager extends ModelManager
 ```
 
 详细指南请参阅 [Create a Manager](create-a-manager.md)。
+
+## 核心对齐说明
+
+- Core 已移除 `BannerManager`。横幅/广告位请统一使用 `AdvertisementManager`（`wncms()->advertisement()`）。
+- `StarterManager` 现已改为基于 `ModelManager` 的脚手架模板，用于复制后快速创建新 manager。
+- `SettingManager` 仍为特殊的键值管理器，不继承 `ModelManager`，以保持 `gss()` / `uss()` 依赖的 `get($key, $fallback)`、`update($key, $value)` API。
+- `SettingManager` 仍已对齐动态模型解析：查询前会通过 `wncms()->getModelClass('setting')` 解析模型类。
+
+## Tag 模型兼容性
+
+`ModelManager::applyTagFilter()` 现在接受弹性输入（`mixed`），并动态解析 tag 模型类。
+
+解析顺序：
+
+1. `config('wncms.models.tag.class')` 或 `config('wncms.models.tag')`
+2. `wncms()->getModelClass('tag')`
+
+这样可兼容 package/custom tag 模型实例，不再强依赖继承 `Wncms\Models\Tag`。

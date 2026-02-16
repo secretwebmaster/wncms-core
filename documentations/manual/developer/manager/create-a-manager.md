@@ -166,3 +166,19 @@ app/
 ```
 
 Each manager handles its respective model while sharing consistent caching, filtering, and list-building logic.
+
+## Core Starter Template
+
+Core provides `Wncms\Services\Managers\StarterManager` as a copy-ready scaffold that already extends `ModelManager`.
+
+When copying it:
+
+1. Rename class/file to `{ModelName}Manager`.
+2. Replace `getModelClass()` model key.
+3. Adjust default tag type, searchable fields, and option mapping in `buildListQuery()`.
+
+Do not use `StarterManager` directly in production without replacing its model key.
+
+## Special Case: SettingManager
+
+`SettingManager` is intentionally not a `ModelManager` subclass. It is a key-value service used by helpers like `gss()` / `uss()` and keeps a different API signature (`get($key, $fallback)`).

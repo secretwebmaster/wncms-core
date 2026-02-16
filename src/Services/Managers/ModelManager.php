@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Wncms\Models\Tag;
 
 abstract class ModelManager
 {
@@ -217,20 +216,23 @@ abstract class ModelManager
     /**
      * apply tag filters to query
      * @param Builder $q
-     * @param \Wncms\Models\Tag|array|string|null $tags
+     * @param mixed $tags
      * @param string|null $tagType
      */
-    protected function applyTagFilter(Builder $q, Tag|array|string|null $tags, ?string $tagType = null)
+    protected function applyTagFilter(Builder $q, mixed $tags, ?string $tagType = null)
     {
         // return if empty
         if ($tags === null || $tags === '' || $tags === []) return;
 
-        // load tag model class from config
-        $tagConfig = config('wncms.models.tag', Tag::class);
-        $tagModelClass = is_array($tagConfig) ? ($tagConfig['class'] ?? Tag::class) : $tagConfig;
+        // load tag model class from config and fallback through model resolver
+        $tagConfig = config('wncms.models.tag');
+        $tagModelClass = is_array($tagConfig) ? ($tagConfig['class'] ?? null) : $tagConfig;
+        if (!is_string($tagModelClass) || !class_exists($tagModelClass)) {
+            $tagModelClass = wncms()->getModelClass('tag');
+        }
 
         // normalize single tag model
-        if ($tags instanceof Tag || is_a($tags, $tagModelClass)) {
+        if (is_object($tags) && is_a($tags, $tagModelClass)) {
             $tags = [$tags];
         }
 

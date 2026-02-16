@@ -2,46 +2,40 @@
 
 namespace Wncms\Services\Managers;
 
-class StarterManager
+class StarterManager extends ModelManager
 {
+    protected string $cacheKeyPrefix = 'wncms_starter';
+    protected string|array $cacheTags = ['starters'];
+    protected bool $shouldAuth = false;
+    protected string $defaultTagType = 'starter_category';
 
-    //Cache key prefix that prepend all cache key in this page
-    protected $cacheKeyPrefix = "wncms_starter";
-
-    /**
-     * ----------------------------------------------------------------------------------------------------
-     * Get domain from string
-     * ----------------------------------------------------------------------------------------------------
-     * @since 3.0.0
-     * @version 3.0.0
-     * @param string|null $url A valid url
-     * @return string
-     * ----------------------------------------------------------------------------------------------------
-     */
-    public function get($websiteId = null)
+    public function getModelClass(): string
     {
-        $method = "get";
-        $shouldAuth = false;
-        $cacheKeyDomain = empty($websiteId) ? wncms()->getDomain() : '';
-        $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, $method, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()), $cacheKeyDomain);
-        $cacheTags = ['starters'];
-        $cacheTime = gss('enable_cache') ? gss('data_cache_time') : 0;
-        //wncms()->cache()->clear($cacheKey, $cacheTags);
-        // dd($cacheKey);
+        return wncms()->getModelClass('starter');
+    }
 
-        return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use($websiteId){
-            $q = Website::query();
-            $q->with('media');
+    protected function buildListQuery(array $options): mixed
+    {
+        $q = $this->query();
 
-            if(!empty($websiteId)){
-                $website = $q->where('id', $websiteId);
-            }else{
-                $website = $q->where('domain', request()->getHost())->orWhere('domain', wncms()->getDomain());
-            }
+        $this->applyStatus($q, 'status', $options['status'] ?? 'active');
+        $this->applyTagFilter($q, $options['tags'] ?? [], $options['tag_type'] ?? $this->defaultTagType);
+        $this->applyKeywordFilter($q, $options['keywords'] ?? [], $options['search_fields'] ?? ['title', 'name']);
+        $this->applyWhereConditions($q, $options['wheres'] ?? []);
+        $this->applyWebsiteId($q, $options['website_id'] ?? null);
+        $this->applyIds($q, 'id', $options['ids'] ?? []);
+        $this->applyExcludeIds($q, 'id', $options['excluded_ids'] ?? []);
+        $this->applyWiths($q, $options['withs'] ?? []);
+        $this->applySelect($q, $options['select'] ?? ['*']);
+        $this->applyOffset($q, $options['offset'] ?? 0);
+        $this->applyLimit($q, $options['count'] ?? 0);
+        $this->applyOrdering(
+            $q,
+            $options['sort'] ?? 'id',
+            $options['direction'] ?? 'desc',
+            $options['is_random'] ?? false
+        );
 
-            $website = $q->first();
-
-            return $website;
-        });
+        return $q;
     }
 }

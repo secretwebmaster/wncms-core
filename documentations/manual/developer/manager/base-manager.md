@@ -218,3 +218,21 @@ WNCMS also accepts singular/plural aliases during lookup. For example, both `wnc
 - Cache complex queries for speed.
 - Apply global multi-site or tag filters.
 - Expose consistent query results to API controllers.
+
+## Core Alignment Notes
+
+- `BannerManager` is removed from core. Use `AdvertisementManager` (`wncms()->advertisement()`) for banner/ad placements.
+- `StarterManager` is now a `ModelManager`-based scaffold template. Replace its model key and filters when creating a real manager.
+- `SettingManager` remains a specialized key-value manager and does not extend `ModelManager` because it must keep `get($key, $fallback)` / `update($key, $value)` behavior for `gss()` / `uss()`.
+- `SettingManager` still aligns with dynamic model resolution by loading the model through `wncms()->getModelClass('setting')` before querying.
+
+## Tag Model Compatibility
+
+`ModelManager::applyTagFilter()` accepts flexible input (`mixed`) and resolves the tag model class dynamically.
+
+Resolution order:
+
+1. `config('wncms.models.tag.class')` or `config('wncms.models.tag')`
+2. `wncms()->getModelClass('tag')`
+
+This allows package/custom tag model instances to pass filtering without requiring hard inheritance from `Wncms\Models\Tag`.

@@ -166,3 +166,19 @@ app/
 ```
 
 每个 Manager 处理其各自的 model，同时共享一致的快取、过滤与清单建构逻辑。
+
+## Core Starter 模板
+
+Core 提供了 `Wncms\Services\Managers\StarterManager` 作为可复制的 manager 脚手架，且已继承 `ModelManager`。
+
+复制后请至少修改：
+
+1. 类名与文件名改为 `{ModelName}Manager`。
+2. `getModelClass()` 中的 model key。
+3. `buildListQuery()` 内的默认 tag type、搜索字段与查询选项映射。
+
+不要在未替换 model key 的情况下直接将 `StarterManager` 用于生产逻辑。
+
+## 特例：SettingManager
+
+`SettingManager` 有意不继承 `ModelManager`。它是给 `gss()` / `uss()` 使用的键值服务，API 签名与资源模型 manager 不同（例如 `get($key, $fallback)`）。

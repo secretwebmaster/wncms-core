@@ -2,7 +2,6 @@
 
 namespace Wncms\Services\Managers;
 
-use Wncms\Models\Setting;
 use Illuminate\Support\Facades\Schema;
 
 class SettingManager
@@ -13,19 +12,28 @@ class SettingManager
     protected ?bool $hasGroupColumn = null;
 
     /**
-     * ----------------------------------------------------------------------------------------------------
-     * Get system setting by key
-     * ----------------------------------------------------------------------------------------------------
-     * @link https://wncms.cc
-     * @since 1.0.0
-     * @version 3.0.0
-     * @param string|array|null $key The key in database of table settings
-     * @param string|array|null $fallback Return when key is not found or value is null
-     * @param boolean $fromCache pass false to get value without cache
-     * @return string|null
-     * @example wncms()->system_seetings()->get('data_cache_time', 3600)
-     * @alias gss('data_cache_time', 3600)
-     * ----------------------------------------------------------------------------------------------------
+     * Resolve the active Setting model class.
+     *
+     * This respects `wncms.models.setting` overrides (app/package/core fallback).
+     */
+    public function getModelClass(): string
+    {
+        return wncms()->getModelClass('setting');
+    }
+
+    /**
+     * Get one setting value by lookup key.
+     *
+     * Lookup key formats:
+     * - `key`
+     * - `group:key`
+     *
+     * @param string $key Lookup key.
+     * @param mixed $fallback Returned when key is invalid or not found.
+     * @param bool $fromCache Set false to bypass cached setting map.
+     * @return mixed
+     * @example wncms()->settings()->get('data_cache_time', 3600)
+     * @example gss('data_cache_time', 3600)
      */
     function get(string $key, $fallback = null, $fromCache = true)
     {
@@ -43,16 +51,15 @@ class SettingManager
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
-     * Get system settings by multiple keys
-     * ----------------------------------------------------------------------------------------------------
-     * @link https://wncms.cc
-     * @since 1.0.0
-     * @version 3.0.0
-     * @param array|null $keys Return only specific keys. Return all keys if $keys is not set
-     * @return array
-     * @example wncms()->system_seetings()->getList()
-     * ----------------------------------------------------------------------------------------------------
+     * Get settings map from cache/database.
+     *
+     * Returned array format is always `lookup_key => value`.
+     * When `$keys` is empty, all settings are returned.
+     *
+     * @param string|array|null $keys Single key, comma-separated keys, or key array.
+     * @return array<string, mixed>
+     * @example wncms()->settings()->getList()
+     * @example wncms()->settings()->getList(['data_cache_time', 'ui:theme'])
      */
     function getList(string|array|null $keys = [])
     {
@@ -67,7 +74,7 @@ class SettingManager
         return wncms()->cache()->tags($cacheTags)->remember($cacheKey, $cacheTime, function () use ($keys) {
             try {
                 if (!wncms_is_installed()) return [];
-                $q = Setting::query();
+                $q = $this->query();
 
                 if (!empty($keys)) {
                     if (is_string($keys)) {
@@ -131,18 +138,15 @@ class SettingManager
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
-     * Update system setting by key
-     * ----------------------------------------------------------------------------------------------------
-     * @link https://wncms.cc
-     * @since 1.0.0
-     * @version 3.0.0
-     * @param string|array|null $key The key in database of table settings. Create key if key does not exist
-     * @param string|array|null $value The value to be updated
-     * @return boolean success = true, fail = false
-     * @example wncms()->system_seetings()->update('version', '1.0.1');
-     * @alias uss('system_name', "WNCMS")
-     * ----------------------------------------------------------------------------------------------------
+     * Create or update a setting value by lookup key.
+     *
+     * Supports grouped key format (`group:key`).
+     *
+     * @param string $key Lookup key.
+     * @param mixed $value Value to be stored.
+     * @return bool
+     * @example wncms()->settings()->update('site_name', 'WNCMS')
+     * @example uss('site_name', 'WNCMS')
      */
     function update($key, $value)
     {
@@ -152,7 +156,7 @@ class SettingManager
         }
 
         if ($this->hasGroupColumn()) {
-            $result = Setting::query()->updateOrCreate(
+            $result = $this->query()->updateOrCreate(
                 [
                     'key' => $parsed['key'],
                     'group' => $this->normalizeGroupForStorage($parsed['group']),
@@ -160,7 +164,7 @@ class SettingManager
                 ['value' => $value]
             );
         } else {
-            $result = Setting::query()->updateOrCreate(
+            $result = $this->query()->updateOrCreate(
                 ['key' => $this->getStorageLookupKey($parsed['key'], $parsed['group'])],
                 ['value' => $value]
             );
@@ -171,20 +175,15 @@ class SettingManager
     }
 
     /**
-     * ----------------------------------------------------------------------------------------------------
-     * Delete system setting by key
-     * ----------------------------------------------------------------------------------------------------
-     * @link https://wncms.cc
-     * @since 1.0.0
-     * @version 3.0.0
-     * @param string|array|null $key The key in database of table settings.
-     * @return int|boolean 
-     *      success = number of data deleted
-     *      fail = false
-     * @example 
-     *      wncms()->system_seetings()->delete('version'); //return false because version is core key
-     *      wncms()->settings()->delete('test'); //return 1 if one key is delete
-     * ----------------------------------------------------------------------------------------------------
+     * Delete a setting by lookup key.
+     *
+     * Protected core keys (non-grouped) are blocked:
+     * `version`, `active_models`, `request_timeout`.
+     *
+     * @param string $key Lookup key.
+     * @return int|false Deleted row count, or false when blocked/invalid.
+     * @example wncms()->settings()->delete('tmp_key')
+     * @example wncms()->settings()->delete('ui:theme')
      */
     function delete($key)
     {
@@ -210,6 +209,12 @@ class SettingManager
         return $result;
     }
 
+    /**
+     * Normalize and validate lookup key into `{group, key}` parts.
+     *
+     * @param string $lookupKey
+     * @return array{valid: bool, lookup: string, group: ?string, key: string}
+     */
     protected function parseLookupKey(string $lookupKey): array
     {
         $lookupKey = trim($lookupKey);
@@ -253,13 +258,20 @@ class SettingManager
         ];
     }
 
+    /**
+     * Build a setting query with grouped/non-grouped compatibility.
+     *
+     * @param string $key
+     * @param string|null $group
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     protected function buildSettingQuery(string $key, ?string $group)
     {
         if (!$this->hasGroupColumn()) {
-            return Setting::query()->where('key', $this->getStorageLookupKey($key, $group));
+            return $this->query()->where('key', $this->getStorageLookupKey($key, $group));
         }
 
-        $query = Setting::query()->where('key', $key);
+        $query = $this->query()->where('key', $key);
 
         if ($group === null) {
             return $query->where(function ($q) {
@@ -270,11 +282,17 @@ class SettingManager
         return $query->where('group', $this->normalizeGroupForStorage($group));
     }
 
+    /**
+     * Normalize group string before storing to database.
+     */
     protected function normalizeGroupForStorage(?string $group): string
     {
         return trim((string) $group);
     }
 
+    /**
+     * Get storage key for legacy schema without `group` column.
+     */
     protected function getStorageLookupKey(string $key, ?string $group): string
     {
         if ($group === null || trim($group) === '') {
@@ -284,6 +302,9 @@ class SettingManager
         return trim($group) . ':' . $key;
     }
 
+    /**
+     * Check whether resolved settings table has `group` column.
+     */
     protected function hasGroupColumn(): bool
     {
         if ($this->hasGroupColumn !== null) {
@@ -291,11 +312,22 @@ class SettingManager
         }
 
         try {
-            $this->hasGroupColumn = Schema::hasColumn('settings', 'group');
+            $table = (new ($this->getModelClass()))->getTable();
+            $this->hasGroupColumn = Schema::hasColumn($table, 'group');
         } catch (\Throwable $e) {
             $this->hasGroupColumn = false;
         }
 
         return $this->hasGroupColumn;
+    }
+
+    /**
+     * Start a new query from the resolved Setting model class.
+     */
+    protected function query()
+    {
+        $modelClass = $this->getModelClass();
+
+        return $modelClass::query();
     }
 }
