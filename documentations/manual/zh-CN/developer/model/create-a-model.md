@@ -254,7 +254,7 @@ class Article extends BaseModel implements HasMedia
 
 ### 翻译键值
 
-如果您使用 `BaseModel::getModelName()` 或 `wncms_model_word('article')`，请新增翻译：
+如果您使用 `BaseModel::getModelName()` 或 `wncms()->getModelWord('article')`，请新增翻译：
 
 ```
 resources/lang/en/wncms.php

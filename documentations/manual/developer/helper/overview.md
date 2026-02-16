@@ -1,5 +1,25 @@
 # Helper Overview
 
+## Legacy Helper Migration
+
+Some legacy global helpers are being phased out in favor of manager/core methods.
+
+- Deprecated helpers may be commented out first for compatibility observation.
+- Prefer service access patterns such as `wncms()->{manager}()->...` and `wncms()->{coreMethod}(... )` for new code.
+- URL scheme helper migration:
+  - Use `wncms()->addHttp($link)` instead of legacy `wncms_add_http($link)`.
+  - Use `wncms()->addHttps($link)` instead of legacy `wncms_add_https($link)`.
+- Image MIME helper migration:
+  - Use `wncms()->getImageType($path)` instead of legacy `getSeoImageType($path)`.
+- Model label helper migration:
+  - Use `wncms()->getModelWord($modelName, $action)` instead of legacy `wncms_model_word($modelName, $action)`.
+- Tag label helper removal:
+  - `wncms_tag_word(...)` has been removed. Build labels with translation keys directly.
+- Model-name-from-table helper removal:
+  - `wncms_get_model_name_from_table_name(...)` has been removed (unused).
+- Legacy helper archives:
+  - Commented legacy helper blocks are centralized under `helpers/deprecated.php` in the `//% Depracated soon` section.
+
 ## `gss()`
 
 Read a system setting value.

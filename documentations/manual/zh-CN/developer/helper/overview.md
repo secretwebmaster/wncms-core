@@ -1,5 +1,25 @@
 # Helper 总览
 
+## 旧版 Helper 迁移
+
+部分旧版全域 helper 正逐步迁移至 manager/core 方法。
+
+- 废弃 helper 会先采用「整段注释」方式观察兼容性。
+- 新代码优先使用 `wncms()->{manager}()->...` 与 `wncms()->{coreMethod}(... )`。
+- URL 协议 helper 迁移：
+  - 使用 `wncms()->addHttp($link)` 取代旧版 `wncms_add_http($link)`。
+  - 使用 `wncms()->addHttps($link)` 取代旧版 `wncms_add_https($link)`。
+- 图片 MIME helper 迁移：
+  - 使用 `wncms()->getImageType($path)` 取代旧版 `getSeoImageType($path)`。
+- 模型文案 helper 迁移：
+  - 使用 `wncms()->getModelWord($modelName, $action)` 取代旧版 `wncms_model_word($modelName, $action)`。
+- Tag 文案 helper 移除：
+  - `wncms_tag_word(...)` 已移除，请直接组合翻译键。
+- 表名转模型名 helper 移除：
+  - `wncms_get_model_name_from_table_name(...)` 已移除（未使用）。
+- 旧版 helper 归档：
+  - 注释的旧版 helper 代码已集中到 `helpers/deprecated.php` 的 `//% Depracated soon` 区块。
+
 ## `gss()`
 
 读取系统设定值。
