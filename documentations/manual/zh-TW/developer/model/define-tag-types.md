@@ -80,3 +80,13 @@ protected static array $tagMetas = [];
 ```
 
 `BaseModel::getTagMeta()` 將回傳空陣列。
+
+## 後台標籤類型選擇與啟用模型
+
+在後台標籤頁面（`tags.index`、`tags.create`、`tags.edit`、`tags.keywords.index`）中，標籤類型下拉選項現在會依啟用模型過濾。
+
+- 設定來源：`active_models`（系統設定 -> 顯示模型）
+- 比對規則：以 tag meta 的 `model` 類別短名（basename）比對啟用的模型名稱
+- 回退行為：若 `active_models` 為空，後台仍顯示所有已註冊的標籤類型
+
+這樣可讓後台標籤操作與目前在後台導覽中啟用的模型保持一致。

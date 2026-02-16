@@ -80,3 +80,13 @@ protected static array $tagMetas = [];
 ```
 
 `BaseModel::getTagMeta()` will return an empty array.
+
+## 6. Backend Tag-Type Selection and Active Models
+
+In backend tag pages (`tags.index`, `tags.create`, `tags.edit`, and `tags.keywords.index`), type dropdown options are now filtered by active models.
+
+- Source setting: `active_models` (System Settings -> display model)
+- Matching rule: compare each tag meta `model` class basename with enabled model names
+- Fallback behavior: if `active_models` is empty, backend keeps showing all registered tag types
+
+This keeps backend tag operations aligned with models currently enabled in admin navigation.
