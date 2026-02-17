@@ -148,6 +148,25 @@ Behavior summary:
 - Intended for recovery when default theme assets are edited, missing, or corrupted.
 - This command is also used by installer flows (CLI and browser wizard) via shared installer logic.
 
+## `wncms:update`
+
+Run core update scripts.
+
+```bash
+# Normal update flow (remote version list + incremental apply)
+php artisan wncms:update core
+
+# Rerun one specific local update file
+php artisan wncms:update --version=6.1.6
+php artisan wncms:update --version=v6.1.6
+```
+
+Behavior summary:
+- `--version=` runs exactly one local update script again:
+  - `updates/update_core_{version}.php`
+- `v` prefix is accepted (for example `v6.1.6` and `6.1.6` behave the same).
+- If `--version` is missing or not found in `updates/`, command returns failure.
+
 ## Installation Modes (`wncms:install` + Browser Wizard)
 
 WNCMS supports two installation entry points:

@@ -148,6 +148,25 @@ php artisan wncms:install-default-theme --force
 - 适用于默认主题资源被修改、缺失或损坏后的恢复场景。
 - 该命令也会被安装流程（CLI 与浏览器安装向导）通过共用安装逻辑调用。
 
+## `wncms:update`
+
+执行核心更新脚本。
+
+```bash
+# 常规更新流程（远端版本列表 + 递增执行）
+php artisan wncms:update core
+
+# 重新执行一个指定的本地更新文件
+php artisan wncms:update --version=6.1.6
+php artisan wncms:update --version=v6.1.6
+```
+
+行为摘要：
+- `--version=` 会重新执行一个指定版本的本地更新脚本：
+  - `updates/update_core_{version}.php`
+- 支持 `v` 前缀（例如 `v6.1.6` 与 `6.1.6` 等价）。
+- 若 `--version` 为空或在 `updates/` 中找不到对应文件，命令会返回失败。
+
 ## 安装方式（`wncms:install` + 浏览器向导）
 
 WNCMS 支持两种安装入口：

@@ -12,7 +12,10 @@ class Update extends Command
      *
      * @var string
      */
-    protected $signature = 'wncms:update {product=core} {--target-version=}';
+    protected $signature = 'wncms:update
+                            {product=core : Update product key (default: core)}
+                            {--target-version= : Incremental mode upper bound; runs all versions from current to this target}
+                            {--version= : Rerun mode; execute exactly one local update file (accepts 6.1.6 or v6.1.6)}';
 
     /**
      * The console command description.
@@ -26,9 +29,29 @@ class Update extends Command
      */
     public function handle()
     {
+        $product = $this->argument('product');
+        $rerunVersion = $this->option('version');
+
+        if (!empty($rerunVersion)) {
+            $normalizedVersion = $this->normalizeVersion((string) $rerunVersion);
+
+            if ($normalizedVersion === '') {
+                $this->error('The --version option is required.');
+                return Command::FAILURE;
+            }
+
+            $this->info("Rerunning update script for version: {$normalizedVersion}");
+
+            if (!$this->runUpdateScript($product, $normalizedVersion, false)) {
+                return Command::FAILURE;
+            }
+
+            $this->info("Update script rerun completed for version: {$normalizedVersion}");
+            return Command::SUCCESS;
+        }
+
         $this->info('Starting WNCMS update process.');
 
-        $product = $this->argument('product');
         $targetVersion = $this->option('target-version'); // Optional specific version to update to
 
         // Step 1: Get the user's current version
@@ -124,14 +147,19 @@ class Update extends Command
      * @param string $version
      * @return bool
      */
-    protected function runUpdateScript($product, $version)
+    protected function runUpdateScript($product, $version, bool $allowSkip = true)
     {
         $packageRoot = dirname(__DIR__, 3);
         $updateFile = $packageRoot . "/updates/update_{$product}_{$version}.php";
 
         if (!file_exists($updateFile)) {
-            $this->info("Update script not found for {$product} version: {$version}. Skipping.");
-            return true; // Consider skipping as success
+            $message = "Update script not found for {$product} version: {$version}.";
+            if ($allowSkip) {
+                $this->info($message . ' Skipping.');
+                return true;
+            }
+            $this->error($message);
+            return false;
         }
 
         try {
@@ -142,5 +170,10 @@ class Update extends Command
             $this->error("Error applying update for {$product} version {$version}: {$e->getMessage()}");
             return false;
         }
+    }
+
+    protected function normalizeVersion(string $version): string
+    {
+        return ltrim(trim($version), 'vV');
     }
 }
