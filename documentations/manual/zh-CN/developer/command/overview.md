@@ -87,6 +87,54 @@ php artisan wncms:verify-plugin-hooks
 - 检查 `plugins` 资料表是否存在，且不存在 `[MANIFEST_ERROR]` / `[LOAD_ERROR]` 记录。
 - 任一闸门失败即返回失败（应阻止发布）。
 
+## `wncms:hook-list`
+
+用于插件开发的 hook/extension 注册表巡检命令。
+
+```bash
+php artisan wncms:hook-list
+```
+
+常见用法：
+
+```bash
+# 显示每个 hook 的 listener 详情
+php artisan wncms:hook-list --listeners
+
+# 只显示当前已有 listener 的 hook
+php artisan wncms:hook-list --only-listened
+
+# 输出 JSON 供自动化脚本使用
+php artisan wncms:hook-list --json
+```
+
+行为摘要：
+- 扫描 WNCMS 核心 `src`（以及宿主项目 `app`）中的 hook 派发点（`Event::dispatch(...)` / `event(...)`）。
+- 列出每个 hook 的派发点数量与当前运行时 listener 数量。
+- `--listeners` 可输出每个 hook 对应的 listener 标识。
+- 同时输出 `macroable-models` 中已注册扩展（按模型分组的查询宏）。
+
+预期输出格式（节选）：
+
+```text
+WNCMS Hook / Extension Registry
+Hooks: 40, Macros: 2
+
++---------------------------------------------+-----------------+-----------+
+| Hook                                        | Dispatch Points | Listeners |
++---------------------------------------------+-----------------+-----------+
+| wncms.frontend.users.login.before           | 1               | 0         |
+| wncms.frontend.users.register.after         | 1               | 1         |
++---------------------------------------------+-----------------+-----------+
+
+Registered Macros (Extension Registry)
++----------------+------------------------+-------------+
+| Macro          | Models                 | Model Count |
++----------------+------------------------+-------------+
+| wherePublished | Wncms\Models\Post      | 1           |
++----------------+------------------------+-------------+
+```
+
 ## `wncms:install-default-theme`
 
 安装或重新安装核心默认主题资源到 `public/themes`。

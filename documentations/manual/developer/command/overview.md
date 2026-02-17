@@ -87,6 +87,54 @@ Behavior summary:
 - Verifies `plugins` table exists and has no `[MANIFEST_ERROR]` / `[LOAD_ERROR]` records.
 - Returns failure when any gate fails (release should be blocked).
 
+## `wncms:hook-list`
+
+Inspect the hook/extension registry for plugin development.
+
+```bash
+php artisan wncms:hook-list
+```
+
+Common usage:
+
+```bash
+# Include listener details for each hook
+php artisan wncms:hook-list --listeners
+
+# Show only hooks that currently have listeners
+php artisan wncms:hook-list --only-listened
+
+# Export as JSON for automation
+php artisan wncms:hook-list --json
+```
+
+Behavior summary:
+- Scans WNCMS core `src` (and host app `app`) for dispatched hook names (`Event::dispatch(...)` / `event(...)`).
+- Lists each hook with dispatch-point count and current runtime listener count.
+- Optional `--listeners` mode prints listener identities per hook.
+- Includes extension registry data from `macroable-models` (registered query macros by model).
+
+Expected output format (abridged):
+
+```text
+WNCMS Hook / Extension Registry
+Hooks: 40, Macros: 2
+
++---------------------------------------------+-----------------+-----------+
+| Hook                                        | Dispatch Points | Listeners |
++---------------------------------------------+-----------------+-----------+
+| wncms.frontend.users.login.before           | 1               | 0         |
+| wncms.frontend.users.register.after         | 1               | 1         |
++---------------------------------------------+-----------------+-----------+
+
+Registered Macros (Extension Registry)
++----------------+------------------------+-------------+
+| Macro          | Models                 | Model Count |
++----------------+------------------------+-------------+
+| wherePublished | Wncms\Models\Post      | 1           |
++----------------+------------------------+-------------+
+```
+
 ## `wncms:install-default-theme`
 
 Install or reinstall core default theme assets into `public/themes`.
