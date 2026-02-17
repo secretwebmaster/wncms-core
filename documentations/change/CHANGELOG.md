@@ -1,59 +1,45 @@
 # 更新日誌
 
+## v6.2.0 2026-02-18
+
+- 完整導入 Plugin Runtime 生命週期：載入器、啟用流程、依賴/版本檢查、停用保護、診斷資訊與可預期升級流程。
+- 擴充 Hook/Extension 能力，涵蓋使用者與文章流程，並新增 Hook/Extension Registry 查詢指令。
+- Manager / Model 基礎能力重構：明確支援 false 篩選值、排序參數標準化、App manager container 解析回退、BaseModel 活躍模型檢查。
+- 指令與工具升級：強化 create-model-view 路徑解析、新增 `wncms:update --version`、後台新增 rerun core update 工具。
+- 新增點擊統計即時摘要頁（Click Live Summary）並統一模型路由設定格式。
+- 安裝流程與樣板相容性強化：統一 CLI/精靈流程、改善預設語系處理、修正 starter/repeater 穩定性。
+- 強化頁面模板處理，支援 template option 陣列與文字格式切換。
+
+## v6.1.9 2026-02-16
+
+- 強化 Plugin 依賴與版本相容性檢查，補齊停用安全保護機制。
+- 新增 Plugin 生命週期診斷資訊，並標準化升級流程行為。
+- 新增文章前台顯示與後台編輯的擴充 Hook 點位。
+- 支援系統設定驅動的 LaravelLocalization 執行期覆寫，並改善安裝時語系正規化。
+- 主題生命週期穩定性提升：支援 packaged theme fallback、啟用驗證集中化、預設主題重裝工具。
+- Tag / Link 行為修正：all-type 與 active-model 顯示一致性、關鍵字綁定流程、Link 權限回補與回歸修正。
+- 重構多站點後台寫入與列表查詢流程，使網站範圍邏輯更一致。
+
+## v6.1.8 2026-02-14
+
+- 新增 frontend auth middleware 行為，並修正登入導向流程。
+- Update 指令新增 `--version` 參數，支援指定單一版本更新檔執行。
+- 強化翻譯解析流程：套件/選單翻譯改為執行期解析，並補齊 translator 綁定防護。
+- Manager 架構一致性提升：明確支援 false 篩選值，並強化 App manager 的 container 解析回退。
+- API 能力擴充：新增 Website API、標準化 Tag API 路由與 payload，並補齊 package-aware API 設定解析。
+- 導入多站點共用 helper：每模型網站模式設定、共用網站選擇器、共用列表網站範圍過濾、共用網站工具列篩選。
+- 新增 Plugin Runtime 載入/啟用流程與使用者擴充 Hook 點位。
+
 ## v6.1.7 2026-01-29
 
-### 主題系統
-- 新增核心主題支援（default、starter、demo）至 ThemeServiceProvider
-- 重構 ThemeManager，改善主題中繼資料處理與資源解析
-- 新增 getThemePages() 方法解析主題頁面網址
-- 改善主題翻譯的回退機制
-- 簡化 PostController 中的視圖路徑，使用主題命名空間
-- 在主題中繼資料中新增主題截圖支援
-
-### 使用者控制器
-- 在使用者生命週期（登入、註冊、登出等）中新增事件鉤子
-- 重構註冊流程，支援透過事件設定選項
-- 新增 enabledRegistration() 方法檢查系統/主題設定
-- 使用主題命名空間語法改善視圖解析
-- 新增積分系統事件鉤子（移至套件包）
-- 透過事件支援增強儀表板、登入和個人資料視圖
-- 新增自訂使用者頁面路由支援
-- 改善使用者文章列表功能
-- 透過事件驅動架構更好地分離關注點
-
-### 服務提供者
-- 定義 WNCMS 常數（ROOT、CONFIG_PATH、DATABASE_PATH 等）
-- 將外觀、別名和配置提取到獨立方法
-- 改善主題資源發布以支援每個主題的資源
-- 透過視圖組件與所有視圖共享錯誤
-- 更新安裝程式使用 log_level 而非 app_log_level
-- 透過專用方法更好地分離關注點
-- 改善程式碼可讀性和可維護性
-
-### 路由服務提供者
-- 移除路由註冊中已棄用的命名空間屬性使用
-- 符合 Laravel 8+ 路由慣例
-
-### 後台改善
-- 新增 menu.js 增強選單編輯功能
-- 更新選單編輯視圖佈局
-- 改善後台頁尾和 API 管理視圖
-- 更新網站控制器
-- 增強後台佈局
-
-### 主題重構
-- 將預設主題從 resources/views/frontend/themes/default 移至 resources/themes/default
-- 整合主題結構以更好地組織
-- 移除舊主題配置檔案
-- 移除已棄用的主題資源目錄
-- 移除舊前端主題視圖目錄
-- 移除 CreateThemeFile 命令（由新主題結構取代）
-
-### 其他
-- 修正安裝程式中的 log_level 配置
-- 更新繁體中文翻譯
-- 改善安裝精靈 UI
-- 更新安裝命令
+- 新增核心主題支援（default/starter/demo），並重構 ThemeManager 以改善中繼資料、資源解析與翻譯回退行為。
+- 將預設主題遷移至 `resources/themes/*`，移除舊版主題結構與已棄用檔案路徑。
+- 重構使用者控制器流程，導入登入/註冊/登出等事件鉤子並改善主題命名空間視圖解析。
+- 新增註冊啟用判斷與可配置流程，提升儀表板/個人頁面的擴充能力。
+- 重整 ServiceProvider 結構：補齊核心常數、拆分註冊責任、改善全域錯誤共享。
+- 更新安裝流程與執行期設定使用方式（含 `log_level`），並改善安裝精靈流程。
+- 移除已棄用 route namespace 屬性，與 Laravel 8+ 路由慣例對齊。
+- 改善後台介面一致性（含選單編輯與相關管理頁）。
 
 ## v6.1.6 2026-01-24
 

@@ -1,59 +1,45 @@
 # Changelog
 
+## v6.2.0 2026-02-18
+
+- Added a full plugin runtime lifecycle: loader, activation flow, dependency/version checks, deactivation safety, diagnostics, and deterministic upgrade steps.
+- Expanded extension points with plugin/hooks support across user and post flows, plus a hook/extension registry command for inspection.
+- Refined manager/model foundations: explicit false filter support, standardized sort/direction behavior, App manager resolution via container fallback, and active-model checking in BaseModel.
+- Added backend tooling and command improvements: hardened create-model-view path resolution, `wncms:update --version` support, and backend rerun-core-update tool.
+- Added live click summary reporting with normalized model route configuration support.
+- Improved installer pipeline and scaffolding compatibility, including unified CLI/wizard behavior, default locale handling, and starter/repeater reliability fixes.
+- Improved page/template handling by supporting array-to-text template option switching.
+
+## v6.1.9 2026-02-16
+
+- Enforced plugin dependency/version compatibility checks and deactivation safety guards.
+- Added plugin lifecycle diagnostics in backend index and standardized upgrade lifecycle behavior.
+- Added post extension hook points for frontend show and backend edit flows.
+- Added runtime localization overrides from system settings and improved install-time locale normalization.
+- Improved theme lifecycle reliability with packaged-theme fallback, activation validation hardening, and on-demand default-theme reinstall tooling.
+- Improved tag and link behavior: all-type/active-model visibility consistency, keyword binding support, and link permission regression fixes.
+- Refactored multisite backend mutation/list handling for more consistent website scoping.
+
+## v6.1.8 2026-02-14
+
+- Added frontend auth middleware behavior and corrected login redirect handling.
+- Added `wncms:update --version` support for targeted single-version update execution.
+- Hardened translation resolution by deferring package/menu metadata translation to runtime and guarding translator binding.
+- Improved manager system consistency: explicit false-value filter handling and container-based App manager resolution fallback.
+- Expanded API coverage with website endpoints, standardized tag API routes/payload behavior, and package-aware API route metadata handling.
+- Introduced shared multisite helpers: per-model website mode settings, shared website selector usage, shared list-scope filtering, and common website toolbar filter UI.
+- Added plugin runtime loader/activation flow and user extension hook points.
+
 ## v6.1.7 2026-01-29
 
-### Theme System
-- Add support for core themes (default, starter, demo) in ThemeServiceProvider
-- Refactor ThemeManager with better metadata handling and asset resolution
-- Add getThemePages() method to resolve theme page URLs
-- Improve theme translation fallback mechanism
-- Simplify view paths in PostController using theme namespace
-- Add theme screenshot support in metadata
-
-### User Controller
-- Add event hooks throughout user lifecycle (login, register, logout, etc.)
-- Refactor registration flow with configurable options via events
-- Add enabledRegistration() method to check system/theme settings
-- Improve view resolution using theme namespace syntax
-- Add event hooks for credit system (moved to package)
-- Enhance dashboard, login, and profile views with event support
-- Add custom user page routing support
-- Improve user posts listing functionality
-- Better separation of concerns with event-driven architecture
-
-### Service Providers
-- Define WNCMS constants (ROOT, CONFIG_PATH, DATABASE_PATH, etc.)
-- Extract facades, aliases, and configs into separate methods
-- Improve theme asset publishing to support per-theme assets
-- Add error sharing with all views via view composer
-- Update installer to use log_level instead of app_log_level
-- Better separation of concerns with dedicated methods
-- Improve code readability and maintainability
-
-### Route Service Provider
-- Remove deprecated namespace property usage in route registration
-- Align with Laravel 8+ routing conventions
-
-### Backend Improvements
-- Add menu.js for enhanced menu editing
-- Update menu edit view layout
-- Improve backend footer and API management views
-- Update website controller
-- Enhance backend layout
-
-### Theme Refactoring
-- Migrate default theme from resources/views/frontend/themes/default to resources/themes/default
-- Consolidate theme structure for better organization
-- Remove old theme configuration files
-- Remove deprecated theme assets directory
-- Remove old frontend theme views directory
-- Remove CreateThemeFile command (replaced by new theme structure)
-
-### Others
-- Fix log_level configuration in installer
-- Update Traditional Chinese translations
-- Improve installer wizard UI
-- Update install command
+- Added core theme support (default/starter/demo) and refactored ThemeManager for cleaner metadata, asset resolution, and translation fallback.
+- Migrated default theme structure to `resources/themes/*` and removed deprecated legacy theme paths/files.
+- Refactored user controller flow with event hooks for login/register/logout and improved theme-based view resolution.
+- Added configurable registration checks and improved user dashboard/profile extension flexibility.
+- Reorganized service providers: defined core constants, split registration responsibilities, and improved shared view error handling.
+- Updated installer/runtime config usage (including `log_level`) and improved installer wizard flow.
+- Removed deprecated route namespace property usage to align with Laravel 8+ conventions.
+- Improved backend UI/layout consistency, including menu editor and related management pages.
 
 ## v6.1.6 2026-01-24
 
