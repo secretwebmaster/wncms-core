@@ -275,6 +275,11 @@ Config 範例：
 | fields    | array  | yes      | 欄位定義      |
 | add_label | string | no       | "Add Slide"   |
 
+行為：
+
+- Repeater JS 改為載入本地 `wncms/js/jquery.repeater.min.js`（不再使用 CDN）。
+- Starter Repeater 列使用防溢出排版（`overflow-auto`），避免水平裁切。
+
 `fields` 支援簡單輸入定義：
 
 ```php

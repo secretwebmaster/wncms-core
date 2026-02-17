@@ -255,13 +255,13 @@
             <div class="repeater_example">
                 <div data-repeater-list="repeater_example">
                     @forelse(old('repeater_example', json_decode($starter->repeater_example ?? '[]', true)) as $item)
-                    <div data-repeater-item class="d-flex align-items-center mb-2">
+                    <div data-repeater-item class="d-flex align-items-center mb-2 overflow-auto">
                         <input type="text" name="text" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.text')" value="{{ $item['text'] ?? '' }}">
                         <input type="number" name="number" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.number')" value="{{ $item['number'] ?? '' }}">
                         <button data-repeater-delete type="button" class="btn btn-sm btn-danger">X</button>
                     </div>
                     @empty
-                    <div data-repeater-item class="d-flex align-items-center mb-2" style="display:none;">
+                    <div data-repeater-item class="d-flex align-items-center mb-2 overflow-auto" style="display:none;">
                         <input type="text" name="text" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.text')">
                         <input type="number" name="number" class="form-control form-control-sm me-2" placeholder="@lang('wncms::word.number')">
                         <button data-repeater-delete type="button" class="btn btn-sm btn-danger">X</button>
@@ -277,8 +277,12 @@
         </div>
     </div>
 
+    @once
     @push('foot_js')
-    <script src="https://cdn.jsdelivr.net/gh/DubFriend/jquery.repeater/jquery.repeater.min.js"></script>
+    <script src="{{ asset('wncms/js/jquery.repeater.min.js') . wncms()->addVersion('js') }}"></script>
+    @endpush
+    @endonce
+    @push('foot_js')
     <script>
         $(function () {
         console.log('[Repeater Example] Initializing...');

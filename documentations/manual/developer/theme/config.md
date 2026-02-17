@@ -275,6 +275,11 @@ Behavior:
 | fields    | array  | yes      | field schema  |
 | add_label | string | no       | "Add Slide"   |
 
+Behavior:
+
+- Repeater JS is loaded from local `wncms/js/jquery.repeater.min.js` (not CDN).
+- Starter repeater rows use overflow-safe layout (`overflow-auto`) to avoid horizontal clipping.
+
 `fields` supports simple input configs:
 
 ```php
