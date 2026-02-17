@@ -8,7 +8,6 @@ Use Tags to:
 - Add searchable labels
 - Keep content organized for visitors
 
----
 
 ## Where To Manage Tags
 
@@ -19,7 +18,6 @@ In backend menu:
 
 If your site uses plugins (for example ecommerce or FAQs), you will also see those plugin tag types in the list.
 
----
 
 ## Common Daily Tasks
 
@@ -81,7 +79,6 @@ Expected result:
 
 - Selected tags are moved under the new parent
 
----
 
 ## Keyword Binding (Auto Match)
 
@@ -100,7 +97,6 @@ Expected result:
 - Keyword rules are saved for that tag
 - Auto-tag flow can use these keywords later
 
----
 
 ## Practical Rules For Staff
 
@@ -110,7 +106,6 @@ Expected result:
 - Use slug in lowercase with hyphens (example: `company-news`)
 - Check tag type before creating (do not mix post/product/faq types)
 
----
 
 ## Troubleshooting
 

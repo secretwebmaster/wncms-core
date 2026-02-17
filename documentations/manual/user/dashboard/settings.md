@@ -1,29 +1,100 @@
-# Settings UI Notes
+# Settings
 
-## System Tab Layout
+This guide explains how non-technical staff can change system settings from backend UI.
 
-- In desktop view (`lg` and above), the **System** settings tab renders basic fields in a 2-column layout.
-- Spacing is reduced for a denser form layout (`p-3 p-lg-4` with smaller row gaps).
 
-## Multisite Website Selector
+## Where To Manage Settings
 
-- For model forms in **multi** website mode, website checkboxes are shown full width.
-- Each domain is rendered on its own row for clearer scanning.
+In backend menu:
 
-## Multisite Tab Layout
+1. Open **System Settings**
+2. Use left tab list to switch setting groups
 
-- In Settings `multisite` tab, model website modes are rendered as a 2-column grid in the right panel (`col-lg-8`), not as a table.
-- Each item shows inline model label + mode select (`global` / `single` / `multi`).
+Common tabs include:
 
-## Mobile Tab Navigation
+- `Basic Settings`
+- `Login Settings`
+- `SMTP Settings`
+- `Cloudflare Settings`
+- `Cache Settings`
+- `Social Login Settings`
+- `Page Settings`
+- `Collection Interface Settings`
+- `Content Module Settings`
+- `User Settings`
+- `Admin Settings`
+- `Analytics Settings`
+- `Translation settings`
+- `Multisite Settings` (if multi-site is enabled)
+- `API Settings`
+- `Developer Settings` (if developer mode is enabled)
 
-- Settings tab navigation is now single-line on mobile.
-- Tabs no longer wrap; they are horizontally scrollable.
-- Scrollbar is hidden for a cleaner mobile layout.
-- The nav auto-scrolls to bring the active tab into view on page load and tab switch.
 
-## Quick Link Behavior
+## Common Daily Tasks
 
-- The page toolbar star button now detects existing quick links by current URL first, then route name as fallback.
-- Quick links are normalized and deduplicated before save.
-- Superadmin role name is `superadmin` (without hyphen), and now matches toolbar visibility checks.
+## 1) Change Basic Site Information
+
+1. Open **System Settings**
+2. Click `Basic Settings`
+3. Update fields like site name/description/keywords
+4. Click **Save All**
+
+Expected result:
+
+- Site-wide text/settings are updated
+
+## 2) Enable/Disable a Setting Switch
+
+1. Open the relevant tab (for example `User Settings`)
+2. Turn target switch on/off
+3. Click **Save All**
+
+Expected result:
+
+- Feature is enabled/disabled immediately after save
+
+## 3) Configure SMTP Mail Sending
+
+1. Open `SMTP Settings`
+2. Fill SMTP fields (host, port, account, password, sender)
+3. Click **Save All**
+
+Expected result:
+
+- Mail-related features use the updated SMTP configuration
+
+## 4) Set Multisite Model Mode (if available)
+
+1. Open `Multisite Settings`
+2. For each model, choose mode:
+- `Global`
+- `Single`
+- `Multi`
+3. Click **Save All**
+
+Expected result:
+
+- Model website scope updates based on selected mode
+
+## 5) Check Core Updates
+
+1. In settings left panel footer, click **Check for Updates**
+2. Follow update page instructions
+
+Expected result:
+
+- You can review available core updates
+
+
+## Troubleshooting
+
+## Changes do not apply
+
+- Confirm you clicked **Save All**
+- Reload page and verify value is still saved
+- Clear cache if your deployment requires it
+
+## Cannot find a settings tab
+
+- Some tabs appear only when related feature is enabled
+- `Developer Settings` appears only when developer mode is enabled

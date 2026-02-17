@@ -1,44 +1,85 @@
 # Users
 
-Backend user management now enforces unique `username` and unique `email` during create and edit actions.
+This guide explains how non-technical staff can manage member accounts from the backend UI.
 
-## Where It Applies
 
-- Backend create: `POST /panel/users/store` (`users.store`, permission `user_create`)
-- Backend update: `PATCH /panel/users/{id}` (`users.update`, permission `user_edit`)
-- Controller: `src/Http/Controllers/Backend/UserController.php`
+## Where To Manage Users
 
-## Validation Behavior
+In backend menu:
 
-- `username` is required and must be unique in `users.username`.
-- `email` is required, must be a valid email, and must be unique in `users.email`.
-- In edit mode, current user record is excluded from uniqueness checks.
+1. Go to **Users List**
+2. Use filters (`Search`, `Role`, `Show Details`, `Show Credits`) to find users faster
 
-Validation messages use:
 
-- `wncms::word.username_has_been_used`
-- `wncms::word.email_has_been_used`
+## Common Daily Tasks
 
-## Practical Example
+## 1) Create a New User
 
-If user `A` already has `username=alex`, creating or editing another user to `alex` will fail validation and return an error message instead of saving duplicate data.
+1. Open **Users List**
+2. Click **Add Users**
+3. Fill required fields:
+- `Role`
+- `Username`
+- `Email`
+- `Password`
+- `Password Confirmation`
+4. Click **Create**
 
-## Frontend Registration Email Validation
+Expected result:
 
-Frontend registration now prevents non-email values from being stored in the `email` field.
+- New user appears in **Users List**
 
-## Where It Applies
+## 2) Edit User Role or Basic Info
 
-- Frontend register submit: `POST /user/register/submit` (`frontend.users.register.submit`)
-- Controller: `src/Http/Controllers/Frontend/UserController.php`
+1. In **Users List**, click **Edit**
+2. Update fields such as:
+- `Role`
+- `Username`
+- `Email`
+- `Password` (only if you need reset)
+3. Click **Edit** to save
 
-## Validation Behavior
+Expected result:
 
-- If `email` is provided, it must pass Laravel `email` format validation.
-- If `email` is not provided, the system generates a fallback email using a sanitized username and `request()->getHost()` (without port).
-- Duplicate checks run against the final computed `username` and `email` values before user creation.
+- User account is updated immediately
 
-## Practical Example
+## 3) View More User Details
 
-- Input `username=john`, `email=abc` fails validation with `wncms::word.please_enter_a_valid_email`.
-- Input `username=john`, empty `email` creates fallback email like `john@example.com`.
+1. Enable `Show Details` in the filter area
+2. Review extra columns (API token, locale, timezone, login info)
+
+Expected result:
+
+- Extended account data is visible in list
+
+## 4) Check User Credits Quickly
+
+1. Enable `Show Credits`
+2. Review credit columns in list
+3. Click `+` beside a credit value if you need recharge operation
+
+Expected result:
+
+- Credit balances are visible and manageable from list
+
+## 5) Remove User Account
+
+1. Click **Delete** on target user row
+2. Confirm deletion dialog
+
+Expected result:
+
+- User is removed from list
+
+
+## Troubleshooting
+
+## Cannot create user
+
+- Check required fields are not empty
+- Ensure `Username` and `Email` are unique
+
+## User cannot log in after edit
+
+- Confirm role is correct
+- If password was changed, provide the new password to user

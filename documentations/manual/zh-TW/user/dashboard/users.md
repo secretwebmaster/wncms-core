@@ -1,44 +1,85 @@
-# Users
+# 用戶
 
-後台使用者管理在新增與編輯時已強制 `username` 與 `email` 唯一。
+本指南用於協助非技術人員在後台管理會員帳號。
 
-## 生效範圍
 
-- 後台新增：`POST /panel/users/store`（`users.store`，權限 `user_create`）
-- 後台編輯：`PATCH /panel/users/{id}`（`users.update`，權限 `user_edit`）
-- 控制器：`src/Http/Controllers/Backend/UserController.php`
+## 用戶管理入口
 
-## 驗證行為
+後台選單：
 
-- `username` 必填，且在 `users.username` 中必須唯一。
-- `email` 必填、格式必須為有效信箱，且在 `users.email` 中必須唯一。
-- 編輯模式會排除目前使用者自身資料，不會誤判為重複。
+1. 進入 **用戶列表**
+2. 使用篩選（`搜索`、`角色`、`顯示詳情`、`顯示積分`）快速定位用戶
 
-錯誤訊息使用：
 
-- `wncms::word.username_has_been_used`
-- `wncms::word.email_has_been_used`
+## 日常常用操作
 
-## 實際範例
+## 1）新增用戶
 
-如果使用者 `A` 已存在 `username=alex`，再建立或編輯另一個使用者為 `alex` 時會驗證失敗並回傳錯誤，不會儲存重複資料。
+1. 打開 **用戶列表**
+2. 點擊 **新增用戶**
+3. 填寫必填欄位：
+- `角色`
+- `用戶名`
+- `Email`
+- `密碼`
+- `確認密碼`
+4. 點擊 **新增**
 
-## 前台註冊 Email 格式驗證
+預期結果：
 
-前台註冊現在會阻止將非 Email 格式內容寫入 `email` 欄位。
+- 新用戶出現在 **用戶列表**
 
-## 生效範圍
+## 2）編輯用戶角色或基礎資料
 
-- 前台註冊提交：`POST /user/register/submit`（`frontend.users.register.submit`）
-- 控制器：`src/Http/Controllers/Frontend/UserController.php`
+1. 在 **用戶列表** 點擊 **編輯**
+2. 修改欄位，例如：
+- `角色`
+- `用戶名`
+- `Email`
+- `密碼`（僅在需要重設時填寫）
+3. 點擊 **編輯** 儲存
 
-## 驗證行為
+預期結果：
 
-- 當提供 `email` 時，必須通過 Laravel `email` 格式驗證。
-- 當未提供 `email` 時，系統會使用清理後的 `username` 與 `request()->getHost()`（不含 port）產生回退 Email。
-- 建立使用者前，重複檢查會以最終計算出的 `username` 與 `email` 執行。
+- 用戶資料立即更新
 
-## 實際範例
+## 3）查看更多用戶資料
 
-- 輸入 `username=john`、`email=abc` 會驗證失敗，並回傳 `wncms::word.please_enter_a_valid_email`。
-- 輸入 `username=john`、留空 `email` 會產生回退 Email，例如 `john@example.com`。
+1. 開啟篩選中的 `顯示詳情`
+2. 查看擴展欄位（API 密鑰、語言地區、時區、登入資訊）
+
+預期結果：
+
+- 列表顯示完整帳號資訊
+
+## 4）快速查看用戶積分
+
+1. 開啟 `顯示積分`
+2. 查看積分欄位
+3. 需要儲值時，點擊積分後方的 `+`
+
+預期結果：
+
+- 可在列表快速查看與處理積分
+
+## 5）刪除用戶
+
+1. 在目標用戶列點擊 **刪除**
+2. 於彈窗確認
+
+預期結果：
+
+- 用戶從列表移除
+
+
+## 常見問題
+
+## 無法新增用戶
+
+- 確認必填項都已填寫
+- 確認 `用戶名` 與 `Email` 未重複
+
+## 編輯後用戶無法登入
+
+- 檢查用戶角色是否正確
+- 如果修改了密碼，請把新密碼提供給用戶
