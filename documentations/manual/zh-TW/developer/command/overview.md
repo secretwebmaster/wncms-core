@@ -112,7 +112,7 @@ WNCMS 支援兩種安裝入口：
 - 寫入 `.env`
 - 產生應用程式金鑰
 - 資料庫初始化
-- 發佈資源
+- 發佈資源（`wncms-core-assets`、`wncms-stubs`、`wncms-default-assets`）
 - 初始化自訂語言/路由檔案
 - 初始化系統設定
 - 寫入安裝標記並清理快取

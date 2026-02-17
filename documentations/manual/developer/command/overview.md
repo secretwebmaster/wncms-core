@@ -112,7 +112,7 @@ Both modes now use the same shared installer pipeline in `InstallerManager`, so 
 - `.env` write
 - app key generation
 - database setup
-- asset publishing
+- asset publishing (`wncms-core-assets`, `wncms-stubs`, `wncms-default-assets`)
 - custom language/route file bootstrap
 - system settings initialization
 - install marker + cache finalize

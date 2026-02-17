@@ -277,9 +277,30 @@ class InstallerManager
     public function publishAssets(): void
     {
         Artisan::call('vendor:publish', ['--tag' => 'wncms-core-assets']);
+        $this->publishStubs();
         $this->installDefaultThemeAssets();
 
         info('assets published');
+    }
+
+    /**
+     * Publish stub files into host project stubs directory.
+     */
+    public function publishStubs(bool $force = true): array
+    {
+        $payload = ['--tag' => 'wncms-stubs'];
+        if ($force) {
+            $payload['--force'] = true;
+        }
+
+        $status = Artisan::call('vendor:publish', $payload);
+        $output = trim((string) Artisan::output());
+
+        return [
+            'passed' => $status === 0,
+            'status' => $status,
+            'output' => $output,
+        ];
     }
 
     /**

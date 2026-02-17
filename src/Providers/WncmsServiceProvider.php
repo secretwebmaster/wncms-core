@@ -77,10 +77,12 @@ class WncmsServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
         $this->registerModels();
 
-        // Console commands & publishable files
+        // Publish mappings must be available for both CLI and wizard-triggered Artisan::call().
+        $this->loadPublishFiles();
+
+        // Console-only command registration.
         if ($this->app->runningInConsole()) {
             $this->loadCommands();
-            $this->loadPublishFiles();
         }
 
         try {
@@ -412,10 +414,14 @@ class WncmsServiceProvider extends ServiceProvider
         // Core assets
         $this->publishes([
             __DIR__ . '/../../resources/core-assets' => public_path('wncms'),
-            __DIR__ . '/../../resources/stubs' => base_path('stubs'),
             __DIR__ . '/../../resources/views/errors' => resource_path('views/errors'),
             __DIR__ . '/../../resources/views/layouts/error.blade.php' => resource_path('views/layouts/error.blade.php'),
         ], 'wncms-core-assets');
+
+        // Dedicated stub publish tag for updates/installers.
+        $this->publishes([
+            __DIR__ . '/../../resources/stubs' => base_path('stubs'),
+        ], 'wncms-stubs');
 
         // Theme assets (assets only)
         $themesPath = __DIR__ . '/../../resources/themes';

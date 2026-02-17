@@ -19,6 +19,12 @@ try {
         '--force' => true,
     ]);
 
+    // Sync latest scaffold stubs into host project.
+    Artisan::call('vendor:publish', [
+        '--tag' => 'wncms-stubs',
+        '--force' => true,
+    ]);
+
     if (Schema::hasTable('tag_keywords')) {
         Schema::table('tag_keywords', function (Blueprint $table) {
             if (!Schema::hasColumn('tag_keywords', 'model_key')) {
