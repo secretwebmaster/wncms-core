@@ -13,3 +13,7 @@ diff.txt
 /documentations/manual/deploy-doc.sh
 /documentations/plans/*
 /documentations/commands/
+
+# Local test artifacts
+/.phpunit.result.cache
+/tests/bin/

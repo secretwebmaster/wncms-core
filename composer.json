@@ -75,7 +75,13 @@
     },
     "homepage": "https://github.com/secretwebmaster/wncms-core",
     "scripts": {
-        "test": "vendor/bin/phpunit"
+        "test": "vendor/bin/phpunit",
+        "test:dox": "vendor/bin/phpunit --testdox --colors=always",
+        "test:unit": "vendor/bin/phpunit --testsuite Unit --testdox --colors=always",
+        "test:feature": "vendor/bin/phpunit --testsuite Feature --testdox --colors=always",
+        "test:install": "vendor/bin/phpunit tests/Unit/WncmsInstallationStateTest.php --testdox --colors=always",
+        "test:post": "vendor/bin/phpunit --filter Post --testdox --colors=always",
+        "test:prepare-db": "tests/bin/prepare-test-db.sh"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

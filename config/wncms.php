@@ -3,6 +3,7 @@
 return [
 
     'multi_website' => false,
+    'testing_is_installed' => null,
 
     'models' => [
         'advertisement' => [

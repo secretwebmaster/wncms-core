@@ -414,6 +414,14 @@ Route::middleware('is_installed')->group(function () {
 });
 ```
 
+对于包测试（Testbench），无需完整安装流程也可模拟安装状态，设置：
+
+```php
+config(['wncms.testing_is_installed' => true]);  // 强制已安装
+config(['wncms.testing_is_installed' => false]); // 强制未安装
+config(['wncms.testing_is_installed' => null]);  // 回退到 storage_path('installed') 文件检查
+```
+
 ### 网站检查
 
 验证活动网站是否存在（多站点）：

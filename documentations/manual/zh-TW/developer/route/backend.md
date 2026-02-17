@@ -414,6 +414,14 @@ Route::middleware('is_installed')->group(function () {
 });
 ```
 
+對於套件測試（Testbench），不需完整安裝流程也可模擬安裝狀態，設定：
+
+```php
+config(['wncms.testing_is_installed' => true]);  // 強制已安裝
+config(['wncms.testing_is_installed' => false]); // 強制未安裝
+config(['wncms.testing_is_installed' => null]);  // 回退到 storage_path('installed') 檔案檢查
+```
+
 ### 網站檢查
 
 驗證活動網站是否存在（多站點）：

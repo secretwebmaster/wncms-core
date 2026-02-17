@@ -414,6 +414,14 @@ Route::middleware('is_installed')->group(function () {
 });
 ```
 
+For package tests (Testbench), you can simulate install state without a full installer run by setting:
+
+```php
+config(['wncms.testing_is_installed' => true]);  // force installed
+config(['wncms.testing_is_installed' => false]); // force not installed
+config(['wncms.testing_is_installed' => null]);  // fallback to storage_path('installed') file check
+```
+
 ### Website Check
 
 Verifies active website exists (multi-site):

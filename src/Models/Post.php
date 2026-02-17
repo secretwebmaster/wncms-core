@@ -55,6 +55,11 @@ class Post extends BaseModel implements HasMedia, ApiModelInterface
 
     protected static bool $hasApi = true;
 
+    protected static function newFactory()
+    {
+        return \Wncms\Database\Factories\PostFactory::new();
+    }
+
     protected static array $apiRoutes = [
         [
             'name' => 'api.v1.posts.index',

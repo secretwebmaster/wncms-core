@@ -2,46 +2,68 @@
 
 namespace Wncms\Tests;
 
-use Wncms\Models\User;
-use Wncms\Models\Website;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
-use Wncms\Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\Config;
 
 abstract class TestCase extends BaseTestCase
 {
+    protected function getEnvironmentSetUp($app): void
+    {
+        $app['config']->set('cache.default', 'array');
+        $app['config']->set('cache.stores.array', [
+            'driver' => 'array',
+            'serialize' => false,
+        ]);
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->loadPackageConfig();
+        $this->setupAuthConfig();
+        Config::set('wncms.testing_is_installed', true);
 
-        // Verify the database connection is in-memory
+        $this->ensureSqliteDatabaseFileExists();
+        $this->assertPreparedTestingDatabase();
+
+        // Verify the database connection is sqlite
         $connection = DB::connection();
-        if ($connection->getDriverName() !== 'sqlite' || $connection->getDatabaseName() !== ':memory:') {
-            throw new \Exception('Database is not configured for in-memory testing');
+        if ($connection->getDriverName() !== 'sqlite') {
+            throw new \Exception('Database is not configured for sqlite testing');
         }
+    }
 
-        // load migrations and seed the database
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+    protected function ensureSqliteDatabaseFileExists(): void
+    {
+        $databasePath = database_path('testing.sqlite');
+        $databaseDirectory = dirname($databasePath);
+        if (!is_dir($databaseDirectory)) {
+            mkdir($databaseDirectory, 0777, true);
+        }
+        if (!file_exists($databasePath)) {
+            touch($databasePath);
+        }
+    }
 
-        // Run the migrations
-        $this->artisan('migrate', ['--database' => 'sqlite'])->run();
-
-        // run the seeder
-        $this->seed(DatabaseSeeder::class);
-
-        $this->installCMS();
-
-
+    protected function assertPreparedTestingDatabase(): void
+    {
+        $requiredTables = ['migrations', 'users', 'roles', 'permissions', 'tags', 'translations', 'settings'];
+        foreach ($requiredTables as $table) {
+            if (!DB::getSchemaBuilder()->hasTable($table)) {
+                throw new \RuntimeException(
+                    "Prepared testing database is missing table '{$table}'. Run: composer run test:prepare-db"
+                );
+            }
+        }
     }
 
     // Load package service providers
     protected function getPackageProviders($app)
     {
         return [
-            \Wncms\Providers\AppServiceProvider::class,
+            \Wncms\Providers\WncmsServiceProvider::class,
             \Wncms\Providers\EventServiceProvider::class,
             \Wncms\Providers\HelpersProvider::class,
             \Wncms\Providers\MailServiceProvider::class,
@@ -75,23 +97,6 @@ abstract class TestCase extends BaseTestCase
         ];
     }
 
-    protected function installCMS()
-    {
-        // create admin user
-
-        // create roles
-
-
-        // create permissions
-        $user = User::first();
-
-        // create a website
-        $user->websites()->firstOrCreate(
-            ['site_name' => 'Test Website'],
-            ['domain' => request()->getHost()]
-        );
-    }
-
     protected function loadPackageConfig()
     {
         // Path to your package's config directory
@@ -110,5 +115,18 @@ abstract class TestCase extends BaseTestCase
                 Config::set(pathinfo($file, PATHINFO_FILENAME), $config);
             }
         }
+    }
+
+    protected function setupAuthConfig(): void
+    {
+        Config::set('auth.defaults.guard', 'web');
+        Config::set('auth.guards.web', [
+            'driver' => 'session',
+            'provider' => 'users',
+        ]);
+        Config::set('auth.providers.users', [
+            'driver' => 'eloquent',
+            'model' => \Wncms\Models\User::class,
+        ]);
     }
 }

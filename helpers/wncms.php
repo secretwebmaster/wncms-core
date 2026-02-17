@@ -368,8 +368,11 @@ if (!function_exists('wncms_model_word')) {
 if (!function_exists('wncms_is_installed')) {
     function wncms_is_installed()
     {
-        if (app()->environment('testing')) {
-            return false;
+        if (function_exists('app') && app()->environment('testing')) {
+            $testingOverride = config('wncms.testing_is_installed');
+            if (!is_null($testingOverride)) {
+                return (bool) $testingOverride;
+            }
         }
 
         $filename = storage_path("installed");

@@ -2,7 +2,7 @@
 
 namespace Wncms\Tests\Unit;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\File;
 use Wncms\Models\Plugin;
 use Wncms\Plugins\PluginLifecycleManager;
@@ -10,7 +10,7 @@ use Wncms\Tests\TestCase;
 
 class PluginLifecycleUpgradeMapTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected string $pluginsRoot;
 
@@ -53,7 +53,7 @@ class PluginLifecycleUpgradeMapTest extends TestCase
         $this->assertTrue($result['changed']);
         $this->assertSame('1.3.0', $plugin->fresh()->version);
 
-        $logPath = $this->pluginsRoot . DIRECTORY_SEPARATOR . 'upgrade-map-plugin' . DIRECTORY_SEPARATOR . 'upgrade.log';
+        $logPath = $this->pluginsRoot . DIRECTORY_SEPARATOR . 'upgrade-map-plugin' . DIRECTORY_SEPARATOR . 'upgrades' . DIRECTORY_SEPARATOR . 'upgrade.log';
         $this->assertFileExists($logPath);
         $log = (string) file_get_contents($logPath);
         $this->assertStringContainsString("1.0.0=>1.2.0\n", $log);

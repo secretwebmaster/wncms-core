@@ -2,7 +2,7 @@
 
 namespace Wncms\Tests\Unit;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\File;
 use Wncms\Models\Plugin;
 use Wncms\Plugins\PluginActivationCompatibilityValidator;
@@ -10,7 +10,7 @@ use Wncms\Tests\TestCase;
 
 class PluginActivationCompatibilityValidatorTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected string $pluginsRoot;
 

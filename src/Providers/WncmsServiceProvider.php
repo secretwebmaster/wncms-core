@@ -44,7 +44,9 @@ class WncmsServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        define('WNCMS_CORE_PATH', base_path('vendor/secretwebmaster/wncms-core/'));
+        if (!defined('WNCMS_CORE_PATH')) {
+            define('WNCMS_CORE_PATH', base_path('vendor/secretwebmaster/wncms-core/'));
+        }
         config('app.debug') ? error_reporting(E_ALL) : error_reporting(0);
 
         $this->loadSystemSettings();
