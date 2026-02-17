@@ -85,6 +85,22 @@ Example:
 ],
 ```
 
+### Type Switching Compatibility (Array -> Text / Textarea)
+
+When a template option is changed from an array-like type (for example `gallery`, `accordion`) to `text` or `textarea`:
+
+- Old saved JSON array/object values are kept as raw JSON strings in the edit form.
+- The page edit form no longer force-decodes those JSON strings for scalar fields.
+- Saving the page after editing the field stores the value as plain text.
+
+Example conversion expectation:
+
+- Old type: `gallery`
+- Old stored value: `[{"image":"/uploads/a.jpg","text":"A","url":""}]`
+- New type: `text`
+- Edit form value shown: `[{"image":"/uploads/a.jpg","text":"A","url":""}]` (string)
+- After save (if edited to `Homepage hero`): stored value becomes `Homepage hero`
+
 ## number
 
 | Key     | Type   | Required | Example          |

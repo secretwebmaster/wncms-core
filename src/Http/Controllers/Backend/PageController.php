@@ -257,6 +257,7 @@ class PageController extends BackendController
             if ($page->blade_name && isset($templateConfig[$page->blade_name])) {
 
                 $page_template_options = $templateConfig[$page->blade_name]['sections'] ?? [];
+                $templateMap = $this->buildTemplateFieldMap($page_template_options);
 
                 // Load all saved template options from DB
                 $rows = $page->getOptions(scope: 'template', group: $page->blade_name);
@@ -266,14 +267,8 @@ class PageController extends BackendController
                 foreach ($rows as $row) {
                     $fullKey = $row->key;
                     $value   = $row->value;
-
-                    // decode json array/object
-                    if (is_string($value) && strlen($value) > 0 && ($value[0] === '[' || $value[0] === '{')) {
-                        $decoded = json_decode($value, true);
-                        if (json_last_error() === JSON_ERROR_NONE) {
-                            $value = $decoded;
-                        }
-                    }
+                    $type    = $templateMap[$fullKey]['type'] ?? null;
+                    $value   = $this->normalizeTemplateValueForEdit($value, $type);
 
                     if (str_contains($fullKey, '.')) {
                         [$section, $field] = explode('.', $fullKey, 2);
@@ -857,6 +852,43 @@ class PageController extends BackendController
         if (!isset($map[$key])) {
             $map[$key] = $field;
         }
+    }
+
+    protected function normalizeTemplateValueForEdit($value, ?string $type = null)
+    {
+        if (is_array($value) && !$this->shouldDecodeTemplateJsonForType($type)) {
+            return empty($value) ? '' : json_encode($value, JSON_UNESCAPED_UNICODE);
+        }
+
+        if (
+            is_string($value)
+            && strlen($value) > 0
+            && ($value[0] === '[' || $value[0] === '{')
+        ) {
+            $decoded = json_decode($value, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && $this->shouldDecodeTemplateJsonForType($type)) {
+                return $decoded;
+            }
+        }
+
+        return $value;
+    }
+
+    protected function shouldDecodeTemplateJsonForType(?string $type): bool
+    {
+        return !in_array($type, [
+            'text',
+            'number',
+            'textarea',
+            'boolean',
+            'select',
+            'editor',
+            'color',
+            'image',
+            'hidden',
+            'tagify',
+        ], true);
     }
 
     public function get_available_templates(Request $request)

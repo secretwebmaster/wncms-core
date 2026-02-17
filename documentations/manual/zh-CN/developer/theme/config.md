@@ -85,6 +85,22 @@ theme config 包含：
 ],
 ```
 
+### 类型切换兼容（Array -> Text / Textarea）
+
+当模板选项从数组型字段（例如 `gallery`、`accordion`）切换为 `text` 或 `textarea` 时：
+
+- 旧资料中的 JSON 阵列/物件会在编辑表单中保留为原始 JSON 字串。
+- 页面编辑时，标量字段不再强制把 JSON 字串解码成阵列。
+- 再次保存页面后，该字段会以纯文字写回。
+
+转换预期示例：
+
+- 旧类型：`gallery`
+- 旧储存值：`[{"image":"/uploads/a.jpg","text":"A","url":""}]`
+- 新类型：`text`
+- 编辑表单显示：`[{"image":"/uploads/a.jpg","text":"A","url":""}]`（字串）
+- 保存后（若改为 `Homepage hero`）：储存值变为 `Homepage hero`
+
 ## number
 
 | Key     | Type   | Required | Example          |

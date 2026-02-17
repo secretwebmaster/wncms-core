@@ -200,10 +200,58 @@ return [
 
     'templates' => [
         'about' => [
+            'label' => 'About Template',
             'slug' => 'about',
             'title' => '關於我們',
             'blade_name' => 'about',
-            'widgets' => ['block_1']
+            'sections' => [
+                'content' => [
+                    'label' => 'About Content',
+                    'options' => [
+                        [
+                            'label' => 'About Content',
+                            'type' => 'heading',
+                        ],
+                        [
+                            'label' => 'Hero Image',
+                            'name' => 'hero_image',
+                            'type' => 'image',
+                            'width' => 960,
+                            'height' => 540,
+                        ],
+                        [
+                            'label' => 'Summary',
+                            'name' => 'summary',
+                            'type' => 'textarea',
+                        ],
+                    ],
+                ],
+            ],
+        ],
+        'testing' => [
+            'label' => 'Testing Template',
+            'slug' => 'testing',
+            'title' => 'Testing Template',
+            'blade_name' => 'testing',
+            'sections' => [
+                'switch_test' => [
+                    'label' => 'Type Switch Test',
+                    'options' => [
+                        [
+                            'label' => 'Type Switch Test',
+                            'type' => 'heading',
+                        ],
+                        [
+                            'label' => 'Switch Target',
+                            'name' => 'switch_target',
+                            'type' => 'text',
+                            'has_text' => true,
+                            'has_url' => true,
+                            'description' => 'Save once as gallery, then switch this option type to text for compatibility testing.',
+                        ],
+                    ],
+                ],
+            ],
         ],
     ],
 

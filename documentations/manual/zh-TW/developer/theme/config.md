@@ -85,6 +85,22 @@ theme config 包含：
 ],
 ```
 
+### 類型切換相容（Array -> Text / Textarea）
+
+當模板選項從陣列型欄位（例如 `gallery`、`accordion`）切換成 `text` 或 `textarea` 時：
+
+- 舊資料中的 JSON 陣列/物件會在編輯表單保留為原始 JSON 字串。
+- 頁面編輯時，標量欄位不再強制把 JSON 字串解碼成陣列。
+- 再次儲存頁面後，該欄位會以純文字寫回。
+
+轉換預期範例：
+
+- 舊類型：`gallery`
+- 舊儲存值：`[{"image":"/uploads/a.jpg","text":"A","url":""}]`
+- 新類型：`text`
+- 編輯表單顯示：`[{"image":"/uploads/a.jpg","text":"A","url":""}]`（字串）
+- 儲存後（若改為 `Homepage hero`）：儲存值變成 `Homepage hero`
+
 ## number
 
 | Key     | Type   | Required | Example          |
