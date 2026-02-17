@@ -3,6 +3,7 @@
 namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Secretwebmaster\LaravelOptionable\Traits\HasOptions;
 use Wncms\Interfaces\BaseModelInterface;
 use Wncms\Tags\HasTags;
@@ -237,5 +238,59 @@ abstract class BaseModel extends Model implements BaseModelInterface
         return property_exists(static::class, 'packageId')
             ? static::$packageId
             : null;
+    }
+
+    /**
+     * Normalize ROUTES definitions into a consistent structure.
+     *
+     * Supported formats:
+     * 1) ['index', 'summary']
+     * 2) [
+     *      ['name' => 'clicks.index', 'permission' => 'click_index'],
+     *      ['name' => 'summary', 'permission' => 'click_index'],
+     *    ]
+     *
+     * @return array<int, array{name:string,suffix:string,permission:string}>
+     */
+    public static function getNormalizedRoutes(): array
+    {
+        $model = new static;
+        $tableName = $model->getTable();
+        $modelKey = static::getModelKey() ?: class_basename(static::class);
+        $snakeName = Str::snake(Str::singular((string) $modelKey));
+
+        $routes = defined(static::class . '::ROUTES') ? static::ROUTES : [];
+        if (!is_array($routes)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($routes as $route) {
+            $rawName = null;
+            $permission = null;
+
+            if (is_string($route)) {
+                $rawName = $route;
+            } elseif (is_array($route)) {
+                $rawName = isset($route['name']) && is_string($route['name']) ? $route['name'] : null;
+                $permission = isset($route['permission']) && is_string($route['permission']) ? $route['permission'] : null;
+            }
+
+            if (empty($rawName)) {
+                continue;
+            }
+
+            $fullRouteName = str_contains($rawName, '.') ? $rawName : $tableName . '.' . $rawName;
+            $suffix = str_contains($rawName, '.') ? (string) Str::afterLast($rawName, '.') : $rawName;
+            $permission ??= $snakeName . '_' . $suffix;
+
+            $normalized[] = [
+                'name' => $fullRouteName,
+                'suffix' => $suffix,
+                'permission' => $permission,
+            ];
+        }
+
+        return $normalized;
     }
 }

@@ -18,15 +18,27 @@
         $table_name = $model->getTable();
 
         if (defined(get_class($model) . "::ROUTES") && in_array($modelData['model_name'], json_decode(gss('active_models'), true))) {
+            $normalizedRoutes = method_exists($model_class_name, 'getNormalizedRoutes')
+                ? $model_class_name::getNormalizedRoutes()
+                : collect($model::ROUTES)->map(function ($routeName) use ($table_name, $snake_name) {
+                    return [
+                        'name' => $table_name . '.' . $routeName,
+                        'suffix' => $routeName,
+                        'permission' => $snake_name . '_' . $routeName,
+                    ];
+                })->toArray();
+
             $menuItem = [
                 'model' => $model,
-                'routes' => array_map(fn($route) => $snake_name . '_' . $route, $model::ROUTES),
+                'normalized_routes' => $normalizedRoutes,
                 'table_name' => $table_name,
                 'snake_name' => $snake_name,
                 'model_key' => defined(get_class($model) . "::MODEL_KEY") ? $model::MODEL_KEY : null,
                 'icon' => defined(get_class($model) . "::ICONS") && !empty($model::ICONS['fontawesome']) ? $model::ICONS['fontawesome'] : 'fa-solid fa-cube',
                 'sub_routes' => [],
             ];
+
+            $menuItem['routes'] = collect($normalizedRoutes)->pluck('permission')->values()->all();
 
             if (defined(get_class($model) . "::SUB_ROUTES") && in_array($modelData['model_name'], json_decode(gss('active_models'), true))) {
                 foreach ($model::SUB_ROUTES as $route_name) {
@@ -56,23 +68,29 @@
 {{-- New --}}
 @foreach($modelMenuItems as $menuItem)
     @canany($menuItem['routes'])
-        <div data-kt-menu-trigger="click" class="menu-item menu-accordion @if(request()->routeIs(array_map(fn($route) => $menuItem['table_name'] . '.' . $route, array_merge($menuItem['model']::ROUTES, ['edit'])))) show @endif">
+        @php
+            $activeRoutePatterns = array_merge(
+                array_map(fn($route) => $route['name'] . '*', $menuItem['normalized_routes']),
+                [$menuItem['table_name'] . '.edit*']
+            );
+        @endphp
+        <div data-kt-menu-trigger="click" class="menu-item menu-accordion @if(request()->routeIs($activeRoutePatterns)) show @endif">
             <span class="menu-link py-2">
                 <span class="menu-icon">
-                    <i class="fa-lg {{ $menuItem['icon'] }} @if(request()->routeIs(array_map(fn($route) => $menuItem['table_name'] . '.' . $route, array_merge($menuItem['model']::ROUTES, ['edit'])))) fa-beat @endif"></i>
+                    <i class="fa-lg {{ $menuItem['icon'] }} @if(request()->routeIs($activeRoutePatterns)) fa-beat @endif"></i>
                 </span>
                 <span class="menu-title fw-bold">@lang('wncms::word.model_management', ['model_name' => $menuItem['model_key'] ? __('wncms::word.' . $menuItem['model_key']) : __('wncms::word.' . $menuItem['snake_name'])])</span>
                 <span class="menu-arrow"></span>
             </span>
 
             <div class="menu-sub menu-sub-accordion">
-                @foreach($menuItem['model']::ROUTES as $route_name)
-                    @if(wncms()->hasRoute($menuItem['table_name'] . '.' . $route_name))
-                        @can($menuItem['snake_name'] . "_" . $route_name)
+                @foreach($menuItem['normalized_routes'] as $routeData)
+                    @if(wncms()->hasRoute($routeData['name']))
+                        @can($routeData['permission'])
                             <div class="menu-item">
-                                <a class="menu-link @if(request()->routeIs($menuItem['table_name'] . '.'. $route_name .'*')) active @endif" href="{{ route($menuItem['table_name'] . '.' . $route_name) }}">
+                                <a class="menu-link @if(request()->routeIs($routeData['name'] . '*')) active @endif" href="{{ route($routeData['name']) }}">
                                     <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                    <span class="menu-title fw-bold">{{ wncms()->getModelWord($menuItem['snake_name'] . '', $route_name) }}</span>
+                                    <span class="menu-title fw-bold">{{ wncms()->getModelWord($menuItem['snake_name'] . '', $routeData['suffix']) }}</span>
                                 </a>
                             </div>
                         @endcan

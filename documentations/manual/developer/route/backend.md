@@ -245,6 +245,17 @@ Tag list filter behavior:
 - In tag create/edit, `parent_id` uses Tagify (single select, `maxTags=1`) and loads **all tags** of the selected type as parent candidates.
 - In `tags.keywords.index`, keyword binding now supports `field` mapping per tag type (for example `title`, `content`, `excerpt`). Auto-generate matching checks only the selected field, or all fields when `field=*`.
 
+### Clicks
+
+```php
+Route::prefix('clicks')->controller(ClickController::class)->group(function () {
+    Route::get('', 'index')->middleware('can:click_index')->name('clicks.index');
+    Route::get('/summary', 'summary')->middleware('can:click_index')->name('clicks.summary');
+    Route::delete('/{id}', 'destroy')->middleware('can:click_delete')->name('clicks.destroy');
+    Route::post('/bulk_delete', 'bulk_delete')->middleware('can:click_bulk_delete')->name('clicks.bulk_delete');
+});
+```
+
 ### Themes
 
 ```php

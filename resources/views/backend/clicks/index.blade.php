@@ -142,7 +142,7 @@
 
 {{-- Message box --}}
 <div class="alert alert-info">
-    <div>Clicks: {{ $clicks->total() }}</div>
+    <div>@lang('wncms::word.clicks'): {{ $clicks->total() }}</div>
 </div>
 
 {{-- Chart.js - Clicks over last 30 days --}}
@@ -169,13 +169,15 @@
                             </div>
                         </th> --}}
                         {{-- <th>@lang('wncms::word.action')</th> --}}
+                        @if(request()->show_detail)
                         <th>@lang('wncms::word.id') <div class="resizer"></div>
                         </th>
-                        <th>@lang('wncms::word.clickable_type') <div class="resizer"></div>
+                        @endif
+                        <th>@lang('wncms::word.type') <div class="resizer"></div>
                         </th>
-                        <th>@lang('wncms::word.clickable_id') <div class="resizer"></div>
+                        <th>@lang('wncms::word.item_id') <div class="resizer"></div>
                         </th>
-                        <th>@lang('wncms::word.clickable_name') <div class="resizer"></div>
+                        <th>@lang('wncms::word.name') <div class="resizer"></div>
                         </th>
                         <th>@lang('wncms::word.name') <div class="resizer"></div>
                         </th>
@@ -216,8 +218,10 @@
                         </td> --}}
 
                         {{-- Data --}}
+                        @if(request()->show_detail)
                         <td>{{ $click->id }}</td>
-                        <td>{{ $click->clickable_type }}</td>
+                        @endif
+                        <td title="{{ $click->clickable_type }}">{{ $click->clickable_type_label ?? $click->clickable_type }}</td>
                         <td class="clickable-id-cell text-primary cursor-pointer"
                             data-clickable-id="{{ $click->clickable_id }}"
                             data-clickable-type="{{ $click->clickable_type }}">

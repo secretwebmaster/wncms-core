@@ -2102,6 +2102,7 @@ $words = [
     'clickable_type' => '可点击项目类型',
     'clickable_id' => '可点击项目ID',
     'clickable_name' => '可点击项目名称',
+    'summary' => '汇总',
     'script' => '代码',
     'laravellocalization_use_accept_language_header' => '自动侦测浏览器语言',
     'confirm_delete_theme' => '确认删除主题',

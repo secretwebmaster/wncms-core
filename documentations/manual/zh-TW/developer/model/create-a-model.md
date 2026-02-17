@@ -168,6 +168,30 @@ resources/views/backend/articles/
 - 使用您偏好的方法或小型填充器建立權限，如 `article_index`、`article_create` 等。
 - 新增指向 `route('articles.index')` 的後台選單項目。
 
+### 8) 模型 `ROUTES` 支援 2 種格式
+
+WNCMS 支援簡單列表與詳細定義兩種寫法，用於後台側邊欄/選單權限判斷。
+
+簡單格式（權限自動推導為 `{model}_{suffix}`）：
+
+```php
+public const ROUTES = [
+    'index',
+    'summary',
+];
+```
+
+詳細格式（可為單一路由覆寫權限）：
+
+```php
+public const ROUTES = [
+    ['name' => 'index'],
+    ['name' => 'summary', 'permission' => 'article_index'],
+];
+```
+
+`name` 也可寫完整路由名（例如 `articles.index`）；若只寫後綴，WNCMS 會依模型路由前綴自動補全。
+
 ## 選項 B — WNCMS 快速指令（建議）
 
 使用一體化的 WNCMS 指令來產生模型、遷移、控制器、視圖、權限和路由。它還會將產生的控制器內的蛇形/駝峰命名標準化。

@@ -168,6 +168,30 @@ Name your routes and views using the plural snake case (e.g., `backend.articles.
 - Create permissions like `article_index`, `article_create`, etc. using your preferred method or a small seeder.
 - Add a backend menu item pointing to `route('articles.index')`.
 
+### 8) Model `ROUTES` supports 2 formats
+
+WNCMS supports both a simple list and a detailed route definition for sidebar/menu permissions.
+
+Simple format (permission is inferred as `{model}_{suffix}`):
+
+```php
+public const ROUTES = [
+    'index',
+    'summary',
+];
+```
+
+Detailed format (you can override permission per route):
+
+```php
+public const ROUTES = [
+    ['name' => 'index'],
+    ['name' => 'summary', 'permission' => 'article_index'],
+];
+```
+
+You can also use full route names in `name` (for example `articles.index`); otherwise WNCMS will prefix it automatically using the model table route prefix.
+
 ## Option B — WNCMS quick command (recommended)
 
 Use the all-in-one WNCMS command to generate model, migration, controller, views, permissions, and routes. It also normalizes snake/camel names inside the generated controller.

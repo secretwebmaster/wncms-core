@@ -2102,6 +2102,7 @@ $words = [
     'clickable_type' => 'クリック可能項目のタイプ',
     'clickable_id' => 'クリック可能項目ID',
     'clickable_name' => 'クリック可能項目名',
+    'summary' => '集計',
     'script' => 'スクリプト',
     'laravellocalization_use_accept_language_header' => 'ブラウザの言語を自動検出する',
     'confirm_delete_theme' => 'テーマの削除を確認',

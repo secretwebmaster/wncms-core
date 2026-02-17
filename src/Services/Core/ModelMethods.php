@@ -81,6 +81,7 @@ trait ModelMethods
                     'model_name_with_namespace' => $modelName,
                     'priority' => property_exists($model, 'menuPriority') ? $model->menuPriority : 0,
                     'routes' => defined($modelName . '::ROUTES') ? $modelName::ROUTES : null,
+                    'normalized_routes' => method_exists($modelName, 'getNormalizedRoutes') ? $modelName::getNormalizedRoutes() : null,
                     // Backward compatibility for existing getModelNames() consumers
                     'name' => $modelNameBase,
                 ];

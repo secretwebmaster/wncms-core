@@ -103,6 +103,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     //click
     Route::prefix('clicks')->controller(ClickController::class)->group(function () {
         Route::get('', 'index')->middleware('can:click_index')->name('clicks.index');
+        Route::get('/summary', 'summary')->middleware('can:click_index')->name('clicks.summary');
         Route::delete('/{id}', 'destroy')->middleware('can:click_delete')->name('clicks.destroy');
         Route::post('/bulk_delete', 'bulk_delete')->middleware('can:click_bulk_delete')->name('clicks.bulk_delete');
     });

@@ -2102,6 +2102,7 @@ $words = [
     'clickable_type' => '可點擊項目類型',
     'clickable_id' => '可點擊項目ID',
     'clickable_name' => '可點擊項目名稱',
+    'summary' => '彙總',
     'script' => '代碼',
     'laravellocalization_use_accept_language_header' => '自動偵測瀏覽器語言',
     'confirm_delete_theme' => '確認刪除主題',

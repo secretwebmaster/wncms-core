@@ -245,6 +245,17 @@ Route::prefix('tags')->controller(TagController::class)->group(function () {
 - 在標籤新增/編輯頁中，`parent_id` 使用 Tagify 單選（`maxTags=1`），並會載入目前所選類型下的**所有標籤**作為父標籤候選。
 - 在 `tags.keywords.index` 中，關鍵字綁定現已支援為每個標籤類型選擇 `field`（例如 `title`、`content`、`excerpt`）。自動生成僅比對所選欄位；當 `field=*` 時會比對所有欄位。
 
+### 點擊
+
+```php
+Route::prefix('clicks')->controller(ClickController::class)->group(function () {
+    Route::get('', 'index')->middleware('can:click_index')->name('clicks.index');
+    Route::get('/summary', 'summary')->middleware('can:click_index')->name('clicks.summary');
+    Route::delete('/{id}', 'destroy')->middleware('can:click_delete')->name('clicks.destroy');
+    Route::post('/bulk_delete', 'bulk_delete')->middleware('can:click_bulk_delete')->name('clicks.bulk_delete');
+});
+```
+
 ### 主題
 
 ```php

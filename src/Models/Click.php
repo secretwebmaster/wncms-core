@@ -28,6 +28,10 @@ class Click extends BaseModel
 
     public const ROUTES = [
         'index',
+        [
+            'name' => 'summary',
+            'permission' => 'click_index',
+        ],
     ];
 
     /**

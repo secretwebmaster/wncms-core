@@ -2102,6 +2102,7 @@ $words = [
     'clickable_type' => 'Clickable Item Type',
     'clickable_id' => 'Clickable Item ID',
     'clickable_name' => 'Clickable Item Name',
+    'summary' => 'Summary',
     'script' => 'Script',
     'laravellocalization_use_accept_language_header' => 'Automatically detect browser language',
     'confirm_delete_theme' => 'Confirm Theme Deletion',
