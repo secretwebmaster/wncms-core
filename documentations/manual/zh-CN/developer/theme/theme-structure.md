@@ -4,6 +4,14 @@
 
 WNCMS 主题遵循标准化的目录结构，将视图、资源、配置和功能分离。了解此结构对于开发自订主题或修改现有主题至关重要。
 
+## 预设前台路由
+
+当主题导航要绑定前台路由时：
+
+- 首页请使用 `frontend.pages.home`（不要使用 `frontend.index`）。
+- 预设路由清单请参考 [Frontend Routes](../route/frontend.md)。
+- 若要了解更多细节，请查看 `routes/frontend.php`。
+
 ## 目录结构
 
 一个完整的 WNCMS 主题具有以下结构：

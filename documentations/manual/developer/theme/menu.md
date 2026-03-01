@@ -85,6 +85,12 @@ For each menu item:
      - Font Awesome free icon search: `https://fontawesome.com/v6/search?ic=free-collection`
    - **CSS Class**: Custom styling (optional)
 
+**Frontend route naming note:**
+
+- For homepage links, use `frontend.pages.home` (not `frontend.index`).
+- See the complete frontend route list in [Frontend Routes](../route/frontend.md).
+- Check `routes/frontend.php` if you need route implementation details.
+
 ### 3. Organize Hierarchy
 
 - Drag and drop items to reorder

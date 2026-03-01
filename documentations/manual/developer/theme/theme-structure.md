@@ -4,6 +4,14 @@
 
 WNCMS themes follow a standardized directory structure that separates views, assets, configuration, and functionality. Understanding this structure is essential for developing custom themes or modifying existing ones.
 
+## Default Frontend Routes
+
+When linking theme navigation to frontend routes:
+
+- Use `frontend.pages.home` for the homepage route (not `frontend.index`).
+- Check the full default route list in [Frontend Routes](../route/frontend.md).
+- Review implementation details in `routes/frontend.php`.
+
 ## Directory Structure
 
 A complete WNCMS theme has the following structure:
