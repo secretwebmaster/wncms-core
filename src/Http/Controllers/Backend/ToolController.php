@@ -2,6 +2,7 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
+use Symfony\Component\Console\Exception\CommandNotFoundException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Http\Request;
@@ -64,10 +65,24 @@ class ToolController extends Controller
             return redirect()->back()->withInput()->withErrors(['message' => $message]);
         }
 
-        $exitCode = Artisan::call('wncms:update', [
-            'product' => 'core',
-            '--rerun-version' => $version,
-        ]);
+        try {
+            $exitCode = Artisan::call('wncms:update', [
+                'product' => 'core',
+                '--rerun-version' => $version,
+            ]);
+        } catch (CommandNotFoundException $e) {
+            $message = __('wncms::word.rerun_core_update_failed', ['version' => $version])
+                . ' ' . 'Command not available in current runtime. Please clear cache and ensure package provider is loaded.';
+
+            if ($request->ajax()) {
+                return Response::json([
+                    'status' => 'fail',
+                    'message' => $message,
+                ], 500);
+            }
+
+            return redirect()->back()->withInput()->withErrors(['message' => $message]);
+        }
 
         $output = trim((string) Artisan::output());
 

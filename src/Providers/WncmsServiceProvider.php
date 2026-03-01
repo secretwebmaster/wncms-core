@@ -85,6 +85,8 @@ class WncmsServiceProvider extends ServiceProvider
         // Console-only command registration.
         if ($this->app->runningInConsole()) {
             $this->loadCommands();
+        } else {
+            $this->loadHttpCallableCommands();
         }
 
         try {
@@ -467,6 +469,23 @@ class WncmsServiceProvider extends ServiceProvider
                 $commandClasses[] = $class;
             }
         }
+
+        if (!empty($commandClasses)) {
+            $this->commands($commandClasses);
+        }
+    }
+
+    /**
+     * Register commands that may be invoked from HTTP via Artisan::call().
+     */
+    protected function loadHttpCallableCommands(): void
+    {
+        $commandClasses = [
+            \Wncms\Console\Commands\Update::class,
+            \Wncms\Console\Commands\UpdateWebsite::class,
+        ];
+
+        $commandClasses = array_values(array_filter($commandClasses, static fn($class) => class_exists($class)));
 
         if (!empty($commandClasses)) {
             $this->commands($commandClasses);

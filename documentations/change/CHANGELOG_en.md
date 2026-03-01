@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.2.1 2026-03-01
+
+- Added a quick website update command so you can change a website setting with one line and refresh cache automatically.
+- Changed the rerun option to `--rerun-version`, and updated the backend tool to match for clearer usage.
+
 ## v6.2.0 2026-02-18
 
 - Added a full plugin runtime lifecycle: loader, activation flow, dependency/version checks, deactivation safety, diagnostics, and deterministic upgrade steps.
