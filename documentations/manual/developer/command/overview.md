@@ -148,6 +148,30 @@ Behavior summary:
 - Intended for recovery when default theme assets are edited, missing, or corrupted.
 - This command is also used by installer flows (CLI and browser wizard) via shared installer logic.
 
+## `wncms:update-website`
+
+Update one website column from CLI.
+
+```bash
+php artisan wncms:update-website {key} {value}
+```
+
+Common usage:
+
+```bash
+# Switch website theme
+php artisan wncms:update-website theme default
+
+# Update site name
+php artisan wncms:update-website site_name "My Website"
+```
+
+Behavior summary:
+- Updates the current website in CLI context; if not resolvable by domain, falls back to the first website record.
+- Validates that `{key}` exists as a real column on `websites` table.
+- When updating `theme`, auto-seeds missing default theme options for the new theme.
+- Flushes `websites` cache tag after update.
+
 ## `wncms:update`
 
 Run core update scripts.
@@ -157,15 +181,15 @@ Run core update scripts.
 php artisan wncms:update core
 
 # Rerun one specific local update file
-php artisan wncms:update --version=6.1.6
-php artisan wncms:update --version=v6.1.6
+php artisan wncms:update --rerun-version=6.1.6
+php artisan wncms:update --rerun-version=v6.1.6
 ```
 
 Behavior summary:
-- `--version=` runs exactly one local update script again:
+- `--rerun-version=` runs exactly one local update script again:
   - `updates/update_core_{version}.php`
 - `v` prefix is accepted (for example `v6.1.6` and `6.1.6` behave the same).
-- If `--version` is missing or not found in `updates/`, command returns failure.
+- If `--rerun-version` is missing or not found in `updates/`, command returns failure.
 
 ## Installation Modes (`wncms:install` + Browser Wizard)
 

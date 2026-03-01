@@ -15,7 +15,7 @@ class Update extends Command
     protected $signature = 'wncms:update
                             {product=core : Update product key (default: core)}
                             {--target-version= : Incremental mode upper bound; runs all versions from current to this target}
-                            {--version= : Rerun mode; execute exactly one local update file (accepts 6.1.6 or v6.1.6)}';
+                            {--rerun-version= : Rerun mode; execute exactly one local update file (accepts 6.1.6 or v6.1.6)}';
 
     /**
      * The console command description.
@@ -30,13 +30,13 @@ class Update extends Command
     public function handle()
     {
         $product = $this->argument('product');
-        $rerunVersion = $this->option('version');
+        $rerunVersion = $this->option('rerun-version');
 
         if (!empty($rerunVersion)) {
             $normalizedVersion = $this->normalizeVersion((string) $rerunVersion);
 
             if ($normalizedVersion === '') {
-                $this->error('The --version option is required.');
+                $this->error('The --rerun-version option is required.');
                 return Command::FAILURE;
             }
 

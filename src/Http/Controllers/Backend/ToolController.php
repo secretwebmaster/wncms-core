@@ -66,7 +66,7 @@ class ToolController extends Controller
 
         $exitCode = Artisan::call('wncms:update', [
             'product' => 'core',
-            '--version' => $version,
+            '--rerun-version' => $version,
         ]);
 
         $output = trim((string) Artisan::output());

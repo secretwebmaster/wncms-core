@@ -148,6 +148,30 @@ php artisan wncms:install-default-theme --force
 - 適用於預設主題資源被修改、遺失或損壞後的復原場景。
 - 該命令也會被安裝流程（CLI 與瀏覽器安裝精靈）透過共用安裝邏輯呼叫。
 
+## `wncms:update-website`
+
+透過 CLI 更新網站單一欄位。
+
+```bash
+php artisan wncms:update-website {key} {value}
+```
+
+常見用法：
+
+```bash
+# 切換網站主題
+php artisan wncms:update-website theme default
+
+# 更新網站名稱
+php artisan wncms:update-website site_name "My Website"
+```
+
+行為摘要：
+- 在 CLI 情境下更新目前網站；若無法依網域解析，則回退到第一筆網站資料。
+- 會驗證 `{key}` 是否為 `websites` 資料表真實欄位。
+- 更新 `theme` 時，會自動補齊新主題缺少的預設 theme options。
+- 更新後會清除 `websites` 快取標籤。
+
 ## `wncms:update`
 
 執行核心更新腳本。
@@ -157,15 +181,15 @@ php artisan wncms:install-default-theme --force
 php artisan wncms:update core
 
 # 重新執行一個指定的本地更新檔案
-php artisan wncms:update --version=6.1.6
-php artisan wncms:update --version=v6.1.6
+php artisan wncms:update --rerun-version=6.1.6
+php artisan wncms:update --rerun-version=v6.1.6
 ```
 
 行為摘要：
-- `--version=` 會重新執行一個指定版本的本地更新腳本：
+- `--rerun-version=` 會重新執行一個指定版本的本地更新腳本：
   - `updates/update_core_{version}.php`
 - 支援 `v` 前綴（例如 `v6.1.6` 與 `6.1.6` 等價）。
-- 若 `--version` 為空或在 `updates/` 中找不到對應檔案，命令會回傳失敗。
+- 若 `--rerun-version` 為空或在 `updates/` 中找不到對應檔案，命令會回傳失敗。
 
 ## 安裝方式（`wncms:install` + 瀏覽器精靈）
 
