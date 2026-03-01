@@ -129,12 +129,12 @@ Replace these values with your actual credentials:
 
 ```bash
 php artisan wncms:install mysql 127.0.0.1 3306 example_com example_com "YourStrongPassword" \
-    --app_name="example" \
+    --app_name="example_com" \
     --app_url="https://example.com" \
     --force_https \
     --domain="example.com" \
     --app_locale="zh_CN" \
-    --site_name="我的網站"
+    --site_name="My Website"
 ```
 
 ## File Permissions
