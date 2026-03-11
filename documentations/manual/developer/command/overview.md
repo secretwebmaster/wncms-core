@@ -148,6 +148,33 @@ Behavior summary:
 - Intended for recovery when default theme assets are edited, missing, or corrupted.
 - This command is also used by installer flows (CLI and browser wizard) via shared installer logic.
 
+## `wncms:install-agent-files`
+
+Install WNCMS agent files into the host project root.
+
+```bash
+php artisan wncms:install-agent-files
+```
+
+Common usage:
+
+```bash
+# Overwrite all existing target files without prompt
+php artisan wncms:install-agent-files --force
+
+# Preview only, do not write files
+php artisan wncms:install-agent-files --dry-run
+```
+
+Behavior summary:
+- Publishes from package source `resources/agent-files`.
+- Installs `AGENTS.md` and `.github/skills` into host project root.
+- Default mode is interactive for existing targets:
+  - asks whether to overwrite `AGENTS.md`
+  - asks whether to overwrite `.github/skills`
+- `--force` overwrites existing targets without confirmation.
+- `--dry-run` prints planned actions and does not modify files.
+
 ## `wncms:update-website`
 
 Update one website column from CLI.

@@ -148,6 +148,33 @@ php artisan wncms:install-default-theme --force
 - 適用於預設主題資源被修改、遺失或損壞後的復原場景。
 - 該命令也會被安裝流程（CLI 與瀏覽器安裝精靈）透過共用安裝邏輯呼叫。
 
+## `wncms:install-agent-files`
+
+將 WNCMS agent 檔案安裝到宿主專案根目錄。
+
+```bash
+php artisan wncms:install-agent-files
+```
+
+常見用法：
+
+```bash
+# 不詢問，直接覆蓋所有已存在目標
+php artisan wncms:install-agent-files --force
+
+# 只預覽，不寫入檔案
+php artisan wncms:install-agent-files --dry-run
+```
+
+行為摘要：
+- 從套件內 `resources/agent-files` 作為發佈來源。
+- 安裝 `AGENTS.md` 與 `.github/skills` 到宿主專案根目錄。
+- 預設模式對已存在目標採互動確認：
+  - 詢問是否覆蓋 `AGENTS.md`
+  - 詢問是否覆蓋 `.github/skills`
+- `--force` 會直接覆蓋已存在目標。
+- `--dry-run` 只輸出預計動作，不會修改任何檔案。
+
 ## `wncms:update-website`
 
 透過 CLI 更新網站單一欄位。

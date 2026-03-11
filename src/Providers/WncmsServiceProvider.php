@@ -427,6 +427,12 @@ class WncmsServiceProvider extends ServiceProvider
             __DIR__ . '/../../resources/stubs' => base_path('stubs'),
         ], 'wncms-stubs');
 
+        // Agent files (AGENTS.md + skills) for host project root.
+        $this->publishes([
+            __DIR__ . '/../../resources/agent-files/AGENTS.md' => base_path('AGENTS.md'),
+            __DIR__ . '/../../resources/agent-files/.github/skills' => base_path('.github/skills'),
+        ], 'wncms-agent-files');
+
         // Theme assets (assets only)
         $themesPath = __DIR__ . '/../../resources/themes';
 
