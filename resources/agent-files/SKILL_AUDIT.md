@@ -42,6 +42,8 @@ These remain package-maintainer concerns and are intentionally not published to 
 
 | Skill | Basis In Manual |
 | --- | --- |
+| `wncms-skill-registration` | meta skill for keeping host-project `AGENTS.md` aligned with local skills |
+| `wncms-function-docblocks` | meta skill for keeping host-project PHP function docblocks consistent in Laravel/Breeze style |
 | `wncms-coding-style` | WNCMS conventions reused across extensions |
 | `wncms-model-creation` | `developer/model/*` |
 | `wncms-backend-controller-creation` | `developer/controller/*`, `developer/route/*` |
@@ -75,4 +77,5 @@ These docs are empty or too thin for a reliable published skill in this pass:
 
 - The published skill set now targets host-project paths such as `app/`, `routes/custom_*.php`, `lang/`, `public/plugins/`, and themes.
 - No published skill should instruct the agent to build host-project features under `src/` as if it were editing `wncms-core`.
+- `wncms-skill-registration` and `wncms-function-docblocks` are intentional meta-skill exceptions; they keep host-project maintenance conventions aligned and are not WNCMS runtime feature skills.
 - If a task depends on an undocumented or empty manual area, inspect code directly before making claims.

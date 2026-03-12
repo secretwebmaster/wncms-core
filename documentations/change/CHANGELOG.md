@@ -1,5 +1,12 @@
 # 更新日誌
 
+## v6.2.2 2026-03-11
+
+- 新增 `wncms:install-agent-files` 指令，可將 `AGENTS.md` 與宿主專案用 `.github/skills` 發佈到專案根目錄，支援互動覆蓋、`--force` 與 `--dry-run`。
+- 新增可發佈的宿主專案 agent skill set，明確區分「使用者專案擴充 WNCMS」與 `wncms-core` 維護者內部技能，避免將 maintainer-only 流程發佈到使用者專案。
+- 新增 agent 維護輔助技能，可在新增 skill 時同步更新 `AGENTS.md`，並統一 PHP 函式註解格式。
+- 修正停用註冊時的控制器副作用，避免在列出路由等 CLI 場景提前輸出「關閉註冊」並中止流程。
+
 ## v6.2.1 2026-03-01
 
 - 新增網站快速更新指令，可用一行命令修改網站設定，並自動清除快取。

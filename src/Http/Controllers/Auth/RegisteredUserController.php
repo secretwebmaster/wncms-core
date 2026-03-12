@@ -13,14 +13,29 @@ use Illuminate\Support\Str;
 
 class RegisteredUserController extends Controller
 {
-    public function __construct()
+    /**
+     * Abort the request when registration is disabled.
+     *
+     * Stops registration-related actions before the controller continues with
+     * view rendering or account creation.
+     *
+     * @return void
+     */
+    protected function abortIfRegistrationDisabled(): void
     {
-        if(gss('disable_registration')){
-            echo __('wncms::word.disable_registration');
-            die;
+        if (gss('disable_registration')) {
+            abort(403, __('wncms::word.disable_registration'));
         }
     }
 
+    /**
+     * Resolve the configured user model instance.
+     *
+     * Uses the configured `wncms.default_user_model` class and returns a new
+     * model instance for registration operations.
+     *
+     * @return \Illuminate\Database\Eloquent\Model
+     */
     public function getUserClass()
     {
         $model = config('wncms.default_user_model', \Wncms\Models\User::class);
@@ -30,10 +45,15 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      *
+     * Resolves the active website theme first and falls back to the default
+     * WNCMS registration view when no theme override exists.
+     *
      * @return \Illuminate\View\View
      */
     public function create()
     {
+        $this->abortIfRegistrationDisabled();
+
         $website = wncms()->website()->get();
         if($website && view()->exists("frontend.themes.{$website?->theme}.auth.register")){
             return view("wncms::frontend.themes.{$website?->theme}.auth.register");
@@ -44,14 +64,19 @@ class RegisteredUserController extends Controller
     /**
      * Handle an incoming registration request.
      *
+     * Validates the request, creates the user, assigns the default role,
+     * attaches the current website, and logs the user in.
+     *
      * @param  \Illuminate\Http\Request  $request
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
      *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request)
     {
+        $this->abortIfRegistrationDisabled();
+
         // info($request->all());
 
         $request->validate(
@@ -105,6 +130,9 @@ class RegisteredUserController extends Controller
     /**
      * Handle an incoming api registration request.
      *
+     * Validates the API payload and returns the created user model response
+     * with a newly generated API token hash.
+     *
      * @param  \Illuminate\Http\Request  $request
      *
      * @return \Illuminate\Http\Response
@@ -113,6 +141,8 @@ class RegisteredUserController extends Controller
      */
     public function apiStore(Request $request)
     {
+        $this->abortIfRegistrationDisabled();
+
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',

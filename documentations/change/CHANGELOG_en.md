@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.2.2 2026-03-11
+
+- Added the `wncms:install-agent-files` command to publish `AGENTS.md` and the host-project `.github/skills` set into the project root, with interactive overwrite, `--force`, and `--dry-run` support.
+- Added a publishable host-project agent skill set that clearly separates “extend WNCMS from your app” guidance from maintainer-only `wncms-core` workflows.
+- Added agent-maintenance skills to keep `AGENTS.md` in sync with new skills and to standardize PHP function docblocks.
+- Fixed disabled-registration handling so CLI flows such as route inspection are not interrupted by controller constructor side effects.
+
 ## v6.2.1 2026-03-01
 
 - Added a quick website update command so you can change a website setting with one line and refresh cache automatically.

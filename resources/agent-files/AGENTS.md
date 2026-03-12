@@ -27,6 +27,8 @@ This file is **not** for maintaining the `wncms-core` package itself.
 
 ## Skills To Apply
 - `.github/skills/wncms-coding-style/SKILL.md`
+- `.github/skills/wncms-function-docblocks/SKILL.md`
+- `.github/skills/wncms-skill-registration/SKILL.md`
 - `.github/skills/wncms-model-creation/SKILL.md`
 - `.github/skills/wncms-backend-controller-creation/SKILL.md`
 - `.github/skills/wncms-manager-creation/SKILL.md`
@@ -44,6 +46,10 @@ This file is **not** for maintaining the `wncms-core` package itself.
 - `.github/skills/wncms-view-widget-injection/SKILL.md`
 
 ## Skill Routing
+- For adding or normalizing PHP function docblocks in full PHPDoc style for Laravel code, apply:
+  - `.github/skills/wncms-function-docblocks/SKILL.md`
+- For creating, deleting, renaming, or repurposing project-local skills under `/.github/skills`, apply:
+  - `.github/skills/wncms-skill-registration/SKILL.md`
 - For local app models in `app/Models`, apply:
   - `.github/skills/wncms-model-creation/SKILL.md`
 - For backend CRUD controllers in `app/Http/Controllers/Backend`, apply:
@@ -103,7 +109,8 @@ Constraints:
 ```
 
 ## Documented-Only Rule
-- The publishable user-facing skills in `resources/agent-files/.github/skills` are limited to behavior explicitly documented in non-empty files under `documentations/manual`.
+- The published WNCMS feature-extension skills in `.github/skills` are limited to behavior explicitly documented in non-empty files under `documentations/manual`.
+- Exception: `.github/skills/wncms-skill-registration/SKILL.md` and `.github/skills/wncms-function-docblocks/SKILL.md` are project-maintenance skills. They do not describe WNCMS runtime behavior.
 - Do not invent behavior for empty or placeholder docs such as:
   - `documentations/manual/developer/resource/*`
   - `documentations/manual/developer/cache/overview.md`

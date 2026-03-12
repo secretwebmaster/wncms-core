@@ -1,5 +1,12 @@
 # 更新日志
 
+## v6.2.2 2026-03-11
+
+- 新增 `wncms:install-agent-files` 命令，可将 `AGENTS.md` 与宿主项目用 `.github/skills` 发布到项目根目录，支持交互覆盖、`--force` 与 `--dry-run`。
+- 新增可发布的宿主项目 agent skill set，明确区分“在用户项目中扩展 WNCMS”与 `wncms-core` 维护者内部技能，避免将 maintainer-only 流程发布到用户项目。
+- 新增 agent 维护辅助技能，可在新增 skill 时同步更新 `AGENTS.md`，并统一 PHP 函数注释格式。
+- 修复停用注册时的控制器副作用，避免在列出路由等 CLI 场景提前输出“关闭注册”并中断流程。
+
 ## v6.2.1 2026-03-01
 
 - 新增网站快速更新命令，可用一行命令修改网站设置，并自动刷新缓存。
