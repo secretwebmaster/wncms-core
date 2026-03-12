@@ -31,7 +31,6 @@ This audit is based on English source docs under `documentations/manual` only.
 
 These remain package-maintainer concerns and are intentionally not published to host projects:
 
-- `wncms-adding-a-hook`
 - `wncms-adding-system-settings`
 - `wncms-changelog-sync`
 - `wncms-doc-deploy`
@@ -44,6 +43,7 @@ These remain package-maintainer concerns and are intentionally not published to 
 | --- | --- |
 | `wncms-skill-registration` | meta skill for keeping host-project `AGENTS.md` aligned with local skills |
 | `wncms-function-docblocks` | meta skill for keeping host-project PHP function docblocks consistent in Laravel/Breeze style |
+| `wncms-adding-a-hook` | `developer/event/*` naming conventions adapted for host-project app/plugin/theme hooks |
 | `wncms-coding-style` | WNCMS conventions reused across extensions |
 | `wncms-model-creation` | `developer/model/*` |
 | `wncms-backend-controller-creation` | `developer/controller/*`, `developer/route/*` |

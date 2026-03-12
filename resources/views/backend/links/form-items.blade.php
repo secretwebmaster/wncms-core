@@ -111,6 +111,20 @@
         </div>
     @endforeach
 
+    @if (request()->routeIs('links.create') || request()->routeIs('links.clone'))
+        @php($hookFields = array_filter(\Illuminate\Support\Facades\Event::dispatch('wncms.view.backend.links.create.fields', [request()])))
+        @foreach ($hookFields as $hookField)
+            {!! $hookField !!}
+        @endforeach
+    @endif
+
+    @if (request()->routeIs('links.edit'))
+        @php($hookFields = array_filter(\Illuminate\Support\Facades\Event::dispatch('wncms.view.backend.links.edit.fields', [$link, request()])))
+        @foreach ($hookFields as $hookField)
+            {!! $hookField !!}
+        @endforeach
+    @endif
+
     {{-- description --}}
     <div class="row mb-3">
         <label class="col-lg-3 col-form-label fw-bold fs-6" for="description">@lang('wncms::word.description')</label>

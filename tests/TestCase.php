@@ -15,6 +15,8 @@ abstract class TestCase extends BaseTestCase
             'driver' => 'array',
             'serialize' => false,
         ]);
+        $app['config']->set('database.default', 'sqlite');
+        $app['config']->set('database.connections.sqlite.database', __DIR__ . '/../database/testing.sqlite');
     }
 
     protected function setUp(): void

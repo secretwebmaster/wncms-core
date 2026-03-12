@@ -7,6 +7,7 @@ WNCMS event docs are grouped by domain. Add new hooks to the matching group page
 ## Event Groups
 
 - [Users Events](./users.md)
+- [Links Events](./links.md)
 - [Posts Events](./posts.md)
 - [Settings Events](./settings.md)
 - [Themes Events](./themes.md)
@@ -59,7 +60,10 @@ protected $listen = [
 ## Best Practices
 
 1. Use references when runtime mutation is required (`&$param`).
-2. Keep hook names aligned with the naming standard.
+2. Keep hook names aligned with the naming standard:
+   - Use `*.resolve` for view/config/redirect resolution hooks.
+   - Use `*.before` / `*.after` for action lifecycle hooks.
+   - Use `wncms.view.*` for Blade injection slots.
 3. Wrap listener logic in error handling when side effects are non-critical.
 4. Keep hook docs updated in this folder in the same task.
 5. Sync zh-CN and zh-TW docs when structure changes.

@@ -3,12 +3,14 @@
 namespace Wncms\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 
 class LinkController extends BackendController
 {
     public function index(Request $request)
     {
         $q = $this->modelClass::query();
+        Event::dispatch('wncms.backend.links.index.query.before', [$request, &$q]);
         $this->applyBackendListWebsiteScope($q);
 
         if ($request->input('sort') === 'views_yesterday') {
@@ -72,19 +74,31 @@ class LinkController extends BackendController
             $link = new $this->modelClass;
         }
 
-        return $this->view('backend.links.create', [
+        $view = 'backend.links.create';
+        $params = [
             'page_title' =>  wncms()->getModelWord('link', 'management'),
             'link' => $link,
             'statuses' => $this->modelClass::STATUSES,
-        ]);
+        ];
+
+        Event::dispatch('wncms.backend.links.create.resolve', [&$view, &$params]);
+
+        return $this->view($view, $params);
     }
 
     public function store(Request $request)
     {
-        // dd($request->all());
+        $rules = [];
+        $messages = [];
+        Event::dispatch('wncms.backend.links.store.before', [$request, &$rules, &$messages]);
+
+        if (!empty($rules)) {
+            $request->validate($rules, $messages);
+        }
+
         $uid = wncms()->getUniqueSlug('links', 'slug', 8, 'lower');
 
-        $link = $this->modelClass::create([
+        $attributes = [
             'status' => $request->input('status'),
             'tracking_code' => $request->input('tracking_code') ?: $uid,
             'slug' => $request->input('slug') ?: $uid,
@@ -103,7 +117,11 @@ class LinkController extends BackendController
             'hit_at' => $request->input('hit_at'),
             'clicks' => $request->input('clicks'),
             'contact' => $request->input('contact'),
-        ]);
+        ];
+
+        Event::dispatch('wncms.backend.links.store.attributes.before', [$request, &$attributes]);
+
+        $link = $this->modelClass::create($attributes);
         $this->syncBackendMutationWebsites($link);
 
         //thumbnail
@@ -128,7 +146,8 @@ class LinkController extends BackendController
         $link->syncTagsFromTagify($request->link_categories, 'link_category');
         $link->syncTagsFromTagify($request->link_tags, 'link_tag');
 
-        wncms()->cache()->flush(['links']);
+        $this->flush(['links']);
+        Event::dispatch('wncms.backend.links.store.after', [$link, $request]);
 
         return redirect()->route('links.edit', [
             'id' => $link->id,
@@ -142,11 +161,16 @@ class LinkController extends BackendController
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.link')]));
         }
 
-        return $this->view('backend.links.edit', [
+        $view = 'backend.links.edit';
+        $params = [
             'page_title' => wncms()->getModelWord('link', 'management'),
             'link' => $link,
             'statuses' => $this->modelClass::STATUSES,
-        ]);
+        ];
+
+        Event::dispatch('wncms.backend.links.edit.resolve', [&$view, &$params]);
+
+        return $this->view($view, $params);
     }
 
     public function update(Request $request, $id)
@@ -156,7 +180,15 @@ class LinkController extends BackendController
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.link')]));
         }
 
-        $link->update([
+        $rules = [];
+        $messages = [];
+        Event::dispatch('wncms.backend.links.update.before', [$link, $request, &$rules, &$messages]);
+
+        if (!empty($rules)) {
+            $request->validate($rules, $messages);
+        }
+
+        $attributes = [
             'status' => $request->input('status'),
             'tracking_code' => $request->input('tracking_code') ?? $link->tracking_code,
             'slug' => $request->input('slug') ?: $link->slug,
@@ -175,7 +207,11 @@ class LinkController extends BackendController
             'hit_at' => $request->input('hit_at'),
             'clicks' => $request->input('clicks'),
             'contact' => $request->input('contact'),
-        ]);
+        ];
+
+        Event::dispatch('wncms.backend.links.update.attributes.before', [$link, $request, &$attributes]);
+
+        $link->update($attributes);
         $this->syncBackendMutationWebsites($link);
 
         // thumbnail
@@ -202,7 +238,8 @@ class LinkController extends BackendController
             $link->syncTagsFromTagify($request->link_tags, 'link_tag');
         }
 
-        wncms()->cache()->flush(['links']);
+        $this->flush(['links']);
+        Event::dispatch('wncms.backend.links.update.after', [$link, $request]);
 
         return redirect()->route('links.edit', ['id' => $link->id])
             ->withMessage(__('wncms::word.successfully_updated'));

@@ -7,6 +7,7 @@ WNCMS 事件文件依領域分組維護。新增 core hook 時，請在對應分
 ## 分組目錄
 
 - [Users 事件](./users.md)
+- [Links 事件](./links.md)
 - [Posts 事件](./posts.md)
 - [Settings 事件](./settings.md)
 - [Themes 事件](./themes.md)
@@ -59,7 +60,10 @@ protected $listen = [
 ## 最佳實務
 
 1. 需要可變參數時使用引用（`&$param`）。
-2. Hook 命名遵循命名標準。
+2. Hook 命名遵循命名標準：
+   - `*.resolve` 用於 view、參數、redirect 目標等解析型 hook。
+   - `*.before` / `*.after` 用於動作生命週期 hook。
+   - `wncms.view.*` 用於 Blade 注入插槽。
 3. 非關鍵副作用建議加上錯誤保護。
 4. 新增 hook 必須在本目錄同步文件。
 5. 結構變更時同步 `zh-CN` 與 `zh-TW`。
