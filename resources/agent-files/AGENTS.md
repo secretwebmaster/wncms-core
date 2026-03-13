@@ -44,6 +44,7 @@ This file is **not** for maintaining the `wncms-core` package itself.
 - `.github/skills/wncms-trait-usage/SKILL.md`
 - `.github/skills/wncms-event-integration/SKILL.md`
 - `.github/skills/wncms-helper-usage/SKILL.md`
+- `.github/skills/wncms-adding-system-settings/SKILL.md`
 - `.github/skills/wncms-view-widget-injection/SKILL.md`
 
 ## Skill Routing
@@ -81,6 +82,8 @@ This file is **not** for maintaining the `wncms-core` package itself.
   - `.github/skills/wncms-event-integration/SKILL.md`
 - For helper migration, `gss()`, `uss()`, and plugin loader usage, apply:
   - `.github/skills/wncms-helper-usage/SKILL.md`
+- For adding host-project or plugin system settings without editing vendor files, apply:
+  - `.github/skills/wncms-adding-system-settings/SKILL.md`
 - For `registerViewWidget()` and `@widget()` based UI extension, apply:
   - `.github/skills/wncms-view-widget-injection/SKILL.md`
 

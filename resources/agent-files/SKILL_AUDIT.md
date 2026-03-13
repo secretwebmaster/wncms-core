@@ -31,7 +31,6 @@ This audit is based on English source docs under `documentations/manual` only.
 
 These remain package-maintainer concerns and are intentionally not published to host projects:
 
-- `wncms-adding-system-settings`
 - `wncms-changelog-sync`
 - `wncms-doc-deploy`
 - `wncms-doc-sync`
@@ -59,6 +58,7 @@ These remain package-maintainer concerns and are intentionally not published to 
 | `wncms-trait-usage` | `developer/trait/*` |
 | `wncms-event-integration` | `developer/event/*` |
 | `wncms-helper-usage` | `developer/helper/overview.md` |
+| `wncms-adding-system-settings` | `developer/event/settings.md`, `developer/helper/overview.md`, `developer/plugin/create-a-basic-plugin.md` |
 | `wncms-view-widget-injection` | `developer/view/widget-injection.md` |
 
 ## Not Eligible Yet
