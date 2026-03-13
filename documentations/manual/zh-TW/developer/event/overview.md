@@ -11,6 +11,7 @@ WNCMS 事件文件依領域分組維護。新增 core hook 時，請在對應分
 - [Posts 事件](./posts.md)
 - [Settings 事件](./settings.md)
 - [Themes 事件](./themes.md)
+- [Tools 事件](./tools.md)
 
 ## 事件註冊
 

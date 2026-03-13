@@ -4,6 +4,7 @@ namespace Wncms\Http\Controllers\Backend;
 
 use Symfony\Component\Console\Exception\CommandNotFoundException;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Http\Request;
 use Wncms\Http\Controllers\Controller;
@@ -11,14 +12,19 @@ use Wncms\Services\Installer\InstallerManager;
 
 class ToolController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $coreUpdateVersions = $this->getCoreUpdateVersions();
 
-        return view('wncms::backend.tools.index', [
+        $view = 'backend.tools.index';
+        $params = [
             'page_title' => __('wncms::word.tools'),
             'core_update_versions' => $coreUpdateVersions,
-        ]);
+        ];
+
+        Event::dispatch('wncms.backend.tools.index.resolve', [&$view, &$params, $request]);
+
+        return $this->view($view, $params);
     }
 
     public function install_default_theme(Request $request)

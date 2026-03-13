@@ -1,5 +1,12 @@
 # 更新履歴
 
+## v6.2.3-alpha1 xxxx-xx-xx
+
+- バックエンド Link CRUD 向け拡張 Hook を追加し、一覧クエリ変更、create/edit 画面 resolve、store/update の before・after・attribute 注入に対応しました。
+- バックエンド Link の create/edit フォーム項目注入 Hook を追加し、プラグインやホストプロジェクトが controller や Blade 全体を上書きせずに独自項目を追加できるようにしました。
+- Link イベントドキュメントを追加し、`resolve` 型 Hook 命名を明確化して、既存の User/Post Hook スタイルと揃えました。
+- バックエンド Tools ページ向け拡張 Hook を追加し、tools 画面の view resolve とカード注入により、プラグインやホストプロジェクトがコア画面を上書きせず独自ツールを追加できるようにしました。
+
 ## v6.2.2 2026-03-11
 
 - `AGENTS.md` とホストプロジェクト向け `.github/skills` をプロジェクトルートへ公開できる `wncms:install-agent-files` コマンドを追加し、対話型上書き、`--force`、`--dry-run` に対応しました。

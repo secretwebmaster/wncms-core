@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.2.3-alpha1 xxxx-xx-xx
+
+- Added backend Link CRUD extension hooks covering list-query mutation, create/edit view resolution, and store/update before, after, and attribute-injection stages.
+- Added backend Link create/edit form field injection hooks so plugins and host projects can add custom fields without overriding the full controller or Blade templates.
+- Added Link event documentation and formalized `resolve` hook naming so Link extension points align with the existing User/Post hook style.
+- Added backend Tools page extension hooks for view resolution and tool-card injection so plugins and host projects can add custom tools without overriding core pages.
+
 ## v6.2.2 2026-03-11
 
 - Added the `wncms:install-agent-files` command to publish `AGENTS.md` and the host-project `.github/skills` set into the project root, with interactive overwrite, `--force`, and `--dry-run` support.

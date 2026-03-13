@@ -1,5 +1,12 @@
 # 更新日誌
 
+## v6.2.3-alpha1 xxxx-xx-xx
+
+- 新增 Links 後台 CRUD 擴充 hook，涵蓋列表查詢、create/edit 畫面 resolve，以及 store/update 前後與 attributes 注入流程。
+- 新增 Links 後台 create/edit 表單欄位注入 hook，讓外掛或專案可加入自訂欄位而不需覆寫整個 controller 或 Blade。
+- 新增 Links 事件文件，並補齊 `resolve` 型命名規則，讓 Link 擴充方式與既有 User/Post hook 風格更一致。
+- 新增後台 Tools 頁擴充 hook，支援工具頁 view resolve 與卡片注入，讓外掛或專案可加入自訂工具而不需覆寫核心頁面。
+
 ## v6.2.2 2026-03-11
 
 - 新增 `wncms:install-agent-files` 指令，可將 `AGENTS.md` 與宿主專案用 `.github/skills` 發佈到專案根目錄，支援互動覆蓋、`--force` 與 `--dry-run`。

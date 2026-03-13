@@ -11,6 +11,7 @@ WNCMS event docs are grouped by domain. Add new hooks to the matching group page
 - [Posts Events](./posts.md)
 - [Settings Events](./settings.md)
 - [Themes Events](./themes.md)
+- [Tools Events](./tools.md)
 
 ## Event Registration
 

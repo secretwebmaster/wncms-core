@@ -21,6 +21,11 @@
             'core_update_versions' => $core_update_versions ?? [],
         ])
     </div>
+
+    @php($hookToolCards = array_filter(\Illuminate\Support\Facades\Event::dispatch('wncms.view.backend.tools.index.cards', [request()])))
+    @foreach($hookToolCards as $hookToolCard)
+        {!! $hookToolCard !!}
+    @endforeach
 </div>
 
 @endsection

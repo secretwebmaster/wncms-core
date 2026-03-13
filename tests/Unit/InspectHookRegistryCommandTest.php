@@ -21,5 +21,6 @@ class InspectHookRegistryCommandTest extends TestCase
 
         $hookNames = array_map(fn(array $hook) => (string) ($hook['name'] ?? ''), $decoded['hooks']);
         $this->assertContains('wncms.frontend.users.login.before', $hookNames);
+        $this->assertContains('wncms.backend.tools.index.resolve', $hookNames);
     }
 }
