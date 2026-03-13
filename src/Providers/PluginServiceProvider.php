@@ -15,7 +15,7 @@ class PluginServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        // Register services if needed
+        $this->app->singleton(PluginLifecycleManager::class);
     }
 
     public function boot()

@@ -65,12 +65,12 @@ class ActivatePlugin extends Command
         if (!$lifecycle['passed']) {
             $remark = '[LIFECYCLE_ERROR] ' . mb_substr((string) $lifecycle['message'], 0, 300);
             $plugin->update(['remark' => $remark]);
-            $this->error("Plugin [{$plugin->name}] activate failed: {$lifecycle['message']}");
+            $this->error(__('wncms::word.plugin_activation_failed_with_reason', ['reason' => $lifecycle['message']]));
             return Command::FAILURE;
         }
 
         $plugin->update(['status' => 'active']);
-        $this->info("Plugin [{$plugin->name}] activated successfully.");
+        $this->info(__('wncms::word.plugin_activated_successfully'));
 
         return Command::SUCCESS;
     }

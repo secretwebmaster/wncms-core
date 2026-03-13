@@ -152,6 +152,11 @@ class PluginLifecycleManager
     public function resolveInstance(Plugin $plugin): ?PluginInterface
     {
         $cacheKey = (string) ($plugin->plugin_id ?? '');
+        $pluginPath = trim((string) ($plugin->path ?? ''));
+        if ($cacheKey !== '' && $pluginPath !== '') {
+            $cacheKey .= '|' . $pluginPath;
+        }
+
         if ($cacheKey !== '' && isset($this->resolvedInstances[$cacheKey])) {
             return $this->resolvedInstances[$cacheKey];
         }
@@ -174,7 +179,9 @@ class PluginLifecycleManager
         $instance = $this->resolveInstanceFromEntry($entryResult, $manifest, $entry);
 
         if (!$instance instanceof PluginInterface) {
-            throw new RuntimeException('resolved plugin instance must implement ' . PluginInterface::class);
+            throw new RuntimeException(__('wncms::word.plugin_resolved_instance_must_implement_interface', [
+                'interface' => PluginInterface::class,
+            ]));
         }
 
         if ($instance instanceof AbstractPlugin) {
@@ -249,16 +256,24 @@ class PluginLifecycleManager
 
         $className = trim((string) ($manifest['class'] ?? ''));
         if (!$className) {
-            throw new RuntimeException("plugin.json class is required when {$entry} does not return a plugin instance");
+            throw new RuntimeException(__('wncms::word.plugin_manifest_class_required_when_entry_returns_no_instance', [
+                'entry' => $entry,
+            ]));
         }
 
         if (!class_exists($className)) {
-            throw new RuntimeException("plugin class [{$className}] not found in {$entry}");
+            throw new RuntimeException(__('wncms::word.plugin_class_not_found_in_entry', [
+                'class' => $className,
+                'entry' => $entry,
+            ]));
         }
 
         $instance = app()->make($className);
         if (!$instance instanceof PluginInterface) {
-            throw new RuntimeException("plugin class [{$className}] must implement " . PluginInterface::class);
+            throw new RuntimeException(__('wncms::word.plugin_class_must_implement_interface', [
+                'class' => $className,
+                'interface' => PluginInterface::class,
+            ]));
         }
 
         return $instance;

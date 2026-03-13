@@ -6,6 +6,7 @@
 - Added backend Link create/edit form field injection hooks so plugins and host projects can add custom fields without overriding the full controller or Blade templates.
 - Added Link event documentation and formalized `resolve` hook naming so Link extension points align with the existing User/Post hook style.
 - Added backend Tools page extension hooks for view resolution and tool-card injection so plugins and host projects can add custom tools without overriding core pages.
+- Improved plugin lifecycle instance resolution and message localization so entry files that return plugin instances can run multiple lifecycle hooks reliably and backend/CLI activation messages stay consistent.
 
 ## v6.2.2 2026-03-11
 

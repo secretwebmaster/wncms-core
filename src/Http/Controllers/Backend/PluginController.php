@@ -72,7 +72,7 @@ class PluginController extends Controller
             'path' => $pluginName,
         ]);
 
-        return redirect()->route('plugins.index')->with('success', 'Plugin uploaded successfully!');
+        return redirect()->route('plugins.index')->with('success', __('wncms::word.plugin_uploaded_successfully'));
     }
 
     public function activate(Plugin $plugin)
@@ -99,12 +99,12 @@ class PluginController extends Controller
         $lifecycle = app(PluginLifecycleManager::class)->run($plugin, 'activate');
         if (!$lifecycle['passed']) {
             $plugin->update(['remark' => '[LIFECYCLE_ERROR] ' . mb_substr((string) $lifecycle['message'], 0, 300)]);
-            return redirect()->route('plugins.index')->withErrors(['message' => 'Plugin activate failed: ' . $lifecycle['message']]);
+            return redirect()->route('plugins.index')->withErrors(['message' => __('wncms::word.plugin_activation_failed_with_reason', ['reason' => $lifecycle['message']])]);
         }
 
         $plugin->update(['status' => 'active']);
 
-        return redirect()->route('plugins.index')->with('success', 'Plugin activated successfully!');
+        return redirect()->route('plugins.index')->with('success', __('wncms::word.plugin_activated_successfully'));
     }
 
     public function activate_raw(string $pluginId)
@@ -138,6 +138,7 @@ class PluginController extends Controller
 
         if (!empty($upgrade['changed'])) {
             return redirect()->route('plugins.index')->with('message', __('wncms::word.plugin_upgrade_success_with_versions', [
+                'plugin' => $this->formatPluginLabel($latestPlugin),
                 'from' => (string) ($upgrade['from_version'] ?? ''),
                 'to' => (string) ($upgrade['to_version'] ?? ''),
             ]));
@@ -162,12 +163,12 @@ class PluginController extends Controller
         $lifecycle = app(PluginLifecycleManager::class)->run($plugin, 'deactivate');
         if (!$lifecycle['passed']) {
             $plugin->update(['remark' => '[LIFECYCLE_ERROR] ' . mb_substr((string) $lifecycle['message'], 0, 300)]);
-            return redirect()->route('plugins.index')->withErrors(['message' => 'Plugin deactivate failed: ' . $lifecycle['message']]);
+            return redirect()->route('plugins.index')->withErrors(['message' => __('wncms::word.plugin_deactivation_failed_with_reason', ['reason' => $lifecycle['message']])]);
         }
 
         $plugin->update(['status' => 'inactive']);
 
-        return redirect()->route('plugins.index')->with('success', 'Plugin deactivated successfully!');
+        return redirect()->route('plugins.index')->with('success', __('wncms::word.plugin_deactivated_successfully'));
     }
 
     public function delete(Plugin $plugin)
@@ -175,12 +176,12 @@ class PluginController extends Controller
         $lifecycle = app(PluginLifecycleManager::class)->run($plugin, 'delete');
         if (!$lifecycle['passed']) {
             $plugin->update(['remark' => '[LIFECYCLE_ERROR] ' . mb_substr((string) $lifecycle['message'], 0, 300)]);
-            return redirect()->route('plugins.index')->withErrors(['message' => 'Plugin delete hook failed: ' . $lifecycle['message']]);
+            return redirect()->route('plugins.index')->withErrors(['message' => __('wncms::word.plugin_deletion_failed_with_reason', ['reason' => $lifecycle['message']])]);
         }
 
         $plugin->delete();
 
-        return redirect()->route('plugins.index')->with('success', 'Plugin deleted successfully!');
+        return redirect()->route('plugins.index')->with('success', __('wncms::word.plugin_deleted_successfully'));
     }
 
     protected function syncPluginsFromDirectory(): void

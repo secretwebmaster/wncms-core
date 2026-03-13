@@ -6,6 +6,7 @@
 - バックエンド Link の create/edit フォーム項目注入 Hook を追加し、プラグインやホストプロジェクトが controller や Blade 全体を上書きせずに独自項目を追加できるようにしました。
 - Link イベントドキュメントを追加し、`resolve` 型 Hook 命名を明確化して、既存の User/Post Hook スタイルと揃えました。
 - バックエンド Tools ページ向け拡張 Hook を追加し、tools 画面の view resolve とカード注入により、プラグインやホストプロジェクトがコア画面を上書きせず独自ツールを追加できるようにしました。
+- Plugin lifecycle のインスタンス解決とメッセージ多言語化を改善し、plugin instance を返す entry ファイルでも複数の lifecycle hook を安定実行でき、管理画面と CLI の有効化/無効化/削除メッセージも統一しました。
 
 ## v6.2.2 2026-03-11
 

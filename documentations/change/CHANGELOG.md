@@ -6,6 +6,7 @@
 - 新增 Links 後台 create/edit 表單欄位注入 hook，讓外掛或專案可加入自訂欄位而不需覆寫整個 controller 或 Blade。
 - 新增 Links 事件文件，並補齊 `resolve` 型命名規則，讓 Link 擴充方式與既有 User/Post hook 風格更一致。
 - 新增後台 Tools 頁擴充 hook，支援工具頁 view resolve 與卡片注入，讓外掛或專案可加入自訂工具而不需覆寫核心頁面。
+- 改善 Plugin lifecycle 實例解析與訊息本地化，讓回傳 plugin instance 的 entry 檔可穩定執行多個 lifecycle hook，且後台與 CLI 的啟用/停用/刪除訊息更一致。
 
 ## v6.2.2 2026-03-11
 
