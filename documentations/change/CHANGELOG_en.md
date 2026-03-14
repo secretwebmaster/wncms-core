@@ -2,6 +2,7 @@
 
 ## v6.2.3-alpha1 xxxx-xx-xx
 
+- Fixed the backend menu editor so updating a parent item from the modal no longer overwrites child item display values until the page is refreshed.
 - Added backend Link CRUD extension hooks covering list-query mutation, create/edit view resolution, and store/update before, after, and attribute-injection stages.
 - Added backend Link create/edit form field injection hooks so plugins and host projects can add custom fields without overriding the full controller or Blade templates.
 - Added Link event documentation and formalized `resolve` hook naming so Link extension points align with the existing User/Post hook style.

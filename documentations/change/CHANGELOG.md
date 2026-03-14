@@ -2,6 +2,7 @@
 
 ## v6.2.3-alpha1 xxxx-xx-xx
 
+- 修正後台選單編輯器在彈窗更新父項目後誤改子項目顯示內容的問題，避免儲存後需重新整理才能看到正確子項目資料。
 - 新增 Links 後台 CRUD 擴充 hook，涵蓋列表查詢、create/edit 畫面 resolve，以及 store/update 前後與 attributes 注入流程。
 - 新增 Links 後台 create/edit 表單欄位注入 hook，讓外掛或專案可加入自訂欄位而不需覆寫整個 controller 或 Blade。
 - 新增 Links 事件文件，並補齊 `resolve` 型命名規則，讓 Link 擴充方式與既有 User/Post hook 風格更一致。

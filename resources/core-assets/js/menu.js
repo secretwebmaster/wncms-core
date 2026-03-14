@@ -146,10 +146,7 @@ function handleModalSubmit(e) {
         data: form_data,
         success: function(data) {
             if (data.status == 'success') {
-                // Initialize Nestable with updated data
-                $('#nestable-json').nestable({
-                    json: data.menu
-                });
+                currentMenuData = data.menu;
 
                 // Update the custom data attributes
                 updateMenuItemDisplay(menuItemId, data.menu_item);
@@ -175,17 +172,52 @@ function handleModalSubmit(e) {
  * Update menu item display after editing
  */
 function updateMenuItemDisplay(menuItemId, menuItem) {
-    // Update the custom data attributes
-    $(`.dd-item[data-id="${menuItemId}"]`).data('name', menuItem.name).attr('data-name', menuItem.name);
-    $(`.dd-item[data-id="${menuItemId}"]`).data('url', menuItem.url).attr('data-url', menuItem.url);
-    $(`.dd-item[data-id="${menuItemId}"]`).data('description', menuItem.description).attr('data-description', menuItem.description);
-    $(`.dd-item[data-id="${menuItemId}"]`).data('icon', menuItem.icon).attr('data-icon', menuItem.icon);
-    $(`.dd-item[data-id="${menuItemId}"]`).data('is_new_window', menuItem.is_new_window).attr('data-is_new_window', menuItem.is_new_window);
+    var menuItemNode = document.querySelector(`.dd-item[data-id="${menuItemId}"]`);
+    if (!menuItemNode) {
+        return;
+    }
 
-    // Update the value of the input/element
-    $(`.dd-item[data-id="${menuItemId}"] .dd-handle-name`).text(menuItem.name);
-    $(`.dd-item[data-id="${menuItemId}"] input.menu_item_url`).val(menuItem.url).attr('value', menuItem.url);
-    $(`.dd-item[data-id="${menuItemId}"] input.menu_item_is_new_window`).prop('checked', menuItem.is_new_window);
+    var menuItemHandle = Array.from(menuItemNode.children).find(function(child) {
+        return child.classList && child.classList.contains('dd-handle');
+    });
+
+    var normalizedUrl = menuItem.url ?? '';
+    var normalizedDescription = menuItem.description ?? '';
+    var normalizedIcon = menuItem.icon ?? '';
+    var normalizedThumbnail = menuItem.thumbnail ?? '';
+    var normalizedNewWindow = menuItem.is_new_window ? '1' : '0';
+
+    menuItemNode.dataset.name = menuItem.name;
+    menuItemNode.setAttribute('data-name', menuItem.name);
+    menuItemNode.dataset.url = normalizedUrl;
+    menuItemNode.setAttribute('data-url', normalizedUrl);
+    menuItemNode.dataset.description = normalizedDescription;
+    menuItemNode.setAttribute('data-description', normalizedDescription);
+    menuItemNode.dataset.icon = normalizedIcon;
+    menuItemNode.setAttribute('data-icon', normalizedIcon);
+    menuItemNode.dataset.thumbnail = normalizedThumbnail;
+    menuItemNode.setAttribute('data-thumbnail', normalizedThumbnail);
+    menuItemNode.dataset.is_new_window = normalizedNewWindow;
+    menuItemNode.setAttribute('data-is_new_window', normalizedNewWindow);
+
+    if (menuItemHandle) {
+        var handleNameNode = menuItemHandle.querySelector('.dd-handle-name');
+        var handleUrlNode = menuItemHandle.querySelector('.menu_item_url');
+        var handleNewWindowNode = menuItemHandle.querySelector('.menu_item_is_new_window');
+
+        if (handleNameNode) {
+            handleNameNode.textContent = menuItem.name;
+        }
+
+        if (handleUrlNode) {
+            handleUrlNode.value = normalizedUrl;
+            handleUrlNode.setAttribute('value', normalizedUrl);
+        }
+
+        if (handleNewWindowNode) {
+            handleNewWindowNode.checked = !!menuItem.is_new_window;
+        }
+    }
 }
 
 /**
@@ -387,7 +419,7 @@ function bindClickEvents() {
         var type = dd_item.data('type');
         var model_type = dd_item.data('model-type');
         var model_id = dd_item.data('model-id');
-        var is_new_window = dd_item.data('new-window');
+        var is_new_window = dd_item.data('is_new_window');
         var icon = dd_item.data('icon');
 
         // Populate the form fields

@@ -2,6 +2,7 @@
 
 ## v6.2.3-alpha1 xxxx-xx-xx
 
+- 修复后台菜单编辑器在弹窗更新父级项目后误改子项目显示内容的问题，避免保存后必须刷新页面才能看到正确的子项目资料。
 - 新增 Links 后台 CRUD 扩展 hook，涵盖列表查询、create/edit 画面 resolve，以及 store/update 前后与 attributes 注入流程。
 - 新增 Links 后台 create/edit 表单字段注入 hook，让插件或项目可加入自定义字段而不需覆写整个 controller 或 Blade。
 - 新增 Links 事件文档，并补齐 `resolve` 型命名规则，让 Link 扩展方式与既有 User/Post hook 风格更一致。
