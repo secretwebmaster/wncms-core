@@ -16,6 +16,9 @@ class MenuController extends BackendController
         $this->applyBackendListWebsiteScope($q);
 
         $q->with('menu_items');
+
+        $q->orderBy('id', 'desc');
+
         $menus = $q->paginate($request->page_size ?? 20);
 
         $websites =  wncms()->website()->getList();
