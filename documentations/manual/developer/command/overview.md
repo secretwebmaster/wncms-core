@@ -57,6 +57,37 @@ Typical permission suffixes include:
 - `_delete`
 - `_bulk_delete`
 
+## `wncms:create-permission`
+
+Create one or more permissions directly, with optional role assignment.
+
+```bash
+php artisan wncms:create-permission article_publish
+```
+
+Examples:
+
+```bash
+# Create a single permission
+php artisan wncms:create-permission article_publish
+
+# Create a single permission and assign it to one role
+php artisan wncms:create-permission article_publish editor
+
+# Create multiple permissions at once
+php artisan wncms:create-permission article_publish,article_archive
+
+# Create multiple permissions and assign them to multiple roles
+php artisan wncms:create-permission article_publish,article_archive editor,admin
+```
+
+Behavior summary:
+- Accepts comma-separated permission names in `{permission_name}`.
+- Accepts an optional comma-separated role list in `{role}`.
+- Creates missing permissions with `firstOrCreate`.
+- Creates missing roles with `firstOrCreate`.
+- Assigns every supplied permission to every supplied role.
+
 ## `wncms:activate-plugin`
 
 Activate a plugin from CLI the same way as backend activation (`status` => `active`).

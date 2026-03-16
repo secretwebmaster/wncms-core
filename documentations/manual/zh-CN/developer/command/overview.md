@@ -57,6 +57,37 @@ php artisan wncms:create-model-permission novel
 - `_delete`
 - `_bulk_delete`
 
+## `wncms:create-permission`
+
+直接创建一个或多个权限，并可选择指派给角色。
+
+```bash
+php artisan wncms:create-permission article_publish
+```
+
+示例：
+
+```bash
+# 创建单个权限
+php artisan wncms:create-permission article_publish
+
+# 创建单个权限并指派给一个角色
+php artisan wncms:create-permission article_publish editor
+
+# 一次创建多个权限
+php artisan wncms:create-permission article_publish,article_archive
+
+# 创建多个权限并指派给多个角色
+php artisan wncms:create-permission article_publish,article_archive editor,admin
+```
+
+行为摘要：
+- `{permission_name}` 支持逗号分隔的权限名称。
+- `{role}` 为可选参数，也支持逗号分隔的角色名称。
+- 使用 `firstOrCreate` 创建缺失的权限。
+- 使用 `firstOrCreate` 创建缺失的角色。
+- 将所有提供的权限指派给所有提供的角色。
+
 ## `wncms:activate-plugin`
 
 通过 CLI 启用插件，行为与后台启用一致（`status` => `active`）。
