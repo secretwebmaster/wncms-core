@@ -30,6 +30,7 @@ This file is **not** for maintaining the `wncms-core` package itself.
 - `.github/skills/wncms-function-docblocks/SKILL.md`
 - `.github/skills/wncms-skill-registration/SKILL.md`
 - `.github/skills/wncms-adding-a-hook/SKILL.md`
+- `.github/skills/wncms-adding-a-tool/SKILL.md`
 - `.github/skills/wncms-model-creation/SKILL.md`
 - `.github/skills/wncms-backend-controller-creation/SKILL.md`
 - `.github/skills/wncms-manager-creation/SKILL.md`
@@ -54,6 +55,8 @@ This file is **not** for maintaining the `wncms-core` package itself.
   - `.github/skills/wncms-skill-registration/SKILL.md`
 - For adding new custom hooks or reviewing hook naming in app/plugin/theme code, apply:
   - `.github/skills/wncms-adding-a-hook/SKILL.md`
+- For adding project-specific backend Tools page cards through documented hooks, apply:
+  - `.github/skills/wncms-adding-a-tool/SKILL.md`
 - For local app models in `app/Models`, apply:
   - `.github/skills/wncms-model-creation/SKILL.md`
 - For backend CRUD controllers in `app/Http/Controllers/Backend`, apply:
