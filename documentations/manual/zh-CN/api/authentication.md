@@ -12,6 +12,24 @@ WNCMS 支援可按端点配置的多种身份验证模式：
 | **简易** | API token 身份验证 | 最常见，建议使用 |
 | **基本** | HTTP 基本身份验证  | 旧系统           |
 
+## 白名单闸道
+
+**系统设定 -> API** 中的 `api_access_whitelist` 是 API 请求的全域附加检查。
+
+- 留空时不启用白名单检查。
+- 每行填写一个 IP 或域名，只有匹配的请求才会继续执行端点认证。
+- IP 比对使用请求 IP。
+- 域名比对使用请求 `Origin` 标头，并在缺少时回退到 `Referer`。
+
+范例：
+
+```text
+111.222.333.444
+example.com
+example2.com
+222.333.444.555
+```
+
 ## 简易验证（建议）
 
 使用 API token 的最常见身份验证方法。
@@ -62,6 +80,19 @@ const response = await fetch('https://your-domain.com/api/v1/posts', {
 
 const result = await response.json()
 ```
+
+## Basic 验证
+
+Basic 模式使用标准 HTTP `Authorization: Basic ...` 标头，格式为 `email:password`。
+
+### 请求范例
+
+```bash
+curl -X GET "https://your-domain.com/api/v1/posts" \
+  -H "Authorization: Basic $(printf '%s' 'user@example.com:your-password' | base64)"
+```
+
+如果该端点同时配置了白名单，请求必须先通过白名单检查，才会验证 Basic 凭证。
 
 ## Token 安全性
 

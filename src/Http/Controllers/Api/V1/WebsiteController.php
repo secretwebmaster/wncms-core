@@ -11,9 +11,11 @@ class WebsiteController extends ApiController
     {
         if ($resp = $this->guardWebsiteApi('wncms_api_website_index')) return $resp;
 
-        [$user, $authError] = $this->resolveApiUser($request);
-        if ($authError) {
-            return $authError;
+        $auth = $this->checkAuthSetting('wncms_api_website_index', $request);
+        if (isset($auth['error'])) return $auth['error'];
+        $user = $auth['user'];
+        if (!$user) {
+            return $this->fail('Authentication required for website API access', 401);
         }
 
         $websiteModel = wncms()->getModelClass('website');
@@ -54,9 +56,11 @@ class WebsiteController extends ApiController
     {
         if ($resp = $this->guardWebsiteApi('wncms_api_website_store')) return $resp;
 
-        [$user, $authError] = $this->resolveApiUser($request);
-        if ($authError) {
-            return $authError;
+        $auth = $this->checkAuthSetting('wncms_api_website_store', $request);
+        if (isset($auth['error'])) return $auth['error'];
+        $user = $auth['user'];
+        if (!$user) {
+            return $this->fail('Authentication required for website API access', 401);
         }
 
         if (!$user->hasRole('admin')) {
@@ -101,9 +105,11 @@ class WebsiteController extends ApiController
     {
         if ($resp = $this->guardWebsiteApi('wncms_api_website_show')) return $resp;
 
-        [$user, $authError] = $this->resolveApiUser($request);
-        if ($authError) {
-            return $authError;
+        $auth = $this->checkAuthSetting('wncms_api_website_show', $request);
+        if (isset($auth['error'])) return $auth['error'];
+        $user = $auth['user'];
+        if (!$user) {
+            return $this->fail('Authentication required for website API access', 401);
         }
 
         $website = $this->findWebsiteForUser($user, (int) $id);
@@ -118,9 +124,11 @@ class WebsiteController extends ApiController
     {
         if ($resp = $this->guardWebsiteApi('wncms_api_website_update')) return $resp;
 
-        [$user, $authError] = $this->resolveApiUser($request);
-        if ($authError) {
-            return $authError;
+        $auth = $this->checkAuthSetting('wncms_api_website_update', $request);
+        if (isset($auth['error'])) return $auth['error'];
+        $user = $auth['user'];
+        if (!$user) {
+            return $this->fail('Authentication required for website API access', 401);
         }
 
         $website = $this->findWebsiteForUser($user, (int) $id);
@@ -219,9 +227,11 @@ class WebsiteController extends ApiController
     {
         if ($resp = $this->guardWebsiteApi('wncms_api_website_delete')) return $resp;
 
-        [$user, $authError] = $this->resolveApiUser($request);
-        if ($authError) {
-            return $authError;
+        $auth = $this->checkAuthSetting('wncms_api_website_delete', $request);
+        if (isset($auth['error'])) return $auth['error'];
+        $user = $auth['user'];
+        if (!$user) {
+            return $this->fail('Authentication required for website API access', 401);
         }
 
         if (!$user->hasRole('admin')) {
@@ -245,14 +255,15 @@ class WebsiteController extends ApiController
         if ($resp = $this->guardWebsiteApi('wncms_api_website_add_domain')) return $resp;
 
         $request->validate([
-            'api_token' => 'required|string',
             'website_id' => 'required|integer',
             'domain' => 'required|string|max:255',
         ]);
 
-        [$user, $authError] = $this->resolveApiUser($request);
-        if ($authError) {
-            return $authError;
+        $auth = $this->checkAuthSetting('wncms_api_website_add_domain', $request);
+        if (isset($auth['error'])) return $auth['error'];
+        $user = $auth['user'];
+        if (!$user) {
+            return $this->fail('Authentication required for website API access', 401);
         }
 
         $websiteId = (int) $request->input('website_id');
@@ -314,14 +325,15 @@ class WebsiteController extends ApiController
         if ($resp = $this->guardWebsiteApi('wncms_api_website_remove_domain')) return $resp;
 
         $request->validate([
-            'api_token' => 'required|string',
             'website_id' => 'required|integer',
             'domain' => 'required|string|max:255',
         ]);
 
-        [$user, $authError] = $this->resolveApiUser($request);
-        if ($authError) {
-            return $authError;
+        $auth = $this->checkAuthSetting('wncms_api_website_remove_domain', $request);
+        if (isset($auth['error'])) return $auth['error'];
+        $user = $auth['user'];
+        if (!$user) {
+            return $this->fail('Authentication required for website API access', 401);
         }
 
         $website = $this->findWebsiteForUser($user, (int) $request->input('website_id'));
@@ -373,23 +385,6 @@ class WebsiteController extends ApiController
             'removed_domain' => $domain,
             'new_primary_domain' => $website->domain,
         ], __('wncms::word.successfully_deleted'));
-    }
-
-    protected function resolveApiUser(Request $request): array
-    {
-        $token = (string) $request->input('api_token', '');
-        if (empty($token)) {
-            return [null, $this->fail('Missing api_token', 401)];
-        }
-
-        $userModel = wncms()->getModelClass('user');
-        $user = $userModel::where('api_token', $token)->first();
-        if (!$user) {
-            return [null, $this->fail('Invalid api_token', 401)];
-        }
-
-        auth()->login($user);
-        return [$user, null];
     }
 
     protected function findWebsiteForUser($user, int $websiteId)

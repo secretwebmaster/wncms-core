@@ -124,4 +124,10 @@ return [
             ['type' => 'switch', 'name' => 'use_locales_mapping'],
         ]
     ],
+    'api_access' => [
+        'tab_name' => 'api_access',
+        'tab_content' => [
+            ['type' => 'textarea', 'name' => 'api_access_whitelist'],
+        ]
+    ],
 ];

@@ -2277,6 +2277,8 @@ $words = [
     'api_auth_none' => '无',
     'api_auth_simple' => 'API Token',
     'api_auth_basic' => 'Basic',
+    'api_access_whitelist' => 'API 访问白名单',
+    'api_access_whitelist_hint' => '每行填写一个 IP 或域名。设置后，API 请求必须匹配请求 IP 或 Origin/Referer 的主机名。',
 
     // 6.0.1
     'multi_website_hint' => '您可以在此处管理多个网站。',

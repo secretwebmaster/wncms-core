@@ -2277,6 +2277,8 @@ $words = [
     'api_auth_none' => 'None',
     'api_auth_simple' => 'API Token',
     'api_auth_basic' => 'Basic',
+    'api_access_whitelist' => 'API Access Whitelist',
+    'api_access_whitelist_hint' => 'One IP or domain per line. When not empty, API requests must match the request IP or the Origin/Referer host.',
 
     // 6.0.1
     'multi_website_hint' => 'You can manage multiple websites here.',

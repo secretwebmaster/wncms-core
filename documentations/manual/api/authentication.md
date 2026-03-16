@@ -12,6 +12,24 @@ WNCMS supports multiple authentication modes that can be configured per endpoint
 | **Simple** | API token authentication   | Most common, recommended |
 | **Basic**  | HTTP Basic Authentication  | Legacy systems           |
 
+## Whitelist Gate
+
+The `api_access_whitelist` setting in **System Settings -> API** is a global extra gate for API requests.
+
+- Leave it empty to disable whitelist checks.
+- Add one IP or domain per line to require a match before endpoint auth is evaluated.
+- IP matching uses the request IP.
+- Domain matching uses the request `Origin` header, with `Referer` as fallback.
+
+Example:
+
+```text
+111.222.333.444
+example.com
+example2.com
+222.333.444.555
+```
+
 ## Simple Authentication (Recommended)
 
 The most common authentication method using API tokens.
@@ -62,6 +80,19 @@ const response = await fetch('https://your-domain.com/api/v1/posts', {
 
 const result = await response.json()
 ```
+
+## Basic Authentication
+
+Basic mode uses the standard HTTP `Authorization: Basic ...` header with `email:password`.
+
+### Example Request
+
+```bash
+curl -X GET "https://your-domain.com/api/v1/posts" \
+  -H "Authorization: Basic $(printf '%s' 'user@example.com:your-password' | base64)"
+```
+
+If the endpoint also has a whitelist configured, the request must pass the whitelist check before the Basic credentials are evaluated.
 
 ## Token Security
 

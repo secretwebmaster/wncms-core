@@ -56,8 +56,9 @@ curl -X GET "https://your-domain.com/api/v1/posts" \
 WNCMS API supports multiple authentication methods:
 
 - **Simple Authentication**: Use `api_token` in request body or query parameters
-- **Basic Authentication**: Standard HTTP Basic Auth (where enabled)
+- **Basic Authentication**: Standard HTTP Basic Auth using `email:password` (where enabled)
 - **No Authentication**: Some endpoints may be publicly accessible based on configuration
+- **Whitelist Gate**: When `api_access_whitelist` is not empty, the request IP or `Origin`/`Referer` host must also match
 
 For detailed information, see [Authentication](./authentication.md).
 

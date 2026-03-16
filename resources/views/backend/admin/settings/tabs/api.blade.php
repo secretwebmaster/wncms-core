@@ -28,6 +28,26 @@ $authModes = [
                     </div>
                 </div>
 
+                <div class="row mb-6">
+                    <label class="col-lg-4 col-form-label fw-bold fs-6">
+                        @lang('wncms::word.api_access_whitelist')
+                        <br>
+                        @if(!empty($settings['show_developer_hints']))
+                        <span class="fs-xs text-gray-300">api_access_whitelist</span>
+                        @endif
+                        <div class="fs-7 fw-normal text-muted mt-2">
+                            @lang('wncms::word.api_access_whitelist_hint')
+                        </div>
+                    </label>
+                    <div class="col-lg-8">
+                        <textarea
+                            name="settings[api_access_whitelist]"
+                            class="form-control form-control-sm"
+                            rows="5"
+                            placeholder="111.222.333.444&#10;example.com&#10;222.333.444.555">{{ $settings['api_access_whitelist'] ?? '' }}</textarea>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table table-sm table-bordered align-middle rounded border border-1 border-dark text-nowrap" style="--bs-border-color:black">
                         <thead class="table-dark">

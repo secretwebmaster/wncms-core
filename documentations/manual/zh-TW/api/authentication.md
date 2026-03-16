@@ -12,6 +12,24 @@ WNCMS 支援可按端點配置的多種身份驗證模式：
 | **簡易** | API token 身份驗證 | 最常見，建議使用 |
 | **基本** | HTTP 基本身份驗證  | 舊系統           |
 
+## 白名單閘道
+
+**系統設定 -> API** 中的 `api_access_whitelist` 是 API 請求的全域附加檢查。
+
+- 留空時不啟用白名單檢查。
+- 每行填寫一個 IP 或網域，只有符合的請求才會繼續執行端點驗證。
+- IP 比對使用請求 IP。
+- 網域比對使用請求 `Origin` 標頭，缺少時回退到 `Referer`。
+
+範例：
+
+```text
+111.222.333.444
+example.com
+example2.com
+222.333.444.555
+```
+
 ## 簡易驗證（建議）
 
 使用 API token 的最常見身份驗證方法。
@@ -62,6 +80,19 @@ const response = await fetch('https://your-domain.com/api/v1/posts', {
 
 const result = await response.json()
 ```
+
+## Basic 驗證
+
+Basic 模式使用標準 HTTP `Authorization: Basic ...` 標頭，格式為 `email:password`。
+
+### 請求範例
+
+```bash
+curl -X GET "https://your-domain.com/api/v1/posts" \
+  -H "Authorization: Basic $(printf '%s' 'user@example.com:your-password' | base64)"
+```
+
+如果該端點同時設定了白名單，請求必須先通過白名單檢查，才會驗證 Basic 憑證。
 
 ## Token 安全性
 

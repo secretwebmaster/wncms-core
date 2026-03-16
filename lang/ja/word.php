@@ -2277,6 +2277,8 @@ $words = [
     'api_auth_none' => 'なし',
     'api_auth_simple' => 'APIトークン',
     'api_auth_basic' => 'Basic',
+    'api_access_whitelist' => 'APIアクセス許可リスト',
+    'api_access_whitelist_hint' => '1行に1つのIPまたはドメインを入力します。未空の場合、APIリクエストは送信元IPまたはOrigin/Refererのホストに一致する必要があります。',
 
     // 6.0.1
     'multi_website_hint' => 'ここで複数のウェブサイトを管理できます。',

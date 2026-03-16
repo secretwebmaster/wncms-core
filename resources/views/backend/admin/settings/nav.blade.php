@@ -5,7 +5,7 @@
             <ul class="nav nav-tabs nav-pills border-0 flex-row flex-md-column me-0 me-md-5 mb-0 mb-md-0 fs-6 w-100 wncms-settings-nav-list">
                 @foreach($availableSettings as $nav_tab_index => $nav_tab)
                 @php $isActive = $nav_tab['tab_name'] === $activeTab; @endphp
-                @if(!empty($nav_tab['tab_name']) && !empty($nav_tab['tab_content']))
+                @if(!empty($nav_tab['tab_name']) && !empty($nav_tab['tab_content']) && $nav_tab['tab_name'] !== 'api_access')
                 <li class="nav-item fw-bold me-0 wncms-settings-nav-item">
                     <a class="nav-link {{ $isActive ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab_{{ $nav_tab['tab_name'] }}" href="javascript:void(0);">
                         @if(!empty($nav_tab['tab_label_key']))

@@ -55,7 +55,7 @@
                     @php $isActive = $nav_tab['tab_name'] === $activeTab; @endphp
                     @php $isSystemTab = $nav_tab['tab_name'] === 'system'; @endphp
 
-                    @if (!empty($nav_tab['tab_name']) && !empty($nav_tab['tab_content']))
+                    @if (!empty($nav_tab['tab_name']) && !empty($nav_tab['tab_content']) && $nav_tab['tab_name'] !== 'api_access')
                         <div class="tab-pane fade {{ $isActive ? 'show active' : '' }}" id="tab_{{ $nav_tab['tab_name'] }}" role="tabpanel">
                             <div class="card">
                                 <div class="collapse show">

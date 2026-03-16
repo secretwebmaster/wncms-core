@@ -2277,6 +2277,8 @@ $words = [
     'api_auth_none' => '無',
     'api_auth_simple' => 'API Token',
     'api_auth_basic' => 'Basic',
+    'api_access_whitelist' => 'API 存取白名單',
+    'api_access_whitelist_hint' => '每行填寫一個 IP 或網域。設定後，API 請求必須符合請求 IP 或 Origin/Referer 的主機名稱。',
 
     // 6.0.1
     'multi_website_hint' => '您可以在此處管理多個網站。',

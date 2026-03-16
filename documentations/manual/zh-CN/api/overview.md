@@ -56,8 +56,9 @@ curl -X GET "https://your-domain.com/api/v1/posts" \
 WNCMS API 支援多种身份验证方法：
 
 - **简易验证**：在请求主体或查询参数中使用 `api_token`
-- **基本验证**：标准 HTTP 基本验证（在启用时）
+- **基本验证**：使用 `email:password` 的标准 HTTP 基本验证（在启用时）
 - **无需验证**：某些端点可能根据设定公开存取
+- **白名单闸道**：当 `api_access_whitelist` 不为空时，请求 IP 或 `Origin`/`Referer` 主机也必须匹配
 
 详细资讯请参阅[身份验证](./authentication.md)。
 
