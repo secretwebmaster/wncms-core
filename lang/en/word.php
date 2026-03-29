@@ -2330,6 +2330,10 @@ $words = [
     'global' => 'Global',
     'single' => 'Single',
     'multi' => 'Multi',
+
+    // 6.2.3
+    'session_lifetime' => 'Auto logout time (minutes)',
+    'session_lifetime_description' => 'Users will be signed out after this many minutes without activity.',
     'telegram_setting' => 'Telegram Settings',
     'enable_telegram_id' => 'Enable telegram_id',
     'required_plugins' => 'Required Plugins',

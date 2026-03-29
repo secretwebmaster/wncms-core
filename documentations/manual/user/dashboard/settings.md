@@ -63,7 +63,18 @@ Expected result:
 
 - Mail-related features use the updated SMTP configuration
 
-## 4) Set Multisite Model Mode (if available)
+## 4) Change Auto Logout Time
+
+1. Open `Login Settings`
+2. Set `session_lifetime`
+3. Click **Save All**
+
+Expected result:
+
+- Backend session idle timeout uses the saved number of minutes
+- This runtime setting overrides the host project's `SESSION_LIFETIME`
+
+## 5) Set Multisite Model Mode (if available)
 
 1. Open `Multisite Settings`
 2. For each model, choose mode:
@@ -76,7 +87,7 @@ Expected result:
 
 - Model website scope updates based on selected mode
 
-## 5) Check Core Updates
+## 6) Check Core Updates
 
 1. In settings left panel footer, click **Check for Updates**
 2. Follow update page instructions

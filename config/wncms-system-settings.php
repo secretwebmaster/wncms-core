@@ -24,6 +24,7 @@ return [
         'tab_content' => [
             ['type' => 'switch', 'name' => 'show_auth_page_side_image',],
             ['type' => 'switch', 'name' => 'allow_google_login'],
+            ['type' => 'number', 'name' => 'session_lifetime'],
         ]
     ],
     'smtp' => [

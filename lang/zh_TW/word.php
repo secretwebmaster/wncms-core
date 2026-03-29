@@ -2334,6 +2334,10 @@ $words = [
     // 6.1.7
     'wncms_official_doc' => '官方文檔',
     'webmaster_resource' => '站長資源',
+
+    // 6.2.3
+    'session_lifetime' => '自動登出時間（分鐘）',
+    'session_lifetime_description' => '超過設定分鐘未操作，系統會自動登出。',
     'telegram_setting' => 'Telegram 設定',
     'enable_telegram_id' => '啟用 telegram_id',
     'required_plugins' => '依賴外掛',

@@ -230,8 +230,27 @@ class WncmsServiceProvider extends ServiceProvider
         // Base filesystem overrides
         config(['filesystems.disks' => $disks]);
 
+        $this->loadSessionSettings();
+
         // Runtime model website mode override from system settings
         $this->loadModelWebsiteModeSettings();
+    }
+
+    protected function loadSessionSettings(): void
+    {
+        $fallbackLifetime = (int) config('session.lifetime', 120);
+        $configuredLifetime = gss('session_lifetime', $fallbackLifetime);
+
+        if (!is_numeric($configuredLifetime)) {
+            config(['session.lifetime' => $fallbackLifetime]);
+            return;
+        }
+
+        $resolvedLifetime = (int) $configuredLifetime;
+
+        config([
+            'session.lifetime' => $resolvedLifetime > 0 ? $resolvedLifetime : $fallbackLifetime,
+        ]);
     }
 
     protected function loadModelWebsiteModeSettings(): void

@@ -2324,6 +2324,10 @@ $words = [
     'translation_setting' => '翻訳設定',
     'use_locales_mapping' => '言語マッピングを使用する',
     'use_locales_mapping_description' => '有効にすると、URL には短い言語コードが表示されます。例：cn → zh_CN、tw → zh_TW',
+
+    // 6.2.3
+    'session_lifetime' => '自動ログアウト時間（分）',
+    'session_lifetime_description' => '設定した分数の間操作がない場合、自動的にログアウトします。',
     'telegram_setting' => 'Telegram 設定',
     'enable_telegram_id' => 'telegram_id を有効化',
     'required_plugins' => '必要なプラグイン',

@@ -89,6 +89,20 @@ Notes:
 - `supported_locales` only accepts locale keys that already exist in `config/laravellocalization.php`.
 - If configured `app_locale` is not in the resolved supported list, WNCMS falls back to the first supported locale.
 
+## Session Runtime Override
+
+WNCMS can also override Laravel session timeout from **Settings -> Login**.
+
+- `session_lifetime`: maps to `session.lifetime` and replaces the host project's `SESSION_LIFETIME` value at runtime.
+
+Runtime flow in `WncmsServiceProvider`:
+
+```php
+config([
+    'session.lifetime' => (int) gss('session_lifetime', config('session.lifetime', 120)),
+]);
+```
+
 ## Integration Points
 
 - **Frontend Themes**: Use `@lang('wncms::word.xxx')` in Blade templates.

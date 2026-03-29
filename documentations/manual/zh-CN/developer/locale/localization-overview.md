@@ -85,6 +85,20 @@ config([
 - `supported_locales` 仅接受 `config/laravellocalization.php` 中已定义的语言代码。
 - 如果设置的 `app_locale` 不在最终支持列表内，WNCMS 会回退到第一个可用语言。
 
+## Session 运行时覆写
+
+WNCMS 也可以通过 **Settings -> Login** 在运行时覆写 Laravel session 超时。
+
+- `session_lifetime`：映射到 `session.lifetime`，并在运行时取代宿主专案的 `SESSION_LIFETIME`。
+
+`WncmsServiceProvider` 中的运行时流程：
+
+```php
+config([
+    'session.lifetime' => (int) gss('session_lifetime', config('session.lifetime', 120)),
+]);
+```
+
 ## 整合点
 
 - **Frontend Themes**：在 Blade templates 中使用 `@lang('wncms::word.xxx')`。

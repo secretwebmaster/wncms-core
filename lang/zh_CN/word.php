@@ -2330,6 +2330,10 @@ $words = [
     'global' => '全局',
     'single' => '单站',
     'multi' => '多站',
+
+    // 6.2.3
+    'session_lifetime' => '自动登出时间（分钟）',
+    'session_lifetime_description' => '超过设定分钟未操作，系统会自动登出。',
     'telegram_setting' => 'Telegram 设置',
     'enable_telegram_id' => '启用 telegram_id',
     'required_plugins' => '依赖插件',
