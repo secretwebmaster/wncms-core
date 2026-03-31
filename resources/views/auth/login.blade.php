@@ -1,6 +1,5 @@
 @extends('wncms::layouts.auth')
 @section('auth_content')
-
     <form class="form w-100" id="form_login" data-action="{{ route('login.ajax') }}">
         @csrf
 
@@ -53,8 +52,8 @@
             <div class="row g-3 mb-9">
                 {{-- google --}}
                 <div class="col-12">
-                    <a href="{{ route('login.google') }}" class="btn btn-flex btn-outline btn-text-gray-700 btn-active-color-primary bg-state-light flex-center text-nowrap w-100">
-                        <img alt="Logo" src="{{ asset('wncms/media/svg/brand-logos/google-icon.svg') }}" class="h-15px me-3">@lang('wncms::word.register_with_google')
+                    <a href="{{ route('login.google') }}" class="btn btn-flex btn-outline btn-text-gray-700 btn-active-color-primary bg-white flex-center text-nowrap w-100 btn-google-login-popup" data-popup-url="{{ route('login.google', ['popup' => 1]) }}">
+                        <img alt="Logo" src="{{ asset('wncms/media/svg/brand-logos/google-icon.svg') }}" class="h-15px me-3">@lang('wncms::word.login_with_google')
                     </a>
                 </div>
 
@@ -72,3 +71,38 @@
 
 
 @endsection
+
+@push('foot_js')
+<script>
+    $(function () {
+        $(document).on('click', '.btn-google-login-popup', function (event) {
+            event.preventDefault();
+
+            const popupUrl = $(this).data('popupUrl');
+            const popup = window.open(
+                popupUrl,
+                'wncms_google_login',
+                'width=520,height=720,menubar=no,toolbar=no,status=no,scrollbars=yes,resizable=yes'
+            );
+
+            if (!popup) {
+                window.location.href = popupUrl;
+            }
+        });
+
+        window.addEventListener('message', function (event) {
+            if (event.origin !== window.location.origin) return;
+            if (!event.data || event.data.source !== 'wncms-google-login') return;
+
+            if (event.data.status === 'success' && event.data.redirect) {
+                window.location.href = event.data.redirect;
+                return;
+            }
+
+            if (event.data.status === 'fail' && event.data.message) {
+                alert(event.data.message);
+            }
+        });
+    });
+</script>
+@endpush

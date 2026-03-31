@@ -257,6 +257,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
         Route::get('/', 'index')->middleware('can:setting_index')->name('settings.index');
         Route::put('/', 'update')->middleware('can:setting_edit')->name('settings.update');
         Route::post('/smtp/test', 'smtp_test')->middleware('can:setting_edit')->name('settings.smtp_test');
+        Route::get('/google/test', 'google_test')->middleware('can:setting_edit')->name('settings.google_test');
         Route::post('/quick/add', 'add_quick_link')->middleware('can:setting_edit')->name('settings.quick.add');
         Route::post('/quick/remove', 'remove_quick_link')->middleware('can:setting_edit')->name('settings.quick.remove');
     });

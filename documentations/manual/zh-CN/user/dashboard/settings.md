@@ -87,7 +87,25 @@
 
 - 模型站点范围按所选模式更新
 
-## 6）检查核心更新
+## 6）配置 Google 登录
+
+1. 打开 `登入设定` 并启用 `allow_google_login`
+2. 打开 `社交设定`
+3. 填写 `google_client_id`、`google_client_secret` 与 `google_redirect`
+4. 在 Google OAuth 中将回调网址设置为你的网站回调，例如：
+   `https://your-domain.com/panel/login/google/callback`
+5. 使用 Google 设定区域下方的辅助按钮：
+   `打开 Google 设置页面`、`查看 Google 设置指南`、`测试 Google 配置`
+6. 点击 **储存全部**
+7. 打开 `/panel/login` 或 `/panel/register`，确认 Google 按钮已显示
+
+预期结果：
+
+- 只有在开关启用且 Google 设置完整时，Google 登录按钮才会显示
+- 点击按钮后会开始 Google OAuth 登录流程
+- 已有帐号会用 Email 匹配，若允许注册则可从 Google 自动建立新帐号
+
+## 7）检查核心更新
 
 1. 在左侧底部点击 **检查更新**
 2. 按更新页面提示操作
@@ -109,3 +127,9 @@
 
 - 部分分页只在相关功能启用后显示
 - `开发者设置` 仅在开发者模式开启时显示
+
+## Google 登录按钮没有出现
+
+- 确认 `allow_google_login` 已启用
+- 确认 `google_client_id`、`google_client_secret` 与 `google_redirect` 都已保存
+- 确认 Google 平台配置的回调网址与 WNCMS 路由完全一致

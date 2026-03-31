@@ -87,7 +87,25 @@ Expected result:
 
 - Model website scope updates based on selected mode
 
-## 6) Check Core Updates
+## 6) Configure Google Login
+
+1. Open `Login Settings` and enable `allow_google_login`
+2. Open `Social Login Settings`
+3. Fill `google_client_id`, `google_client_secret`, and `google_redirect`
+4. Set the Google OAuth callback URL to your site callback, for example:
+   `https://your-domain.com/panel/login/google/callback`
+5. Use the helper buttons under the Google settings form:
+   `Open Google Setup Page`, `View Google Setup Guide`, and `Test Google Config`
+6. Click **Save All**
+7. Open `/panel/login` or `/panel/register` and confirm the Google button is visible
+
+Expected result:
+
+- The Google login button appears only when the switch is enabled and all Google settings are filled
+- Clicking the button starts the Google OAuth flow
+- Existing accounts are matched by email, and new accounts can be created from Google when registration is allowed
+
+## 7) Check Core Updates
 
 1. In settings left panel footer, click **Check for Updates**
 2. Follow update page instructions
@@ -109,3 +127,9 @@ Expected result:
 
 - Some tabs appear only when related feature is enabled
 - `Developer Settings` appears only when developer mode is enabled
+
+## Google login button does not appear
+
+- Confirm `allow_google_login` is enabled
+- Confirm `google_client_id`, `google_client_secret`, and `google_redirect` are all saved
+- Confirm the callback URL configured in Google matches your WNCMS route exactly

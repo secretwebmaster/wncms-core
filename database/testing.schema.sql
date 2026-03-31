@@ -79,7 +79,7 @@ CREATE TABLE "translations" ("id" integer primary key autoincrement not null, "t
 
 CREATE TABLE "user_website" ("id" integer primary key autoincrement not null, "user_id" integer not null, "website_id" integer not null, "created_at" datetime, "updated_at" datetime, foreign key("user_id") references "users"("id") on delete cascade, foreign key("website_id") references "websites"("id") on delete cascade);
 
-CREATE TABLE "users" ("id" integer primary key autoincrement not null, "first_name" varchar, "last_name" varchar, "nickname" varchar, "username" varchar not null, "email" varchar, "email_verified_at" datetime, "last_login_at" datetime, "password" varchar not null, "api_token" varchar, "remember_token" varchar, "created_at" datetime, "updated_at" datetime, "referrer_id" integer, foreign key("referrer_id") references "users"("id") on delete set null);
+CREATE TABLE "users" ("id" integer primary key autoincrement not null, "first_name" varchar, "last_name" varchar, "nickname" varchar, "username" varchar not null, "email" varchar, "email_verified_at" datetime, "last_login_at" datetime, "password" varchar not null, "social_login_type" varchar, "social_login_id" varchar, "api_token" varchar, "remember_token" varchar, "created_at" datetime, "updated_at" datetime, "referrer_id" integer, foreign key("referrer_id") references "users"("id") on delete set null);
 
 CREATE TABLE "websites" ("id" integer primary key autoincrement not null, "user_id" integer, "domain" varchar not null, "site_name" varchar not null, "site_logo" varchar, "site_favicon" varchar, "site_slogan" varchar, "site_seo_keywords" varchar, "site_seo_description" varchar, "theme" varchar, "homepage" varchar, "remark" varchar, "meta_verification" text, "head_code" text, "body_code" text, "analytics" text, "license" varchar, "enabled_page_cache" tinyint(1) not null default '0', "enabled_data_cache" tinyint(1) not null default '1', "created_at" datetime, "updated_at" datetime, foreign key("user_id") references "users"("id") on delete set null);
 
@@ -98,6 +98,7 @@ CREATE INDEX "links_tracking_code_index" on "links" ("tracking_code");
 CREATE INDEX "media_model_type_model_id_index" on "media" ("model_type", "model_id");
 
 CREATE UNIQUE INDEX "media_uuid_unique" on "media" ("uuid");
+CREATE UNIQUE INDEX "users_social_login_provider_unique" on "users" ("social_login_type", "social_login_id");
 
 CREATE INDEX "model_has_permissions_model_id_model_type_index" on "model_has_permissions" ("model_id", "model_type");
 

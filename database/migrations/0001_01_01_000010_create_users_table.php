@@ -21,6 +21,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamp('last_login_at')->nullable();
             $table->string('password');
+            $table->string('social_login_type')->nullable();
+            $table->string('social_login_id')->nullable();
             $table->string('api_token', 80)->unique()->nullable()->default(null);
             $table->rememberToken();
             $table->timestamps();
@@ -28,6 +30,7 @@ return new class extends Migration
             //推薦系統
             $table->unsignedBigInteger('referrer_id')->nullable();
             $table->foreign('referrer_id')->references('id')->on('users')->nullOnDelete();
+            $table->unique(['social_login_type', 'social_login_id'], 'users_social_login_provider_unique');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

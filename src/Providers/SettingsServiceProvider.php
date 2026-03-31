@@ -43,10 +43,12 @@ class SettingsServiceProvider extends ServiceProvider
                 config(['settings.' . $key => $value]);
             }
 
+            $defaultGoogleRedirect = config('services.google.redirect') ?: url('/panel/login/google/callback');
+
             //google
             config(['services.google.client_id' => gss('google_client_id', config('services.google.client_id'))]);
             config(['services.google.client_secret' => gss('google_client_secret', config('services.google.client_secret'))]);
-            config(['services.google.redirect' => gss('google_redirect', config('services.google.redirect'))]);
+            config(['services.google.redirect' => gss('google_redirect') ?: $defaultGoogleRedirect]);
 
             //paypal
             config(['paypal' => [

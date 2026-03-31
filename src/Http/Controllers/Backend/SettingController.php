@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
 
 class SettingController extends Controller
 {
@@ -197,6 +198,23 @@ class SettingController extends Controller
         ]);
     }
 
+    public function google_test()
+    {
+        if (!$this->hasGoogleSettings()) {
+            return redirect()
+                ->route('settings.index', ['tab' => 'social_login'])
+                ->with([
+                    'status' => 'fail',
+                    'message' => __('wncms::word.google_login_settings_are_incomplete'),
+                ]);
+        }
+
+        session(['settings_google_test_started' => true]);
+        config(['services.google.redirect' => route('login.google.callback')]);
+
+        return Socialite::driver('google')->redirect();
+    }
+
     public function add_quick_link(Request $request)
     {
         $quickLinks = $this->normalizeQuickLinks(json_decode((string) gss('quick_links'), true) ?? []);
@@ -314,5 +332,12 @@ class SettingController extends Controller
         }
 
         return $modes;
+    }
+
+    protected function hasGoogleSettings(): bool
+    {
+        return filled(config('services.google.client_id'))
+            && filled(config('services.google.client_secret'))
+            && filled(config('services.google.redirect'));
     }
 }

@@ -21,7 +21,7 @@ Route::prefix('panel')->middleware(['is_installed'])->group(function () {
     Route::post('register/ajax', [RegisteredUserController::class, 'ajax'])->middleware('guest')->name('register.ajax');
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->middleware('guest')->name('login');
     Route::get('login/google', [AuthenticatedSessionController::class, 'login_with_google'])->middleware('guest')->name('login.google');
-    Route::get('login/google/callback', [AuthenticatedSessionController::class, 'login_with_google_callback'])->middleware('guest')->name('login.google.callback');
+    Route::get('login/google/callback', [AuthenticatedSessionController::class, 'login_with_google_callback'])->name('login.google.callback');
     Route::post('login/check', [AuthenticatedSessionController::class, 'check'])->middleware('guest')->name('login.check');
     Route::post('login/ajax', [AuthenticatedSessionController::class, 'ajax'])->middleware('guest')->name('login.ajax');
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->middleware('guest')->name('password.request');
@@ -33,4 +33,3 @@ Route::prefix('panel')->middleware(['is_installed'])->group(function () {
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store'])->middleware('auth');
     Route::any('logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth')->name('logout');
 });
-

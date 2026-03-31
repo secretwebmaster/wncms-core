@@ -60,6 +60,9 @@
                             <div class="card">
                                 <div class="collapse show">
                                     <div class="card-body border border-dark border-5 rounded {{ $isSystemTab ? 'p-3 p-lg-4' : 'p-6' }}">
+                                        @if ($nav_tab['tab_name'] == 'social_login')
+                                            @include('wncms::backend.admin.settings.tabs.social_login')
+                                        @else
                                         @if ($isSystemTab)
                                             <div class="row g-1 g-lg-2">
                                         @endif
@@ -291,6 +294,7 @@
 
                                         @if ($nav_tab['tab_name'] == 'smtp')
                                             @include('wncms::backend.admin.settings.tabs.smtp')
+                                        @endif
                                         @endif
 
                                     </div>
