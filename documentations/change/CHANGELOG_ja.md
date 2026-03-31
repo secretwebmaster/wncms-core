@@ -1,6 +1,12 @@
 # 更新履歴
 
-## v6.2.3-alpha1 xxxx-xx-xx
+## v6.2.3 2026-03-31
+
+- 組み込み Google ログインを完成させ、コアパッケージで Socialite 依存関係を宣言し、必要設定が揃った場合のみ login/register 画面に Google ボタンを表示し、`/panel/login/google/callback` で既存ユーザー照合または新規作成を正しく行えるようにしました。
+- users スキーマに `social_login_type` と `social_login_id` を追加し、既存インストール向けに `update_core_6.2.3.php` を提供しました。
+- Google 設定ガイド、テスト導線、ログイン/登録画面からのポップアップ式 Google サインインをまとめた専用 Social Login 設定タブを追加しました。
+- バックエンドのメニューエディタにモデル連携ソース検索、解決済みラベル/URL、フロントエンド描画の同期改善を追加し、リンク型メニュー項目の整合性を高めました。
+- superadmin 用の操作を専用設定タブへ移し、admin / superadmin の権限に合わせて保存処理を調整しました。
 
 - バックエンドのメニューエディタで親項目をモーダル更新した際に子項目の表示内容まで上書きされる問題を修正し、正しい子項目データを確認するための再読込が不要になりました。
 - バックエンド Link CRUD 向け拡張 Hook を追加し、一覧クエリ変更、create/edit 画面 resolve、store/update の before・after・attribute 注入に対応しました。

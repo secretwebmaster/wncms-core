@@ -1,6 +1,12 @@
 # 更新日志
 
-## v6.2.3-alpha1 xxxx-xx-xx
+## v6.2.3 2026-03-31
+
+- 补齐内建 Google 登录流程：核心包现在声明 Socialite 依赖、登录/注册页仅在设置完整时显示 Google 按钮，且 `/panel/login/google/callback` 会正确匹配或创建用户。
+- Users 结构新增 `social_login_type` 与 `social_login_id`，并同步提供 `update_core_6.2.3.php` 用于安全升级既有站点数据表。
+- 新增独立的 Social Login 设置页签，提供 Google 设置指引、测试入口，以及登录/注册页的弹窗式 Google 登录流程。
+- 扩展后台菜单编辑器的模型来源搜索、解析后名称/网址与前台渲染同步，让链接型菜单项目更稳定地保持一致。
+- 将 superadmin 控制项移至独立设置页签，并依 admin / superadmin 角色权限调整保存流程。
 
 - 修复后台菜单编辑器在弹窗更新父级项目后误改子项目显示内容的问题，避免保存后必须刷新页面才能看到正确的子项目资料。
 - 新增 Links 后台 CRUD 扩展 hook，涵盖列表查询、create/edit 画面 resolve，以及 store/update 前后与 attributes 注入流程。

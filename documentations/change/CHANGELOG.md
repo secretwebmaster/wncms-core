@@ -1,6 +1,12 @@
 # 更新日誌
 
-## v6.2.3-alpha1 xxxx-xx-xx
+## v6.2.3 2026-03-31
+
+- 補齊內建 Google 登入流程：核心套件現在宣告 Socialite 相依套件、登入/註冊頁僅在設定完整時顯示 Google 按鈕，且 `/panel/login/google/callback` 會正確比對或建立使用者。
+- Users 結構新增 `social_login_type` 與 `social_login_id`，並同步提供 `update_core_6.2.3.php` 以升級既有站點資料表。
+- 新增獨立的 Social Login 設定頁籤，提供 Google 設定指引、測試入口，以及登入／註冊頁的彈窗式 Google 登入流程。
+- 擴充後台選單編輯器的模型來源搜尋、解析後名稱／網址與前台渲染同步，讓連結型選單項目更穩定地保持一致。
+- 將 superadmin 控制項移至獨立設定頁籤，並依 admin / superadmin 角色權限調整儲存流程。
 
 - 修正後台選單編輯器在彈窗更新父項目後誤改子項目顯示內容的問題，避免儲存後需重新整理才能看到正確子項目資料。
 - 新增 Links 後台 CRUD 擴充 hook，涵蓋列表查詢、create/edit 畫面 resolve，以及 store/update 前後與 attributes 注入流程。

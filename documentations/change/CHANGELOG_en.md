@@ -1,6 +1,12 @@
 # Changelog
 
-## v6.2.3-alpha1 xxxx-xx-xx
+## v6.2.3 2026-03-31
+
+- Completed the built-in Google login flow: the core package now declares the Socialite dependencies, the login/register pages only show the Google button when the required settings are filled, and `/panel/login/google/callback` now matches or creates users correctly.
+- Added `social_login_type` and `social_login_id` to the users schema and shipped `update_core_6.2.3.php` to upgrade existing installations safely.
+- Added a dedicated Social Login settings tab for Google setup guidance, testing, and popup-based sign-in behavior from the login and registration pages.
+- Expanded the backend menu editor with model-backed source search, resolved labels/URLs, and theme/frontend updates so linked items stay synchronized more reliably.
+- Moved superadmin controls into a dedicated settings tab and aligned the save flow with admin/superadmin role permissions.
 
 - Fixed the backend menu editor so updating a parent item from the modal no longer overwrites child item display values until the page is refreshed.
 - Added backend Link CRUD extension hooks covering list-query mutation, create/edit view resolution, and store/update before, after, and attribute-injection stages.
