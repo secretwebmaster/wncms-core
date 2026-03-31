@@ -7,6 +7,8 @@
 let currentMenuData = [];
 let currentLocale = 'en';
 let defaultLocale = 'en';
+let menuSourceSearchTimers = {};
+let menuSourceSearchResultsCache = {};
 
 /**
  * Initialize menu editor
@@ -15,6 +17,11 @@ function initMenuEditor(menuData, locale, defLocale) {
     currentMenuData = menuData;
     currentLocale = locale;
     defaultLocale = defLocale;
+    console.log('[menu] initMenuEditor', {
+        currentLocale: currentLocale,
+        defaultLocale: defaultLocale,
+        itemCount: Array.isArray(menuData) ? menuData.length : 0
+    });
 
     // Initialize Nestable plugin
     $('#nestable-json').nestable({
@@ -58,6 +65,9 @@ function bindEventHandlers() {
 
     // Submit menu item edit from modal
     $("#modal_submit_form_edit_menu_item").click(handleModalSubmit);
+
+    // Initialize menu source panel
+    initializeMenuSourcePanel();
 }
 
 /**
@@ -186,9 +196,13 @@ function updateMenuItemDisplay(menuItemId, menuItem) {
     var normalizedIcon = menuItem.icon ?? '';
     var normalizedThumbnail = menuItem.thumbnail ?? '';
     var normalizedNewWindow = menuItem.is_new_window ? '1' : '0';
+    var normalizedName = resolveLocalizedFieldValue(menuItem.name ?? '');
+    var normalizedResolvedName = resolveMenuItemDisplayName(menuItem, menuItem.name ?? '');
 
-    menuItemNode.dataset.name = menuItem.name;
-    menuItemNode.setAttribute('data-name', menuItem.name);
+    menuItemNode.dataset.name = normalizedName;
+    menuItemNode.setAttribute('data-name', normalizedName);
+    menuItemNode.dataset.resolvedName = normalizedResolvedName;
+    menuItemNode.setAttribute('data-resolved-name', normalizedResolvedName);
     menuItemNode.dataset.url = normalizedUrl;
     menuItemNode.setAttribute('data-url', normalizedUrl);
     menuItemNode.dataset.description = normalizedDescription;
@@ -206,7 +220,7 @@ function updateMenuItemDisplay(menuItemId, menuItem) {
         var handleNewWindowNode = menuItemHandle.querySelector('.menu_item_is_new_window');
 
         if (handleNameNode) {
-            handleNameNode.textContent = menuItem.name;
+            handleNameNode.textContent = normalizedResolvedName;
         }
 
         if (handleUrlNode) {
@@ -229,24 +243,19 @@ function fillMenu(data, parent) {
         var menuItemId = item.id ? item.id : generateRandomId();
         var menuItemUrlInputId = 'menu_item_url_' + menuItemId;
         var menuItemNewWindowInputId = 'menu_item_new_window_' + menuItemId;
-
-        // Get item name based on locale
-        var item_name = item.name[currentLocale] != undefined ? item.name[currentLocale] :
-            (item.name[defaultLocale] != undefined ? item.name[defaultLocale] : item.name);
+        var item_name = resolveLocalizedFieldValue(item.name);
+        var item_display_name = resolveMenuItemDisplayName(item, item_name);
 
         // Get item description
         var item_description = '';
-        if (item.description != undefined) {
-            if (item.description[currentLocale] != undefined) {
-                item_description = item.description[currentLocale];
-            }
-        }
+        item_description = resolveLocalizedFieldValue(item.description);
 
         // Render menu item data to the list
         html += '<li class="dd-item" data-id="' + menuItemId +
             '" data-model-type="' + (item.model_type ?? item.modelType) +
             '" data-model-id="' + (item.model_id ?? item.modelId) +
-            '" data-name="' + item_name +
+            '" data-name="' + escapeHtmlAttribute(item_name) +
+            '" data-resolved-name="' + escapeHtmlAttribute(item_display_name) +
             '" data-url="' + item.url +
             '" data-description="' + item_description +
             '" data-type="' + item.type +
@@ -264,7 +273,7 @@ function fillMenu(data, parent) {
         } else {
             html += '<span class="menu-collapse-placeholder me-1"></span>';
         }
-        html += '<span class="dd-handle-name">' + item_name + '</span>';
+        html += '<span class="dd-handle-name">' + item_display_name + '</span>';
         html += '<span class="small text-muted fw-normal d-none d-inline">(' + item.type + ')</span>';
         
         // URL display
@@ -367,10 +376,13 @@ function bindClickEvents() {
 
         checkedItems.each(function() {
             // Check if name and type are valid
-            if ($(this).data('name') !== undefined && $(this).data('type') !== undefined) {
+            if ($(this).data('type') !== undefined) {
+                var rawName = $(this).data('name');
+                var resolvedName = $(this).data('resolved-name') ? $(this).data('resolved-name') : rawName;
                 var newItem = {
                     id: null,
-                    name: $(this).data('name'),
+                    name: rawName !== undefined ? rawName : '',
+                    resolved_name: resolvedName !== undefined ? resolvedName : '',
                     type: $(this).data('type'),
                     model_type: $(this).data('model-type'),
                     model_id: $(this).data('model-id'),
@@ -386,6 +398,54 @@ function bindClickEvents() {
         var json = $('#nestable-json').nestable('serialize');
         fillMenu(json);
         checkedItems.prop("checked", false);
+    });
+
+    $('.menu-source-select').off().on('change', function() {
+        var panel = $(this).closest('.menu-source-panel');
+        var sourceKey = $(this).val();
+        var searchInput = panel.find('.menu-source-search-input');
+        var isEnabled = !!sourceKey;
+
+        panel.attr('data-active-source-key', sourceKey);
+        searchInput.val('');
+        searchInput.prop('disabled', !isEnabled);
+        searchInput.attr('placeholder', window.wncmsMenuTranslations.enterKeywordToSearch);
+        panel.find('.menu-source-search-results').html('');
+        console.log('[menu] model source selected', {
+            sourceKey: sourceKey,
+            enabled: isEnabled
+        });
+    });
+
+    $('.menu-source-search-input').off().on('input', function() {
+        var input = $(this);
+        var panel = input.closest('.menu-source-panel');
+        var sourceKey = panel.attr('data-active-source-key') || '';
+        var keyword = input.val();
+
+        if (!sourceKey) {
+            panel.find('.menu-source-search-results').html('');
+            return;
+        }
+
+        clearTimeout(menuSourceSearchTimers[sourceKey]);
+        menuSourceSearchTimers[sourceKey] = setTimeout(function() {
+            searchMenuSourceItems(panel, sourceKey, keyword);
+        }, 300);
+    });
+
+    $('.menu-source-select-item').off().on('click', function(e) {
+        e.preventDefault();
+        var item = {
+            type: $(this).data('type'),
+            model_type: $(this).data('model-type'),
+            model_id: $(this).data('model-id'),
+            label: $(this).data('label'),
+            description: $(this).data('description')
+        };
+
+        console.log('[menu] source item added', item);
+        addMenuSourceItemToMenu(item);
     });
 
     // Update URL for external links
@@ -511,6 +571,231 @@ function generateRandomId(length = 16) {
     }
 
     return randomString;
+}
+
+function initializeMenuSourcePanel() {
+    $('.menu-source-panel').each(function() {
+        var panel = $(this);
+        var selectedSourceKey = panel.find('.menu-source-select').val() || '';
+        var searchInput = panel.find('.menu-source-search-input');
+
+        panel.attr('data-active-source-key', selectedSourceKey);
+        searchInput.prop('disabled', !selectedSourceKey);
+        searchInput.attr('placeholder', window.wncmsMenuTranslations.enterKeywordToSearch);
+        $(this).find('.menu-source-search-results').html('');
+
+        console.log('[menu] initializeMenuSourcePanel', {
+            sourceKey: selectedSourceKey,
+            enabled: !!selectedSourceKey
+        });
+    });
+
+    renderMenuSourceSelectedItems();
+}
+
+function searchMenuSourceItems(panel, sourceKey, keyword) {
+    var resultsContainer = panel.find('.menu-source-search-results');
+    var normalizedKeyword = (keyword || '').trim();
+    var cacheKey = getMenuSourceSearchCacheKey(sourceKey, normalizedKeyword);
+
+    if (!normalizedKeyword) {
+        resultsContainer.html('');
+        return;
+    }
+
+    resultsContainer.html('<div class="small text-muted">' + window.wncmsMenuTranslations.loading + '...</div>');
+    console.log('[menu] fetching source items', {
+        sourceKey: sourceKey,
+        keyword: normalizedKeyword
+    });
+
+    $.ajax({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        url: window.wncmsMenuRoutes.searchSourceItems,
+        type: 'POST',
+        data: {
+            source_key: sourceKey,
+            keyword: normalizedKeyword
+        },
+        success: function(response) {
+            menuSourceSearchResultsCache[cacheKey] = response.items || [];
+            console.log('[menu] source items fetched', {
+                sourceKey: sourceKey,
+                keyword: normalizedKeyword,
+                count: (response.items || []).length,
+                items: response.items || []
+            });
+            renderMenuSourceSearchResults(panel, response.items || []);
+        },
+        error: function(xhr) {
+            console.log('[menu] source items fetch failed', {
+                sourceKey: sourceKey,
+                keyword: normalizedKeyword,
+                status: xhr.status,
+                response: xhr.responseText
+            });
+            renderMenuSourceSearchResults(panel, []);
+        }
+    });
+}
+
+function renderMenuSourceSearchResults(panel, items) {
+    var resultsContainer = panel.find('.menu-source-search-results');
+
+    if (!items.length) {
+        resultsContainer.html('<div class="small text-muted">' + window.wncmsMenuTranslations.noResults + '</div>');
+        return;
+    }
+
+    var html = '<div class="list-group list-group-flush">';
+
+    items.forEach(function(item) {
+        html += '<div class="list-group-item d-flex justify-content-between align-items-center">';
+        html += '<div class="small me-3 menu-source-item-text">';
+        html += '<span class="menu-source-item-label" title="' + escapeHtmlAttribute(item.label || '') + '">' + escapeHtml(item.label || '') + '</span>';
+        if (item.description) {
+            html += '<span class="text-muted menu-source-item-slug">' + escapeHtml(item.description) + '</span>';
+        }
+        html += '</div>';
+        html += '<button type="button" class="btn btn-sm border-0 menu-source-select-item menu-source-action px-2 menu-source-action-add" ' +
+            'data-type="' + escapeHtmlAttribute(item.type || '') + '" ' +
+            'data-model-type="' + escapeHtmlAttribute(item.model_type || '') + '" ' +
+            'data-model-id="' + escapeHtmlAttribute(item.model_id || '') + '" ' +
+            'data-label="' + escapeHtmlAttribute(item.label || '') + '" ' +
+            'data-description="' + escapeHtmlAttribute(item.description || '') + '">+</button>';
+        html += '</div>';
+    });
+
+    html += '</div>';
+
+    resultsContainer.html(html);
+    bindClickEvents();
+}
+
+function getMenuSourceSearchCacheKey(sourceKey, keyword) {
+    return [sourceKey || '', (keyword || '').trim()].join('::');
+}
+
+function addMenuSourceItemToMenu(item) {
+    $('#nestable-json').nestable('add', {
+        id: null,
+        name: '',
+        resolved_name: item.label || '',
+        resolvedName: item.label || '',
+        display_name: item.label || '',
+        displayName: item.label || '',
+        type: item.type,
+        modelType: item.model_type,
+        model_type: item.model_type,
+        modelId: item.model_id,
+        model_id: item.model_id,
+        url: null,
+        is_new_window: 0,
+        is_new: true
+    });
+
+    var json = $('#nestable-json').nestable('serialize');
+    fillMenu(json);
+}
+
+function renderMenuSourceSelectedItems() {
+    return;
+}
+
+function refreshMenuSourceSearchResultsState() {
+    $('.menu-source-panel').each(function() {
+        var panel = $(this);
+        var sourceKey = panel.attr('data-active-source-key') || '';
+        var keyword = panel.find('.menu-source-search-input').val() || '';
+        var normalizedKeyword = keyword.trim();
+
+        if (!sourceKey || !normalizedKeyword) {
+            return;
+        }
+
+        var cacheKey = getMenuSourceSearchCacheKey(sourceKey, normalizedKeyword);
+        if (menuSourceSearchResultsCache[cacheKey]) {
+            renderMenuSourceSearchResults(panel, menuSourceSearchResultsCache[cacheKey]);
+            return;
+        }
+
+        searchMenuSourceItems(panel, sourceKey, normalizedKeyword);
+    });
+}
+
+function resetMenuSourcePanel() {
+    $('.menu-source-panel').each(function() {
+        $(this).attr('data-active-source-key', '');
+        $(this).find('.menu-source-select').val('');
+        $(this).find('.menu-source-search-input').val('').prop('disabled', true);
+        $(this).find('.menu-source-search-results').html('');
+    });
+}
+
+function resolveLocalizedFieldValue(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+
+    if (typeof value === 'object') {
+        if (value[currentLocale] !== undefined && value[currentLocale] !== null && value[currentLocale] !== '') {
+            return value[currentLocale];
+        }
+
+        if (value[defaultLocale] !== undefined && value[defaultLocale] !== null && value[defaultLocale] !== '') {
+            return value[defaultLocale];
+        }
+
+        var values = Object.values(value);
+        for (var i = 0; i < values.length; i++) {
+            if (values[i] !== undefined && values[i] !== null && values[i] !== '') {
+                return values[i];
+            }
+        }
+
+        return '';
+    }
+
+    return value;
+}
+
+function resolveMenuItemDisplayName(item, itemName) {
+    if (itemName !== undefined && itemName !== null && String(itemName).trim() !== '') {
+        return itemName;
+    }
+
+    if (item.resolvedName !== undefined && item.resolvedName !== null && String(item.resolvedName).trim() !== '') {
+        return item.resolvedName;
+    }
+
+    if (item.resolved_name !== undefined && item.resolved_name !== null && String(item.resolved_name).trim() !== '') {
+        return item.resolved_name;
+    }
+
+    if (item.displayName !== undefined && item.displayName !== null && String(item.displayName).trim() !== '') {
+        return item.displayName;
+    }
+
+    if (item.display_name !== undefined && item.display_name !== null && String(item.display_name).trim() !== '') {
+        return item.display_name;
+    }
+
+    return item.type || '';
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function escapeHtmlAttribute(value) {
+    return escapeHtml(value === undefined || value === null ? '' : value);
 }
 
 /**

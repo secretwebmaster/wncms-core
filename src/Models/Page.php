@@ -23,6 +23,8 @@ class Page extends BaseModel implements HasMedia
      */
     public static $modelKey = 'page';
 
+    public static bool $showInMenuEditor = true;
+
     protected $guarded = [];
 
     protected static array $tagMetas = [

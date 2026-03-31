@@ -24,6 +24,8 @@ abstract class BaseModel extends Model implements BaseModelInterface
 
     public static $modelKey = '';
 
+    public static bool $showInMenuEditor = false;
+
     /**
      * Tag meta definition for this model.
      *

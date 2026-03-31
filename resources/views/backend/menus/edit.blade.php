@@ -72,6 +72,65 @@
             display: inline-block;
             width: 14px;
         }
+
+        .menu-source-search-results .list-group-item {
+            background: #fff;
+            color: inherit;
+            flex-wrap: nowrap;
+        }
+
+        .menu-source-search-results .list-group-item + .list-group-item {
+            border-top-width: 1px;
+        }
+
+        .menu-source-search-results .menu-source-item-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            flex: 1 1 auto;
+        }
+
+        .menu-source-search-results .menu-source-item-label {
+            display: block;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .menu-source-search-results .menu-source-item-slug {
+            flex: 0 0 auto;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        .menu-source-action {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 0.5rem;
+        }
+
+        .menu-source-action-add {
+            background: #e6f4ea;
+            color: #1f8f4d;
+        }
+
+        .menu-source-action-remove {
+            background: #fdecec;
+            color: #d64545;
+        }
     </style>
 @endpush
 
@@ -148,34 +207,40 @@
                     </div>
                 @endforeach
 
-                {{-- Pages --}}
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="wncms_accordion_page">
-                        <button class="accordion-button collapsed fw-bold text-gray-100 bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_page" aria-expanded="true" aria-controls="menu_option_page">
-                            @lang('wncms::word.custom_page')
-                        </button>
-                    </h2>
-                    <div id="menu_option_page" class="menu_options accordion-collapse collapse" aria-labelledby="wncms_accordion_page" data-bs-parent="#wncms_accordion">
-                        <div class="accordion-body mh-500px overflow-scroll white-space-nowrap">
-                            <div class="form-group">
-                                <div class="row">
-
-                                    {{-- From Page model --}}
-                                    @foreach (wncms()->page()->getList() as $page)
-                                        <div class="col-6">
-                                            <div class="form-check form-check-sm form-check-custom form-check-solid mb-2">
-                                                <input class="form-check-input" type="checkbox" data-id="{{ $page->id }}" data-name="{{ $page->title }}" data-type="page" data-model-type="page" data-model-id="{{ $page->id }}" id="checkbox_page_{{ $page->id }}">
-                                                <label class="form-check-label small" for="checkbox_page_{{ $page->id }}">{{ $page->title }}</label>
-                                            </div>
-                                        </div>
-                                    @endforeach
+                {{-- Models --}}
+                @if (!empty($menuSources ?? []))
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="wncms_accordion_models">
+                            <button class="accordion-button collapsed fw-bold text-gray-100 bg-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#menu_option_models" aria-expanded="true" aria-controls="menu_option_models">
+                                @lang('wncms::word.models')
+                            </button>
+                        </h2>
+                        <div id="menu_option_models" class="menu_options accordion-collapse collapse" aria-labelledby="wncms_accordion_models" data-bs-parent="#wncms_accordion">
+                            <div class="accordion-body mh-500px overflow-scroll white-space-nowrap menu-source-panel">
+                                <div class="form-group mb-3">
+                                    <label class="form-label" for="menu_source_selector">@lang('wncms::word.models')</label>
+                                    <select class="form-select form-select-sm menu-source-select" id="menu_source_selector">
+                                        <option value="">@lang('wncms::word.select_model', ['model_name' => __('wncms::word.model')])</option>
+                                        @foreach ($menuSources as $menuSource)
+                                            @if (($menuSource['type'] ?? '') !== 'model_search')
+                                                @continue
+                                            @endif
+                                            <option value="{{ $menuSource['key'] }}">{{ $menuSource['label'] }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
 
-                                <div><button class="btn btn-sm btn-secondary w-100 mt-3 fw-bold add_to_menu">@lang('wncms::word.add_to_menu')</button></div>
+                                <div class="form-group mb-3">
+                                    <label class="form-label" for="menu_source_keyword">@lang('wncms::word.search')</label>
+                                    <input type="text" class="form-control form-control-sm menu-source-search-input" id="menu_source_keyword" placeholder="@lang('wncms::word.enter_keyword_to_search')" autocomplete="off" disabled>
+                                </div>
+
+                                <div class="menu-source-search-results"></div>
+
                             </div>
                         </div>
                     </div>
-                </div>
+                @endif
 
                 {{-- Theme pages --}}
                 @php
@@ -410,6 +475,14 @@
 @endsection
 
 @push('foot_js')
+    @php
+        $currentMenu = $menu->menu_items()
+            ->whereNull('parent_id')
+            ->with('children', 'children.children')
+            ->orderBy('sort', 'asc')
+            ->get()
+            ->append(['thumbnail', 'resolved_name']);
+    @endphp
     <script src="//cdn.jsdelivr.net/npm/nestable2@1.6.0/jquery.nestable.min.js"></script>
     <script src="{{ asset('wncms/js/menu.js') . wncms()->addVersion('js') }}"></script>
     <script>
@@ -417,18 +490,24 @@
         window.wncmsMenuRoutes = {
             editMenuItem: '{{ route('menus.edit_menu_item') }}',
             getMenuItem: '{{ route('menus.get_menu_item') }}',
+            searchSourceItems: '{{ route('menus.search_source_items') }}',
             getTagLanguages: '{{ route('tags.get_languages') }}',
             checkTagsExist: '{{ route('api.v1.tags.exist') }}'
         };
 
         window.wncmsMenuTranslations = {
             newWindow: '{{ __('wncms::word.new_window') }}',
-            failed: '{{ __('wncms::word.failed') }}'
+            failed: '{{ __('wncms::word.failed') }}',
+            search: '{{ __('wncms::word.search') }}',
+            loading: '{{ __('wncms::word.loading') }}',
+            noResults: '{{ __('wncms::word.menu_source_no_results') }}',
+            remove: '{{ __('wncms::word.remove') }}',
+            enterKeywordToSearch: '{{ __('wncms::word.enter_keyword_to_search') }}'
         };
 
         $(document).ready(function() {
             // Get menu items as JSON
-            var current_menu = @json($menu->menu_items()->whereNull('parent_id')->with('children', 'children.children')->orderBy('sort', 'asc')->get()->append('thumbnail'));
+            var current_menu = @json($currentMenu);
 
             // Initialize menu editor
             initMenuEditor(

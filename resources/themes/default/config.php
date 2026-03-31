@@ -52,6 +52,24 @@ return [
                 'type'=>'heading',
             ],
             [
+                'label'=>'主色',
+                'name'=>'primary_color',
+                'type'=>'color',
+                'description'=>'用於手動測試多個顏色選項是否會互相連動',
+            ],
+            [
+                'label'=>'次色',
+                'name'=>'secondary_color',
+                'type'=>'color',
+                'description'=>'用於手動測試多個顏色選項是否會互相連動',
+            ],
+            [
+                'label'=>'強調色',
+                'name'=>'accent_color',
+                'type'=>'color',
+                'description'=>'用於手動測試多個顏色選項是否會互相連動',
+            ],
+            [
                 'label'=>'搜索框文字',
                 'name'=>'search_placeholder',
                 'type'=>'text',
@@ -174,6 +192,9 @@ return [
      * ----------------------------------------------------------------------------------------------------
      */
     'default' => [
+        'primary_color' => '#405189',
+        'secondary_color' => '#0ab39c',
+        'accent_color' => '#f06548',
         'search_placeholder' => '輸入關鍵字',
         'footer_text_1' => '免責聲明：本站資源來自互聯網收集,僅供用於學習和交流, 請遵循相關法律法規,本站壹切資源不代表本站立場, 如有侵權、後門、不妥請聯系本站刪除',
         'footer_text_2' => '© 2023 文尼CMS All Rights Reserved.',

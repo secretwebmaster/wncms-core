@@ -27,6 +27,7 @@ All WNCMS models (and your custom models) should extend this class to inherit:
 - Event dispatching when accessing attributes
 - Translatable model name resolution
 - Tag metadata definition support
+- Default menu-editor visibility control through `$showInMenuEditor`
 
 ## Key Properties
 
@@ -43,6 +44,9 @@ abstract class BaseModel extends Model implements BaseModelInterface
 
     // Required: unique model identifier
     public static $modelKey = '';
+
+    // Optional: expose this model in backend menu editor model picker
+    public static bool $showInMenuEditor = false;
 
     // Tag metadata definitions (optional)
     protected static array $tagMetas = [];
@@ -63,6 +67,7 @@ use Wncms\Models\BaseModel;
 class Product extends BaseModel
 {
     public static $modelKey = 'product';
+    public static bool $showInMenuEditor = true;
 
     protected static array $tagMetas = [
         [
@@ -78,6 +83,8 @@ class Product extends BaseModel
     ];
 }
 ```
+
+`$showInMenuEditor` controls whether the backend menu editor should generate a default searchable model source for this model. The default is `false` on `BaseModel`, so only models that explicitly opt in will appear in the shared **Models** accordion.
 
 ## Traits Used
 

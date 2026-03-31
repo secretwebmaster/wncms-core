@@ -32,6 +32,10 @@ class MenuItem extends BaseModel implements HasMedia
         // 'children.children',
     ];
 
+    protected $appends = [
+        'resolved_name',
+    ];
+
     public const SORTS = [
         'id',
         'name',
@@ -85,5 +89,10 @@ class MenuItem extends BaseModel implements HasMedia
     public function getValidatedUrlAttribute()
     {
         return wncms()->menu()->getMenuItemUrl($this);
+    }
+
+    public function getResolvedNameAttribute()
+    {
+        return wncms()->menu()->getMenuItemResolvedName($this);
     }
 }

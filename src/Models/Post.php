@@ -29,6 +29,8 @@ class Post extends BaseModel implements HasMedia, ApiModelInterface
      */
     public static $modelKey = 'post';
 
+    public static bool $showInMenuEditor = true;
+
     protected $guarded = [];
 
     protected $casts = [

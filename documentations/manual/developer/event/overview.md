@@ -8,6 +8,7 @@ WNCMS event docs are grouped by domain. Add new hooks to the matching group page
 
 - [Users Events](./users.md)
 - [Links Events](./links.md)
+- [Menus Events](./menus.md)
 - [Posts Events](./posts.md)
 - [Settings Events](./settings.md)
 - [Themes Events](./themes.md)

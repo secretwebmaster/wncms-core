@@ -27,6 +27,7 @@ Wncms\Models\BaseModel
 - 存取属性时分派事件
 - 可翻译的模型名称解析
 - 标签元资料定义支援
+- 透过 `$showInMenuEditor` 控制后台选单编辑器可见性
 
 ## 核心属性
 
@@ -43,6 +44,9 @@ abstract class BaseModel extends Model implements BaseModelInterface
 
     // 必要：唯一模型识别码
     public static $modelKey = '';
+
+    // 选用：是否显示在后台选单编辑器的模型选择器
+    public static bool $showInMenuEditor = false;
 
     // 标签元资料定义（选用）
     protected static array $tagMetas = [];
@@ -63,6 +67,7 @@ use Wncms\Models\BaseModel;
 class Product extends BaseModel
 {
     public static $modelKey = 'product';
+    public static bool $showInMenuEditor = true;
 
     protected static array $tagMetas = [
         [
@@ -78,6 +83,8 @@ class Product extends BaseModel
     ];
 }
 ```
+
+`$showInMenuEditor` 用于控制后台选单编辑器是否应为该模型自动生成预设的可搜索来源。`BaseModel` 预设为 `false`，因此只有明确启用的模型才会出现在统一的 **Models** accordion 中。
 
 ## 使用的 Traits
 

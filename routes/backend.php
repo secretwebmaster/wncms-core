@@ -133,6 +133,7 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
     Route::prefix('menus')->controller(MenuController::class)->group(function () {
         Route::post('/edit_menu_item', 'edit_menu_item')->middleware('can:menu_edit')->name('menus.edit_menu_item');
         Route::post('/get_menu_item', 'get_menu_item')->middleware('can:menu_edit')->name('menus.get_menu_item');
+        Route::post('/search_source_items', 'search_source_items')->middleware('can:menu_edit')->name('menus.search_source_items');
         Route::get('/', 'index')->middleware('can:menu_index')->name('menus.index');
         Route::get('/create', 'create')->middleware('can:menu_create')->name('menus.create');
         Route::get('/{id}/edit', 'edit')->middleware('can:menu_edit')->name('menus.edit');

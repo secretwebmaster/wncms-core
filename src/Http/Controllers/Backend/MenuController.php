@@ -7,6 +7,7 @@ use Wncms\Models\Website;
 use Wncms\Models\MenuItem;
 use Illuminate\Http\Request;
 use Wncms\Models\Tag;
+use Illuminate\Support\Arr;
 
 class MenuController extends BackendController
 {
@@ -96,6 +97,8 @@ class MenuController extends BackendController
             }
         }
 
+        $menuSources = wncms()->menu()->resolveMenuSources(request());
+
         // dd($tagTypeArr);
 
         $menus = $this->modelClass::all();
@@ -105,6 +108,7 @@ class MenuController extends BackendController
             'menus' => $menus,
             'menu' => $menu,
             'tagTypeArr' => $tagTypeArr,
+            'menuSources' => $menuSources,
         ]);
     }
 
@@ -149,14 +153,18 @@ class MenuController extends BackendController
     {
         // dd($menu_item);
         $existing_item = $menu->menu_items()->find($menu_item['id']);
+        $resolvedName = $this->resolveIncomingMenuItemName($menu_item);
+        $resolvedModelType = Arr::get($menu_item, 'modelType', Arr::get($menu_item, 'model_type'));
+        $resolvedModelId = Arr::get($menu_item, 'modelId', Arr::get($menu_item, 'model_id'));
+
         if ($existing_item) {
             $existing_item->update([
                 'parent_id' => $parent_id,
-                'model_type' => $menu_item['modelType'] ?? $existing_item->modelType,
-                'model_id' => $menu_item['modelId'] ?? $existing_item->modelId,
+                'model_type' => $resolvedModelType ?? $existing_item->model_type,
+                'model_id' => $resolvedModelId ?? $existing_item->model_id,
                 'icon' => $menu_item['icon'] ?? $existing_item->icon,
                 'type' => $menu_item['type'] ?? $existing_item->type,
-                'name' => $menu_item['name'] ?? __('wncms::word.untitled'),
+                'name' => $resolvedName,
                 'description' => $menu_item['description'] ?? null,
                 'url' => $menu_item['url'] ?? $existing_item->url,
                 'is_new_window' => $menu_item['is_new_window'] === 1 ? true : false,
@@ -167,11 +175,11 @@ class MenuController extends BackendController
         } else {
             $new_item = $menu->menu_items()->create([
                 'parent_id' => $parent_id,
-                'model_type' => $menu_item['modelType'] ?? null,
-                'model_id' => $menu_item['modelId'] ?? null,
+                'model_type' => $resolvedModelType ?? null,
+                'model_id' => $resolvedModelId ?? null,
                 'icon' => $menu_item['icon'] ?? null,
                 'type' => $menu_item['type'] ?? null,
-                'name' => $menu_item['name'] ?? __('wncms::word.untitled'),
+                'name' => $resolvedName,
                 'description' => $menu_item['description'] ?? null,
                 'url' => $menu_item['url'] ?? null,
                 'is_new_window' => $menu_item['is_new_window'] === 1 ? true : false,
@@ -180,8 +188,8 @@ class MenuController extends BackendController
             ]);
         }
 
-        if (!empty($menu_item['name'])) {
-            $new_item->setTranslation('name', app()->getLocale(), $menu_item['name']);
+        if ($resolvedName !== '') {
+            $new_item->setTranslation('name', app()->getLocale(), $resolvedName);
         }
 
         if (!empty($menu_item['children'])) {
@@ -192,9 +200,38 @@ class MenuController extends BackendController
         }
     }
 
+    public function search_source_items(Request $request)
+    {
+        $sourceKey = (string) $request->input('source_key', '');
+        $keyword = (string) $request->input('keyword', '');
+
+        $source = wncms()->menu()->getMenuSource($sourceKey, $request);
+        if (!$source) {
+            return response()->json([
+                'status' => 'fail',
+                'items' => [],
+                'message' => __('wncms::word.model_not_found', ['model_name' => 'menu_source']),
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'items' => wncms()->menu()->searchMenuSourceItems($sourceKey, $keyword, $request),
+        ]);
+    }
+
     public function get_menu_item(Request $request)
     {
-        return wncms()->getModelClass('menu_item')::find($request->menu_item_id)->append('thumbnail');
+        $menuItem = wncms()->getModelClass('menu_item')::find($request->menu_item_id);
+
+        if (!$menuItem) {
+            return response()->json([
+                'status' => 'fail',
+                'message' => __('wncms::word.menu_item_is_not_found'),
+            ], 404);
+        }
+
+        return $menuItem->append(['thumbnail', 'resolved_name']);
     }
 
     public function edit_menu_item(Request $request)
@@ -244,7 +281,7 @@ class MenuController extends BackendController
                 'status' => 'success',
                 'message' => __('wncms::word.successfully_updated'),
                 'menu_item' => $menu_item,
-                'menu' => $menu_item->menu->menu_items()->whereNull('parent_id')->with('children', 'children.children')->get(),
+                'menu' => $menu_item->menu->menu_items()->whereNull('parent_id')->with('children', 'children.children')->get()->append(['resolved_name']),
                 'hide_modal' => true,
                 'restoreBtn' => true,
             ]);
@@ -255,6 +292,24 @@ class MenuController extends BackendController
                 'hide_modal' => false,
             ]);
         }
+    }
+
+    protected function resolveIncomingMenuItemName(array $menuItem): ?string
+    {
+        $type = (string) ($menuItem['type'] ?? '');
+        $name = trim((string) Arr::get($menuItem, 'name', ''));
+        $modelType = trim((string) Arr::get($menuItem, 'modelType', Arr::get($menuItem, 'model_type', '')));
+        $modelId = trim((string) Arr::get($menuItem, 'modelId', Arr::get($menuItem, 'model_id', '')));
+
+        if ($name !== '') {
+            return $name;
+        }
+
+        if ($type !== 'external_link' && ($modelType !== '' || $modelId !== '')) {
+            return null;
+        }
+
+        return __('wncms::word.untitled');
     }
 
     // public function get_latest_menu(Request $request){

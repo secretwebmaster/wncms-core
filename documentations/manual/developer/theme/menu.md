@@ -52,6 +52,45 @@ Each menu consists of:
 
 ## Creating Menus in Backend
 
+### Extending Menu Sources
+
+The backend menu editor now exposes one shared **Models** accordion. Its dropdown is populated from models extending `Wncms\Models\BaseModel` where `public static bool $showInMenuEditor = true`.
+
+Default flow:
+
+- `BaseModel` defaults `showInMenuEditor` to `false`
+- core models such as `Post` and `Page` opt in explicitly
+- the menu manager builds default model-search sources from those eligible models
+- `wncms.backend.menus.sources.resolve` runs after that so plugins or host projects can add, remove, or modify the final source list
+
+Typical use case:
+
+- register a project-specific model such as `Project`
+- search records by keyword instead of preloading the full table
+- add selected records as menu items that store `model_type` and `model_id`
+- leave menu item title empty to keep using the linked model's current title/name at runtime
+
+Example model opt-in:
+
+```php
+class Project extends BaseModel
+{
+    public static $modelKey = 'project';
+    public static bool $showInMenuEditor = true;
+}
+```
+
+Example hook override:
+
+```php
+Event::listen('wncms.backend.menus.sources.resolve', function (&$sources, $request) {
+    $sources = collect($sources)
+        ->reject(fn ($source) => ($source['key'] ?? null) === 'page')
+        ->values()
+        ->all();
+});
+```
+
 ### 1. Create a Menu
 
 In the WNCMS backend:
@@ -84,6 +123,13 @@ For each menu item:
    - **Icon**: Icon class (optional)
      - Font Awesome free icon search: `https://fontawesome.com/v6/search?ic=free-collection`
    - **CSS Class**: Custom styling (optional)
+
+When using the unified **Models** accordion:
+
+- choose the model from the dropdown
+- type a keyword to search the selected model table
+- click results to collect them in the selected list below the search box
+- click **Add to Menu** to convert those selected records into menu items
 
 **Frontend route naming note:**
 
