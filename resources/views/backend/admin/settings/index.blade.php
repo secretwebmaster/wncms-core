@@ -309,6 +309,7 @@
 
                 {{-- developer_mode tab --}}
                 @includeWhen(gss('developer_mode'), 'wncms::backend.admin.settings.tabs.developer')
+                @includeWhen(gss('superadmin_mode'), 'wncms::backend.admin.settings.tabs.superadmin')
 
                 {{-- submit --}}
                 <div class="card-footer d-flex justify-content-end mt-5">

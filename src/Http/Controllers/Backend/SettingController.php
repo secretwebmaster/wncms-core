@@ -14,8 +14,18 @@ class SettingController extends Controller
 {
     public function index(Request $request)
     {
-        if ($request->has('developer_mode')) {
-            uss('developer_mode', $request->developer_mode === '1' ? '1' : '0');
+        if ($request->has('developer_mode') || $request->has('superadmin_mode')) {
+
+            // if user has role admin
+            if(auth()->user()->hasRole('admin')) {
+                uss('developer_mode', $request->developer_mode === '1' ? '1' : '0');
+            }
+
+            // if user has role admin or superadmin
+            if(auth()->user()->hasRole(['admin', 'superadmin'])) {
+                uss('superadmin_mode', $request->superadmin_mode === '1' ? '1' : '0');
+            }
+            
             return redirect()->route('settings.index');
         }
 
