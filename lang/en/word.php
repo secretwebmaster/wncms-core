@@ -2211,7 +2211,13 @@ $words = [
     'comment_count' => 'Comments: :count',
     'add_comment' => 'Add Comment',
     'edit_comment' => 'Edit Comment',
+    'reply' => 'Reply',
+    'guest' => 'Guest',
+    'visible' => 'Visible',
+    'rejected' => 'Rejected',
     'write_a_comment' => 'Write your comment...',
+    'comment_order_newest' => 'Newest First',
+    'comment_order_oldest' => 'Oldest First',
 
     // 6.0.0 alpha1-3
     'package_activated' => 'Package activated',

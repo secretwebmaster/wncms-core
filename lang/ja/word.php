@@ -2211,7 +2211,13 @@ $words = [
     'comment_count' => 'コメント数: :count',
     'add_comment' => 'コメントを追加',
     'edit_comment' => 'コメントを編集',
+    'reply' => '返信',
+    'guest' => 'ゲスト',
+    'visible' => '表示',
+    'rejected' => '却下',
     'write_a_comment' => 'コメントを書く...',
+    'comment_order_newest' => '新しい順',
+    'comment_order_oldest' => '古い順',
 
     // 6.0.0 alpha1-3
     'package_activated' => 'パッケージが有効化されました',

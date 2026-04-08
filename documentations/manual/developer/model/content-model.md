@@ -476,6 +476,8 @@ php artisan migrate
 | `HasApi`             | API endpoints       | When exposing via API                 |
 | `HasOptions`         | Dynamic options     | For flexible key-value settings       |
 
+When a content model uses `HasComments`, the default backend post editor can manage comment threads directly from the comments tab. Current admin tools cover inline create, inline reply, full-card inline edit (author, created time, status, and content), author reassignment through remote Tagify user search, comment ordering controls (newest or oldest), and delete flows for existing comments without loading the full user list into the browser.
+
 ## Summary
 
 Content models in WNCMS v6.x.x:

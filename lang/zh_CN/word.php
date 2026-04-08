@@ -2211,7 +2211,13 @@ $words = [
     'comment_count' => '评论数: :count',
     'add_comment' => '添加评论',
     'edit_comment' => '编辑评论',
+    'reply' => '回复',
+    'guest' => '访客',
+    'visible' => '显示',
+    'rejected' => '已拒绝',
     'write_a_comment' => '写下你的评论...',
+    'comment_order_newest' => '最新优先',
+    'comment_order_oldest' => '最早优先',
 
     // 6.0.0 alpha1-3
     'package_activated' => '套件已启用',

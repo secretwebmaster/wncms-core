@@ -476,6 +476,8 @@ php artisan migrate
 | `HasApi`             | API 端點   | 透過 API 公開時           |
 | `HasOptions`         | 動態選項   | 用於彈性鍵值設定          |
 
+當內容模型使用 `HasComments` 時，預設的文章後台編輯頁可直接在評論分頁管理留言串。現在的管理功能涵蓋 inline 新增、inline 回覆、整卡 inline 編輯（作者、建立時間、狀態與內容）、透過遠端 Tagify 使用者搜尋變更作者、留言排序控制（最新或最早）與刪除既有評論，且不會一次把完整使用者清單載入瀏覽器。
+
 ## 總結
 
 WNCMS v6.x.x 的內容模型：

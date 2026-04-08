@@ -158,8 +158,8 @@ class PostController extends BackendController
             }
         }
 
-        if (!empty($request->post_thumbnail)) {
-            $post->addMediaFromRequest('post_thumbnail')->toMediaCollection('post_thumbnail');
+        if ($thumbnail = $request->file('post_thumbnail')) {
+            $post->addMedia($thumbnail)->toMediaCollection('post_thumbnail');
         }
 
         //tags
@@ -180,6 +180,7 @@ class PostController extends BackendController
         $this->flush();
         return redirect()->route('posts.edit', [
             'id' => $post->id,
+            'tab' => $request->input('active_tab', 'basic'),
         ]);
     }
 
@@ -190,10 +191,31 @@ class PostController extends BackendController
 
     public function edit($id)
     {
+        $activeTab = request()->query('tab')
+            ?? old('active_tab')
+            ?? session('active_tab', 'basic');
+        $commentOrder = request()->query('comments_order', 'newest');
+        $allowedCommentOrders = ['newest', 'oldest'];
+        if (!in_array($commentOrder, $allowedCommentOrders, true)) {
+            $commentOrder = 'newest';
+        }
+
         $post = $this->modelClass::withTrashed()->find($id);
         if (!$post) {
             return back()->withMessage(__('wncms::word.model_not_found', ['model_name' => __('wncms::word.' . $this->singular)]));
         }
+
+        $commentsQuery = $post->comments()
+            ->whereNull('parent_id')
+            ->with(['user', 'children', 'children.user']);
+
+        if ($commentOrder === 'oldest') {
+            $commentsQuery->oldest();
+        } else {
+            $commentsQuery->latest();
+        }
+
+        $comments = $commentsQuery->get();
 
         if (isAdmin()) {
             $users = wncms()->getModel('user')::all();
@@ -211,6 +233,10 @@ class PostController extends BackendController
             'users' => $users,
             'websites' => $websites,
             'post' => $post,
+            'activeTab' => $activeTab,
+            'commentStatuses' => wncms()->getModel('comment')::STATUSES,
+            'comments' => $comments,
+            'commentOrder' => $commentOrder,
         ]);
     }
 
@@ -293,8 +319,8 @@ class PostController extends BackendController
         }
 
         //thumbnail
-        if (!empty($request->post_thumbnail)) {
-            $post->addMediaFromRequest('post_thumbnail')->toMediaCollection('post_thumbnail');
+        if ($thumbnail = $request->file('post_thumbnail')) {
+            $post->addMedia($thumbnail)->toMediaCollection('post_thumbnail');
         }
 
         //post_category
@@ -323,6 +349,7 @@ class PostController extends BackendController
         $this->flush();
         return redirect()->route('posts.edit', [
             'id' => $post->id,
+            'tab' => $request->input('active_tab', 'basic'),
         ]);
     }
 
@@ -551,7 +578,11 @@ class PostController extends BackendController
 
         // Get images from placeholder directory
         $imageDirectory = public_path('wncms/images/placeholders');
-        $imageFilenames = preg_grep('/^placeholder_16_9_/', scandir($imageDirectory));
+        $imageFilenames = [];
+
+        if (is_dir($imageDirectory)) {
+            $imageFilenames = preg_grep('/^placeholder_16_9_/', scandir($imageDirectory)) ?: [];
+        }
 
         // Create Post model
         // $faker = Faker::create(config('app.locale', 'zh_TW'));
@@ -568,8 +599,10 @@ class PostController extends BackendController
 
         for ($i = 0; $i < $count; $i++) {
             // Choose a random image filename
-            $randomImageFilename = $fakers[config('app.locale')]->randomElement($imageFilenames);
-            $imagePath = '/wncms/images/placeholders/' . $randomImageFilename;
+            $randomImageFilename = !empty($imageFilenames)
+                ? $fakers[config('app.locale')]->randomElement($imageFilenames)
+                : null;
+            $imagePath = $randomImageFilename ? '/wncms/images/placeholders/' . $randomImageFilename : null;
 
             // Add Sub title to paragraphs
             $content = "";
