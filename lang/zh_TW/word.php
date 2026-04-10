@@ -474,6 +474,7 @@ $words = [
     'install_cli_website_created' => '網站已建立，名稱 :site_name，網域 :domain，主題 :theme',
     'install_cli_default_theme_options_added' => '已為 :theme 新增預設主題選項',
     'install_cli_welcome_completed' => '歡迎使用 WNCMS！安裝已完成。',
+    'install_cli_frontend_home' => '前端首頁: :url',
     'install_cli_default_admin_account' => '預設管理員帳號:',
     'install_cli_login_url' => '登入 URL: :url',
     'install_cli_email' => 'Email: admin@demo.com',

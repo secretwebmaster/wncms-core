@@ -31,6 +31,7 @@ class InstallerManager
         $this->publishAssets();
         $this->installCustomLangFiles($input['app_locale'] ?? null);
         $this->installCustomRouteFiles();
+        $this->removeDefaultLaravelWelcomeRoute();
         $this->updateSystemSettings($input);
         $this->markInstalled();
         $this->finalize();
@@ -394,6 +395,40 @@ class InstallerManager
                     info("Failed to create route file: $routeFilePath");
                 }
             }
+        }
+    }
+
+    /**
+     * Remove Laravel default welcome route from routes/web.php when present.
+     */
+    public function removeDefaultLaravelWelcomeRoute(): void
+    {
+        $webRoutePath = base_path('routes/web.php');
+
+        if (!File::exists($webRoutePath)) {
+            return;
+        }
+
+        $content = File::get($webRoutePath);
+        if ($content === false || trim($content) === '') {
+            return;
+        }
+
+        $patterns = [
+            "/\\n?Route::get\\('\\/',\\s*function\\s*\\(\\)\\s*\\{\\s*return\\s+view\\('welcome'\\);\\s*\\}\\);\\s*/s",
+            "/\\n?Route::view\\('\\/',\\s*'welcome'\\);\\s*/s",
+        ];
+
+        $updated = preg_replace($patterns, "\n", $content);
+        if (!is_string($updated) || $updated === $content) {
+            return;
+        }
+
+        // Keep file tidy after route block removal.
+        $updated = preg_replace("/\\n{3,}/", "\n\n", $updated);
+        if (is_string($updated)) {
+            File::put($webRoutePath, trim($updated) . "\n");
+            info("removed default Laravel welcome route from {$webRoutePath}");
         }
     }
     /**

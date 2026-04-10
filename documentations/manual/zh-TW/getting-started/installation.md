@@ -116,6 +116,7 @@ php artisan wncms:install mysql 127.0.0.1 3306 example_com example_com "ABCDCF12
 - 配置 `.env`
 - 生成密鑰
 - 運行遷移
+- 偵測到 Laravel 預設 `routes/web.php` 歡迎首頁路由時自動移除
 - 創建管理員用戶
 - 設置網站設置
 - 如果指定則啟用 HTTPS

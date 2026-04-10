@@ -474,6 +474,7 @@ $words = [
     'install_cli_website_created' => 'Website created with name :site_name, domain :domain, theme :theme',
     'install_cli_default_theme_options_added' => 'Default theme options added for :theme',
     'install_cli_welcome_completed' => 'Welcome to WNCMS! Your installation is complete.',
+    'install_cli_frontend_home' => 'Frontend Home: :url',
     'install_cli_default_admin_account' => 'Default admin account:',
     'install_cli_login_url' => 'Login URL: :url',
     'install_cli_email' => 'Email: admin@demo.com',

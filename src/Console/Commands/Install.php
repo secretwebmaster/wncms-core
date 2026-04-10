@@ -236,7 +236,10 @@ class Install extends Command
         $this->info("  \ V  V / | |\  | |___| |  | |___) |");
         $this->info("   \_/\_/  |_| \_|\____|_|  |_|____/ ");
         $this->info("\n" . $this->tr('install_cli_welcome_completed') . " \n");
+        $frontendUrl = rtrim((string) ($input['app_url'] ?? 'http://localhost'), '/');
         $loginUrl = rtrim((string) ($input['app_url'] ?? 'http://localhost'), '/') . '/panel/login';
+        $this->info($this->tr('install_cli_frontend_home', ['url' => $frontendUrl]));
+        $this->info('');
         $this->info($this->tr('install_cli_default_admin_account'));
         $this->info($this->tr('install_cli_login_url', ['url' => $loginUrl]));
         $this->info($this->tr('install_cli_email'));

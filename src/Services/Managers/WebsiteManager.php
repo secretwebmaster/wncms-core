@@ -62,7 +62,7 @@ class WebsiteManager
             $cacheKey = wncms()->cache()->createKey($this->cacheKeyPrefix, __FUNCTION__, $shouldAuth, wncms()->getAllArgs(__METHOD__, func_get_args()));
             // wncms()->cache()->forget($cacheKey, $this->cacheTags);
     
-            return wncms()->cache()->tags($this->cacheTags)->remember($cacheKey, $this->cacheTime, function () use ($websiteId, $fallbackToCurrent, $withs, $domain) {
+            $website = wncms()->cache()->tags($this->cacheTags)->remember($cacheKey, $this->cacheTime, function () use ($websiteId, $fallbackToCurrent, $withs, $domain) {
       
                 $q = wncms()->getModelClass('website')::query();
     
@@ -87,6 +87,13 @@ class WebsiteManager
          
                 return $website;
             });
+
+            if ($this->isIncompleteObject($website)) {
+                wncms()->cache()->flush($this->cacheTags);
+                return null;
+            }
+
+            return $website;
         }catch(\Exception $e){
             logger()->error($e);
         }
@@ -124,6 +131,11 @@ class WebsiteManager
                 // return null placeholder to avoid null value not being cached
                 return $q->first() ?? false;
             });
+
+            if ($this->isIncompleteObject($website)) {
+                wncms()->cache()->flush($this->cacheTags);
+                return null;
+            }
 
             return $website ? $website : null;
 
@@ -303,5 +315,10 @@ class WebsiteManager
             return $domainArray;
         });
         return $domains;
+    }
+
+    protected function isIncompleteObject($value): bool
+    {
+        return is_object($value) && get_debug_type($value) === '__PHP_Incomplete_Class';
     }
 }

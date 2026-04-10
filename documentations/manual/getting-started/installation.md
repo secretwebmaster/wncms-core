@@ -116,6 +116,7 @@ The installer will automatically:
 - Configure `.env`
 - Generate keys
 - Run migrations
+- Remove Laravel default `routes/web.php` welcome homepage route when detected
 - Create admin user
 - Setup website settings
 - Enable HTTPS if specified

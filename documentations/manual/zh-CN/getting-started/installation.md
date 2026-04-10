@@ -116,6 +116,7 @@ php artisan wncms:install mysql 127.0.0.1 3306 example_com example_com "ABCDCF12
 - 配置 `.env`
 - 生成密钥
 - 运行迁移
+- 检测到 Laravel 默认 `routes/web.php` 欢迎首页路由时自动移除
 - 创建管理员用户
 - 设置网站设置
 - 如果指定则启用 HTTPS

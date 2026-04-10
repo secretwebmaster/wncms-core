@@ -474,6 +474,7 @@ $words = [
     'install_cli_website_created' => '网站已创建，名称 :site_name，域名 :domain，主题 :theme',
     'install_cli_default_theme_options_added' => '已为 :theme 添加默认主题选项',
     'install_cli_welcome_completed' => '欢迎使用 WNCMS！安装已完成。',
+    'install_cli_frontend_home' => '前端首页: :url',
     'install_cli_default_admin_account' => '默认管理员账户:',
     'install_cli_login_url' => '登录 URL: :url',
     'install_cli_email' => 'Email: admin@demo.com',

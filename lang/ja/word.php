@@ -474,6 +474,7 @@ $words = [
     'install_cli_website_created' => 'ウェブサイトを作成しました。名前: :site_name、ドメイン: :domain、テーマ: :theme',
     'install_cli_default_theme_options_added' => ':theme のデフォルトテーマオプションを追加しました',
     'install_cli_welcome_completed' => 'WNCMS へようこそ！インストールが完了しました。',
+    'install_cli_frontend_home' => 'フロントページ: :url',
     'install_cli_default_admin_account' => 'デフォルト管理者アカウント:',
     'install_cli_login_url' => 'ログイン URL: :url',
     'install_cli_email' => 'Email: admin@demo.com',
