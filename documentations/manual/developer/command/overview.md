@@ -266,6 +266,11 @@ Both modes now use the same shared installer pipeline in `InstallerManager`, so 
 - system settings initialization
 - install marker + cache finalize
 
+CLI locale behavior:
+- `--app_locale=` controls installer terminal message language.
+- Example: `--app_locale=zh_CN` displays install progress messages in Simplified Chinese.
+- If locale is unsupported or empty, installer falls back to configured app locale/default supported locale.
+
 ### Multi-site default behavior
 
 - `multi_website` default is `false`.

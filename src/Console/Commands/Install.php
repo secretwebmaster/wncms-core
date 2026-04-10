@@ -89,7 +89,8 @@ class Install extends Command
      */
     public function handle()
     {
-        $this->info('Starting WNCMS installation...');
+        $this->setConsoleLocaleFromOption($this->option('app_locale'));
+        $this->info($this->tr('install_cli_starting'));
 
         // Step 1: Get arguments
         $dbConnection = $this->argument('db_connection');
@@ -98,7 +99,7 @@ class Install extends Command
         $dbName = $this->argument('db_name');
         $dbUser = $this->argument('db_user');
         $dbPass = $this->argument('db_pass');
-        $this->info('Step 1: CLI arguments loaded');
+        $this->info($this->tr('install_cli_step_1_loaded'));
 
         // Step 2: Validate required inputs
         $requiredFields = [
@@ -111,19 +112,19 @@ class Install extends Command
         ];
         foreach ($requiredFields as $key => $value) {
             if (empty($value)) {
-                $this->error("Missing required parameter: {$key}");
+                $this->error($this->tr('install_cli_missing_required_parameter', ['key' => $key]));
                 return Command::FAILURE;
             }
         }
         if (!is_numeric($dbPort)) {
-            $this->error('Database port must be numeric');
+            $this->error($this->tr('install_cli_database_port_must_be_numeric'));
             return Command::FAILURE;
         }
-        $this->info('Step 2: Required parameters validated');
+        $this->info($this->tr('install_cli_step_2_validated'));
 
         // Step 3: Collect optional options
         $options = $this->options();
-        $this->info('Step 3: CLI options collected');
+        $this->info($this->tr('install_cli_step_3_collected'));
 
         // Step 4: Map CLI input → InstallerManager input
         $input = [
@@ -164,7 +165,7 @@ class Install extends Command
             'domain' => $options['domain'],
             'theme' => $options['theme'] ?: 'default',
         ];
-        $this->info('Step 4: Installation input mapped');
+        $this->info($this->tr('install_cli_step_4_mapped'));
 
         $installer = new InstallerManager;
 
@@ -174,17 +175,17 @@ class Install extends Command
         $result = $installer->runInstallation($input);
 
         if (!$result['passed']) {
-            $this->error('Database connection failed');
+            $this->error($this->tr('install_cli_database_connection_failed'));
             return Command::FAILURE;
         }
-        $this->info('Step 5: Shared installation pipeline completed');
+        $this->info($this->tr('install_cli_step_5_completed'));
 
-        $this->info('WNCMS installation completed successfully.');
+        $this->info($this->tr('install_cli_installation_success'));
 
         // Step 6: Optional website creation
         if (!empty($input['domain'])) {
 
-            $this->info('Step 6: Creating website model...');
+            $this->info($this->tr('install_cli_step_6_creating_website'));
 
             $siteName = $input['site_name'] ?: $input['domain'];
             $theme = $input['theme'] ?: 'default';
@@ -193,7 +194,9 @@ class Install extends Command
 
             $exists = $websiteModel::where('domain', $input['domain'])->first();
             if ($exists) {
-                $this->info("Website {$input['domain']} already exists. Skipping creation.");
+                $this->info($this->tr('install_cli_website_already_exists_skipping', [
+                    'domain' => $input['domain'],
+                ]));
             } else {
                 $website = $websiteModel::create([
                     'site_name' => $siteName,
@@ -201,7 +204,11 @@ class Install extends Command
                     'theme' => $theme,
                 ]);
 
-                $this->info("Website created with name {$siteName}, domain {$input['domain']}, theme {$theme}");
+                $this->info($this->tr('install_cli_website_created', [
+                    'site_name' => $siteName,
+                    'domain' => $input['domain'],
+                    'theme' => $theme,
+                ]));
 
                 // Add default theme options
                 $defaultOptions = config("theme.{$theme}.default");
@@ -217,10 +224,10 @@ class Install extends Command
                     );
                 }
 
-                $this->info("Default theme options added for {$theme}");
+                $this->info($this->tr('install_cli_default_theme_options_added', ['theme' => $theme]));
             }
         } else {
-            $this->info('Step 6: No domain set. Website model creation skipped.');
+            $this->info($this->tr('install_cli_step_6_skipped_no_domain'));
         }
 
         $this->info("__        ___   _  ____ __  __ ____  ");
@@ -228,11 +235,63 @@ class Install extends Command
         $this->info(" \ \ /\ / /|  \| | |   | |\/| \___ \ ");
         $this->info("  \ V  V / | |\  | |___| |  | |___) |");
         $this->info("   \_/\_/  |_| \_|\____|_|  |_|____/ ");
-        $this->info("\nWelcome to WNCMS! Your installation is complete. \n");
-        $this->info('Default admin account:');
-        $this->info('Email: admin@demo.com');
-        $this->info('Password: wncms.cc');
+        $this->info("\n" . $this->tr('install_cli_welcome_completed') . " \n");
+        $loginUrl = rtrim((string) ($input['app_url'] ?? 'http://localhost'), '/') . '/panel/login';
+        $this->info($this->tr('install_cli_default_admin_account'));
+        $this->info($this->tr('install_cli_login_url', ['url' => $loginUrl]));
+        $this->info($this->tr('install_cli_email'));
+        $this->info($this->tr('install_cli_password'));
 
         return Command::SUCCESS;
+    }
+
+    protected function tr(string $key, array $replace = []): string
+    {
+        return __('wncms::word.' . $key, $replace);
+    }
+
+    protected function setConsoleLocaleFromOption($localeInput): void
+    {
+        app()->setLocale($this->resolveCliLocale($localeInput ? (string) $localeInput : null));
+    }
+
+    protected function resolveCliLocale(?string $localeInput): string
+    {
+        $supportedLocales = (array) config('laravellocalization.supportedLocales', []);
+        $fallbackLocale = $this->normalizeLocaleKey((string) config('app.locale', 'en'));
+
+        if (!isset($supportedLocales[$fallbackLocale])) {
+            $fallbackLocale = array_key_first($supportedLocales) ?: 'en';
+        }
+
+        $rawLocale = trim((string) ($localeInput ?? ''));
+        if ($rawLocale === '') {
+            return $fallbackLocale;
+        }
+
+        $normalizedLocale = $this->normalizeLocaleKey($rawLocale);
+        if (isset($supportedLocales[$normalizedLocale])) {
+            return $normalizedLocale;
+        }
+
+        return $fallbackLocale;
+    }
+
+    protected function normalizeLocaleKey(string $locale): string
+    {
+        $locale = str_replace('-', '_', trim($locale));
+        if ($locale === '') {
+            return $locale;
+        }
+
+        $parts = explode('_', $locale);
+        if (count($parts) === 1) {
+            return strtolower($parts[0]);
+        }
+
+        $language = strtolower(array_shift($parts));
+        $region = strtoupper(array_shift($parts));
+
+        return $language . '_' . $region . (empty($parts) ? '' : '_' . implode('_', $parts));
     }
 }

@@ -155,6 +155,7 @@ https://your-domain.com/panel/login
 
 > [!WARNING] REMINDER
 > You must change the password after installation.
+> login URL: `https://your-domain.com/panel/login`
 > default user: `admin@demo.com`
 > default password: `wncms.cc`
 

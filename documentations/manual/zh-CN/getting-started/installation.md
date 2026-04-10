@@ -155,6 +155,7 @@ https://your-domain.com/panel/login
 
 > [!WARNING] 提醒
 > 您必须在安装后更改密码。
+> 登录 URL: `https://your-domain.com/panel/login`
 > 默认用户: `admin@demo.com`
 > 默认密码: `wncms.cc`
 

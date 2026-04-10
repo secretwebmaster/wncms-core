@@ -264,6 +264,7 @@ https://your-domain.com/panel/login
 
 **Default Credentials:**
 
+- Login URL: `https://your-domain.com/panel/login`
 - Email: `admin@demo.com`
 - Password: `wncms.cc`
 

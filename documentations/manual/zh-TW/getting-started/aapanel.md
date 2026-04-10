@@ -266,6 +266,7 @@ https://your-domain.com/panel/login
 
 **默認憑據:**
 
+- 登入 URL: `https://your-domain.com/panel/login`
 - 電子郵件: `admin@demo.com`
 - 密碼: `wncms.cc`
 

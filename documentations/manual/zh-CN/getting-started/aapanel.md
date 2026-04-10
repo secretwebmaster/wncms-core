@@ -266,6 +266,7 @@ https://your-domain.com/panel/login
 
 **默认凭据:**
 
+- 登录 URL: `https://your-domain.com/panel/login`
 - 电子邮件: `admin@demo.com`
 - 密码: `wncms.cc`
 
