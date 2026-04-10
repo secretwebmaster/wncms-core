@@ -29,7 +29,7 @@ class InstallerManager
         $this->generateAppKey();
         $this->runDatabaseSetup();
         $this->publishAssets();
-        $this->installCustomLangFiles();
+        $this->installCustomLangFiles($input['app_locale'] ?? null);
         $this->installCustomRouteFiles();
         $this->updateSystemSettings($input);
         $this->markInstalled();
@@ -326,18 +326,38 @@ class InstallerManager
     /**
      * Install custom language files (custom.php for every lang).
      */
-    public function installCustomLangFiles(): void
+    public function installCustomLangFiles(?string $preferredLocale = null): void
     {
-        $availableLanguages = array_diff(
-            scandir(lang_path()),
-            ['.', '..', '.gitkeep', '.gitignore']
-        );
-
         $customContent = "<?php\n\n\$custom_words = [\n\n];\n\nreturn \$custom_words;";
+        $langRootPath = lang_path();
+
+        if (!File::exists($langRootPath)) {
+            File::makeDirectory($langRootPath, 0755, true);
+            info("created language root dir: {$langRootPath}");
+        }
+
+        $availableLanguages = [];
+        $scanned = scandir($langRootPath);
+
+        if ($scanned !== false) {
+            $availableLanguages = array_values(array_diff($scanned, ['.', '..', '.gitkeep', '.gitignore']));
+        }
+
+        $targetLocales = array_unique(array_filter(array_merge(
+            $availableLanguages,
+            ['en', 'zh_CN', 'zh_TW', 'ja'],
+            [$this->normalizeLocaleKey((string) ($preferredLocale ?? '')), $this->normalizeLocaleKey((string) config('app.locale', 'en'))]
+        )));
 
         info('adding custom.php to each lang dir');
 
-        foreach ($availableLanguages as $language) {
+        foreach ($targetLocales as $language) {
+            $languagePath = lang_path($language);
+            if (!File::exists($languagePath)) {
+                File::makeDirectory($languagePath, 0755, true);
+                info("created lang dir: {$languagePath}");
+            }
+
             $customFilePath = lang_path("{$language}/custom.php");
 
             if (!File::exists($customFilePath)) {

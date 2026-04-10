@@ -80,6 +80,7 @@ php artisan wncms:install \
 `--app_locale` 用於在安裝時設定預設語言。
 - 如果未提供，安裝器會使用 `config('app.locale')`。
 - 如果提供了不支援的語言代碼，安裝器會回退到設定中的預設語言。
+- 在 Laravel 13 全新專案中若尚未存在 `lang/`，安裝器會自動建立 `lang/`，並為預設語系與最終解析語系自動產生 `custom.php`。
 
 > [!NOTE]
 > 全新 Laravel 專案可以保留預設遷移（`users`、`jobs` 等）。

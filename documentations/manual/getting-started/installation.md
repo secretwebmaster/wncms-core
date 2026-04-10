@@ -80,6 +80,7 @@ php artisan wncms:install \
 `--app_locale` sets the default language during installation.
 - If omitted, installer uses `config('app.locale')`.
 - If an unsupported locale is provided, installer falls back to the configured default locale.
+- On Laravel 13 fresh projects where `lang/` does not exist yet, installer will create `lang/` and generate `custom.php` for default locales and the resolved app locale automatically.
 
 > [!NOTE]
 > Fresh Laravel projects can keep default Laravel migrations (`users`, `jobs`, etc.).
