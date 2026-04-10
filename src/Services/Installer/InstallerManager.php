@@ -178,11 +178,11 @@ class InstallerManager
             'APP_DEBUG=' . ($input['app_debug'] ?? '') . "\n" .
 
             (isset($input['app_locale']) && $input['app_locale'] !== '' ? 'APP_LOCALE=' . $input['app_locale'] . "\n" : '') .
+            'AUTH_MODEL="Wncms\\\\Models\\\\User"' . "\n" .
 
             'DEBUGBAR_ENABLED=false' . "\n" .
             'CSS_DEBUG=false' . "\n" .
             'JS_DEBUG=false' . "\n" .
-            'APP_VERSION=' . config('installer.version') . "\n" .
             'CUSTOM_VERSION=1' . "\n" .
             'LOG_LEVEL=' . ($input['log_level'] ?? '') . "\n" .
             'APP_URL=' . ($input['app_url'] ?? '') . "\n\n" .

@@ -6,10 +6,10 @@ return [
     'testing_is_installed' => null,
 
     'models' => [
-        'advertisement' => [
-            'class' => \Wncms\Models\Advertisement::class,
-            'website_mode' => 'single',
-        ],
+        // 'advertisement' => [
+        //     'class' => \Wncms\Models\Advertisement::class,
+        //     'website_mode' => 'single',
+        // ],
         // 'tag' => [
         //     'class' => \Wncms\Models\Tag::class,
         //     'website_mode' => 'global', // global | single | multi
@@ -28,8 +28,8 @@ return [
         // ],
     ],
 
-    'ecommerce' => [
-        'default_currency_symbol' => '$',
-        'default_currency_unit' => 'USD',
-    ],
+    // 'ecommerce' => [
+    //     'default_currency_symbol' => '$',
+    //     'default_currency_unit' => 'USD',
+    // ],
 ];
