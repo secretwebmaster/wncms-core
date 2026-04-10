@@ -402,10 +402,14 @@ trait PackageMethods
 
         // Sync permissions
         $permissions = $registered['permissions'] ?? [];
-        $roles = Role::whereIn('name', ['superadmin', 'admin'])->get();
+        $guardName = $this->resolvePermissionGuardName();
+        $roles = Role::whereIn('name', ['superadmin', 'admin'])->where('guard_name', $guardName)->get();
 
         foreach ($permissions as $permission) {
-            $perm = Permission::firstOrCreate(['name' => $permission]);
+            $perm = Permission::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => $guardName,
+            ]);
             foreach ($roles as $role) {
                 $role->givePermissionTo($perm);
             }
@@ -427,6 +431,13 @@ trait PackageMethods
         wncms()->cache()->forget('wncms_active_packages');
 
         return $package;
+    }
+
+    protected function resolvePermissionGuardName(): string
+    {
+        $guard = trim((string) config('auth.defaults.guard'));
+
+        return $guard !== '' ? $guard : 'web';
     }
 
     /**

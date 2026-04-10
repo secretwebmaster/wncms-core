@@ -71,6 +71,7 @@ class PermissionController extends Controller
         );
 
         $role_names = Role::whereIn('id', $request->roless)->pluck('name')->toArray();
+        $guardName = $this->resolveGuardName();
 
         if (!empty($request->common_suffixess)) {
 
@@ -82,6 +83,7 @@ class PermissionController extends Controller
                 } else {
                     $permission = Permission::firstOrCreate([
                         'name' => (str($request->name)->endsWith('_') ? $request->name : $request->name . "_") . $common_suffix,
+                        'guard_name' => $guardName,
                     ]);
 
                     $permission->syncRoles($role_names);
@@ -95,13 +97,23 @@ class PermissionController extends Controller
                 return back()->withInput()->withErrors(['message' => __('wncms::word.permission_already_exists')]);
             }
 
-            $permission = Permission::firstOrCreate(['name' => $request->name]);
+            $permission = Permission::firstOrCreate([
+                'name' => $request->name,
+                'guard_name' => $guardName,
+            ]);
 
             $permission->syncRoles($role_names);
         }
 
         wncms()->cache()->tags(['permissions'])->flush();
         return redirect()->route('permissions.index');
+    }
+
+    protected function resolveGuardName(): string
+    {
+        $guard = trim((string) config('auth.defaults.guard'));
+
+        return $guard !== '' ? $guard : 'web';
     }
 
     public function edit(int $id)

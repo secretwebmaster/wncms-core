@@ -15,20 +15,28 @@ class RolesSeeder extends Seeder
      */
     public function run()
     {
+        $guardName = $this->resolveGuardName();
+
         //create roles
         foreach ($this->default_roles() as $role_name) {
-            Role::firstOrCreate(['name' => $role_name]);
+            Role::firstOrCreate([
+                'name' => $role_name,
+                'guard_name' => $guardName,
+            ]);
         }
 
         //get admins
-        $superadmin = Role::where('name', 'superadmin')->first();
-        $admin = Role::where('name', 'admin')->first();
+        $superadmin = Role::where('name', 'superadmin')->where('guard_name', $guardName)->first();
+        $admin = Role::where('name', 'admin')->where('guard_name', $guardName)->first();
 
         //create and assign default permissions
         foreach ($this->default_models() as $modelName) {
             foreach ($this->default_permission_suffixes() as $permissionSuffix) {
                 $permissionName = "{$modelName}_{$permissionSuffix}";
-                $permission = Permission::firstOrCreate(['name' => $permissionName]);
+                $permission = Permission::firstOrCreate([
+                    'name' => $permissionName,
+                    'guard_name' => $guardName,
+                ]);
                 $superadmin->givePermissionTo($permission);
                 $admin->givePermissionTo($permission);
             }
@@ -36,10 +44,20 @@ class RolesSeeder extends Seeder
 
         //create and assign special permissions
         foreach ($this->special_permissions() as $permissionName) {
-            $permission = Permission::firstOrCreate(['name' => $permissionName]);
+            $permission = Permission::firstOrCreate([
+                'name' => $permissionName,
+                'guard_name' => $guardName,
+            ]);
             $superadmin->givePermissionTo($permission);
             $admin->givePermissionTo($permission);
         }
+    }
+
+    protected function resolveGuardName(): string
+    {
+        $guard = trim((string) config('auth.defaults.guard'));
+
+        return $guard !== '' ? $guard : 'web';
     }
 
     public function default_roles()

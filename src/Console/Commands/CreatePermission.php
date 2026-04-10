@@ -27,6 +27,7 @@ class CreatePermission extends Command
      */
     public function handle(): int
     {
+        $guardName = $this->resolveGuardName();
         $permissionNames = $this->parseCsvArgument((string) $this->argument('permission_name'));
         $roleNames = $this->parseCsvArgument((string) ($this->argument('role') ?? ''));
 
@@ -38,12 +39,18 @@ class CreatePermission extends Command
 
         $permissions = [];
         foreach ($permissionNames as $permissionName) {
-            $permissions[] = Permission::firstOrCreate(['name' => $permissionName]);
+            $permissions[] = Permission::firstOrCreate([
+                'name' => $permissionName,
+                'guard_name' => $guardName,
+            ]);
         }
 
         $roles = [];
         foreach ($roleNames as $roleName) {
-            $roles[] = Role::firstOrCreate(['name' => $roleName]);
+            $roles[] = Role::firstOrCreate([
+                'name' => $roleName,
+                'guard_name' => $guardName,
+            ]);
         }
 
         foreach ($roles as $role) {
@@ -59,6 +66,13 @@ class CreatePermission extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    protected function resolveGuardName(): string
+    {
+        $guard = trim((string) config('auth.defaults.guard'));
+
+        return $guard !== '' ? $guard : 'web';
     }
 
     /**

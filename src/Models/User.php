@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     public static $modelKey = 'user';
 
     protected $guarded = [];
+    protected $guard_name = 'web';
 
     public const ICONS = [
         'fontawesome' => 'fa-solid fa-user'

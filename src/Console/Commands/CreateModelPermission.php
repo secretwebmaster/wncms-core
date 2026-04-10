@@ -27,17 +27,34 @@ class CreateModelPermission extends Command
      */
     public function handle()
     {
-        $superadmin = Role::firstOrCreate(['name' => 'superadmin']);
-        $admin = Role::firstOrCreate(['name' => 'admin']);
+        $guardName = $this->resolveGuardName();
+        $superadmin = Role::firstOrCreate([
+            'name' => 'superadmin',
+            'guard_name' => $guardName,
+        ]);
+        $admin = Role::firstOrCreate([
+            'name' => 'admin',
+            'guard_name' => $guardName,
+        ]);
 
         $modelName = $this->argument('model_name');
 
         foreach($this->getDefaultPermissionTypes() as $permissionType){
-            $permission = Permission::firstOrCreate(['name' => "{$modelName}_{$permissionType}"]);
+            $permission = Permission::firstOrCreate([
+                'name' => "{$modelName}_{$permissionType}",
+                'guard_name' => $guardName,
+            ]);
             $superadmin->givePermissionTo($permission);
             $admin->givePermissionTo($permission);
         }
         $this->info("Added permisions to {$modelName}");
+    }
+
+    protected function resolveGuardName(): string
+    {
+        $guard = trim((string) config('auth.defaults.guard'));
+
+        return $guard !== '' ? $guard : 'web';
     }
 
     public function getDefaultPermissionTypes()
