@@ -383,7 +383,10 @@ class TagController extends BackendController
 
             if (empty($name)) continue;
 
-            $parent = $this->modelClass::where('type', $type)->where("name->$locale", $parentName)->first();
+            $parent = null;
+            if (!empty($parentName)) {
+                $parent = $this->modelClass::where('type', $type)->where("name->$locale", $parentName)->first();
+            }
 
             $tag = $this->modelClass::firstOrCreate(
                 [
@@ -542,7 +545,7 @@ class TagController extends BackendController
         $tag = $this->modelClass::findOrCreate(__('wncms::word.default'), $request->slug);
 
         return redirect()->route('tags.edit', [
-            'tag' => $tag,
+            'id' => $tag->id,
         ]);
     }
 

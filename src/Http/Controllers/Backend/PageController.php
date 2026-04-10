@@ -891,6 +891,11 @@ class PageController extends BackendController
         ], true);
     }
 
+    public function templates(Request $request)
+    {
+        return $this->get_available_templates($request);
+    }
+
     public function get_available_templates(Request $request)
     {
         $website = wncms()->getModelClass('website')::find($request->website_id);

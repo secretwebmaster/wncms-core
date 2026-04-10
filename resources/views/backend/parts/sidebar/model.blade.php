@@ -179,7 +179,7 @@
                     @endif
                 </div>
             </div>
-        @endrole
+        @endcanany
     @endif
 
 @endforeach
