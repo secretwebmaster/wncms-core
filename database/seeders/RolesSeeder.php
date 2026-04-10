@@ -59,6 +59,7 @@ class RolesSeeder extends Seeder
             'advertisement',
             'card',
             'channel',
+            'comment',
             'click',
             'credit',
             'credit_transaction',

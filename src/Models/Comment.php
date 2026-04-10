@@ -28,6 +28,12 @@ class Comment extends BaseModel
         'fontawesome' => 'fa-solid fa-comments'
     ];
 
+    public const STATUSES = [
+        'visible',
+        'pending',
+        'rejected',
+    ];
+
     /**
      * ----------------------------------------------------------------------------------------------------
      * Relationships
@@ -48,7 +54,8 @@ class Comment extends BaseModel
     // Define the child Comments (the replies to this comment)
     public function children()
     {
-        return $this->hasMany(wncms()->getModelClass('comment'), 'parent_id');
+        return $this->hasMany(wncms()->getModelClass('comment'), 'parent_id')
+            ->orderByDesc('created_at');
     }
 
     // Define the Post or Video that this Comment belongs to

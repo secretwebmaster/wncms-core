@@ -97,7 +97,9 @@ Route::prefix('panel')->middleware(['auth', 'is_installed', 'has_website'])->gro
 
     // comment
     Route::prefix('comments')->controller(CommentController::class)->group(function () {
+        Route::get('/users', 'searchUsers')->middleware('can:comment_create')->name('comments.users');
         Route::post('/store', 'store')->middleware('can:comment_create')->name('comments.store');
+        Route::patch('/{id}', 'update')->middleware('can:comment_edit')->name('comments.update');
         Route::delete('/{id}', 'destroy')->middleware('can:comment_delete')->name('comments.destroy');
     });
 

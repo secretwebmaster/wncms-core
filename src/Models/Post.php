@@ -364,8 +364,9 @@ class Post extends BaseModel implements HasMedia, ApiModelInterface
     //Handling data
     public function localizeImages()
     {
-        // Get the content from the post
-        $content = $this->content;
+        // Read the raw attribute so recently-updated translated content is not
+        // overwritten by the stale eager-loaded translations relation.
+        $content = $this->getAttributes()['content'] ?? '';
 
         // Use regular expressions to find image src attributes in the content
         preg_match_all('/<img[^>]+src="([^"]+)"/i', $content, $matches);
@@ -467,8 +468,9 @@ class Post extends BaseModel implements HasMedia, ApiModelInterface
 
     public function wrapTables()
     {
-        // Get the content from the post
-        $content = $this->content;
+        // Read the raw attribute so recently-updated translated content is not
+        // overwritten by the stale eager-loaded translations relation.
+        $content = $this->getAttributes()['content'] ?? '';
 
         // Use regular expressions to wrap <table> elements with <div class="wn-content-table">
         $content = preg_replace('/<table(.*?)>(.*?)<\/table>/is', '<div class="wn-content-table"><table$1>$2</table></div>', $content);
