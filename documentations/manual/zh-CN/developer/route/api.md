@@ -2,12 +2,19 @@
 
 ## 概述
 
-`api.php` 档案定义了 WNCMS 的所有 RESTful API 端点。这些路由提供对选单、页面、文章、标签和系统更新等资源的程式化存取。
+WNCMS 会保留旧版 `/api/v1/*` 端点以保持兼容，并新增 v2 路由拆分架构：
+
+- `routes/api/v2/frontend.php`：前台 API
+- `routes/api/v2/backend.php`：Next.js / 后台管理 API
+
+`routes/api.php` 仍是总入口，负责载入 v1 与 v2 路由文件。
 
 ## 档案位置
 
 ```
 wncms-core/routes/api.php
+wncms-core/routes/api/v2/frontend.php
+wncms-core/routes/api/v2/backend.php
 ```
 
 ## 路由结构

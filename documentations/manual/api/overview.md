@@ -16,6 +16,12 @@ Current API version: **v1**
 
 The version is included in the URL path to ensure backward compatibility when new versions are released.
 
+WNCMS also provides **v2** route groups for the new admin stack:
+
+- `/api/v2/backend/*` for authenticated backend actions
+- `/api/v2/frontend/*` for frontend-facing v2 endpoints
+- `/api/v2/translations` for namespace/group translation payloads (for example `namespace=wncms&group=word`)
+
 ## Features
 
 - **Posts Management**: Create, update, delete, and retrieve posts with advanced filtering

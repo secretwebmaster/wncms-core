@@ -60,6 +60,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     });
 });
 
+if (file_exists(__DIR__ . '/api/v2/frontend.php')) {
+    include __DIR__ . '/api/v2/frontend.php';
+}
+
+if (file_exists(__DIR__ . '/api/v2/backend.php')) {
+    include __DIR__ . '/api/v2/backend.php';
+}
+
 // Custom user-defined API routes
 if (file_exists(base_path('routes/custom_api.php'))) {
     include base_path('routes/custom_api.php');

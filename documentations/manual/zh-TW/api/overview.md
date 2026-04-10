@@ -16,6 +16,12 @@ https://your-domain.com/api/v1
 
 版本包含在 URL 路徑中，以確保在發布新版本時的向後相容性。
 
+WNCMS 也提供 **v2** 路由群組給新版管理後台：
+
+- `/api/v2/backend/*`：已驗證的後台操作
+- `/api/v2/frontend/*`：前台側 v2 端點
+- `/api/v2/translations`：依 namespace/group 讀取翻譯字典（例如 `namespace=wncms&group=word`）
+
 ## 功能特色
 
 - **文章管理**：建立、更新、刪除和檢索文章，並提供進階篩選功能

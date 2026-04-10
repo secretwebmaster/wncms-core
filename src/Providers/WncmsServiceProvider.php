@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Str;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -64,9 +64,12 @@ class WncmsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('has_website', \Wncms\Http\Middleware\HasWebsite::class);
         $router->aliasMiddleware('full_page_cache', \Wncms\Http\Middleware\FullPageCache::class);
         $router->aliasMiddleware('frontend_auth', \Wncms\Http\Middleware\FrontendAuth::class);
+        $router->aliasMiddleware('api_v2_whitelist', \Wncms\Http\Middleware\ApiV2Whitelist::class);
+        $router->aliasMiddleware('api_v2_has_website', \Wncms\Http\Middleware\ApiV2HasWebsite::class);
+        $router->aliasMiddleware('api_v2_token_auth', \Wncms\Http\Middleware\ApiV2TokenAuth::class);
 
         // Exclude paths from CSRF check
-        $this->app->resolving(VerifyCsrfToken::class, function ($csrf) {
+        $this->app->resolving(PreventRequestForgery::class, function ($csrf) {
             $csrf->except('panel/uploads/image');
             $csrf->except('install/*');
         });
@@ -184,6 +187,7 @@ class WncmsServiceProvider extends ServiceProvider
             'media-library',
             'translatable',
             'wncms-system-settings',
+            'wncms-backend-api-v2',
             'wncms-tags',
             'permission',
             'wncms',

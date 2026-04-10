@@ -2,12 +2,19 @@
 
 ## Overview
 
-The `api.php` file defines all RESTful API endpoints for WNCMS. These routes provide programmatic access to resources like menus, pages, posts, tags, and system updates.
+WNCMS keeps legacy `/api/v1/*` endpoints for compatibility, and now introduces a split v2 API architecture:
+
+- `routes/api/v2/frontend.php` for frontend-facing APIs
+- `routes/api/v2/backend.php` for Next.js/admin backend APIs
+
+The `routes/api.php` file remains the entrypoint that includes both v1 and v2 route files.
 
 ## File Location
 
 ```
 wncms-core/routes/api.php
+wncms-core/routes/api/v2/frontend.php
+wncms-core/routes/api/v2/backend.php
 ```
 
 ## Route Structure
