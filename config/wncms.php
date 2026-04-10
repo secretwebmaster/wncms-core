@@ -6,6 +6,7 @@ return [
     'testing_is_installed' => null,
 
     'models' => [
+        // Models default to website_mode=global when not configured.
         // 'advertisement' => [
         //     'class' => \Wncms\Models\Advertisement::class,
         //     'website_mode' => 'single',

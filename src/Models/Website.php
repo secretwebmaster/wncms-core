@@ -93,7 +93,13 @@ class Website extends BaseModel implements HasMedia, ApiModelInterface
      */
     public function advertisements()
     {
-        return $this->hasMany(wncms()->getModelClass('advertisement'));
+        return $this->morphedByMany(
+            wncms()->getModelClass('advertisement'),
+            'model',
+            'model_has_websites',
+            'website_id',
+            'model_id'
+        );
     }
 
     public function domain_aliases()

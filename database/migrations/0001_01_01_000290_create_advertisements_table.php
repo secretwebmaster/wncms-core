@@ -14,7 +14,6 @@ return new class extends Migration
         if (!Schema::hasTable('advertisements')) {
             Schema::create('advertisements', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('website_id')->constrained()->cascadeOnDelete();
                 $table->string('status'); // active | paused | suspended
                 $table->datetime('expired_at')->nullable();
                 $table->string('name')->nullable();

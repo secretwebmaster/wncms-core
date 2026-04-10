@@ -33,10 +33,8 @@ class AdvertisementManager extends ModelManager
         $direction = in_array($direction, ['asc', 'desc'], true) ? $direction : 'desc';
         $isRandom = $options['is_random'] ?? ($sort === 'random');
 
-        // Website scope
-        if (!empty($options['website_id'])) {
-            $q = $this->getWebsiteQuery('advertisements', $options['website_id']);
-        }
+        // Website scope follows model website_mode (global/single/multi).
+        $this->applyWebsiteId($q, isset($options['website_id']) ? (int) $options['website_id'] : null);
 
         // Status (default active)
         $this->applyStatus($q, 'status', $options['status'] ?? 'active');
