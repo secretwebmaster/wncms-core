@@ -1,5 +1,25 @@
 # Changelog
 
+## v6.3.0 2026-04-08
+
+- Added backend API v2 foundations by splitting API routes into `routes/api/v2/frontend.php` and `routes/api/v2/backend.php` while keeping `/api/v1/*` backward compatible.
+- Added Next.js-admin-ready `/api/v2/backend/auth/*` authentication flow, unified v2 response envelope, and backend route parity check command `wncms:check-backend-api-v2-parity`.
+- Improved backend comment management UX so reply and edit flows are completed inline within the same comment card with clearer in-context forms.
+- Refined the author Tagify search dropdown behavior and styling: only one dropdown can stay open, outside clicks close it, list scrolling/hover states are consistent, and input height now matches the status select field.
+- Fixed guest-author persistence compatibility by allowing Comment `user_id` to be `NULL`, preventing `SQLSTATE[23000]` errors when updating comment authors.
+
+## v6.3.0-alpha2 2026-04-08
+
+- Completed the Laravel 13 regression matrix on both PHP 8.4 and PHP 8.5, with the full core Feature and Unit suites passing in both environments.
+- Stabilized backend post thumbnail uploads and media-library configuration, fixing Laravel 13 / Media Library v11 file-upload compatibility in both runtime and tests.
+- Removed the retired bulk website-assignment flow from regression coverage and completed integration verification against the local `secretwebmaster/*` minor release lines.
+
+## v6.3.0-alpha1 2026-04-08
+
+- Upgraded the core package to Laravel 13, raised the minimum PHP version to 8.4, and now recommends PHP 8.5 for new environments.
+- Aligned CSRF and authentication integration with Laravel 13, and the built-in Google login flow no longer depends on SocialiteProviders Google event wiring.
+- Corrected API JSON status handling, aligned media-library compatibility settings, and stabilized backend post, API settings, and social login flows.
+
 ## v6.2.3 2026-03-31
 
 - Completed the built-in Google login flow: the core package now declares the Socialite dependencies, the login/register pages only show the Google button when the required settings are filled, and `/panel/login/google/callback` now matches or creates users correctly.

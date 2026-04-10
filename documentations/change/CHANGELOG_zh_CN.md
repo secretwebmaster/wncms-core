@@ -1,5 +1,25 @@
 # 更新日志
 
+## v6.3.0 2026-04-08
+
+- 新增 backend API v2 基础架构，将 API 路由拆分为 `routes/api/v2/frontend.php` 与 `routes/api/v2/backend.php`，并保持既有 `/api/v1/*` 兼容。
+- 新增可供 Next.js 后台使用的 `/api/v2/backend/auth/*` 登录认证流程、统一 v2 响应格式，以及 backend route parity 检查命令 `wncms:check-backend-api-v2-parity`。
+- 强化文章后台 Comment 管理界面，reply / edit 改为在同一条 comment 卡片内完成，并提供更清晰的 inline 表单编辑体验。
+- 优化作者 Tagify 搜索下拉的交互与样式：同一时间仅允许一个下拉展开、点击外部自动收起、列表滚动与 hover 视觉更一致，且输入框高度与状态选择框对齐。
+- 修复 guest 作者保存兼容性，Comment `user_id` 现在允许为 `NULL`，避免编辑作者时触发 `SQLSTATE[23000]` 错误。
+
+## v6.3.0-alpha2 2026-04-08
+
+- 完成 PHP 8.4 与 PHP 8.5 的 Laravel 13 回归矩阵，核心 Feature 与 Unit 测试在两组环境下均可完整通过。
+- 稳定文章后台缩略图上传与 media-library 配置，修复 Laravel 13 / Media Library v11 下文件上传在运行期与测试中的兼容性。
+- 将已停用的批量设置网站功能移出回归测试范围，并完成本地 `secretwebmaster/*` 相依套件 minor 版本线的整合验证。
+
+## v6.3.0-alpha1 2026-04-08
+
+- 将核心升级到 Laravel 13，并将最低 PHP 版本提高到 8.4，建议在 PHP 8.5 环境运行。
+- 调整 CSRF 与登录整合流程以对齐 Laravel 13，内建 Google 登录不再依赖 SocialiteProviders 的 Google event wiring。
+- 修正 API JSON 响应状态码与媒体设置兼容性，并稳定文章后台、API 设置与社交登录流程。
+
 ## v6.2.3 2026-03-31
 
 - 补齐内建 Google 登录流程：核心包现在声明 Socialite 依赖、登录/注册页仅在设置完整时显示 Google 按钮，且 `/panel/login/google/callback` 会正确匹配或创建用户。

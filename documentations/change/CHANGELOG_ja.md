@@ -1,5 +1,25 @@
 # 更新履歴
 
+## v6.3.0 2026-04-08
+
+- backend API v2 の基盤を追加し、API ルートを `routes/api/v2/frontend.php` と `routes/api/v2/backend.php` に分割しつつ、既存の `/api/v1/*` 互換を維持しました。
+- Next.js 管理画面向けに `/api/v2/backend/auth/*` 認証フロー、統一 v2 レスポンス形式、backend route parity 検証コマンド `wncms:check-backend-api-v2-parity` を追加しました。
+- 投稿バックエンドの Comment 管理 UX を強化し、reply / edit を同一コメントカード内で完結できるようにして、インライン編集フォームの視認性を改善しました。
+- 作者 Tagify 検索ドロップダウンの挙動と見た目を調整し、同時展開を 1 つに制限・外側クリックで自動クローズ・スクロール/hover 表示の統一・status セレクトとの高さ整合を行いました。
+- ゲスト作者保存時の互換性を修正し、Comment `user_id` を `NULL` 許容にして、作者更新時の `SQLSTATE[23000]` エラーを防止しました。
+
+## v6.3.0-alpha2 2026-04-08
+
+- PHP 8.4 と PHP 8.5 の両方で Laravel 13 回帰マトリクスを完了し、コアの Feature / Unit テストが両環境で通過しました。
+- 投稿バックエンドのサムネイルアップロードと media-library 設定を安定化し、Laravel 13 / Media Library v11 でのファイルアップロード互換性を実行時とテストの両面で修正しました。
+- 廃止済みの一括 Web サイト割り当てフローを回帰テスト対象から外し、ローカル `secretwebmaster/*` マイナー系との統合検証を完了しました。
+
+## v6.3.0-alpha1 2026-04-08
+
+- コアを Laravel 13 へ更新し、最低 PHP バージョンを 8.4 に引き上げ、新規環境では PHP 8.5 を推奨するようにしました。
+- CSRF と認証統合を Laravel 13 に合わせて調整し、組み込み Google ログインは SocialiteProviders の Google event wiring に依存しなくなりました。
+- API JSON ステータス処理と media-library 互換設定を調整し、投稿バックエンド、API 設定、ソーシャルログインの動作を安定化しました。
+
 ## v6.2.3 2026-03-31
 
 - 組み込み Google ログインを完成させ、コアパッケージで Socialite 依存関係を宣言し、必要設定が揃った場合のみ login/register 画面に Google ボタンを表示し、`/panel/login/google/callback` で既存ユーザー照合または新規作成を正しく行えるようにしました。
