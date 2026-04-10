@@ -13,12 +13,12 @@
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.1",
         "laravel/socialite": "^5.26",
-        "secretwebmaster/laravel-localization": "2.4.0.x-dev",
+        "secretwebmaster/laravel-localization": "^2.4.1",
         "spatie/laravel-medialibrary": "^11.21",
         "spatie/laravel-permission": "^6.21",
-        "secretwebmaster/wncms-tags": "1.8.x-dev",
-        "secretwebmaster/wncms-translatable": "1.4.x-dev",
-        "secretwebmaster/laravel-optionable": "2.1.x-dev",
+        "secretwebmaster/wncms-tags": "^1.8.1",
+        "secretwebmaster/wncms-translatable": "^1.4.1",
+        "secretwebmaster/laravel-optionable": "^2.1.1",
         "fakerphp/faker": "^1.23"
     },
     "require-dev": {
@@ -90,7 +90,7 @@
             ]
         },
         "branch-alias": {
-            "dev-main": "6.3.x-dev"
+            "dev-main": "6.3.1.x-dev"
         }
     },
     "authors": [
