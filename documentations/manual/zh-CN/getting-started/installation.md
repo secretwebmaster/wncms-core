@@ -81,6 +81,10 @@ php artisan wncms:install \
 - 如果未提供，安装器会使用 `config('app.locale')`。
 - 如果提供了不受支持的语言代码，安装器会回退到配置中的默认语言。
 
+> [!NOTE]
+> 全新 Laravel 项目可以保留默认迁移（`users`、`jobs` 等）。
+> `wncms:install` 与这些基础表兼容，并会自动补齐 WNCMS 所需的缺失字段。
+
 在运行安装程序之前,创建一个空的 MySQL 数据库并准备好您的连接详细信息。
 
 **MySQL 数据库信息示例**

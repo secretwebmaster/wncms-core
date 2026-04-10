@@ -81,6 +81,10 @@ php artisan wncms:install \
 - If omitted, installer uses `config('app.locale')`.
 - If an unsupported locale is provided, installer falls back to the configured default locale.
 
+> [!NOTE]
+> Fresh Laravel projects can keep default Laravel migrations (`users`, `jobs`, etc.).
+> `wncms:install` is compatible with those base tables and will extend missing WNCMS columns automatically.
+
 Before running the installer, create an empty MySQL database and prepare your connection details.
 
 **Example MySQL Database Information**
