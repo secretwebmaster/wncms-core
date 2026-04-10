@@ -2,7 +2,7 @@
 
 namespace Wncms\Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Config;
 use Laravel\Socialite\Facades\Socialite;
 use Mockery;
@@ -11,12 +11,13 @@ use Wncms\Tests\TestCase;
 
 class GoogleLoginTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        uss('disable_registration', 0);
         uss('allow_google_login', 1);
         uss('google_client_id', 'google-client-id');
         uss('google_client_secret', 'google-client-secret');

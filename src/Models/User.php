@@ -41,6 +41,16 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         'last_login_at' => 'datetime',
     ];
 
+    /**
+     * Resolve the package factory for User model tests.
+     *
+     * @return \Wncms\Database\Factories\UserFactory
+     */
+    protected static function newFactory()
+    {
+        return \Wncms\Database\Factories\UserFactory::new();
+    }
+
     public function getRememberToken()
     {
         return $this->remember_token;

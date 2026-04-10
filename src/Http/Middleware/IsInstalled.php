@@ -15,9 +15,11 @@ class IsInstalled
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $installation_mark = storage_path("installed");
-        
-        if (file_exists($installation_mark)) {
+        $isInstalled = function_exists('wncms_is_installed')
+            ? wncms_is_installed()
+            : file_exists(storage_path('installed'));
+
+        if ($isInstalled) {
             if(request()->routeIs('installer.*')){
                 return redirect()->route('login');
             }

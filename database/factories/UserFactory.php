@@ -12,6 +12,13 @@ use Illuminate\Support\Str;
 class UserFactory extends Factory
 {
     /**
+     * The fully qualified model name that the factory creates.
+     *
+     * @var class-string<\Wncms\Models\User>
+     */
+    protected $model = \Wncms\Models\User::class;
+
+    /**
      * The current password being used by the factory.
      */
     protected static ?string $password;

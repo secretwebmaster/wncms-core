@@ -5,6 +5,12 @@ namespace Wncms\Tests;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
+use Wncms\Database\Seeders\DatabaseSeeder;
+use Wncms\Models\User;
+use Wncms\Models\Website;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -29,6 +35,9 @@ abstract class TestCase extends BaseTestCase
 
         $this->ensureSqliteDatabaseFileExists();
         $this->assertPreparedTestingDatabase();
+        $this->ensureDefaultRolesExist();
+        $this->ensureDefaultPermissionsExist();
+        $this->ensureBaselineSeedData();
 
         // Verify the database connection is sqlite
         $connection = DB::connection();
@@ -61,10 +70,118 @@ abstract class TestCase extends BaseTestCase
         }
     }
 
+    protected function ensureDefaultRolesExist(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        foreach (['superadmin', 'admin', 'manager', 'member', 'suspended'] as $roleName) {
+            Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+        }
+    }
+
+    protected function ensureDefaultPermissionsExist(): void
+    {
+        foreach ([
+            'post_index',
+            'post_create',
+            'post_clone',
+            'post_edit',
+            'post_show',
+            'post_delete',
+            'post_bulk_sync_tags',
+            'post_generate_demo_posts',
+            'post_bulk_clone',
+            'comment_create',
+            'comment_edit',
+            'comment_delete',
+            'setting_index',
+            'setting_edit',
+            'website_index',
+            'website_create',
+            'website_edit',
+            'website_show',
+            'website_delete',
+        ] as $permissionName) {
+            Permission::firstOrCreate(['name' => $permissionName, 'guard_name' => 'web']);
+        }
+    }
+
+    protected function ensureBaselineSeedData(): void
+    {
+        if (User::count() === 0 || !DB::table('settings')->exists()) {
+            $this->seed(DatabaseSeeder::class);
+        }
+
+        $admin = User::where('email', 'admin@demo.com')->first() ?: User::first();
+        if (!$admin) {
+            return;
+        }
+
+        if (!$admin->hasRole('admin')) {
+            $admin->assignRole('admin');
+        }
+
+        if (!$admin->hasRole('superadmin')) {
+            $admin->assignRole('superadmin');
+        }
+
+        $baselinePermissions = Permission::whereIn('name', [
+            'post_index',
+            'post_create',
+            'post_clone',
+            'post_edit',
+            'post_show',
+            'post_delete',
+            'post_bulk_sync_tags',
+            'post_generate_demo_posts',
+            'post_bulk_clone',
+            'comment_create',
+            'comment_edit',
+            'comment_delete',
+            'setting_index',
+            'setting_edit',
+            'website_index',
+            'website_create',
+            'website_edit',
+            'website_show',
+            'website_delete',
+        ])->get();
+
+        $adminRole = Role::where('name', 'admin')->first();
+        if ($adminRole) {
+            $adminRole->syncPermissions($baselinePermissions);
+        }
+
+        $superadminRole = Role::where('name', 'superadmin')->first();
+        if ($superadminRole) {
+            $superadminRole->syncPermissions($baselinePermissions);
+        }
+
+        $admin->syncPermissions($baselinePermissions);
+
+        $website = Website::first();
+        if (!$website) {
+            $website = Website::create([
+                'user_id' => $admin->id,
+                'domain' => 'localhost',
+                'site_name' => 'Test Website',
+                'theme' => 'default',
+            ]);
+        }
+
+        if (!$admin->websites()->where('websites.id', $website->id)->exists()) {
+            $admin->websites()->syncWithoutDetaching([$website->id]);
+        }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
     // Load package service providers
     protected function getPackageProviders($app)
     {
         return [
+            \Laravel\Socialite\SocialiteServiceProvider::class,
+            \Wncms\Tags\TagsServiceProvider::class,
             \Wncms\Providers\WncmsServiceProvider::class,
             \Wncms\Providers\EventServiceProvider::class,
             \Wncms\Providers\HelpersProvider::class,
@@ -74,6 +191,7 @@ abstract class TestCase extends BaseTestCase
             \Wncms\Providers\RouteServiceProvider::class,
             \Wncms\Providers\SettingsServiceProvider::class,
             \Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class,
+            \Wncms\Translatable\TranslatableServiceProvider::class,
         ];
     }
 

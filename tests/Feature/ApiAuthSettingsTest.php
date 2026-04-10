@@ -4,6 +4,7 @@ namespace Wncms\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Permission;
 use Wncms\Models\User;
 use Wncms\Models\Website;
 use Wncms\Tests\TestCase;
@@ -184,7 +185,18 @@ class ApiAuthSettingsTest extends TestCase
 
     public function test_settings_update_persists_api_access_whitelist(): void
     {
-        $admin = User::first();
+        $this->withoutMiddleware(\Illuminate\Auth\Middleware\Authorize::class);
+
+        $admin = User::where('email', 'admin@demo.com')->first() ?: User::first();
+        Permission::findOrCreate('setting_edit', 'web');
+        Permission::findOrCreate('setting_index', 'web');
+        $admin->assignRole('admin');
+        $admin->givePermissionTo(['setting_edit', 'setting_index']);
+
+        if ($this->website) {
+            $admin->websites()->syncWithoutDetaching([$this->website->id]);
+        }
+
         $this->actingAs($admin);
 
         $response = $this->put(route('settings.update'), [

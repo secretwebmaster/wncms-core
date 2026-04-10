@@ -45,7 +45,14 @@
             @lang('wncms::word.already_have_account') ? <a href="{{ route('login') }}" class="link-light fw-bold">@lang('wncms::word.go_to_login')</a>
         </div>
 
-        @if(gss('allow_google_login'))
+        @php
+            $googleLoginEnabled = gss('allow_google_login')
+                && filled(config('services.google.client_id'))
+                && filled(config('services.google.client_secret'))
+                && filled(config('services.google.redirect'));
+        @endphp
+
+        @if($googleLoginEnabled)
             {{-- Separator --}}
             <div class="separator separator-content my-14">
                 <span class="w-125px text-gray-500 fw-semibold fs-7">@lang('wncms::word.or')</span>

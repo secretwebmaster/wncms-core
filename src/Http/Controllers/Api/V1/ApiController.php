@@ -228,7 +228,7 @@ class ApiController extends Controller
             'message' => $message,
             'data' => $data,
             'extra' => $extra,
-        ]);
+        ], $code);
     }
 
     /**
@@ -242,7 +242,7 @@ class ApiController extends Controller
             'message' => $message,
             'data' => $data,
             'extra' => $extra,
-        ]);
+        ], $code);
     }
 
     /**
