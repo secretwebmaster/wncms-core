@@ -1,5 +1,48 @@
 # 更新履歴
 
+## v6.3.8 2026-04-11
+
+- インストーラーの既定値を `MEDIA_DISK=media` に変更し、新規アップロードを `public/media` へ直接保存できるようにして `storage:link` 依存を下げました。
+- バックエンドのシステム設定に `media_disk` を追加し、`public/media` と `storage/app/public` の保存先を切り替え可能にしました。
+- 起動時のメディア保存先解決を保存済み設定に連動させ、既存プロジェクトでも設定画面から保存先を変更できるようにしました。
+
+## v6.3.7 2026-04-10
+
+- Advertisement のサイト紐付けを `advertisements.website_id` 依存から、マルチサイト用ピボット `model_has_websites` へ移行しました。
+- 更新処理で既存の `advertisements.website_id` データを `model_has_websites` に移行し、完了後に旧カラムを安全に削除できるようにしました。
+- Advertisement 一覧のサイトスコープ適用を、モデル website mode（global/single/multi）準拠に統一しました。
+
+## v6.3.6 2026-04-10
+
+- インストーラーが `.env` に `AUTH_MODEL="Wncms\\Models\\User"` を出力するようになり、Laravel 13 の既定 `App\\Models\\User` プロジェクトでも WNCMS 権限モデルを即時利用できるようにしました。
+- インストーラーが `APP_VERSION` を出力しないようにし、プロジェクト独自のバージョン運用との衝突を回避しました。
+
+## v6.3.5 2026-04-10
+
+- インストール完了メッセージにフロントページ URL を追加し、管理者ログイン情報の表示を改善しました。
+- Laravel 既定の `welcome` ルートをインストール時に自動除去し、WNCMS ホームページの上書きを防止しました。
+- Website キャッシュと Mail provider の起動時互換性を改善し、fresh Laravel 環境での初回管理画面アクセス時エラーを抑制しました。
+
+## v6.3.4 2026-04-10
+
+- Laravel 13 で `lang` ディレクトリが未作成の構成に対応し、インストール時に必要な言語ディレクトリ/ファイルを自動生成するようにしました。
+- 言語パス未存在時のガードを追加し、`scandir(.../lang)` 例外の発生を防止しました。
+
+## v6.3.3 2026-04-10
+
+- Spatie Permission の guard 不一致でロール/権限作成が失敗する問題を修正し、有効な guard 名を優先利用するようにしました。
+- fresh Laravel インストール時の「guard should use ... instead of ...」系エラーを回避できるよう権限初期化互換性を強化しました。
+
+## v6.3.2 2026-04-10
+
+- `users` / `cache` / `jobs` など fresh Laravel 既定 migration が存在する環境でも、`wncms:install` が基礎テーブルを重複作成しないよう改善しました。
+- 新規 Laravel プロジェクトへの導入時に発生しやすい migration 衝突を低減しました。
+
+## v6.3.1 2026-04-10
+
+- 依存制約を安定 patch バージョン基準へ更新し、`minimum-stability=stable` の fresh Laravel プロジェクトでも導入できるようにしました。
+- Laravel 13 プロジェクトでの `composer require secretwebmaster/wncms-core` のインストール成功率を改善しました。
+
 ## v6.3.0 2026-04-08
 
 - backend API v2 の基盤を追加し、API ルートを `routes/api/v2/frontend.php` と `routes/api/v2/backend.php` に分割しつつ、既存の `/api/v1/*` 互換を維持しました。

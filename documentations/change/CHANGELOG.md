@@ -1,5 +1,48 @@
 # 更新日誌
 
+## v6.3.8 2026-04-11
+
+- 安裝流程預設改為使用 `MEDIA_DISK=media`，新上傳媒體可直接儲存在 `public/media`，降低對 `storage:link` 的依賴。
+- 新增後台系統設定 `media_disk`，可在 `public/media` 與 `storage/app/public` 之間切換媒體上傳位置。
+- 系統啟動時會依已儲存設定套用媒體磁碟，既有專案升級後可直接透過設定頁調整。
+
+## v6.3.7 2026-04-10
+
+- Advertisement 改為使用多站點關聯表 `model_has_websites` 進行網站綁定，避免持續依賴 `advertisements.website_id` 欄位。
+- 更新流程會將既有 `advertisements.website_id` 資料遷移到 `model_has_websites`，並在完成後安全移除舊欄位。
+- Advertisement 列表查詢改為依模型網站模式（global/single/multi）套用篩選，與其他模型行為一致。
+
+## v6.3.6 2026-04-10
+
+- 安裝流程會在 `.env` 寫入 `AUTH_MODEL="Wncms\\Models\\User"`，讓 Laravel 13 預設 `App\\Models\\User` 專案可直接使用 WNCMS 權限模型。
+- 安裝流程不再寫入 `APP_VERSION`，避免與專案自訂版本管理衝突。
+
+## v6.3.5 2026-04-10
+
+- 安裝完成訊息補上前台首頁 URL，並顯示更完整的管理員登入資訊。
+- 安裝流程會自動移除 Laravel 預設 `welcome` 首頁路由，避免覆蓋 WNCMS 首頁。
+- 修正網站快取與 Mail provider 啟動期的相容問題，降低 fresh Laravel 專案首次登入後台時的錯誤風險。
+
+## v6.3.4 2026-04-10
+
+- 相容 Laravel 13 預設不建立 `lang` 目錄的情境，安裝流程會在缺少時自動建立語系目錄與必要檔案。
+- 安裝流程新增語系檔初始化保護，避免因語系路徑不存在導致 `scandir(.../lang)` 例外。
+
+## v6.3.3 2026-04-10
+
+- 修正 Spatie Permission guard 名稱不一致造成的角色/權限建立失敗，安裝流程會優先使用有效 guard 值。
+- 強化權限初始化相容性，避免 fresh Laravel 專案出現「guard should use ... instead of ...」錯誤。
+
+## v6.3.2 2026-04-10
+
+- 安裝流程相容 fresh Laravel 預設 migration（如 `users`、`cache`、`jobs`）已存在的情境，不再重複建立同名基礎資料表。
+- 調整資料庫初始化策略，降低在全新 Laravel 專案執行 `wncms:install` 時的表格衝突機率。
+
+## v6.3.1 2026-04-10
+
+- 核心相依套件改為穩定 patch 版本約束，避免 fresh Laravel 專案在 `minimum-stability=stable` 下安裝失敗。
+- 強化 Laravel 13 fresh project 的 `composer require secretwebmaster/wncms-core` 可安裝性。
+
 ## v6.3.0 2026-04-08
 
 - 新增 backend API v2 基礎架構，將 API 路由拆分為 `routes/api/v2/frontend.php` 與 `routes/api/v2/backend.php`，並維持既有 `/api/v1/*` 相容。

@@ -1,5 +1,48 @@
 # Changelog
 
+## v6.3.8 2026-04-11
+
+- Installer now defaults to `MEDIA_DISK=media`, so new uploads can be stored directly under `public/media` without requiring `storage:link`.
+- Added new backend system setting `media_disk` to switch media upload storage between `public/media` and `storage/app/public`.
+- Runtime media disk resolution now follows the saved system setting, allowing existing projects to adjust upload storage from the settings UI.
+
+## v6.3.7 2026-04-10
+
+- Switched Advertisement website binding to the multisite pivot table `model_has_websites` instead of relying on `advertisements.website_id`.
+- Added upgrade migration flow to move existing `advertisements.website_id` data into `model_has_websites` and then safely remove the legacy column.
+- Updated advertisement list querying to follow model website mode (`global`/`single`/`multi`) consistently with other core models.
+
+## v6.3.6 2026-04-10
+
+- Installer now writes `AUTH_MODEL="Wncms\\Models\\User"` to `.env`, so fresh Laravel 13 projects with default `App\\Models\\User` can use WNCMS role/permission behavior out of the box.
+- Installer no longer writes `APP_VERSION`, reducing conflicts with project-level versioning conventions.
+
+## v6.3.5 2026-04-10
+
+- Added frontend homepage URL to the install completion output together with clearer admin login information.
+- Installer now removes Laravel's default `welcome` root route to avoid overriding the WNCMS homepage.
+- Hardened website cache and Mail provider boot-time compatibility to reduce first-login runtime failures on fresh Laravel projects.
+
+## v6.3.4 2026-04-10
+
+- Added Laravel 13 compatibility for projects without a pre-created `lang` directory by creating required locale folders/files during install.
+- Added install-time language path guards to prevent `scandir(.../lang)` exceptions when the folder is missing.
+
+## v6.3.3 2026-04-10
+
+- Fixed Spatie Permission guard mismatch during role/permission setup by enforcing a valid non-empty guard name.
+- Improved permission bootstrap compatibility to avoid “guard should use ... instead of ...” failures on fresh Laravel installs.
+
+## v6.3.2 2026-04-10
+
+- Updated installer database setup to coexist with default fresh Laravel migrations (`users`, `cache`, `jobs`) without recreating base tables.
+- Reduced migration collisions during `wncms:install` on brand-new Laravel projects.
+
+## v6.3.1 2026-04-10
+
+- Switched core dependency constraints to stable patch versions so installation works with fresh Laravel projects using `minimum-stability=stable`.
+- Improved installability of `composer require secretwebmaster/wncms-core` on Laravel 13 projects.
+
 ## v6.3.0 2026-04-08
 
 - Added backend API v2 foundations by splitting API routes into `routes/api/v2/frontend.php` and `routes/api/v2/backend.php` while keeping `/api/v1/*` backward compatible.
