@@ -35,6 +35,9 @@ class WncmsServiceProvider extends ServiceProvider
         // Package configs
         $this->mergeConfigs();
 
+        // Laravel 13 compatibility (opt-in): allow cached object unserialization when needed.
+        $this->loadCacheCompatibilitySettings();
+
         // Register service providers
         $this->registerServiceProviders();
     }
@@ -238,6 +241,27 @@ class WncmsServiceProvider extends ServiceProvider
 
         // Runtime model website mode override from system settings
         $this->loadModelWebsiteModeSettings();
+    }
+
+    protected function loadCacheCompatibilitySettings(): void
+    {
+        $compatSetting = config('wncms.cache.serializable_classes_compat', null);
+        if ($compatSetting === false) {
+            return;
+        }
+
+        $current = config('cache.serializable_classes');
+        if ($current === true || is_array($current)) {
+            return;
+        }
+
+        $configuredAllowList = config('wncms.cache.serializable_classes', []);
+        if (is_array($configuredAllowList) && !empty($configuredAllowList)) {
+            config(['cache.serializable_classes' => $configuredAllowList]);
+            return;
+        }
+
+        config(['cache.serializable_classes' => true]);
     }
 
     protected function loadSessionSettings(): void
