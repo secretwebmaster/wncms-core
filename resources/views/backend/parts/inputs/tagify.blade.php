@@ -202,13 +202,37 @@
     </script>
 @elseif($option['options'] == 'menus')
     @php
+        $menuList = collect(
+            wncms()
+                ->menu()
+                ->getList([
+                    'website_id' => $website?->id,
+                    'cache' => false,
+                ])
+        );
+
         // Load all menus (value = id, name = menu name)
-        $menus = wncms()
-            ->menu()
-            ->getList([], $website?->id)
+        $menus = $menuList
             ->map(function ($menu) {
-                return ['value' => $menu->id, 'name' => $menu->name];
+                if (is_object($menu)) {
+                    $value = data_get($menu, 'id');
+                    $name = data_get($menu, 'name');
+                } elseif (is_array($menu)) {
+                    $value = data_get($menu, 'id');
+                    $name = data_get($menu, 'name');
+                } else {
+                    $value = $menu;
+                    $name = $menu;
+                }
+
+                if ($value === null || $name === null) {
+                    return null;
+                }
+
+                return ['value' => (string) $value, 'name' => (string) $name];
             })
+            ->filter()
+            ->values()
             ->toArray();
 
         // Convert saved IDs → menu names

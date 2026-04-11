@@ -11,12 +11,43 @@
         @endforeach
     </select>
 @elseif($option['options'] == 'menus')
+    @php
+        $menus = collect(
+            wncms()->menu()->getList([
+                'website_id' => $website?->id,
+                'cache' => false,
+            ])
+        )
+            ->map(function ($menu) {
+                if (is_object($menu)) {
+                    $value = data_get($menu, 'id');
+                    $name = data_get($menu, 'name');
+                } elseif (is_array($menu)) {
+                    $value = data_get($menu, 'id');
+                    $name = data_get($menu, 'name');
+                } else {
+                    $value = $menu;
+                    $name = $menu;
+                }
+
+                if ($value === null || $name === null) {
+                    return null;
+                }
+
+                return [
+                    'value' => (string) $value,
+                    'name' => (string) $name,
+                ];
+            })
+            ->filter()
+            ->values();
+    @endphp
     <select name="{{ $inputName }}" class="form-select form-select-sm" @disabled(!empty($option['disabled']) || !empty($disabled)) @required(!empty($option['required']))>
         @if (empty($option['required']))
             <option value="">@lang('wncms::word.please_select')</option>
         @endif
-        @foreach (wncms()->menu()->getList([], $website?->id) as $menu)
-            <option value="{{ $menu->id }}" @if ($currentValue == $menu->id) selected @endif>{{ $menu->name }}</option>
+        @foreach ($menus as $menu)
+            <option value="{{ $menu['value'] }}" @selected((string) $currentValue === $menu['value'])>{{ $menu['name'] }}</option>
         @endforeach
     </select>
 @elseif($option['options'] == 'positions')
