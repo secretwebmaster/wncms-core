@@ -114,6 +114,19 @@ Expected result:
 
 - You can review available core updates
 
+## 8) Configure Media Upload Location
+
+1. Open `Content Module Settings`
+2. Set `media_disk` to:
+- `public/media` (recommended for cloned projects)
+- `storage/app/public (storage link)`
+3. Click **Save All**
+
+Expected result:
+
+- New uploads are stored in the selected location
+- If you choose `public/media`, you can run without `storage:link`
+
 
 ## Troubleshooting
 

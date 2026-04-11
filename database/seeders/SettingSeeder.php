@@ -32,6 +32,7 @@ class SettingSeeder extends Seeder
             'request_timeout' => '60',
             'cache_view_count' => 1,
             'enable_cache' => 1,
+            'media_disk' => 'media',
             'system_name' => 'WNCMS',
             'multi_website' => false,
             'disable_registration' => true,

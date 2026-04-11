@@ -43,6 +43,12 @@ class SettingsServiceProvider extends ServiceProvider
                 config(['settings.' . $key => $value]);
             }
 
+            $resolvedMediaDisk = (string) gss('media_disk', env('MEDIA_DISK', config('media-library.disk_name', 'public')));
+            if (!array_key_exists($resolvedMediaDisk, (array) config('filesystems.disks', []))) {
+                $resolvedMediaDisk = (string) env('MEDIA_DISK', config('media-library.disk_name', 'public'));
+            }
+            config(['media-library.disk_name' => $resolvedMediaDisk]);
+
             $defaultGoogleRedirect = config('services.google.redirect') ?: url('/panel/login/google/callback');
 
             //google

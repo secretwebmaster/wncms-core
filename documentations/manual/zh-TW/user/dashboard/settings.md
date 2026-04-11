@@ -114,6 +114,19 @@
 
 - 可查看目前可用的核心更新
 
+## 8）設定媒體上傳儲存位置
+
+1. 進入 `內容模組設定`
+2. 設定 `media_disk` 為：
+- `public/media`（建議用於 clone 專案）
+- `storage/app/public (storage link)`
+3. 點擊 **儲存全部**
+
+預期結果：
+
+- 新上傳圖片會寫入你選擇的目錄
+- 選擇 `public/media` 時，可不依賴 `storage:link`
+
 
 ## 常見問題
 

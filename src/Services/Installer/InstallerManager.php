@@ -186,6 +186,7 @@ class InstallerManager
             'CUSTOM_VERSION=1' . "\n" .
             'LOG_LEVEL=' . ($input['log_level'] ?? '') . "\n" .
             'APP_URL=' . ($input['app_url'] ?? '') . "\n\n" .
+            'MEDIA_DISK=media' . "\n\n" .
 
             'APP_MAINTENANCE_DRIVER=file' . "\n\n" .
             'BCRYPT_ROUNDS=12' . "\n\n" .

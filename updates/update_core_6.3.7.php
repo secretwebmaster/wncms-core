@@ -65,6 +65,11 @@ try {
         info('skip advertisements website_id migration because required table/column is missing');
     }
 
+    if (gss('media_disk', null) === null) {
+        uss('media_disk', env('MEDIA_DISK', 'media'));
+        info('initialized media_disk system setting');
+    }
+
     uss('core_version', $thisVersion);
     info("completed update_{$thisVersion}.php");
 } catch (\Throwable $e) {

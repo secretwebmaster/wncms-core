@@ -114,6 +114,19 @@
 
 - 可查看当前可用的核心更新
 
+## 8）设置媒体上传存储位置
+
+1. 进入 `内容模组设定`
+2. 设置 `media_disk` 为：
+- `public/media`（推荐给克隆项目）
+- `storage/app/public (storage link)`
+3. 点击 **储存全部**
+
+预期结果：
+
+- 新上传图片会写入你选择的目录
+- 选择 `public/media` 时，可不依赖 `storage:link`
+
 
 ## 常见问题
 

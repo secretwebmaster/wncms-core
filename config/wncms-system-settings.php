@@ -83,6 +83,15 @@ return [
     'content' => [
         'tab_name' => 'content',
         'tab_content' => [
+            [
+                'type' => 'select',
+                'name' => 'media_disk',
+                'options' => [
+                    'media' => 'public/media',
+                    'public' => 'storage/app/public (storage link)',
+                ],
+                'translate_option' => false,
+            ],
             ['type' => 'switch', 'name' => 'restore_trashed_content_to_published'],
             ['type' => 'switch', 'name' => 'convert_thumbnail_to_webp'],
         ]
