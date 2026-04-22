@@ -13,7 +13,9 @@ class CreateModel extends Command
      *
      * @var string
      */
-    protected $signature = 'wncms:create-model {model_name}';
+    protected $signature = 'wncms:create-model
+        {model_name}
+        {--b : Auto-confirm appending backend routes to routes/custom_backend.php}';
 
     /**
      * The console command description.
@@ -80,7 +82,10 @@ class CreateModel extends Command
         $this->info(trim(Artisan::output()));
 
         // append backend routes
-        if ($this->confirm('This will append new routes to custom_backend.php file, are you sure?')) {
+        $shouldAppendRoutes = $this->option('b')
+            || $this->confirm('This will append new routes to custom_backend.php file, are you sure?');
+
+        if ($shouldAppendRoutes) {
 
             $customBackendFile = base_path('routes/custom_backend.php');
 
