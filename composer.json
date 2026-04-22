@@ -28,7 +28,8 @@
         "nunomaduro/collision": "^8.9",
         "phpunit/phpunit": "^12.5",
         "orchestra/testbench": "^11.0",
-        "barryvdh/laravel-debugbar": "^4.1"
+        "barryvdh/laravel-debugbar": "^4.1",
+        "laravel/tinker": "^3.0"
     },
     "repositories": [
         {
