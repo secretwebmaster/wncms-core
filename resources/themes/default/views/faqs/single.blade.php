@@ -1,57 +1,43 @@
 @extends("$themeId::layouts.app")
-@push('head_css')
-<style>
-    table {
-        border-collapse: collapse;
-    }
 
-    th,
-    td {
-        border: 1px solid black;
-        padding: 3px;
-        text-align: left;
-        font-size: 12px;
-    }
-
-    th {
-        background-color: #f2f2f2;
-        /* Optional: Add a background color to the header cells */
-    }
-</style>
-@endpush
 @section('content')
-    <a href="{{ route('frontend.pages.blog') }}">@lang('wncms::word.blog')</a>
-    <h2>{{ wncms()->getModelWord('faq', 'single') }}</h2>
+    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div class="page-breadcrumb">
+            <a class="nav-link" href="{{ route('frontend.pages.blog') }}"><span class="nav-link-icon">←</span><span>@lang('wncms::word.blog')</span></a>
+        </div>
 
-    <h4>@lang('wncms::word.faq_detail')</h4>
-    <div style="max-width: 100%;overflow-x:scroll">
-        <table style="max-width: 100%;">
-            <tbody>
-                <tr>
-                    <td>@lang('wncms::word.tag')</td>
-                    <td>
-                        @foreach($faq->tagsWithType('faq_tag') ?? [] as $tag)    
-                        <a href="{{ route('frontend.faqs.tag', ['tagName' => $tag->name]) }}">{{ $tag->name }}</a>
-                        @endforeach
-                    </td>
-                </tr>
+        <div class="space-y-6">
+            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <h2>{{ wncms()->getModelWord('faq', 'single') }}</h2>
+                <div class="table-container">
+                    <table class="kv-table">
+                        <tbody>
+                            <tr>
+                                <td>@lang('wncms::word.tag')</td>
+                                <td>
+                                    @foreach($faq->tagsWithType('faq_tag') ?? [] as $tag)
+                                    <a href="{{ route('frontend.faqs.tag', ['tagName' => $tag->name]) }}">{{ $tag->name }}</a>
+                                    @endforeach
+                                </td>
+                            </tr>
 
-                @foreach($faq->getAttributes() as $column => $value)
-                    <tr>
-                        <td>{{ $column }}</td>
-                        <td>{{ $faq->{$column} }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    
-    </div>
+                            @foreach($faq->getAttributes() as $column => $value)
+                            <tr>
+                                <td>{{ $column }}</td>
+                                <td>{{ $faq->{$column} }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-    <h4>@lang('wncms::word.relationships')</h4>
-    <div>
-        {!! $faq->getTagNameWitHtmlTag("faq_tag","li", "myClass", "myId") !!}
-    </div>
-
-
-
+            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <h3 class="mb-3 text-base font-semibold text-slate-900">@lang('wncms::word.relationships')</h3>
+                <div>
+                    {!! $faq->getTagNameWitHtmlTag('faq_tag', 'li', 'myClass', 'myId') !!}
+                </div>
+            </section>
+        </div>
+    </main>
 @endsection
