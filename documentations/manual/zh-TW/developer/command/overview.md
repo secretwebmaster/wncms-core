@@ -178,6 +178,7 @@ php artisan wncms:install-default-theme --force
 - 發佈 `wncms-default-assets` 發佈標籤對應的資源。
 - 適用於預設主題資源被修改、遺失或損壞後的復原場景。
 - 該命令也會被安裝流程（CLI 與瀏覽器安裝精靈）透過共用安裝邏輯呼叫。
+- 若因檔案系統權限導致資源複製失敗，後端工具會回傳可翻譯的引導訊息，提示先執行 `修復權限`。
 
 ## `wncms:install-agent-files`
 
@@ -270,6 +271,10 @@ CLI 語系行為：
 - `--app_locale=` 會控制安裝器終端輸出的語言。
 - 範例：`--app_locale=zh_CN` 會以簡體中文顯示安裝進度訊息。
 - 若 locale 為空或不受支援，安裝器會回退到應用程式設定語系/預設支援語系。
+
+CLI agent 檔案行為：
+- `--agent`（或 `--agent=1`）會在安裝流程中發佈 `wncms-agent-files` 標籤。
+- 等效發佈命令：`php artisan vendor:publish --tag=wncms-agent-files`。
 
 ### 多站點預設行為
 

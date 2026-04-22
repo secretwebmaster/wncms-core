@@ -178,6 +178,7 @@ Behavior summary:
 - Publishes assets from the `wncms-default-assets` publish tag.
 - Intended for recovery when default theme assets are edited, missing, or corrupted.
 - This command is also used by installer flows (CLI and browser wizard) via shared installer logic.
+- If asset copy fails due to filesystem permissions, backend tools return a translatable guidance message asking users to run `Fix Permission` first.
 
 ## `wncms:install-agent-files`
 
@@ -270,6 +271,10 @@ CLI locale behavior:
 - `--app_locale=` controls installer terminal message language.
 - Example: `--app_locale=zh_CN` displays install progress messages in Simplified Chinese.
 - If locale is unsupported or empty, installer falls back to configured app locale/default supported locale.
+
+CLI agent files behavior:
+- `--agent` (or `--agent=1`) publishes the `wncms-agent-files` tag during install.
+- Equivalent publish command: `php artisan vendor:publish --tag=wncms-agent-files`.
 
 ### Multi-site default behavior
 

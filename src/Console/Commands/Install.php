@@ -41,6 +41,7 @@ class Install extends Command
      *   --pusher_app_id=
      *   --pusher_app_key=
      *   --pusher_app_secret=
+     *   --agent
      *   --multi_website
      *   --force_https
      */
@@ -73,6 +74,7 @@ class Install extends Command
         {--pusher_app_id=}
         {--pusher_app_key=}
         {--pusher_app_secret=}
+        {--agent=}
         {--multi_website}
         {--force_https}
         {--site_name=}
@@ -124,6 +126,7 @@ class Install extends Command
 
         // Step 3: Collect optional options
         $options = $this->options();
+        $publishAgentFiles = $this->shouldPublishAgentFiles($options['agent'] ?? null);
         $this->info($this->tr('install_cli_step_3_collected'));
 
         // Step 4: Map CLI input → InstallerManager input
@@ -230,6 +233,21 @@ class Install extends Command
             $this->info($this->tr('install_cli_step_6_skipped_no_domain'));
         }
 
+        if ($publishAgentFiles) {
+            $this->info('Publishing wncms-agent-files...');
+
+            $publishStatus = $this->call('vendor:publish', [
+                '--tag' => 'wncms-agent-files',
+            ]);
+
+            if ($publishStatus !== Command::SUCCESS) {
+                $this->error('Failed to publish wncms-agent-files.');
+                return Command::FAILURE;
+            }
+
+            $this->info('wncms-agent-files published.');
+        }
+
         $this->info("__        ___   _  ____ __  __ ____  ");
         $this->info("\ \      / / \ | |/ ___|  \/  / ___| ");
         $this->info(" \ \ /\ / /|  \| | |   | |\/| \___ \ ");
@@ -296,5 +314,32 @@ class Install extends Command
         $region = strtoupper(array_shift($parts));
 
         return $language . '_' . $region . (empty($parts) ? '' : '_' . implode('_', $parts));
+    }
+
+    protected function shouldPublishAgentFiles($agentOption): bool
+    {
+        if ($this->input->hasParameterOption('--agent') && ($agentOption === null || $agentOption === '')) {
+            return true;
+        }
+
+        return $this->isTruthyOption($agentOption);
+    }
+
+    protected function isTruthyOption($value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (int) $value === 1;
+        }
+
+        $normalized = strtolower(trim((string) $value));
+        if ($normalized === '') {
+            return false;
+        }
+
+        return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
     }
 }
