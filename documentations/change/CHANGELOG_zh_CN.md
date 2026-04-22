@@ -1,5 +1,14 @@
 # 更新日志
 
+## v6.3.9 2026-04-22
+
+- 预设主题升级为更现代的响应式布局，包含新版页头/页脚、多组前台页面（页面/文章/商品/订单）重构，以及统一的用户中心导航结构。
+- 新增独立 demo 页面用于保留旧版默认首页的功能展示内容，并补齐预设主题 `en`、`zh_CN`、`zh_TW`、`ja` 语言文案。
+- 后台“安装预设主题”失败处理增强：可识别权限相关错误并返回“修复权限”引导信息，同时提供更清晰的 API 状态码；Advertisement 位置字段也改为优先显示翻译文案。
+- `wncms:install` 新增 `--agent` / `--agent=1`，可在安装流程中直接发布 `wncms-agent-files`，并同步更新 `developer`、`zh-CN`、`zh-TW` 命令文档说明。
+- `wncms:create-model` 新增 `-b` 参数，可自动确认将新路由追加到 `routes/custom_backend.php`。
+- `require-dev` 新增 `laravel/tinker`，提升本地开发与调试体验。
+
 ## v6.3.8 2026-04-11
 
 - 安装流程默认改为 `MEDIA_DISK=media`，新上传媒体可直接写入 `public/media`，降低对 `storage:link` 的依赖。
