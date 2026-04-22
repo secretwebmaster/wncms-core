@@ -132,7 +132,10 @@
                             <td>@include('wncms::common.table_image', ['model' => $advertisement, 'attribute' => 'thumbnail'])</td>
                             <td>{{ $advertisement->name }}</td>
                             <td>{{ $advertisement->type }}</td>
-                            <td>{{ $advertisement->position }}</td>
+                            @php
+                                $positionLabel = __('wncms::word.' . $advertisement->position);
+                            @endphp
+                            <td>{{ $positionLabel === 'wncms::word.' . $advertisement->position ? $advertisement->position : $positionLabel }}</td>
 
                             @if(request()->show_view)
                             <td>{{ $advertisement->view_count }}</td>

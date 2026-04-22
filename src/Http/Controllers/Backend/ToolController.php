@@ -29,24 +29,41 @@ class ToolController extends Controller
 
     public function install_default_theme(Request $request)
     {
-        $installer = new InstallerManager;
-        $result = $installer->installDefaultThemeAssets();
+        try {
+            $installer = new InstallerManager;
+            $result = $installer->installDefaultThemeAssets();
+        } catch (\Throwable $e) {
+            report($e);
+
+            $result = [
+                'passed' => false,
+                'status' => 1,
+                'output' => $e->getMessage(),
+            ];
+        }
+
+        $message = $result['passed']
+            ? __('wncms::word.install_default_theme_success')
+            : $this->resolveInstallDefaultThemeFailedMessage($result);
+
+        $statusCode = 200;
+        if (!$result['passed']) {
+            $statusCode = $this->isPermissionRelatedInstallError((string) ($result['output'] ?? '')) ? 422 : 500;
+        }
 
         if ($request->ajax()) {
             return Response::json([
                 'status' => $result['passed'] ? 'success' : 'fail',
-                'message' => $result['passed']
-                    ? __('wncms::word.install_default_theme_success')
-                    : __('wncms::word.install_default_theme_failed'),
+                'message' => $message,
                 'reload' => true,
-            ], $result['passed'] ? 200 : 500);
+            ], $statusCode);
         }
 
         if ($result['passed']) {
-            return redirect()->back()->with('success', __('wncms::word.install_default_theme_success'));
+            return redirect()->back()->with('success', $message);
         }
 
-        return redirect()->back()->withErrors(['message' => __('wncms::word.install_default_theme_failed')]);
+        return redirect()->back()->withErrors(['message' => $message]);
     }
 
     public function rerun_core_update(Request $request)
@@ -150,5 +167,43 @@ class ToolController extends Controller
     protected function normalizeVersion(string $version): string
     {
         return ltrim(trim($version), 'vV');
+    }
+
+    protected function resolveInstallDefaultThemeFailedMessage(array $result): string
+    {
+        $output = (string) ($result['output'] ?? '');
+
+        if ($this->isPermissionRelatedInstallError($output)) {
+            return __('wncms::word.install_default_theme_permission_failed', [
+                'tool_name' => __('wncms::word.fix_permission'),
+            ]);
+        }
+
+        return __('wncms::word.install_default_theme_failed');
+    }
+
+    protected function isPermissionRelatedInstallError(string $message): bool
+    {
+        $normalizedMessage = strtolower($message);
+        $keywords = [
+            'permission denied',
+            'insufficient permissions',
+            'insufficient permission',
+            'not writable',
+            'unable to write',
+            'unable to create',
+            'failed to open stream',
+            'operation not permitted',
+            'access is denied',
+            'read-only file system',
+        ];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($normalizedMessage, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

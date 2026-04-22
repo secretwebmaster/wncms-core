@@ -2218,6 +2218,7 @@ $words = [
     'install_default_theme_warning' => '此操作会覆盖 public/themes 下默认主题资源文件。',
     'install_default_theme_success' => '默认主题资源安装成功。',
     'install_default_theme_failed' => '默认主题资源安装失败。',
+    'install_default_theme_permission_failed' => '默认主题资源安装失败，原因是文件系统权限不足。请在工具页运行 :tool_name 后再重试。',
     'rerun_core_update' => '重新执行核心更新脚本',
     'rerun_core_update_description' => '可重新执行 updates/ 中指定版本的核心更新文件，用于修复更新中断或异常状态。',
     'rerun_core_update_button' => '执行更新脚本',

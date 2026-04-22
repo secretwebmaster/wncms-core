@@ -2218,6 +2218,7 @@ $words = [
     'install_default_theme_warning' => 'この操作は public/themes 配下のデフォルトテーマ資産ファイルを上書きします。',
     'install_default_theme_success' => 'デフォルトテーマ資産のインストールが完了しました。',
     'install_default_theme_failed' => 'デフォルトテーマ資産のインストールに失敗しました。',
+    'install_default_theme_permission_failed' => 'ファイルシステム権限不足のため、デフォルトテーマ資産のインストールに失敗しました。Tools ページで :tool_name を実行してから再試行してください。',
     'rerun_core_update' => 'コア更新スクリプトを再実行',
     'rerun_core_update_description' => 'updates/ 配下の指定バージョン更新ファイルを再実行し、更新中断や不整合状態の修復に使用します。',
     'rerun_core_update_button' => '更新スクリプトを実行',

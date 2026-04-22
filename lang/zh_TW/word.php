@@ -2218,6 +2218,7 @@ $words = [
     'install_default_theme_warning' => '此操作會覆寫 public/themes 下預設主題資源檔案。',
     'install_default_theme_success' => '預設主題資源安裝成功。',
     'install_default_theme_failed' => '預設主題資源安裝失敗。',
+    'install_default_theme_permission_failed' => '預設主題資源安裝失敗，原因是檔案系統權限不足。請在工具頁執行 :tool_name 後再重試。',
     'rerun_core_update' => '重新執行核心更新腳本',
     'rerun_core_update_description' => '可重新執行 updates/ 中指定版本的核心更新檔案，用於修復更新中斷或異常狀態。',
     'rerun_core_update_button' => '執行更新腳本',

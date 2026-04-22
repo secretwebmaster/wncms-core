@@ -2218,6 +2218,7 @@ $words = [
     'install_default_theme_warning' => 'This action will overwrite default theme asset files under public/themes.',
     'install_default_theme_success' => 'Default theme assets installed successfully.',
     'install_default_theme_failed' => 'Failed to install default theme assets.',
+    'install_default_theme_permission_failed' => 'Failed to install default theme assets because of filesystem permissions. Please run :tool_name in Tools and try again.',
     'rerun_core_update' => 'Rerun Core Update Script',
     'rerun_core_update_description' => 'Rerun a specific core update file from updates/, useful to repair incomplete update states.',
     'rerun_core_update_button' => 'Run Update Script',
