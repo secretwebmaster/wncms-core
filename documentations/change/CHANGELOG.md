@@ -1,6 +1,6 @@
 # 更新日誌
 
-## v6.3.9 2026-04-22
+## v6.3.8 2026-04-22
 
 - 預設主題全面升級為更現代的響應式版型，包含新版頁首/頁尾、多個前台頁面（頁面/文章/商品/訂單）重整，以及共用的會員帳號導覽結構。
 - 新增獨立 demo 頁保留舊版首頁功能展示內容，並補齊預設主題 `en`、`zh_CN`、`zh_TW`、`ja` 語系字串。
@@ -8,8 +8,6 @@
 - `wncms:install` 新增 `--agent` / `--agent=1`，可在安裝流程中直接發佈 `wncms-agent-files`，並同步更新 `developer`、`zh-CN`、`zh-TW` 命令文件說明。
 - `wncms:create-model` 新增 `-b` 參數，可自動確認將新路由附加到 `routes/custom_backend.php`。
 - `require-dev` 新增 `laravel/tinker`，提升本地開發與除錯便利性。
-
-## v6.3.8 2026-04-11
 
 - 安裝流程預設改為使用 `MEDIA_DISK=media`，新上傳媒體可直接儲存在 `public/media`，降低對 `storage:link` 的依賴。
 - 新增後台系統設定 `media_disk`，可在 `public/media` 與 `storage/app/public` 之間切換媒體上傳位置。

@@ -1,6 +1,6 @@
 # Changelog
 
-## v6.3.9 2026-04-22
+## v6.3.8 2026-04-22
 
 - Refreshed the default theme with a modern responsive layout, including a new header/footer, refined page/post/product/order templates, and a shared user account navigation structure.
 - Added a dedicated demo page to preserve the previous default-home capability showcase, and expanded default-theme locale strings for `en`, `zh_CN`, `zh_TW`, and `ja`.
@@ -8,8 +8,6 @@
 - Extended `wncms:install` with `--agent` / `--agent=1` to publish `wncms-agent-files` during installation, and updated the mirrored command docs in `developer`, `zh-CN`, and `zh-TW` manuals.
 - Extended `wncms:create-model` with `-b` to auto-confirm appending generated routes into `routes/custom_backend.php`.
 - Added `laravel/tinker` to `require-dev` for improved local development tooling.
-
-## v6.3.8 2026-04-11
 
 - Installer now defaults to `MEDIA_DISK=media`, so new uploads can be stored directly under `public/media` without requiring `storage:link`.
 - Added new backend system setting `media_disk` to switch media upload storage between `public/media` and `storage/app/public`.
