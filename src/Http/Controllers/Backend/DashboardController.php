@@ -4,12 +4,13 @@ namespace Wncms\Http\Controllers\Backend;
 
 use Wncms\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 class DashboardController extends Controller
 {
     public function show_dashboard(Request $request)
     {
+        $result = [];
+
         if (auth()->user()->hasRole(['superadmin', 'admin'])) {
 
             //websites
