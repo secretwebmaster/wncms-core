@@ -8,7 +8,6 @@
 - Extended `wncms:install` with `--agent` / `--agent=1` to publish `wncms-agent-files` during installation, and updated the mirrored command docs in `developer`, `zh-CN`, and `zh-TW` manuals.
 - Extended `wncms:create-model` with `-b` to auto-confirm appending generated routes into `routes/custom_backend.php`.
 - Added `laravel/tinker` to `require-dev` for improved local development tooling.
-
 - Installer now defaults to `MEDIA_DISK=media`, so new uploads can be stored directly under `public/media` without requiring `storage:link`.
 - Added new backend system setting `media_disk` to switch media upload storage between `public/media` and `storage/app/public`.
 - Runtime media disk resolution now follows the saved system setting, allowing existing projects to adjust upload storage from the settings UI.

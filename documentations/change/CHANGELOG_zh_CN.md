@@ -8,7 +8,6 @@
 - `wncms:install` 新增 `--agent` / `--agent=1`，可在安装流程中直接发布 `wncms-agent-files`，并同步更新 `developer`、`zh-CN`、`zh-TW` 命令文档说明。
 - `wncms:create-model` 新增 `-b` 参数，可自动确认将新路由追加到 `routes/custom_backend.php`。
 - `require-dev` 新增 `laravel/tinker`，提升本地开发与调试体验。
-
 - 安装流程默认改为 `MEDIA_DISK=media`，新上传媒体可直接写入 `public/media`，降低对 `storage:link` 的依赖。
 - 新增后台系统设置 `media_disk`，可在 `public/media` 与 `storage/app/public` 之间切换媒体上传存储位置。
 - 系统启动时会按已保存设置应用媒体磁盘，既有项目升级后可直接在设置页调整上传位置。

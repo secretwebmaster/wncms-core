@@ -13,7 +13,7 @@
 
     foreach ($models as $modelData) {
         $model_class_name = $modelData['model_name_with_namespace'];
-        $model = (new $model_class_name)->newModelInstance();
+        $model = new $model_class_name;
         $snake_name = str()->snake($modelData['model_name'], '_');
         $table_name = $model->getTable();
 
@@ -119,7 +119,7 @@
 
     @php
         $model_class_name = $modelData['model_name_with_namespace'];
-        $model = (new $model_class_name)->newModelInstance();
+        $model = new $model_class_name;
         $snake_name = str()->snake($modelData['model_name'], '_');
         $table_name = $model->getTable();
     @endphp

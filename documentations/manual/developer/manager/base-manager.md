@@ -226,6 +226,17 @@ WNCMS also accepts singular/plural aliases during lookup. For example, both `wnc
 - `SettingManager` remains a specialized key-value manager and does not extend `ModelManager` because it must keep `get($key, $fallback)` / `update($key, $value)` behavior for `gss()` / `uss()`.
 - `SettingManager` still aligns with dynamic model resolution by loading the model through `wncms()->getModelClass('setting')` before querying.
 
+## User Model Resolution
+
+When resolving `wncms()->getModelClass('user')`, WNCMS now follows this order:
+
+1. `config('wncms.models.user.class')` or `config('wncms.models.user')`
+2. `config('auth.providers.users.model')` (typically wired from `.env AUTH_MODEL`)
+3. Package-registered model map
+4. Fallback class discovery (`App\\Models\\User` then `Wncms\\Models\\User`)
+
+This keeps WNCMS model resolution aligned with Laravel auth configuration on fresh Laravel apps that still include `App\\Models\\User`.
+
 ## Tag Model Compatibility
 
 `ModelManager::applyTagFilter()` accepts flexible input (`mixed`) and resolves the tag model class dynamically.

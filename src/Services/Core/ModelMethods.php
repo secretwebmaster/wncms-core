@@ -42,12 +42,26 @@ trait ModelMethods
     {
         $appModelPath = app_path('Models');
         $packageModelPath = dirname(__DIR__, 2) . '/Models';
+        $preferredUserModelClass = null;
+
+        try {
+            $preferredUserModelClass = $this->getModelClass('user');
+        } catch (\Throwable $e) {
+            $preferredUserModelClass = null;
+        }
 
         $appModels = collect(is_dir($appModelPath) ? File::allFiles($appModelPath) : [])
             ->map(function ($file) use ($appModelPath) {
                 $relativePath = Str::replaceFirst($appModelPath . DIRECTORY_SEPARATOR, '', $file->getPathname());
                 $namespacePath = str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath);
                 return 'App\\Models\\' . Str::replace('.php', '', $namespacePath);
+            })
+            ->filter(function (string $modelClass) use ($preferredUserModelClass) {
+                if ($modelClass !== 'App\\Models\\User') {
+                    return true;
+                }
+
+                return empty($preferredUserModelClass) || $preferredUserModelClass === $modelClass;
             });
 
         $appModelBasenames = $appModels->map(fn($model) => class_basename($model))->unique();
@@ -58,7 +72,13 @@ trait ModelMethods
                 $namespacePath = str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath);
                 return 'Wncms\\Models\\' . Str::replace('.php', '', $namespacePath);
             })
-            ->filter(fn($modelName) => !$appModelBasenames->contains(class_basename($modelName)));
+            ->filter(function ($modelName) use ($appModelBasenames, $preferredUserModelClass) {
+                if (class_basename($modelName) === 'User' && $preferredUserModelClass === $modelName) {
+                    return true;
+                }
+
+                return !$appModelBasenames->contains(class_basename($modelName));
+            });
 
         return $appModels->merge($packageModels)
             ->map(function ($modelName) {
@@ -72,6 +92,10 @@ trait ModelMethods
                 }
 
                 $model = new $modelName;
+                if (!$model instanceof Model) {
+                    return null;
+                }
+
                 $modelNameBase = class_basename($modelName);
 
                 return [
@@ -102,16 +126,37 @@ trait ModelMethods
 
         // Cache hit
         if (isset($this->modelClassCache[$key])) {
-            return $this->modelClassCache[$key];
+            $cachedModelClass = $this->modelClassCache[$key];
+
+            if (!$this->isEloquentModelClass($cachedModelClass)) {
+                unset($this->modelClassCache[$key]);
+            } else {
+                if ($key === 'user') {
+                    $authModelClass = $this->resolveAuthUserModelClass();
+                    if (!empty($authModelClass) && $authModelClass !== $cachedModelClass) {
+                        return $this->modelClassCache[$key] = $authModelClass;
+                    }
+                }
+
+                return $cachedModelClass;
+            }
         }
 
         // Check config override
         $configModel = config("wncms.models.{$key}");
-        if (is_array($configModel) && !empty($configModel['class']) && class_exists($configModel['class'])) {
+        if (is_array($configModel) && !empty($configModel['class']) && $this->isEloquentModelClass($configModel['class'])) {
             return $this->modelClassCache[$key] = $configModel['class'];
         }
-        if (is_string($configModel) && class_exists($configModel)) {
+        if (is_string($configModel) && $this->isEloquentModelClass($configModel)) {
             return $this->modelClassCache[$key] = $configModel;
+        }
+
+        // Keep user model aligned with Laravel auth provider / AUTH_MODEL.
+        if ($key === 'user') {
+            $authModelClass = $this->resolveAuthUserModelClass();
+            if (!empty($authModelClass) && class_exists($authModelClass)) {
+                return $this->modelClassCache[$key] = $authModelClass;
+            }
         }
 
         // Check package-defined models
@@ -120,12 +165,12 @@ trait ModelMethods
                 $models = $packageData['models'] ?? [];
 
                 // exact key
-                if (!empty($models[$key]) && class_exists($models[$key])) {
+                if (!empty($models[$key]) && $this->isEloquentModelClass($models[$key])) {
                     return $this->modelClassCache[$key] = $models[$key];
                 }
 
                 // plural form fallback
-                if (!empty($models[Str::plural($key)]) && class_exists($models[Str::plural($key)])) {
+                if (!empty($models[Str::plural($key)]) && $this->isEloquentModelClass($models[Str::plural($key)])) {
                     return $this->modelClassCache[$key] = $models[Str::plural($key)];
                 }
             }
@@ -134,22 +179,42 @@ trait ModelMethods
         // Fallbacks
         $studlyKey = Str::studly($key);
         $appModel = "App\\Models\\{$studlyKey}";
-        if (class_exists($appModel)) {
+        if ($this->isEloquentModelClass($appModel)) {
             return $this->modelClassCache[$key] = $appModel;
         }
 
         $wncmsModel = "Wncms\\Models\\{$studlyKey}";
-        if (class_exists($wncmsModel)) {
+        if ($this->isEloquentModelClass($wncmsModel)) {
             return $this->modelClassCache[$key] = $wncmsModel;
         }
 
         throw new \RuntimeException("Model class not found for key [{$key}].");
     }
 
+    protected function resolveAuthUserModelClass(): ?string
+    {
+        $fromEnv = env('AUTH_MODEL');
+        if (is_string($fromEnv) && !empty($fromEnv) && $this->isEloquentModelClass($fromEnv)) {
+            return $fromEnv;
+        }
+
+        $configured = config('auth.providers.users.model');
+        if (is_string($configured) && !empty($configured) && $this->isEloquentModelClass($configured)) {
+            return $configured;
+        }
+
+        return null;
+    }
+
+    protected function isEloquentModelClass(string $class): bool
+    {
+        return class_exists($class) && is_subclass_of($class, Model::class);
+    }
+
     public function registerModel(string $modelClass): void
     {
-        if (!class_exists($modelClass)) {
-            throw new \RuntimeException("Model class [$modelClass] does not exist.");
+        if (!$this->isEloquentModelClass($modelClass)) {
+            return;
         }
 
         $key = strtolower(class_basename($modelClass));

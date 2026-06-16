@@ -296,6 +296,17 @@ class ProductManager extends ModelManager
 - `SettingManager` 仍为特殊的键值管理器，不继承 `ModelManager`，以保持 `gss()` / `uss()` 依赖的 `get($key, $fallback)`、`update($key, $value)` API。
 - `SettingManager` 仍已对齐动态模型解析：查询前会通过 `wncms()->getModelClass('setting')` 解析模型类。
 
+## User 模型解析
+
+当解析 `wncms()->getModelClass('user')` 时，WNCMS 现在按以下顺序处理：
+
+1. `config('wncms.models.user.class')` 或 `config('wncms.models.user')`
+2. `config('auth.providers.users.model')`（通常来自 `.env AUTH_MODEL`）
+3. package 注册的 models 映射
+4. 兜底类发现（`App\\Models\\User`，再 `Wncms\\Models\\User`）
+
+这样可让 WNCMS 在 Laravel 新专案仍存在 `App\\Models\\User` 时，仍与 Laravel auth 设定保持一致。
+
 ## Tag 模型兼容性
 
 `ModelManager::applyTagFilter()` 现在接受弹性输入（`mixed`），并动态解析 tag 模型类。

@@ -8,7 +8,6 @@
 - `wncms:install` に `--agent` / `--agent=1` を追加し、インストール中に `wncms-agent-files` を公開できるようにしました。関連する `developer` / `zh-CN` / `zh-TW` コマンドドキュメントも同期更新しました。
 - `wncms:create-model` に `-b` オプションを追加し、生成ルートを `routes/custom_backend.php` に追記する確認を自動承認できるようにしました。
 - `require-dev` に `laravel/tinker` を追加し、ローカル開発・デバッグ体験を改善しました。
-
 - インストーラーの既定値を `MEDIA_DISK=media` に変更し、新規アップロードを `public/media` へ直接保存できるようにして `storage:link` 依存を下げました。
 - バックエンドのシステム設定に `media_disk` を追加し、`public/media` と `storage/app/public` の保存先を切り替え可能にしました。
 - 起動時のメディア保存先解決を保存済み設定に連動させ、既存プロジェクトでも設定画面から保存先を変更できるようにしました。
