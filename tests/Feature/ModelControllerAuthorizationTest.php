@@ -63,6 +63,42 @@ class ModelControllerAuthorizationTest extends TestCase
         }
     }
 
+    public function test_member_cannot_use_api_v2_model_update_to_modify_another_user(): void
+    {
+        uss('enable_api_access', 1);
+        uss('api_access_whitelist', '');
+
+        $member = User::factory()->create();
+        $member->assignRole('member');
+
+        $target = User::factory()->create([
+            'api_token' => uniqid('model_guard_original_token_', true),
+        ]);
+        $attemptedToken = uniqid('model_guard_owned_token_', true);
+
+        $loginResponse = $this->postJson('/api/v2/backend/auth/login', [
+            'email' => $member->email,
+            'password' => 'password',
+            'device_name' => 'model-guard-test',
+        ]);
+
+        $loginResponse->assertOk();
+        $token = $loginResponse->json('data.token');
+        $this->assertNotEmpty($token);
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/v2/backend/models/update', [
+                'model' => 'user',
+                'model_id' => $target->id,
+                'column' => 'api_token',
+                'value' => $attemptedToken,
+            ]);
+
+        $response->assertForbidden();
+        $response->assertJsonPath('status', 'fail');
+        $this->assertNotSame($attemptedToken, $target->fresh()->api_token);
+    }
+
     protected function modelMutationPayloads(User $target): array
     {
         return [
