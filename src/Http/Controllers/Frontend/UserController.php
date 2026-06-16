@@ -558,6 +558,13 @@ class UserController extends FrontendController
     // check if registration enabled
     protected function enabledRegistration()
     {
-        return !(bool) gss('disable_registration', true);
+        $systemDisabled = filter_var(gss('disable_registration', true), FILTER_VALIDATE_BOOLEAN);
+        $themeDisabled = gto('disable_registration', null, null, false);
+
+        if ($themeDisabled === null || $themeDisabled === '') {
+            return !$systemDisabled;
+        }
+
+        return !filter_var($themeDisabled, FILTER_VALIDATE_BOOLEAN);
     }
 }

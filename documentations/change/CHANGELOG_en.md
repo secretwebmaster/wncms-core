@@ -3,7 +3,7 @@
 ## v6.3.9-alpha1 2026-06-16
 
 - Restricted backend generic model update and bulk deletion endpoints to admin / superadmin users, preventing regular logged-in accounts from modifying arbitrary model fields.
-- Unified frontend registration availability around the system `disable_registration` setting so theme options cannot override the core registration state.
+- Preserved theme-level `disable_registration` overrides for frontend registration, allowing multisite projects to control registration per website.
 
 ## v6.3.8 2026-04-22
 
