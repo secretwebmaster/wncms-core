@@ -3,9 +3,11 @@
 namespace Wncms\Http\Controllers\Backend;
 
 use Wncms\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 class ModelController extends Controller
 {
@@ -35,6 +37,10 @@ class ModelController extends Controller
 
     public function update(Request $request)
     {
+        if ($response = $this->authorizeAdminModelMutation($request)) {
+            return $response;
+        }
+
         $modelClass = $this->resolveModelClass($request->model);
 
         if (!$modelClass) {
@@ -87,6 +93,10 @@ class ModelController extends Controller
 
     public function bulk_delete(Request $request)
     {
+        if ($response = $this->authorizeAdminModelMutation($request)) {
+            return $response;
+        }
+
         $modelClass = $this->resolveModelClass($request->model);
 
         if (!$modelClass) {
@@ -138,6 +148,10 @@ class ModelController extends Controller
 
     public function bulk_force_delete(Request $request)
     {
+        if ($response = $this->authorizeAdminModelMutation($request)) {
+            return $response;
+        }
+
         $modelClass = $this->resolveModelClass($request->model);
 
         if (!$modelClass) {
@@ -187,5 +201,23 @@ class ModelController extends Controller
             ?? ($request->has('model_id') ? (array) $request->model_id : null)
             ?? ($request->has('modelId') ? (array) $request->modelId : null)
             ?? [];
+    }
+
+    protected function authorizeAdminModelMutation(Request $request): ?JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user && method_exists($user, 'hasRole') && $user->hasRole(['admin', 'superadmin'])) {
+            return null;
+        }
+
+        return response()->json([
+            'code' => Response::HTTP_FORBIDDEN,
+            'status' => 'fail',
+            'message' => __('wncms::word.permission_denied'),
+            'data' => null,
+            'meta' => [],
+            'errors' => [],
+        ], Response::HTTP_FORBIDDEN);
     }
 }

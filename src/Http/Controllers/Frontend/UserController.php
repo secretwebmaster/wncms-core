@@ -558,13 +558,6 @@ class UserController extends FrontendController
     // check if registration enabled
     protected function enabledRegistration()
     {
-        // system default: false = registration allowed? you said "false means no registration allowed"
-        // so I'm assuming: disable_registration = true means DISABLE registration
-        $systemDisabled = (bool) gss('disable_registration', true); // install default should be true to disable by default
-
-        // theme override: null means "theme didn't provide this option"
-        $themeDisabled = gto('disable_registration', null);
-
-        return is_null($themeDisabled) ? !$systemDisabled : !(bool) $themeDisabled;
+        return !(bool) gss('disable_registration', true);
     }
 }

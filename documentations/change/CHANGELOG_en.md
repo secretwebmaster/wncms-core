@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.3.9-alpha1 2026-06-16
+
+- Restricted backend generic model update and bulk deletion endpoints to admin / superadmin users, preventing regular logged-in accounts from modifying arbitrary model fields.
+- Unified frontend registration availability around the system `disable_registration` setting so theme options cannot override the core registration state.
+
 ## v6.3.8 2026-04-22
 
 - Refreshed the default theme with a modern responsive layout, including a new header/footer, refined page/post/product/order templates, and a shared user account navigation structure.

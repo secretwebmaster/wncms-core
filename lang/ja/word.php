@@ -1930,6 +1930,7 @@ $words = [
     'remove_package' => 'パッケージを削除',
     'removing_item' => '項目 :name を削除中',
     'forbidden_package' => '禁止されたパッケージ',
+    'permission_denied' => '権限がありません',
 
     // 0.3.7
     'multi_website' => 'マルチウェブサイト',

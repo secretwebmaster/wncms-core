@@ -1930,6 +1930,7 @@ $words = [
     'remove_package' => '移除Package',
     'removing_item' => '移除項目 :name',
     'forbidden_package' => '禁用Package',
+    'permission_denied' => '權限不足',
 
     // 0.3.7
     'multi_website' => '站群',

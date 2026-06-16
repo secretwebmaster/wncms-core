@@ -1930,6 +1930,7 @@ $words = [
     'remove_package' => 'Remove Package',
     'removing_item' => 'Removing item :name',
     'forbidden_package' => 'Forbidden package',
+    'permission_denied' => 'Permission denied',
 
     // 0.3.7
     'multi_website' => 'Multi-Website',
