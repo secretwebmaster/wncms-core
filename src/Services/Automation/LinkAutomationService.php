@@ -375,26 +375,28 @@ class LinkAutomationService
 
         try {
             $result = DB::transaction(function () use ($actor, $items, $options, $plan, $meta, $runId) {
-                $freshPlan = $this->planBulkUpdate($items, $options);
+                $freshPlan = $this->planBulkUpdate($items, array_merge($options, [
+                    'lock_for_update' => true,
+                ]));
                 if (($freshPlan['validation']['status'] ?? 'fail') !== 'pass') {
                     $errors = (array) ($freshPlan['validation']['errors'] ?? []);
                     $missingIdentifiers = (array) ($errors['target'] ?? []);
 
-                    return AutomationResult::fail(!empty($missingIdentifiers) ? 'Link not found.' : 'Link bulk update validation failed.', [
+                    throw new BulkUpdateAbortException(AutomationResult::fail(!empty($missingIdentifiers) ? 'Link not found.' : 'Link bulk update validation failed.', [
                         'plan' => $freshPlan,
-                    ], $meta, !empty($missingIdentifiers) ? ['identifier' => $missingIdentifiers] : $errors, !empty($missingIdentifiers) ? 404 : 422);
+                    ], $meta, !empty($missingIdentifiers) ? ['identifier' => $missingIdentifiers] : $errors, !empty($missingIdentifiers) ? 404 : 422));
                 }
 
                 if (($freshPlan['guard']['status'] ?? 'fail') !== 'pass') {
-                    return AutomationResult::fail('Link bulk update guard check failed.', ['plan' => $freshPlan], $meta, (array) ($freshPlan['guard']['errors'] ?? []), (int) ($freshPlan['guard']['code'] ?? 403));
+                    throw new BulkUpdateAbortException(AutomationResult::fail('Link bulk update guard check failed.', ['plan' => $freshPlan], $meta, (array) ($freshPlan['guard']['errors'] ?? []), (int) ($freshPlan['guard']['code'] ?? 403)));
                 }
 
                 $plannedChanges = array_map(fn(array $item) => (array) ($item['plan']['changes'] ?? []), (array) $plan['items']);
                 $freshChanges = array_map(fn(array $item) => (array) ($item['plan']['changes'] ?? []), (array) $freshPlan['items']);
                 if ($plannedChanges !== $freshChanges) {
-                    return AutomationResult::fail('Link bulk update became stale.', ['plan' => $freshPlan], $meta, [
+                    throw new BulkUpdateAbortException(AutomationResult::fail('Link bulk update became stale.', ['plan' => $freshPlan], $meta, [
                         'items' => ['stale'],
-                    ], 409);
+                    ], 409));
                 }
 
                 $audits = [];
@@ -404,24 +406,26 @@ class LinkAutomationService
                     }
 
                     $itemPlan = (array) $item['plan'];
-                    $link = $this->findLink($item['identifier'], $options);
+                    $link = $this->findLink($item['identifier'], array_merge($options, [
+                        'lock_for_update' => true,
+                    ]));
                     if (!$link) {
-                        return AutomationResult::fail('Link not found.', ['plan' => $freshPlan], $meta, [
+                        throw new BulkUpdateAbortException(AutomationResult::fail('Link not found.', ['plan' => $freshPlan], $meta, [
                             'identifier' => [(string) $item['identifier']],
-                        ], 404);
+                        ], 404));
                     }
 
                     $changes = $this->attributeChanges($link, (array) $itemPlan['attributes']);
                     if ($changes !== (array) $itemPlan['changes']) {
-                        return AutomationResult::fail('Link bulk update became stale.', ['plan' => $freshPlan], $meta, [
+                        throw new BulkUpdateAbortException(AutomationResult::fail('Link bulk update became stale.', ['plan' => $freshPlan], $meta, [
                             'items' => ['stale'],
-                        ], 409);
+                        ], 409));
                     }
 
                     if ($link->update((array) $itemPlan['attributes']) !== true) {
-                        return AutomationResult::fail('Link bulk update was cancelled.', ['plan' => $freshPlan], $meta, [
+                        throw new BulkUpdateAbortException(AutomationResult::fail('Link bulk update was cancelled.', ['plan' => $freshPlan], $meta, [
                             'items' => ['cancelled'],
-                        ], 409);
+                        ], 409));
                     }
 
                     $itemPlan['operation'] = 'bulk_update';
@@ -456,6 +460,8 @@ class LinkAutomationService
                     'audit_ids' => $audits,
                 ], $meta, 200);
             });
+        } catch (BulkUpdateAbortException $exception) {
+            $result = $exception->result();
         } finally {
             if ($previousActor instanceof Authenticatable) {
                 $authGuard->setUser($previousActor);
@@ -785,6 +791,10 @@ class LinkAutomationService
 
         if ($this->hasValue($options['website_id'] ?? null) && method_exists($modelClass, 'applyWebsiteScope')) {
             $modelClass::applyWebsiteScope($query, (int) $options['website_id']);
+        }
+
+        if ((bool) ($options['lock_for_update'] ?? false)) {
+            $query->lockForUpdate();
         }
 
         return $query->first();

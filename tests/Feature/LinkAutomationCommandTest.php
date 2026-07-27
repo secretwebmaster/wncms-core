@@ -1054,6 +1054,40 @@ class LinkAutomationCommandTest extends TestCase
         }
     }
 
+    public function test_links_bulk_update_rolls_back_earlier_changes_when_a_later_update_is_cancelled(): void
+    {
+        $admin = $this->automationAdmin();
+        $first = Link::create($this->linkData(['sort' => 10]));
+        $second = Link::create($this->linkData(['sort' => 20]));
+        $beforeAuditCount = MutationAudit::count();
+        $dispatcher = clone Link::getEventDispatcher();
+        Link::setEventDispatcher(clone $dispatcher);
+        Link::updating(function (Link $link) use ($second) {
+            return $link->is($second) ? false : null;
+        });
+
+        try {
+            $exitCode = Artisan::call('wncms:links:bulk-update', [
+                '--items' => json_encode([
+                    ['identifier' => $first->id, 'sort' => 11],
+                    ['identifier' => $second->id, 'sort' => 21],
+                ]),
+                '--actor-user' => $admin->id,
+                '--force' => true,
+                '--json' => true,
+            ]);
+            $decoded = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $exitCode);
+            $this->assertSame(409, $decoded['code']);
+            $this->assertSame(10, $first->fresh()->sort);
+            $this->assertSame(20, $second->fresh()->sort);
+            $this->assertSame($beforeAuditCount, MutationAudit::count());
+        } finally {
+            Link::setEventDispatcher($dispatcher);
+        }
+    }
+
     /**
      * Build test link data with stable defaults.
      *
