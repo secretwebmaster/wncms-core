@@ -103,9 +103,15 @@ class LinkAutomationService
         $force = (bool) ($options['force'] ?? false);
         $dryRun = (bool) ($options['dry_run'] ?? false) || !$force;
         $options['write_mode'] = !$dryRun;
-
-        $plan = $this->planCreate($input, $options);
         $meta = $this->mutationResultMeta('create', $input, $options, $dryRun);
+        $plan = $this->planCreate($input, $options);
+        $websiteErrors = $this->lookupWebsiteErrors($options);
+
+        if (!empty($websiteErrors)) {
+            return AutomationResult::fail('Link create website validation failed.', [
+                'plan' => $plan,
+            ], $meta, $websiteErrors, 422);
+        }
 
         if (($plan['validation']['status'] ?? 'fail') !== 'pass') {
             return AutomationResult::fail('Link create validation failed.', [
@@ -144,9 +150,9 @@ class LinkAutomationService
                 $hookValidationErrors = $this->validateStoreHooks($request);
 
                 if (!empty($hookValidationErrors)) {
-                    return AutomationResult::fail('Link create hook validation failed.', [
+                    throw new LinkMutationAbortException(AutomationResult::fail('Link create hook validation failed.', [
                         'plan' => $plan,
-                    ], $meta, $hookValidationErrors, 422);
+                    ], $meta, $hookValidationErrors, 422));
                 }
 
                 $attributes = (array) ($plan['attributes'] ?? []);
@@ -154,6 +160,14 @@ class LinkAutomationService
 
                 $modelClass = wncms()->getModelClass('link');
                 $link = $modelClass::create($attributes);
+                if (!$link->exists) {
+                    throw new LinkMutationAbortException(AutomationResult::fail('Link create was cancelled.', [
+                        'plan' => $plan,
+                    ], $meta, [
+                        'create' => ['cancelled'],
+                    ], 409));
+                }
+
                 $this->syncMutationWebsites($link, (array) ($plan['relationships']['website_ids'] ?? []));
                 $this->syncMutationTags($link, (array) ($plan['relationships']['tags'] ?? []));
                 Event::dispatch('wncms.backend.links.store.after', [$link, $request]);
@@ -187,6 +201,8 @@ class LinkAutomationService
                     ],
                 ], $meta, 201);
             });
+        } catch (LinkMutationAbortException $exception) {
+            $result = $exception->result();
         } finally {
             if ($previousActor instanceof Authenticatable) {
                 $authGuard->setUser($previousActor);
@@ -545,32 +561,80 @@ class LinkAutomationService
         $authGuard->setUser($actor);
 
         try {
-            $result = DB::transaction(function () use ($actor, $input, $options, $plan, $meta) {
-                $modelClass = wncms()->getModelClass('link');
-                $link = $modelClass::query()->with(['websites'])->find($plan['target']['id']);
-
-                if (!$link) {
-                    return AutomationResult::fail('Link not found.', [
+            $result = DB::transaction(function () use ($actor, $identifier, $input, $options, $plan, $meta) {
+                $freshOptions = array_merge($options, [
+                    'lock_for_update' => true,
+                ]);
+                $freshPlan = $this->planUpdate($identifier, $input, $freshOptions);
+                if (!$freshPlan) {
+                    throw new LinkMutationAbortException(AutomationResult::fail('Link not found.', [
                         'plan' => $plan,
                     ], $meta, [
-                        'identifier' => [(string) ($plan['target']['id'] ?? '')],
-                    ], 404);
+                        'identifier' => [(string) $identifier],
+                    ], 404));
                 }
+
+                if (($freshPlan['guard']['status'] ?? 'fail') !== 'pass') {
+                    throw new LinkMutationAbortException(AutomationResult::fail('Link update guard check failed.', [
+                        'plan' => $freshPlan,
+                    ], $meta, (array) ($freshPlan['guard']['errors'] ?? []), (int) ($freshPlan['guard']['code'] ?? 403)));
+                }
+
+                if (!$this->sameUpdateApproval($plan, $freshPlan)) {
+                    throw new LinkMutationAbortException(AutomationResult::fail('Link update became stale.', [
+                        'plan' => $freshPlan,
+                    ], $meta, [
+                        'update' => ['stale'],
+                    ], 409));
+                }
+
+                $link = $this->findLink($identifier, $freshOptions);
 
                 $request = Request::create('/', 'PUT', $this->requestPayloadFromPlan($input, $plan));
                 $request->setUserResolver(fn() => $actor);
                 $hookValidationErrors = $this->validateUpdateHooks($link, $request);
 
                 if (!empty($hookValidationErrors)) {
-                    return AutomationResult::fail('Link update hook validation failed.', [
+                    throw new LinkMutationAbortException(AutomationResult::fail('Link update hook validation failed.', [
                         'plan' => $plan,
-                    ], $meta, $hookValidationErrors, 422);
+                    ], $meta, $hookValidationErrors, 422));
                 }
+
+                $revalidatedPlan = $this->planUpdate($identifier, $input, $freshOptions);
+                if (!$revalidatedPlan) {
+                    throw new LinkMutationAbortException(AutomationResult::fail('Link not found.', [
+                        'plan' => $freshPlan,
+                    ], $meta, [
+                        'identifier' => [(string) $identifier],
+                    ], 404));
+                }
+
+                if (($revalidatedPlan['guard']['status'] ?? 'fail') !== 'pass') {
+                    throw new LinkMutationAbortException(AutomationResult::fail('Link update guard check failed.', [
+                        'plan' => $revalidatedPlan,
+                    ], $meta, (array) ($revalidatedPlan['guard']['errors'] ?? []), (int) ($revalidatedPlan['guard']['code'] ?? 403)));
+                }
+
+                if (!$this->sameUpdateApproval($plan, $revalidatedPlan)) {
+                    throw new LinkMutationAbortException(AutomationResult::fail('Link update became stale.', [
+                        'plan' => $revalidatedPlan,
+                    ], $meta, [
+                        'update' => ['stale'],
+                    ], 409));
+                }
+
+                $link = $this->findLink($identifier, $freshOptions);
 
                 $attributes = (array) ($plan['attributes'] ?? []);
                 Event::dispatch('wncms.backend.links.update.attributes.before', [$link, $request, &$attributes]);
                 $writtenChanges = $this->attributeChanges($link, $attributes);
-                $link->update($attributes);
+                if ($link->update($attributes) !== true) {
+                    throw new LinkMutationAbortException(AutomationResult::fail('Link update was cancelled.', [
+                        'plan' => $revalidatedPlan,
+                    ], $meta, [
+                        'update' => ['cancelled'],
+                    ], 409));
+                }
                 Event::dispatch('wncms.backend.links.update.after', [$link, $request]);
 
                 $link->loadMissing(['websites']);
@@ -604,6 +668,8 @@ class LinkAutomationService
                     ],
                 ], $meta, 200);
             });
+        } catch (LinkMutationAbortException $exception) {
+            $result = $exception->result();
         } finally {
             if ($previousActor instanceof Authenticatable) {
                 $authGuard->setUser($previousActor);
@@ -1175,6 +1241,20 @@ class LinkAutomationService
         }
 
         return $changes;
+    }
+
+    /**
+     * Determine whether a fresh update plan still matches its approved plan.
+     *
+     * @param  array  $approvedPlan
+     * @param  array  $freshPlan
+     * @return bool
+     */
+    protected function sameUpdateApproval(array $approvedPlan, array $freshPlan): bool
+    {
+        return ($approvedPlan['target']['id'] ?? null) === ($freshPlan['target']['id'] ?? null)
+            && (array) ($approvedPlan['changes'] ?? []) === (array) ($freshPlan['changes'] ?? [])
+            && (array) ($approvedPlan['relationships']['website_ids'] ?? []) === (array) ($freshPlan['relationships']['website_ids'] ?? []);
     }
 
     /**

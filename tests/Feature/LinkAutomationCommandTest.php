@@ -1088,6 +1088,107 @@ class LinkAutomationCommandTest extends TestCase
         }
     }
 
+    public function test_links_create_rejects_invalid_website_in_dry_run_and_write_modes(): void
+    {
+        $admin = $this->automationAdmin();
+        $beforeCount = Link::count();
+        $beforeAuditCount = MutationAudit::count();
+
+        foreach ([false, true] as $force) {
+            $exitCode = Artisan::call('wncms:links:create', [
+                '--name' => 'Invalid create website ' . uniqid(),
+                '--url' => 'https://example.com/invalid-create-website',
+                '--website' => 0,
+                '--actor-user' => $admin->id,
+                '--force' => $force,
+                '--json' => true,
+            ]);
+            $decoded = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $exitCode);
+            $this->assertSame(422, $decoded['code']);
+        }
+
+        $this->assertSame($beforeCount, Link::count());
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
+    public function test_links_create_and_update_return_conflict_when_model_events_cancel(): void
+    {
+        $admin = $this->automationAdmin();
+        $beforeCount = Link::count();
+        $beforeAuditCount = MutationAudit::count();
+        $dispatcher = clone Link::getEventDispatcher();
+        Link::setEventDispatcher(clone $dispatcher);
+        Link::creating(fn() => false);
+
+        try {
+            $createExitCode = Artisan::call('wncms:links:create', [
+                '--name' => 'Cancelled create',
+                '--url' => 'https://example.com/cancelled-create',
+                '--actor-user' => $admin->id,
+                '--force' => true,
+                '--json' => true,
+            ]);
+            $create = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $createExitCode);
+            $this->assertSame(409, $create['code']);
+            $this->assertSame($beforeCount, Link::count());
+            $this->assertSame($beforeAuditCount, MutationAudit::count());
+        } finally {
+            Link::setEventDispatcher($dispatcher);
+        }
+
+        $link = Link::create($this->linkData(['sort' => 10]));
+        $dispatcher = clone Link::getEventDispatcher();
+        Link::setEventDispatcher(clone $dispatcher);
+        Link::updating(fn() => false);
+
+        try {
+            $updateExitCode = Artisan::call('wncms:links:update', [
+                'identifier' => $link->id,
+                '--sort' => 11,
+                '--actor-user' => $admin->id,
+                '--force' => true,
+                '--json' => true,
+            ]);
+            $update = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $updateExitCode);
+            $this->assertSame(409, $update['code']);
+            $this->assertSame(10, $link->fresh()->sort);
+            $this->assertSame($beforeAuditCount, MutationAudit::count());
+        } finally {
+            Link::setEventDispatcher($dispatcher);
+        }
+    }
+
+    public function test_links_update_rejects_stale_target_changes_without_writing(): void
+    {
+        $admin = $this->automationAdmin();
+        $link = Link::create($this->linkData(['sort' => 10]));
+        $beforeAuditCount = MutationAudit::count();
+
+        Event::listen('wncms.backend.links.update.before', function (Link $hookLink) {
+            $hookLink->updateQuietly(['sort' => 12]);
+        });
+
+        $exitCode = Artisan::call('wncms:links:update', [
+            'identifier' => $link->id,
+            '--sort' => 11,
+            '--actor-user' => $admin->id,
+            '--force' => true,
+            '--json' => true,
+        ]);
+        $decoded = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertSame(409, $decoded['code']);
+        $this->assertSame(10, $link->fresh()->sort);
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
     /**
      * Build test link data with stable defaults.
      *
