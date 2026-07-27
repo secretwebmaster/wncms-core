@@ -166,6 +166,70 @@ Registered Macros (Extension Registry)
 +----------------+------------------------+-------------+
 ```
 
+## `wncms:links:list`
+
+List links from CLI.
+
+```bash
+php artisan wncms:links:list
+```
+
+Common usage:
+
+```bash
+# List active links as JSON
+php artisan wncms:links:list --json
+
+# Include every status
+php artisan wncms:links:list --status=all --json
+
+# Filter by keyword and website scope
+php artisan wncms:links:list --keyword=partner --website=1 --per-page=20 --json
+```
+
+Behavior summary:
+- Uses `LinkAutomationService` and `LinkManager` for read-only list access.
+- Defaults to `--status=active`; use `--status=all` to disable status filtering.
+- Supports `--keyword=`, `--website=`, `--page=`, `--per-page=`, `--sort=`, and `--direction=`.
+- Returns a table for operators by default, or an API v2 aligned envelope with `--json`.
+- Does not mutate data or flush cache.
+
+## `wncms:links:inspect`
+
+Inspect one link by ID or slug from CLI.
+
+```bash
+php artisan wncms:links:inspect 123
+php artisan wncms:links:inspect my-link-slug --json
+```
+
+Behavior summary:
+- Accepts a numeric ID or a slug in `{identifier}`.
+- Supports `--website=` to scope lookup when Link website mode requires it.
+- Returns a key-value table by default, or an API v2 aligned envelope with `--json`.
+- Returns failure with `code: 404` when the link cannot be found.
+- Does not mutate data or flush cache.
+
+## `wncms:links:create`
+
+Create a link through the guarded automation path.
+
+```bash
+# Default mode is dry-run and does not write data
+php artisan wncms:links:create --name="Partner" --url=https://example.com --website=1 --json
+
+# Write mode requires --force and an actor user allowed to create links
+php artisan wncms:links:create --name="Partner" --url=https://example.com --website=1 --actor-user=1 --force --json
+```
+
+Behavior summary:
+- Uses `LinkAutomationService` and returns the same automation result envelope as the read-only Link commands.
+- Defaults to dry-run unless `--force` is supplied; `--dry-run` always prevents writes.
+- Write mode requires an actor from `--actor-user=` or `wncms.automation.system_actor_user_id`.
+- The actor must pass `link_create` permission and requested website scope checks.
+- Successful writes create the Link, bind requested websites when Link uses scoped website mode, sync requested link categories/tags, flush `links` cache, dispatch existing Link store hooks, and store a `mutation_audits` record.
+- Supports `--name=`, `--url=`, `--status=`, `--slug=`, `--tracking-code=`, `--website=`, `--description=`, `--slogan=`, `--external-thumbnail=`, `--remark=`, `--sort=`, `--color=`, `--background=`, `--is-pinned`, `--is-recommended`, `--expired-at=`, `--hit-at=`, `--clicks=`, `--contact=`, `--link-categories=`, and `--link-tags=`.
+
 ## `wncms:install-default-theme`
 
 Install or reinstall core default theme assets into `public/themes`.

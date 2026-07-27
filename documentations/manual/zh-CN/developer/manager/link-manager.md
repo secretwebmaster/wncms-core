@@ -48,6 +48,18 @@ class LinkManager extends ModelManager
 $link = wncms()->link()->getBySlug('my-link', websiteId: 12);
 ```
 
+## CLI helpers
+
+WNCMS 提供 CLI helpers，可用于 scripts 或本地操作中检视 Links 资料并执行 guarded create。
+
+可用 commands：
+
+- `php artisan wncms:links:list`
+- `php artisan wncms:links:inspect {identifier}`
+- `php artisan wncms:links:create`
+
+List 与 inspect commands 使用 `LinkManager` 执行 read-only queries，并支持以 `--json` 输出 JSON。Create command 使用 `LinkAutomationService`；默认 dry-run，只有在 `--force` 搭配允许的 `--actor-user=` 或已配置 system actor 时才会写入。成功建立时会在 Link 使用 scoped website mode 时绑定 websites、flush `links` cache，并写入 `mutation_audits` record。
+
 ## 过滤与选项
 
 `buildListQuery()` 支援以下选项：

@@ -42,6 +42,10 @@ return [
         'serializable_classes' => [],
     ],
 
+    'automation' => [
+        'system_actor_user_id' => env('WNCMS_AUTOMATION_SYSTEM_ACTOR_USER_ID'),
+    ],
+
     // 'ecommerce' => [
     //     'default_currency_symbol' => '$',
     //     'default_currency_unit' => 'USD',

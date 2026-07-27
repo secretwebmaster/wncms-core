@@ -166,6 +166,70 @@ Registered Macros (Extension Registry)
 +----------------+------------------------+-------------+
 ```
 
+## `wncms:links:list`
+
+透過 CLI 列出 links。
+
+```bash
+php artisan wncms:links:list
+```
+
+常見用法：
+
+```bash
+# 以 JSON 列出 active links
+php artisan wncms:links:list --json
+
+# 包含所有 status
+php artisan wncms:links:list --status=all --json
+
+# 依 keyword 與 website scope 篩選
+php artisan wncms:links:list --keyword=partner --website=1 --per-page=20 --json
+```
+
+行為摘要：
+- 使用 `LinkAutomationService` 與 `LinkManager` 進行 read-only list access。
+- 預設為 `--status=active`；使用 `--status=all` 可停用 status filtering。
+- 支援 `--keyword=`、`--website=`、`--page=`、`--per-page=`、`--sort=`、`--direction=`。
+- 預設輸出 operator table，使用 `--json` 時輸出對齊 API v2 的 envelope。
+- 不會 mutate data 或 flush cache。
+
+## `wncms:links:inspect`
+
+透過 CLI 依 ID 或 slug 檢視單一 link。
+
+```bash
+php artisan wncms:links:inspect 123
+php artisan wncms:links:inspect my-link-slug --json
+```
+
+行為摘要：
+- `{identifier}` 可使用 numeric ID 或 slug。
+- 支援 `--website=`，可在 Link website mode 需要時限定 lookup scope。
+- 預設輸出 key-value table，使用 `--json` 時輸出對齊 API v2 的 envelope。
+- 找不到 link 時會以 `code: 404` 回傳 failure。
+- 不會 mutate data 或 flush cache。
+
+## `wncms:links:create`
+
+透過 guarded automation path 建立 link。
+
+```bash
+# 預設是 dry-run，不會寫入資料
+php artisan wncms:links:create --name="Partner" --url=https://example.com --website=1 --json
+
+# 寫入模式需要 --force，並指定有 link_create 權限的 actor user
+php artisan wncms:links:create --name="Partner" --url=https://example.com --website=1 --actor-user=1 --force --json
+```
+
+行為摘要：
+- 使用 `LinkAutomationService`，並回傳與 read-only Link commands 相同的 automation result envelope。
+- 預設 dry-run；未提供 `--force` 不會寫入，`--dry-run` 永遠會阻止寫入。
+- 寫入模式需要來自 `--actor-user=` 或 `wncms.automation.system_actor_user_id` 的 actor。
+- Actor 必須通過 `link_create` permission 與 requested website scope checks。
+- 成功寫入時會建立 Link，並在 Link 使用 scoped website mode 時綁定 requested websites、同步 requested link categories/tags、flush `links` cache、dispatch 既有 Link store hooks，並寫入 `mutation_audits` record。
+- 支援 `--name=`、`--url=`、`--status=`、`--slug=`、`--tracking-code=`、`--website=`、`--description=`、`--slogan=`、`--external-thumbnail=`、`--remark=`、`--sort=`、`--color=`、`--background=`、`--is-pinned`、`--is-recommended`、`--expired-at=`、`--hit-at=`、`--clicks=`、`--contact=`、`--link-categories=`、`--link-tags=`。
+
 ## `wncms:install-default-theme`
 
 安裝或重新安裝核心預設主題資源到 `public/themes`。

@@ -48,6 +48,18 @@ Convenience method to fetch a single link by slug with optional website scoping.
 $link = wncms()->link()->getBySlug('my-link', websiteId: 12);
 ```
 
+## CLI helpers
+
+WNCMS includes CLI helpers for inspecting and guarded creation of Links data from scripts or local operations.
+
+Available commands:
+
+- `php artisan wncms:links:list`
+- `php artisan wncms:links:inspect {identifier}`
+- `php artisan wncms:links:create`
+
+The list and inspect commands use `LinkManager` for read-only queries and support JSON output with `--json`. The create command uses `LinkAutomationService`; it defaults to dry-run, and only writes when `--force` is combined with an allowed `--actor-user=` or configured system actor. Successful creates bind websites when Link uses scoped website mode, flush `links` cache, and write a `mutation_audits` record.
+
 ## Filtering and options
 
 `buildListQuery()` supports the following options:
