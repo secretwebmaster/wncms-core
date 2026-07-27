@@ -1,5 +1,10 @@
 # 更新日志
 
+## v7.0.0-alpha1 2026-07-27
+
+- 新增 `wncms:links:bulk-update`，提供默认 dry-run、原子化 Link URL 与排序更新，以及 actor、权限与网站范围保护。
+- Link 批量更新会为每个实际变更创建共享 run ID 的审计记录，并在批次提交后只刷新一次 links 缓存。
+
 ## v6.3.9-alpha1 2026-06-16
 
 - 后台通用模型更新与批量删除接口现在只允许 admin / superadmin 使用，避免普通登录账号越权修改任意模型字段。

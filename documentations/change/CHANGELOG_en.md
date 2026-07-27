@@ -1,5 +1,10 @@
 # Changelog
 
+## v7.0.0-alpha1 2026-07-27
+
+- Added `wncms:links:bulk-update` for dry-run-first, atomic Link URL and sort updates with actor, permission, and website-scope guards.
+- Changed Link bulk updates now create one audit record per Link with a shared run ID and flush the links cache once after a committed batch.
+
 ## v6.3.9-alpha1 2026-06-16
 
 - Restricted backend generic model update and bulk deletion endpoints to admin / superadmin users, preventing regular logged-in accounts from modifying arbitrary model fields.

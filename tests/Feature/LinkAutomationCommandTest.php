@@ -883,6 +883,177 @@ class LinkAutomationCommandTest extends TestCase
         }
     }
 
+    public function test_links_bulk_update_outputs_atomic_dry_run_without_writing(): void
+    {
+        $first = Link::create($this->linkData(['url' => 'https://example.com/first', 'sort' => 10]));
+        $second = Link::create($this->linkData(['url' => 'https://example.com/second', 'sort' => 20]));
+        $beforeAuditCount = MutationAudit::count();
+
+        $exitCode = Artisan::call('wncms:links:bulk-update', [
+            '--items' => json_encode([
+                ['identifier' => $first->id, 'url' => 'https://example.com/first-updated'],
+                ['identifier' => $second->slug, 'sort' => 30],
+            ]),
+            '--json' => true,
+        ]);
+        $decoded = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertSame(202, $decoded['code']);
+        $this->assertTrue($decoded['data']['plan']['atomic']);
+        $this->assertSame(['requested' => 2, 'changed' => 2, 'noop' => 0], $decoded['data']['plan']['summary']);
+        $this->assertSame('https://example.com/first', $first->fresh()->url);
+        $this->assertSame(20, $second->fresh()->sort);
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
+    public function test_links_bulk_update_force_updates_changed_targets_and_audits_each_change(): void
+    {
+        $admin = $this->automationAdmin();
+        $changed = Link::create($this->linkData(['url' => 'https://example.com/changed-before']));
+        $noop = Link::create($this->linkData(['sort' => 20]));
+        $beforeAuditCount = MutationAudit::count();
+
+        $exitCode = Artisan::call('wncms:links:bulk-update', [
+            '--items' => json_encode([
+                ['identifier' => $changed->id, 'url' => 'https://example.com/changed-after'],
+                ['identifier' => $noop->id, 'sort' => 20],
+            ]),
+            '--actor-user' => $admin->id,
+            '--force' => true,
+            '--json' => true,
+        ]);
+        $decoded = json_decode(trim(Artisan::output()), true);
+        $audit = MutationAudit::query()->latest('id')->first();
+
+        $this->assertSame(0, $exitCode);
+        $this->assertSame(200, $decoded['code']);
+        $this->assertSame(['requested' => 2, 'changed' => 1, 'noop' => 1], $decoded['data']['summary']);
+        $this->assertSame('https://example.com/changed-after', $changed->fresh()->url);
+        $this->assertSame($beforeAuditCount + 1, MutationAudit::count());
+        $this->assertSame($decoded['data']['run_id'], $audit->run_id);
+        $this->assertSame($changed->id, $audit->model_id);
+    }
+
+    public function test_links_bulk_update_rejects_invalid_or_duplicate_items_without_writing(): void
+    {
+        $link = Link::create($this->linkData());
+        $payloads = [
+            '{broken',
+            '[]',
+            json_encode([['identifier' => $link->id, 'name' => 'unsupported']]),
+            json_encode([
+                ['identifier' => $link->id, 'sort' => 1],
+                ['identifier' => $link->slug, 'sort' => 2],
+            ]),
+        ];
+
+        foreach ($payloads as $payload) {
+            $exitCode = Artisan::call('wncms:links:bulk-update', ['--items' => $payload, '--json' => true]);
+            $decoded = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $exitCode);
+            $this->assertSame(422, $decoded['code']);
+            $this->assertSame(10, $link->fresh()->sort);
+        }
+    }
+
+    public function test_links_bulk_update_is_atomic_for_missing_permission_or_scoped_target(): void
+    {
+        $first = Link::create($this->linkData(['sort' => 10]));
+        $second = Link::create($this->linkData(['sort' => 20]));
+        $admin = $this->automationAdmin();
+        $payload = json_encode([
+            ['identifier' => $first->id, 'sort' => 11],
+            ['identifier' => 'missing-' . uniqid(), 'sort' => 21],
+        ]);
+
+        $missingExitCode = Artisan::call('wncms:links:bulk-update', [
+            '--items' => $payload,
+            '--actor-user' => $admin->id,
+            '--force' => true,
+            '--json' => true,
+        ]);
+        $missing = json_decode(trim(Artisan::output()), true);
+
+        $member = User::create([
+            'username' => 'bulk-update-member-' . uniqid(),
+            'email' => 'bulk-update-member-' . uniqid() . '@example.com',
+            'password' => Hash::make('wncms.cc'),
+            'email_verified_at' => now(),
+        ]);
+        $member->assignRole('member');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $deniedExitCode = Artisan::call('wncms:links:bulk-update', [
+            '--items' => json_encode([['identifier' => $first->id, 'sort' => 11]]),
+            '--actor-user' => $member->id,
+            '--force' => true,
+            '--json' => true,
+        ]);
+        $denied = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(1, $missingExitCode);
+        $this->assertSame(404, $missing['code']);
+        $this->assertSame(1, $deniedExitCode);
+        $this->assertSame(403, $denied['code']);
+        $this->assertSame(10, $first->fresh()->sort);
+        $this->assertSame(20, $second->fresh()->sort);
+    }
+
+    public function test_links_bulk_update_rejects_more_than_one_hundred_items(): void
+    {
+        $items = array_map(
+            fn(int $index) => ['identifier' => $index + 100000, 'sort' => $index],
+            range(0, 100)
+        );
+        $exitCode = Artisan::call('wncms:links:bulk-update', [
+            '--items' => json_encode($items),
+            '--json' => true,
+        ]);
+        $decoded = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertSame(422, $decoded['code']);
+        $this->assertSame(['maximum:100'], $decoded['errors']['items']);
+    }
+
+    public function test_links_bulk_update_is_atomic_when_a_target_is_outside_website_scope(): void
+    {
+        $originalModels = config('wncms.models');
+        config(['wncms.models.link.website_mode' => 'multi']);
+        $website = Website::first();
+        $otherWebsite = Website::query()->whereKey('!=', $website->id)->first() ?: Website::create([
+            'domain' => 'automation-bulk-scope-' . uniqid() . '.test',
+            'site_name' => 'Automation Bulk Scope Website',
+        ]);
+        $admin = $this->automationAdmin($website);
+        $first = Link::create($this->linkData(['sort' => 10]));
+        $first->bindWebsites([$website->id]);
+        $second = Link::create($this->linkData(['sort' => 20]));
+        $second->bindWebsites([$otherWebsite->id]);
+
+        try {
+            $exitCode = Artisan::call('wncms:links:bulk-update', [
+                '--items' => json_encode([
+                    ['identifier' => $first->id, 'sort' => 11],
+                    ['identifier' => $second->id, 'sort' => 21],
+                ]),
+                '--website' => $website->id,
+                '--actor-user' => $admin->id,
+                '--force' => true,
+                '--json' => true,
+            ]);
+            $decoded = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $exitCode);
+            $this->assertSame(404, $decoded['code']);
+            $this->assertSame(10, $first->fresh()->sort);
+            $this->assertSame(20, $second->fresh()->sort);
+        } finally {
+            config(['wncms.models' => $originalModels]);
+        }
+    }
+
     /**
      * Build test link data with stable defaults.
      *

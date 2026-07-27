@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class LinkAutomationService
 {
@@ -221,6 +222,253 @@ class LinkAutomationService
         $options['guard_website_ids'] = $this->websiteIds($link);
 
         return $this->mutationPlan('update', $attributes, $link, $input, $options, $this->validateMutation('update', $attributes), $changes);
+    }
+
+    /**
+     * Build an atomic dry-run plan for multiple Link patches.
+     *
+     * @param  array  $items
+     * @param  array  $options
+     * @return array
+     */
+    public function planBulkUpdate(array $items, array $options = []): array
+    {
+        $writeMode = (bool) ($options['write_mode'] ?? false);
+        $validationErrors = $this->bulkUpdateValidationErrors($items);
+        $plannedItems = [];
+        $websiteIds = [];
+
+        if (empty($validationErrors)) {
+            foreach ($items as $item) {
+                $identifier = $item['identifier'];
+                $link = $this->findLink($identifier, $options);
+                if (!$link) {
+                    $validationErrors['target'][] = (string) $identifier;
+                    continue;
+                }
+
+                $attributes = $this->normalizeUpdateAttributes([
+                    'url' => $item['url'] ?? null,
+                    'sort' => $item['sort'] ?? null,
+                ]);
+                $attributes = array_intersect_key($attributes, array_flip(array_keys(array_diff_key($item, ['identifier' => true]))));
+                $changes = $this->attributeChanges($link, $attributes);
+                $targetWebsiteIds = $this->websiteIds($link);
+                $websiteIds = array_merge($websiteIds, $targetWebsiteIds);
+                $itemOptions = array_merge($options, ['guard_website_ids' => $targetWebsiteIds]);
+                $itemPlan = $this->mutationPlan('update', $attributes, $link, $item, $itemOptions, $this->validateMutation('update', $attributes), $changes);
+                $itemPlan['hooks'] = [];
+
+                $plannedItems[] = [
+                    'identifier' => $identifier,
+                    'status' => empty($changes) ? 'noop' : 'change',
+                    'plan' => $itemPlan,
+                ];
+            }
+        }
+
+        $targetIds = array_map(fn(array $plannedItem) => (int) ($plannedItem['plan']['target']['id'] ?? 0), $plannedItems);
+        $duplicateIds = array_filter(array_count_values($targetIds), fn(int $count) => $count > 1);
+        if (!empty($duplicateIds)) {
+            $validationErrors['items'][] = 'duplicate_target';
+        }
+
+        $summary = [
+            'requested' => count($items),
+            'changed' => count(array_filter($plannedItems, fn(array $item) => $item['status'] === 'change')),
+            'noop' => count(array_filter($plannedItems, fn(array $item) => $item['status'] === 'noop')),
+        ];
+        $plan = [
+            'operation' => 'bulk_update',
+            'atomic' => true,
+            'dry_run' => !$writeMode,
+            'will_write' => false,
+            'model_key' => 'link',
+            'items' => $plannedItems,
+            'summary' => $summary,
+            'relationships' => [
+                'website_ids' => array_values(array_unique($websiteIds)),
+            ],
+            'safety' => [
+                'permission' => 'link_edit',
+                'actor_required' => true,
+                'audit_required' => true,
+                'audit_storage' => 'mutation_audits',
+                'force_required_for_write' => true,
+                'write_mode' => $writeMode ? 'guarded' : 'dry_run',
+            ],
+            'validation' => [
+                'status' => empty($validationErrors) ? 'pass' : 'fail',
+                'errors' => $validationErrors,
+            ],
+            'cache' => [
+                'flush_tags' => ['links'],
+            ],
+            'hooks' => [],
+            'notes' => [
+                'The batch is atomic: no item is written unless every target, guard, and audit check passes.',
+                'Bulk update intentionally dispatches no Link hooks.',
+            ],
+        ];
+        $plan['guard'] = app(MutationGuardService::class)->preview($plan, [
+            'write_mode' => $writeMode,
+            'actor_user_id' => $options['actor_user_id'] ?? null,
+            'actor_user' => $options['actor_user'] ?? null,
+            'user_id' => $options['user_id'] ?? null,
+        ]);
+
+        return $plan;
+    }
+
+    /**
+     * Atomically update multiple Links through the guarded automation path.
+     *
+     * Every target and permission check is repeated inside the transaction.
+     *
+     * @param  array  $items
+     * @param  array  $options
+     * @return array
+     */
+    public function bulkUpdate(array $items, array $options = []): array
+    {
+        $force = (bool) ($options['force'] ?? false);
+        $dryRun = (bool) ($options['dry_run'] ?? false) || !$force;
+        $options['write_mode'] = !$dryRun;
+        $meta = $this->mutationResultMeta('bulk_update', ['items' => $items], $options, $dryRun);
+        $websiteErrors = $this->lookupWebsiteErrors($options);
+
+        if (!empty($websiteErrors)) {
+            return AutomationResult::fail('Link bulk update website validation failed.', null, $meta, $websiteErrors, 422);
+        }
+
+        $plan = $this->planBulkUpdate($items, $options);
+        if (($plan['validation']['status'] ?? 'fail') !== 'pass') {
+            $errors = (array) ($plan['validation']['errors'] ?? []);
+            $missingIdentifiers = (array) ($errors['target'] ?? []);
+            if (!empty($missingIdentifiers)) {
+                return AutomationResult::fail('Link not found.', ['plan' => $plan], $meta, [
+                    'identifier' => $missingIdentifiers,
+                ], 404);
+            }
+
+            return AutomationResult::fail('Link bulk update validation failed.', ['plan' => $plan], $meta, $errors, 422);
+        }
+
+        if (($plan['guard']['status'] ?? 'fail') !== 'pass') {
+            return AutomationResult::fail('Link bulk update guard check failed.', ['plan' => $plan], $meta, (array) ($plan['guard']['errors'] ?? []), (int) ($plan['guard']['code'] ?? 403));
+        }
+
+        if ($dryRun) {
+            return AutomationResult::success('Link bulk update dry-run plan generated.', ['plan' => $plan], $meta, 202);
+        }
+
+        $actorResult = app(AutomationActorResolver::class)->resolve($options, true);
+        $actor = $actorResult['model'] ?? null;
+        if (!$actor instanceof Authenticatable) {
+            return AutomationResult::fail('Link bulk update actor resolution failed.', ['plan' => $plan], $meta, (array) ($actorResult['errors'] ?? ['actor' => ['invalid']]), (int) ($actorResult['code'] ?? 401));
+        }
+
+        $authGuard = Auth::guard();
+        $previousActor = $authGuard->user();
+        $authGuard->setUser($actor);
+        $runId = (string) ($options['run_id'] ?? Str::uuid());
+
+        try {
+            $result = DB::transaction(function () use ($actor, $items, $options, $plan, $meta, $runId) {
+                $freshPlan = $this->planBulkUpdate($items, $options);
+                if (($freshPlan['validation']['status'] ?? 'fail') !== 'pass') {
+                    $errors = (array) ($freshPlan['validation']['errors'] ?? []);
+                    $missingIdentifiers = (array) ($errors['target'] ?? []);
+
+                    return AutomationResult::fail(!empty($missingIdentifiers) ? 'Link not found.' : 'Link bulk update validation failed.', [
+                        'plan' => $freshPlan,
+                    ], $meta, !empty($missingIdentifiers) ? ['identifier' => $missingIdentifiers] : $errors, !empty($missingIdentifiers) ? 404 : 422);
+                }
+
+                if (($freshPlan['guard']['status'] ?? 'fail') !== 'pass') {
+                    return AutomationResult::fail('Link bulk update guard check failed.', ['plan' => $freshPlan], $meta, (array) ($freshPlan['guard']['errors'] ?? []), (int) ($freshPlan['guard']['code'] ?? 403));
+                }
+
+                $plannedChanges = array_map(fn(array $item) => (array) ($item['plan']['changes'] ?? []), (array) $plan['items']);
+                $freshChanges = array_map(fn(array $item) => (array) ($item['plan']['changes'] ?? []), (array) $freshPlan['items']);
+                if ($plannedChanges !== $freshChanges) {
+                    return AutomationResult::fail('Link bulk update became stale.', ['plan' => $freshPlan], $meta, [
+                        'items' => ['stale'],
+                    ], 409);
+                }
+
+                $audits = [];
+                foreach ($freshPlan['items'] as $item) {
+                    if (($item['status'] ?? null) !== 'change') {
+                        continue;
+                    }
+
+                    $itemPlan = (array) $item['plan'];
+                    $link = $this->findLink($item['identifier'], $options);
+                    if (!$link) {
+                        return AutomationResult::fail('Link not found.', ['plan' => $freshPlan], $meta, [
+                            'identifier' => [(string) $item['identifier']],
+                        ], 404);
+                    }
+
+                    $changes = $this->attributeChanges($link, (array) $itemPlan['attributes']);
+                    if ($changes !== (array) $itemPlan['changes']) {
+                        return AutomationResult::fail('Link bulk update became stale.', ['plan' => $freshPlan], $meta, [
+                            'items' => ['stale'],
+                        ], 409);
+                    }
+
+                    if ($link->update((array) $itemPlan['attributes']) !== true) {
+                        return AutomationResult::fail('Link bulk update was cancelled.', ['plan' => $freshPlan], $meta, [
+                            'items' => ['cancelled'],
+                        ], 409);
+                    }
+
+                    $itemPlan['operation'] = 'bulk_update';
+                    $itemPlan['dry_run'] = false;
+                    $itemPlan['will_write'] = true;
+                    $itemPlan['hooks'] = [];
+                    $itemPlan['target'] = $this->normalizeLink($link, true);
+                    $itemPlan['audit'] = app(MutationAuditService::class)->previewFromPlan($itemPlan, [
+                        'surface' => (string) ($options['surface'] ?? 'service'),
+                        'domain' => 'links',
+                        'run_id' => $runId,
+                        'actor_type' => $itemPlan['guard']['actor']['type'] ?? null,
+                        'actor_id' => $itemPlan['guard']['actor']['id'] ?? (int) $actor->getKey(),
+                    ]);
+                    $audit = app(MutationAuditService::class)->writeFromPlan($itemPlan, [
+                        'model_id' => (int) $link->getKey(),
+                        'result_code' => 200,
+                        'result_status' => 'success',
+                        'message' => 'Link bulk updated.',
+                    ]);
+                    $audits[] = (int) $audit->getKey();
+                }
+
+                $freshPlan['dry_run'] = false;
+                $freshPlan['will_write'] = $freshPlan['summary']['changed'] > 0;
+
+                return AutomationResult::success('Link bulk update completed.', [
+                    'summary' => $freshPlan['summary'],
+                    'items' => $freshPlan['items'],
+                    'plan' => $freshPlan,
+                    'run_id' => $runId,
+                    'audit_ids' => $audits,
+                ], $meta, 200);
+            });
+        } finally {
+            if ($previousActor instanceof Authenticatable) {
+                $authGuard->setUser($previousActor);
+            } else {
+                $authGuard->forgetUser();
+            }
+        }
+
+        if (($result['status'] ?? null) === 'success' && (($result['data']['summary']['changed'] ?? 0) > 0)) {
+            wncms()->cache()->flush(['links']);
+        }
+
+        return $result;
     }
 
     /**
@@ -717,6 +965,61 @@ class LinkAutomationService
 
         if (array_key_exists('status', $attributes) && !$this->validLinkStatus($attributes['status'])) {
             $errors['status'][] = 'invalid';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Return validation errors for a Link bulk update payload.
+     *
+     * @param  array  $items
+     * @return array
+     */
+    protected function bulkUpdateValidationErrors(array $items): array
+    {
+        $errors = [];
+
+        if (!array_is_list($items) || empty($items)) {
+            $errors['items'][] = 'required';
+
+            return $errors;
+        }
+
+        if (count($items) > 100) {
+            $errors['items'][] = 'maximum:100';
+
+            return $errors;
+        }
+
+        foreach ($items as $index => $item) {
+            if (!is_array($item)) {
+                $errors['items'][] = "invalid:{$index}";
+                continue;
+            }
+
+            $unknownFields = array_diff(array_keys($item), ['identifier', 'url', 'sort']);
+            if (!empty($unknownFields)) {
+                $errors['items'][] = "unsupported:{$index}";
+            }
+
+            if (!$this->hasValue($item['identifier'] ?? null)) {
+                $errors['identifier'][] = "required:{$index}";
+            } elseif (!is_string($item['identifier']) && !is_int($item['identifier'])) {
+                $errors['identifier'][] = "invalid:{$index}";
+            }
+
+            if (!array_key_exists('url', $item) && !array_key_exists('sort', $item)) {
+                $errors['items'][] = "patch_required:{$index}";
+            }
+
+            if (array_key_exists('url', $item) && (!is_string($item['url']) || trim($item['url']) === '')) {
+                $errors['url'][] = "required:{$index}";
+            }
+
+            if (array_key_exists('sort', $item) && $item['sort'] !== null && !is_int($item['sort']) && !is_numeric($item['sort'])) {
+                $errors['sort'][] = "invalid:{$index}";
+            }
         }
 
         return $errors;

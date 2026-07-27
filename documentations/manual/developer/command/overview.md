@@ -274,6 +274,28 @@ Behavior summary:
 - A successful delete runs in a transaction, returns the deleted target and audit ID, stores a target snapshot in `mutation_audits`, then flushes `links` cache. Link has no delete hooks, so none are dispatched.
 - Supports `{identifier}`, `--website=`, `--actor-user=`, `--dry-run`, `--force`, and `--json`.
 
+## `wncms:links:bulk-update`
+
+Atomically patch the `url` and/or `sort` fields of up to 100 Links.
+
+```bash
+# Default mode validates and previews every item without writing
+php artisan wncms:links:bulk-update --items='[{"identifier":"partner-link","url":"https://example.com/partner"},{"identifier":42,"sort":10}]' --json
+
+# Write mode requires an allowed actor
+php artisan wncms:links:bulk-update --items='[{"identifier":42,"sort":10}]' --website=1 --actor-user=1 --force --json
+```
+
+`--items=` must be a JSON array with 1-100 items. Every item requires `identifier` (Link ID or slug), may contain only `url` and `sort`, must include at least one patch field, and a supplied `url` must not be empty.
+
+Behavior summary:
+
+- The command is atomic: malformed input, duplicate resolved targets, missing or website-scoped-out targets, invalid patches, and guard failures prevent every write.
+- It is dry-run by default. `--force` enables guarded writes; `--dry-run` always wins and returns `202` without writing.
+- Write mode requires an actor from `--actor-user=` or the configured system actor with `link_edit`. `--website=` scopes every lookup, and each target's existing website IDs are always permission-checked.
+- Success returns `200`; malformed input returns `422`; missing actors return `401`; permission/site denial returns `403`; missing or scoped-out targets return `404`; cancelled or stale batches return `409`.
+- Changed Links receive one `mutation_audits` row each with a shared run ID. No-op items receive no audit row, and the `links` cache flushes once only after a committed batch with changes. No bulk-update hooks are dispatched.
+
 ## `wncms:install-default-theme`
 
 Install or reinstall core default theme assets into `public/themes`.

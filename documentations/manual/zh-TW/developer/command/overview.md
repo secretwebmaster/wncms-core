@@ -274,6 +274,28 @@ php artisan wncms:links:delete partner-link --actor-user=1 --force --json
 - 成功刪除會在 transaction 中執行，回傳 deleted target 與 audit ID，在 `mutation_audits` 保存 target snapshot，之後 flush `links` cache。Link 沒有 delete hooks，因此不會派發 hooks。
 - 支援 `{identifier}`、`--website=`、`--actor-user=`、`--dry-run`、`--force` 與 `--json`。
 
+## `wncms:links:bulk-update`
+
+以原子方式批量更新最多 100 個 Link 的 `url` 和/或 `sort` 欄位。
+
+```bash
+# 預設只驗證並預覽，不寫入資料
+php artisan wncms:links:bulk-update --items='[{"identifier":"partner-link","url":"https://example.com/partner"},{"identifier":42,"sort":10}]' --json
+
+# 寫入模式需要具備權限的 actor
+php artisan wncms:links:bulk-update --items='[{"identifier":42,"sort":10}]' --website=1 --actor-user=1 --force --json
+```
+
+`--items=` 必須是包含 1-100 個項目的 JSON 陣列。每項都需要 `identifier`（Link ID 或 slug），只能包含 `url` 與 `sort`，至少提供一個更新欄位；提供 `url` 時不得為空。
+
+行為摘要：
+
+- 命令具原子性：JSON 錯誤、重複的已解析目標、目標不存在或超出網站範圍、無效欄位及 guard 失敗都會阻止全部寫入。
+- 預設 dry-run；`--force` 才進入受保護寫入模式，`--dry-run` 一律優先並回傳不寫入的 `202`。
+- 寫入需要 `--actor-user=` 或已設定系統 actor，且必須擁有 `link_edit`。`--website=` 會限制全部查詢，並一律檢查每個目標現有的網站範圍。
+- 成功回傳 `200`；輸入錯誤為 `422`；缺少 actor 為 `401`；權限或網站範圍拒絕為 `403`；目標不存在或超出範圍為 `404`；取消或過期批次為 `409`。
+- 每個實際變更的 Link 都會寫入一筆共用 run ID 的 `mutation_audits`；無變更項目不寫審計。只有已提交且有變更的批次才會一次性刷新 `links` 快取，且不會派發 bulk-update hooks。
+
 ## `wncms:install-default-theme`
 
 安裝或重新安裝核心預設主題資源到 `public/themes`。

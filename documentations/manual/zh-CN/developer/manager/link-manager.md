@@ -59,8 +59,9 @@ WNCMS 提供 CLI helpers，可用于 scripts 或本地操作中检视 Links 资�
 - `php artisan wncms:links:create`
 - `php artisan wncms:links:update {identifier}`
 - `php artisan wncms:links:delete {identifier}`
+- `php artisan wncms:links:bulk-update --items='[...]'`
 
-List 与 inspect commands 使用 `LinkManager` 执行 read-only queries，并支持以 `--json` 输出 JSON。Create、update 与 delete 使用 `LinkAutomationService`；三者默认 dry-run，只有在 `--force` 搭配允许的 `--actor-user=` 或已配置 system actor 时才会写入。Delete 需要 `link_delete`，会在 `mutation_audits` 保留 target snapshot，并且即使省略 `--website`，仍会依 target Link 现有 website IDs 执行 guard。成功写入会 flush `links` cache；Link 没有 delete hooks，因此 delete 不会派发 hooks。
+List 与 inspect commands 使用 `LinkManager` 执行 read-only queries，并支持以 `--json` 输出 JSON。Create、update、delete 与 bulk update 使用 `LinkAutomationService`；它们默认 dry-run，只有在 `--force` 搭配允许的 `--actor-user=` 或已配置 system actor 时才会写入。Bulk update 接受 1-100 个唯一 ID/slug 目标，只能原子更新 `url` 与 `sort`：会在一个 transaction 内重新解析并 guard 全部目标，每个实际变更的目标都会写入共享 run ID 的 `mutation_audits`，无变更目标不写审计，且只在批次有变更后一次 flush `links` cache。`--website` 会限制全部查询，即使省略也会继续 guard 目标原有 website IDs。Delete 需要 `link_delete`，会保留 target snapshot 且不派发 hooks；bulk update 同样刻意不派发 hooks。
 
 ## 过滤与选项
 

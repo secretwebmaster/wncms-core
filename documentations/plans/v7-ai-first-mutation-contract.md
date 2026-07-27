@@ -145,8 +145,7 @@ The first Links mutation service milestone has two layers:
 
 ## Next Implementation Steps
 
-1. Implement the guarded Link bulk-update contract above.
-2. Add guarded Link bulk tag synchronization as a separate mutation command.
-3. Add shared output rendering for Link CLI commands before expanding to more domains.
-4. Add API v2 tests for Links resource mutations and bridge actions.
-5. Draft the MCP packaging and enablement design before exposing mutation tools.
+1. Add guarded Link bulk tag synchronization as a separate mutation command.
+2. Add shared output rendering for Link CLI commands before expanding to more domains.
+3. Add API v2 tests for Links resource mutations and bridge actions.
+4. Draft the MCP packaging and enablement design before exposing mutation tools.

@@ -59,8 +59,9 @@ Available commands:
 - `php artisan wncms:links:create`
 - `php artisan wncms:links:update {identifier}`
 - `php artisan wncms:links:delete {identifier}`
+- `php artisan wncms:links:bulk-update --items='[...]'`
 
-The list and inspect commands use `LinkManager` for read-only queries and support JSON output with `--json`. Create, update, and delete use `LinkAutomationService`; all default to dry-run and only write when `--force` is combined with an allowed `--actor-user=` or configured system actor. Delete requires `link_delete`, preserves a target snapshot in `mutation_audits`, and guards against the target Link's existing website IDs even when `--website` is omitted. Successful writes flush `links` cache; delete intentionally dispatches no hooks because Link has no delete hooks.
+The list and inspect commands use `LinkManager` for read-only queries and support JSON output with `--json`. Create, update, delete, and bulk update use `LinkAutomationService`; all default to dry-run and only write when `--force` is combined with an allowed `--actor-user=` or configured system actor. Bulk update accepts 1-100 unique ID/slug targets and patches only `url` and `sort` atomically: every target is re-resolved and guarded in one transaction, changed targets receive per-Link `mutation_audits` rows with one run ID, no-op targets are not audited, and `links` cache flushes once after a changed batch. `--website` scopes every lookup, and existing target website IDs remain guarded even when it is omitted. Delete requires `link_delete`, preserves a target snapshot in `mutation_audits`, and dispatches no hooks; bulk update also intentionally dispatches no hooks.
 
 ## Filtering and options
 
