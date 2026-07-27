@@ -3,18 +3,51 @@
 namespace Wncms\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 
 class CheckBackendApiV2Parity extends Command
 {
-    protected $signature = 'wncms:check-backend-api-v2-parity';
-    protected $description = 'Ensure backend business routes have equivalent backend API v2 route names.';
+    protected $signature = 'wncms:check-backend-api-v2-parity
+        {--coverage : Report configured v7 AI-first domain coverage}
+        {--json : Output result data as JSON}';
 
+    protected $description = 'Ensure backend API v2 parity and report v7 AI-first automation coverage.';
+
+    /**
+     * Run the selected parity or coverage check.
+     *
+     * @return int
+     */
     public function handle(): int
+    {
+        if ((bool) $this->option('coverage')) {
+            return $this->handleCoverageReport();
+        }
+
+        return $this->handleBackendApiV2Parity();
+    }
+
+    /**
+     * Ensure backend business route names have backend API v2 equivalents.
+     *
+     * @return int
+     */
+    protected function handleBackendApiV2Parity(): int
     {
         $backendRouteFile = __DIR__ . '/../../../routes/backend.php';
         if (!file_exists($backendRouteFile)) {
-            $this->error('backend.php not found');
+            $this->outputResult([
+                'code' => 500,
+                'status' => 'fail',
+                'message' => 'backend.php not found',
+                'data' => null,
+                'meta' => $this->resultMeta('backend-api-v2-parity'),
+                'errors' => [
+                    'backend_route_file' => [$backendRouteFile],
+                ],
+            ], true);
             return self::FAILURE;
         }
 
@@ -30,19 +63,444 @@ class CheckBackendApiV2Parity extends Command
         }
 
         if (!empty($missing)) {
-            $this->error('Missing backend API v2 equivalents:');
-            foreach ($missing as $name) {
-                $this->line("- {$name}");
-            }
+            $this->outputResult([
+                'code' => 500,
+                'status' => 'fail',
+                'message' => 'Missing backend API v2 equivalents.',
+                'data' => [
+                    'checked_count' => count($businessRouteNames),
+                    'missing_backend_route_names' => $missing,
+                ],
+                'meta' => $this->resultMeta('backend-api-v2-parity'),
+                'errors' => [
+                    'missing_backend_api_v2_routes' => array_map(
+                        fn(string $name) => "api.v2.backend.{$name}",
+                        $missing
+                    ),
+                ],
+            ], true);
             return self::FAILURE;
         }
 
-        $this->info('Backend API v2 parity check passed.');
-        $this->line('Checked route count: ' . count($businessRouteNames));
+        $this->outputResult([
+            'code' => 200,
+            'status' => 'success',
+            'message' => 'Backend API v2 parity check passed.',
+            'data' => [
+                'checked_count' => count($businessRouteNames),
+                'missing_backend_route_names' => [],
+            ],
+            'meta' => $this->resultMeta('backend-api-v2-parity'),
+            'errors' => [],
+        ], false);
 
         return self::SUCCESS;
     }
 
+    /**
+     * Print the configured v7 coverage report.
+     *
+     * @return int
+     */
+    protected function handleCoverageReport(): int
+    {
+        $report = $this->buildCoverageReport();
+
+        $this->outputResult([
+            'code' => 200,
+            'status' => 'success',
+            'message' => 'V7 AI-first coverage report generated.',
+            'data' => $report,
+            'meta' => $this->resultMeta('v7-ai-first-coverage'),
+            'errors' => [],
+        ], false, fn() => $this->renderCoverageReport($report));
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Build coverage data from config and runtime registries.
+     *
+     * @return array
+     */
+    protected function buildCoverageReport(): array
+    {
+        $domains = (array) config('wncms-backend-api-v2.coverage.domains', []);
+        $commandNames = $this->registeredCommandNames();
+        $rows = [];
+        $summary = [];
+
+        foreach ($this->coverageSurfaceDefinitions() as $surfaceKey => $surface) {
+            $summary[$surfaceKey] = [
+                'label' => $surface['label'],
+                'Complete' => 0,
+                'Partial' => 0,
+                'Missing' => 0,
+                'Not applicable' => 0,
+                'Needs design' => 0,
+            ];
+        }
+
+        foreach ($domains as $domainKey => $definition) {
+            $statuses = [];
+
+            foreach ($this->coverageSurfaceDefinitions() as $surfaceKey => $surface) {
+                $assessment = $this->assessCoverageSurface(
+                    $definition,
+                    $surface,
+                    $commandNames
+                );
+
+                $statuses[$surfaceKey] = $assessment;
+                if (isset($summary[$surfaceKey][$assessment['status']])) {
+                    $summary[$surfaceKey][$assessment['status']]++;
+                }
+            }
+
+            $rows[] = [
+                'key' => (string) $domainKey,
+                'label' => (string) ($definition['label'] ?? $domainKey),
+                'reference' => (bool) ($definition['reference'] ?? false),
+                'surfaces' => $statuses,
+            ];
+        }
+
+        return [
+            'domains' => $rows,
+            'summary' => $summary,
+            'reference_domain' => (string) config('wncms-backend-api-v2.coverage.reference_domain', 'links'),
+        ];
+    }
+
+    /**
+     * Render coverage data as a compact CLI table.
+     *
+     * @param array $report
+     * @return void
+     */
+    protected function renderCoverageReport(array $report): void
+    {
+        $this->line('WNCMS v7 AI-first Coverage Report');
+        $this->line('Reference domain: ' . ($report['reference_domain'] ?? 'links'));
+        $this->newLine();
+
+        $rows = [];
+        foreach ((array) ($report['domains'] ?? []) as $domain) {
+            $surfaces = (array) ($domain['surfaces'] ?? []);
+            $rows[] = [
+                ($domain['reference'] ?? false) ? $domain['label'] . ' *' : $domain['label'],
+                $surfaces['backend_ui']['status'] ?? 'Missing',
+                $surfaces['api_v2']['status'] ?? 'Missing',
+                $surfaces['cli']['status'] ?? 'Missing',
+                $surfaces['mcp']['status'] ?? 'Missing',
+                $surfaces['docs']['status'] ?? 'Missing',
+                $surfaces['tests']['status'] ?? 'Missing',
+            ];
+        }
+
+        $this->table(
+            ['Domain', 'Backend UI', 'API v2', 'CLI', 'MCP', 'Docs', 'Tests'],
+            $rows
+        );
+
+        $this->line('* Recommended reference domain for v7 parity implementation.');
+        $this->line('Use --json for missing item details.');
+    }
+
+    /**
+     * Assess one coverage surface for a domain.
+     *
+     * @param array $definition
+     * @param array $surface
+     * @param array $commandNames
+     * @return array
+     */
+    protected function assessCoverageSurface(array $definition, array $surface, array $commandNames): array
+    {
+        $items = $this->resolveCoverageItems($definition, $surface);
+
+        if ($items === null) {
+            return $this->coverageAssessment('Not applicable', [], [], []);
+        }
+
+        if (is_string($items) && in_array($items, ['Complete', 'Partial', 'Missing', 'Not applicable', 'Needs design'], true)) {
+            return $this->coverageAssessment($items, [], [], []);
+        }
+
+        $items = array_values(array_filter(array_map('strval', (array) $items)));
+        if (empty($items)) {
+            return $this->coverageAssessment('Missing', [], [], []);
+        }
+
+        $found = [];
+        $missing = [];
+
+        foreach ($items as $item) {
+            $exists = match ($surface['type']) {
+                'route' => Route::has($item),
+                'command' => in_array($item, $commandNames, true),
+                'file' => $this->coverageFileExists($item),
+                'configured' => true,
+                default => false,
+            };
+
+            if ($exists) {
+                $found[] = $item;
+            } else {
+                $missing[] = $item;
+            }
+        }
+
+        if (count($found) === count($items)) {
+            $status = 'Complete';
+        } elseif (!empty($found)) {
+            $status = 'Partial';
+        } else {
+            $status = 'Missing';
+        }
+
+        return $this->coverageAssessment($status, $items, $found, $missing);
+    }
+
+    /**
+     * Resolve configured items for a coverage surface.
+     *
+     * @param array $definition
+     * @param array $surface
+     * @return array|string|null
+     */
+    protected function resolveCoverageItems(array $definition, array $surface): array|string|null
+    {
+        if (($surface['key'] ?? null) === 'api_v2') {
+            return $this->resolveApiV2CoverageRoutes($definition);
+        }
+
+        $configKey = (string) $surface['config_key'];
+        return array_key_exists($configKey, $definition) ? $definition[$configKey] : [];
+    }
+
+    /**
+     * Resolve backend API v2 route names from explicit routes, resources, and actions.
+     *
+     * @param array $definition
+     * @return array|string|null
+     */
+    protected function resolveApiV2CoverageRoutes(array $definition): array|string|null
+    {
+        if (array_key_exists('api_v2_routes', $definition)) {
+            return $definition['api_v2_routes'];
+        }
+
+        $routes = [];
+
+        foreach ((array) ($definition['api_v2_resources'] ?? []) as $resource) {
+            $routes = array_merge($routes, $this->apiV2ResourceRouteNames((string) $resource));
+        }
+
+        foreach ((array) ($definition['api_v2_actions'] ?? []) as $action) {
+            $routes[] = 'api.v2.backend.' . $action;
+        }
+
+        return array_values(array_unique($routes));
+    }
+
+    /**
+     * Resolve backend API v2 resource route names from resource config.
+     *
+     * @param string $resource
+     * @return array
+     */
+    protected function apiV2ResourceRouteNames(string $resource): array
+    {
+        $resourceConfig = (array) config("wncms-backend-api-v2.resources.{$resource}", []);
+        if (empty($resourceConfig)) {
+            return [];
+        }
+
+        $enabledActions = $resourceConfig['enabled_actions'] ?? ['index', 'show', 'store', 'update', 'destroy', 'bulk_delete'];
+        $routes = [];
+
+        foreach ((array) $enabledActions as $action) {
+            if ($action === 'bulk_delete' && ($resourceConfig['enable_bulk_delete'] ?? true) !== true) {
+                continue;
+            }
+
+            $routes[] = "api.v2.backend.{$resource}.{$action}";
+        }
+
+        return $routes;
+    }
+
+    /**
+     * Return surface definitions used by the v7 coverage report.
+     *
+     * @return array
+     */
+    protected function coverageSurfaceDefinitions(): array
+    {
+        return [
+            'backend_ui' => [
+                'key' => 'backend_ui',
+                'label' => 'Backend UI',
+                'config_key' => 'backend_routes',
+                'type' => 'route',
+            ],
+            'api_v2' => [
+                'key' => 'api_v2',
+                'label' => 'API v2',
+                'config_key' => 'api_v2_routes',
+                'type' => 'route',
+            ],
+            'cli' => [
+                'key' => 'cli',
+                'label' => 'CLI',
+                'config_key' => 'cli_commands',
+                'type' => 'command',
+            ],
+            'mcp' => [
+                'key' => 'mcp',
+                'label' => 'MCP',
+                'config_key' => 'mcp_tools',
+                'type' => 'configured',
+            ],
+            'docs' => [
+                'key' => 'docs',
+                'label' => 'Docs',
+                'config_key' => 'docs',
+                'type' => 'file',
+            ],
+            'tests' => [
+                'key' => 'tests',
+                'label' => 'Tests',
+                'config_key' => 'tests',
+                'type' => 'file',
+            ],
+        ];
+    }
+
+    /**
+     * Format a coverage assessment payload.
+     *
+     * @param string $status
+     * @param array $expected
+     * @param array $found
+     * @param array $missing
+     * @return array
+     */
+    protected function coverageAssessment(string $status, array $expected, array $found, array $missing): array
+    {
+        return [
+            'status' => $status,
+            'expected' => $expected,
+            'found' => $found,
+            'missing' => $missing,
+        ];
+    }
+
+    /**
+     * Return registered Artisan command names.
+     *
+     * @return array
+     */
+    protected function registeredCommandNames(): array
+    {
+        $names = array_keys(Artisan::all());
+        sort($names);
+
+        return $names;
+    }
+
+    /**
+     * Check whether a configured coverage file exists in the core package or host app.
+     *
+     * @param string $path
+     * @return bool
+     */
+    protected function coverageFileExists(string $path): bool
+    {
+        foreach ($this->coverageFileCandidates($path) as $candidate) {
+            if (File::exists($candidate)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Build file candidates for package-relative and app-relative coverage paths.
+     *
+     * @param string $path
+     * @return array
+     */
+    protected function coverageFileCandidates(string $path): array
+    {
+        $path = ltrim($path, DIRECTORY_SEPARATOR);
+        $coreRoot = defined('WNCMS_ROOT')
+            ? rtrim(WNCMS_ROOT, DIRECTORY_SEPARATOR)
+            : rtrim((string) realpath(__DIR__ . '/../../..'), DIRECTORY_SEPARATOR);
+
+        return array_values(array_unique([
+            $coreRoot . DIRECTORY_SEPARATOR . $path,
+            base_path($path),
+        ]));
+    }
+
+    /**
+     * Output a result as JSON or through a human-readable callback.
+     *
+     * @param array $result
+     * @param bool $isError
+     * @param callable|null $humanRenderer
+     * @return void
+     */
+    protected function outputResult(array $result, bool $isError, ?callable $humanRenderer = null): void
+    {
+        if ((bool) $this->option('json')) {
+            $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            return;
+        }
+
+        if ($humanRenderer) {
+            $humanRenderer();
+            return;
+        }
+
+        if ($isError) {
+            $this->error((string) $result['message']);
+            foreach ((array) ($result['data']['missing_backend_route_names'] ?? []) as $name) {
+                $this->line("- {$name}");
+            }
+            return;
+        }
+
+        $this->info((string) $result['message']);
+        if (isset($result['data']['checked_count'])) {
+            $this->line('Checked route count: ' . $result['data']['checked_count']);
+        }
+    }
+
+    /**
+     * Build consistent CLI automation metadata.
+     *
+     * @param string $mode
+     * @return array
+     */
+    protected function resultMeta(string $mode): array
+    {
+        return [
+            'surface' => 'cli',
+            'command' => (string) $this->getName(),
+            'mode' => $mode,
+        ];
+    }
+
+    /**
+     * Extract backend route names from the core backend route file.
+     *
+     * @param string $file
+     * @return array
+     */
     protected function extractBackendRouteNames(string $file): array
     {
         $content = file($file, FILE_IGNORE_NEW_LINES) ?: [];
@@ -66,6 +524,12 @@ class CheckBackendApiV2Parity extends Command
         return $names;
     }
 
+    /**
+     * Filter route names that should be represented by backend API v2.
+     *
+     * @param array $names
+     * @return array
+     */
     protected function filterBusinessRouteNames(array $names): array
     {
         $excludedSuffixes = (array) config('wncms-backend-api-v2.parity.excluded_suffixes', []);
@@ -86,4 +550,3 @@ class CheckBackendApiV2Parity extends Command
         }));
     }
 }
-

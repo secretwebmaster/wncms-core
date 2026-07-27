@@ -8,10 +8,14 @@ diff.txt
 /AGENTS.md
 /.github/copilot-instructions.md
 /.github/skills/
+/MAINTAINER_SOP.md
 
 # Documentation
 /documentations/manual/deploy-doc.sh
 /documentations/plans/*
+!/documentations/plans/v7-ai-first-roadmap.md
+!/documentations/plans/v7-ai-first-coverage-matrix.md
+!/documentations/plans/v7-ai-first-mutation-contract.md
 /documentations/commands/
 
 # Local test artifacts
