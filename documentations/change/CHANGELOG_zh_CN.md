@@ -4,6 +4,9 @@
 
 - 后台通用模型更新与批量删除接口现在只允许 admin / superadmin 使用，避免普通登录账号越权修改任意模型字段。
 - 前台注册开关保留主题 `disable_registration` 覆盖能力，便于多站点按各站点独立控制注册状态。
+- User 模型解析现在优先遵循 Laravel auth provider 配置，避免自定义或核心用户模型被 `App\Models\User` fallback 误覆盖。
+- 非 admin 后台 dashboard 现在会取得默认更新结果资料，避免 manager 等角色进入 dashboard 时出现未定义变量错误。
+- Fresh install schema 现在包含 API v2 token 登录所需的 `personal_access_tokens` 表，避免新环境缺少 token 存储表。
 
 ## v6.3.8 2026-04-22
 

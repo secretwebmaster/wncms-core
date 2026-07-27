@@ -4,6 +4,9 @@
 
 - Restricted backend generic model update and bulk deletion endpoints to admin / superadmin users, preventing regular logged-in accounts from modifying arbitrary model fields.
 - Preserved theme-level `disable_registration` overrides for frontend registration, allowing multisite projects to control registration per website.
+- User model resolution now honors the Laravel auth provider configuration first, preventing custom or core user models from being overwritten by the `App\Models\User` fallback.
+- Non-admin backend dashboards now receive a default update result payload, preventing undefined variable errors when roles such as manager open the dashboard.
+- Fresh install schema now includes the `personal_access_tokens` table required by API v2 token login, preventing new environments from missing token storage.
 
 ## v6.3.8 2026-04-22
 

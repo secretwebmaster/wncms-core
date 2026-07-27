@@ -4,6 +4,9 @@
 
 - バックエンドの汎用モデル更新・一括削除エンドポイントを admin / superadmin のみに制限し、通常ログインユーザーによる任意モデル項目の越権変更を防止しました。
 - フロントエンド登録可否はテーマ側の `disable_registration` 上書きを維持し、マルチサイト環境でサイトごとに登録状態を制御できるようにしました。
+- User モデル解決は Laravel auth provider 設定を優先するようになり、カスタムまたはコアのユーザーモデルが `App\Models\User` fallback に誤って上書きされる問題を防止しました。
+- 非 admin のバックエンド dashboard でも既定の更新結果データを受け取るようになり、manager などのロールで dashboard を開いた際の未定義変数エラーを防止しました。
+- Fresh install schema に API v2 token login で必要な `personal_access_tokens` テーブルを含め、新規環境で token 保存テーブルが欠落しないようにしました。
 
 ## v6.3.8 2026-04-22
 
