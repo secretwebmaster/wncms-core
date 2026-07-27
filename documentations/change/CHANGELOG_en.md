@@ -2,8 +2,9 @@
 
 ## v7.0.0-alpha1 2026-07-27
 
-- Added `wncms:links:bulk-update` for dry-run-first, atomic Link URL and sort updates with actor, permission, and website-scope guards.
-- Changed Link bulk updates now create one audit record per Link with a shared run ID and flush the links cache once after a committed batch.
+- Added JSON-ready `wncms:links:list` and `wncms:links:inspect` commands plus guarded `wncms:links:create`, `wncms:links:update`, and `wncms:links:delete` mutations.
+- Link mutations now default to dry-run, require `--force` with an explicit or configured automation actor for writes, enforce permission and website scope, and store results in `mutation_audits`.
+- Added parity coverage reporting with semantic surface status, and atomic `wncms:links:bulk-update` URL/sort writes with shared-run audits and one post-commit cache flush.
 
 ## v6.3.9-alpha1 2026-06-16
 

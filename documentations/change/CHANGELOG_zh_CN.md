@@ -2,8 +2,9 @@
 
 ## v7.0.0-alpha1 2026-07-27
 
-- 新增 `wncms:links:bulk-update`，提供默认 dry-run、原子化 Link URL 与排序更新，以及 actor、权限与网站范围保护。
-- Link 批量更新会为每个实际变更创建共享 run ID 的审计记录，并在批次提交后只刷新一次 links 缓存。
+- 新增可输出 JSON 的 `wncms:links:list` 与 `wncms:links:inspect`，以及受保护的 `wncms:links:create`、`wncms:links:update`、`wncms:links:delete` 变更命令。
+- Link 变更默认 dry-run；实际写入需搭配 `--force` 与明确或已配置的 automation actor，并会执行权限、网站范围检查及写入 `mutation_audits`。
+- 新增具有语义 surface status 的 parity coverage 报告，以及原子化 `wncms:links:bulk-update` URL/sort 写入、共享 run 审计与提交后一次缓存刷新。
 
 ## v6.3.9-alpha1 2026-06-16
 

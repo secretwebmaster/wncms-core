@@ -2,8 +2,9 @@
 
 ## v7.0.0-alpha1 2026-07-27
 
-- `wncms:links:bulk-update` を追加し、dry-run 優先の原子的な Link URL・sort 更新と actor・権限・サイトスコープの保護を提供しました。
-- Link 一括更新は実際に変更した各 Link に共通 run ID の監査記録を作成し、コミット後に links キャッシュを一度だけ更新します。
+- JSON 出力対応の `wncms:links:list` と `wncms:links:inspect`、および保護された `wncms:links:create`、`wncms:links:update`、`wncms:links:delete` の変更コマンドを追加しました。
+- Link 変更は既定で dry-run となり、実際の書き込みには `--force` と明示または設定済みの automation actor が必要です。権限・サイトスコープを検査し、結果を `mutation_audits` に保存します。
+- semantic surface status を含む parity coverage レポートと、原子的な `wncms:links:bulk-update` の URL/sort 書き込み、共通 run 監査、コミット後 1 回のキャッシュ更新を追加しました。
 
 ## v6.3.9-alpha1 2026-06-16
 
