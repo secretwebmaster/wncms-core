@@ -379,7 +379,137 @@ class LinkAutomationService
             return null;
         }
 
+        $options['guard_website_ids'] = $this->websiteIds($link);
+
         return $this->mutationPlan('delete', [], $link, [], $options, []);
+    }
+
+    /**
+     * Delete a link through the guarded automation path.
+     *
+     * The target snapshot is preserved in the mutation audit before deletion.
+     * No Link delete hooks exist, so this path intentionally dispatches none.
+     *
+     * @param  string|int  $identifier
+     * @param  array  $options
+     * @return array
+     */
+    public function delete(string|int $identifier, array $options = []): array
+    {
+        $force = (bool) ($options['force'] ?? false);
+        $dryRun = (bool) ($options['dry_run'] ?? false) || !$force;
+        $options['write_mode'] = !$dryRun;
+        $meta = $this->mutationResultMeta('delete', [], $options, $dryRun);
+        $websiteErrors = $this->lookupWebsiteErrors($options);
+
+        if (!empty($websiteErrors)) {
+            return AutomationResult::fail('Link delete website validation failed.', null, $meta, $websiteErrors, 422);
+        }
+
+        $plan = $this->planDelete($identifier, $options);
+        if (!$plan) {
+            return AutomationResult::fail('Link not found.', null, $meta, [
+                'identifier' => [(string) $identifier],
+            ], 404);
+        }
+
+        if (($plan['guard']['status'] ?? 'fail') !== 'pass') {
+            return AutomationResult::fail('Link delete guard check failed.', [
+                'plan' => $plan,
+            ], $meta, (array) ($plan['guard']['errors'] ?? []), (int) ($plan['guard']['code'] ?? 403));
+        }
+
+        if ($dryRun) {
+            return AutomationResult::success('Link delete dry-run plan generated.', [
+                'plan' => $plan,
+            ], $meta, 202);
+        }
+
+        $actorResult = app(AutomationActorResolver::class)->resolve($options, true);
+        $actor = $actorResult['model'] ?? null;
+        if (!$actor instanceof Authenticatable) {
+            return AutomationResult::fail('Link delete actor resolution failed.', [
+                'plan' => $plan,
+            ], $meta, (array) ($actorResult['errors'] ?? ['actor' => ['invalid']]), (int) ($actorResult['code'] ?? 401));
+        }
+
+        $authGuard = Auth::guard();
+        $previousActor = $authGuard->user();
+        $authGuard->setUser($actor);
+
+        try {
+            $result = DB::transaction(function () use ($actor, $options, $plan, $meta) {
+                $link = $this->findLink($plan['target']['id'], $options);
+
+                if (!$link) {
+                    return AutomationResult::fail('Link not found.', [
+                        'plan' => $plan,
+                    ], $meta, [
+                        'identifier' => [(string) ($plan['target']['id'] ?? '')],
+                    ], 404);
+                }
+
+                $writtenPlan = $plan;
+                $writtenPlan['dry_run'] = false;
+                $writtenPlan['will_write'] = true;
+                $writtenPlan['target'] = $this->normalizeLink($link, true);
+                $writtenPlan['relationships']['website_ids'] = $this->websiteIds($link);
+                $writtenPlan['guard'] = app(MutationGuardService::class)->preview($writtenPlan, [
+                    'write_mode' => true,
+                    'actor_user_id' => (int) $actor->getKey(),
+                ]);
+
+                if (($writtenPlan['guard']['status'] ?? 'fail') !== 'pass') {
+                    return AutomationResult::fail('Link delete guard check failed.', [
+                        'plan' => $writtenPlan,
+                    ], $meta, (array) ($writtenPlan['guard']['errors'] ?? []), (int) ($writtenPlan['guard']['code'] ?? 403));
+                }
+
+                $writtenPlan['audit'] = app(MutationAuditService::class)->previewFromPlan($writtenPlan, [
+                    'surface' => (string) ($options['surface'] ?? 'service'),
+                    'domain' => 'links',
+                    'run_id' => $options['run_id'] ?? null,
+                    'actor_type' => $writtenPlan['guard']['actor']['type'] ?? null,
+                    'actor_id' => $writtenPlan['guard']['actor']['id'] ?? null,
+                ]);
+
+                $deleted = $this->normalizeLink($link, true);
+                if ($link->delete() !== true) {
+                    return AutomationResult::fail('Link delete was cancelled.', [
+                        'plan' => $writtenPlan,
+                    ], $meta, [
+                        'delete' => ['cancelled'],
+                    ], 409);
+                }
+
+                $audit = app(MutationAuditService::class)->writeFromPlan($writtenPlan, [
+                    'model_id' => (int) $deleted['id'],
+                    'result_code' => 200,
+                    'result_status' => 'success',
+                    'message' => 'Link deleted.',
+                ]);
+
+                return AutomationResult::success('Link deleted.', [
+                    'deleted' => $deleted,
+                    'plan' => $writtenPlan,
+                    'audit' => [
+                        'id' => (int) $audit->getKey(),
+                    ],
+                ], $meta, 200);
+            });
+        } finally {
+            if ($previousActor instanceof Authenticatable) {
+                $authGuard->setUser($previousActor);
+            } else {
+                $authGuard->forgetUser();
+            }
+        }
+
+        if (($result['status'] ?? null) === 'success') {
+            wncms()->cache()->flush(['links']);
+        }
+
+        return $result;
     }
 
     /**
@@ -486,7 +616,7 @@ class LinkAutomationService
     protected function mutationPlan(string $operation, array $attributes, ?Model $target, array $input, array $options, array $errors, array $changes = []): array
     {
         $writeMode = (bool) ($options['write_mode'] ?? false);
-        $notes = in_array($operation, ['create', 'update'], true)
+        $notes = in_array($operation, ['create', 'update', 'delete'], true)
             ? [ucfirst($operation) . ' writes are available through guarded automation when actor, permission, website scope, and audit checks pass.']
             : ['Real writes for this operation are still pending; use the dry-run plan as v7 implementation input.'];
 
@@ -863,15 +993,17 @@ class LinkAutomationService
     protected function lookupWebsiteErrors(array $options): array
     {
         $websiteIds = [];
+        $hasExplicitWebsite = false;
         foreach (['website_id', 'website'] as $key) {
             if (array_key_exists($key, $options)) {
+                $hasExplicitWebsite = $hasExplicitWebsite || $this->hasValue($options[$key]);
                 $websiteIds = array_merge($websiteIds, $this->normalizeIdList($options[$key]));
             }
         }
 
         $websiteIds = array_values(array_unique(array_filter($websiteIds, fn(int $id) => $id > 0)));
         if (empty($websiteIds)) {
-            return [];
+            return $hasExplicitWebsite ? ['website_ids' => ['invalid']] : [];
         }
 
         $websiteClass = wncms()->getModelClass('website');

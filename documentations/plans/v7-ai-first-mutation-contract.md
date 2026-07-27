@@ -127,13 +127,13 @@ The first Links mutation service milestone has two layers:
 - `create` supports dry-run planning and guarded CLI write mode through `wncms:links:create`.
 - `create` plans generate `slug` and `tracking_code` defaults when omitted.
 - `update` plans patch-style attribute changes only for fields provided by the caller.
-- `delete` plans target identity, website scope, permission, audit, cache, and hook effects without deleting.
+- `delete` supports guarded CLI write mode through `wncms:links:delete`; it preserves the target snapshot and model ID in `mutation_audits`, checks the target's existing website IDs even without `--website`, and does not dispatch hooks because no Link delete hooks exist.
 - File/media changes are declared as unsupported in dry-run v1 unless a later media mutation contract is added.
 - Tag changes can be declared in the relationship plan; guarded create can write link categories and tags, while update/delete tag writes wait for their dedicated commands.
 
 ## Next Implementation Steps
 
-1. Add guarded Link update/delete CLI commands using the existing actor resolver, permission/scope checker, and `mutation_audits` storage.
+1. Add guarded Link bulk mutation commands with explicit target-list safety rules.
 2. Add shared output rendering for Link CLI commands before expanding to more domains.
 3. Add API v2 tests for Links resource mutations and bridge actions.
 4. Draft the MCP packaging and enablement design before exposing mutation tools.

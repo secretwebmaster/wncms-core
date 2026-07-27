@@ -253,6 +253,27 @@ Behavior summary:
 - Explicit empty values clear nullable patch fields; explicit empty `status`, `slug`, `name`, or `url` returns `422`. Boolean fields accept only `true`, `false`, `1`, `0`, `yes`, `no`, `on`, or `off`.
 - Dry-run does not execute `wncms.backend.links.update.attributes.before`, because hooks may have side effects. The dry-run changes are pre-hook; the successful write response and audit attributes reflect hook-mutated values and changes.
 
+## `wncms:links:delete`
+
+Delete one Link through the guarded automation path.
+
+```bash
+# Default: preview only
+php artisan wncms:links:delete partner-link --json
+
+# Write mode requires an actor with link_delete
+php artisan wncms:links:delete partner-link --actor-user=1 --force --json
+```
+
+Behavior summary:
+
+- Defaults to dry-run; `--force` is required to delete and `--dry-run` always prevents writes.
+- Requires an actor from `--actor-user=` or the configured system actor, with `link_delete` permission.
+- `--website=` limits target lookup; the guard always validates the target's existing website IDs, including when the option is omitted.
+- Unknown website IDs return `422`, missing actors return `401`, permission or website scope failures return `403`, and missing/scoped-out targets return `404`.
+- A successful delete runs in a transaction, returns the deleted target and audit ID, stores a target snapshot in `mutation_audits`, then flushes `links` cache. Link has no delete hooks, so none are dispatched.
+- Supports `{identifier}`, `--website=`, `--actor-user=`, `--dry-run`, `--force`, and `--json`.
+
 ## `wncms:install-default-theme`
 
 Install or reinstall core default theme assets into `public/themes`.

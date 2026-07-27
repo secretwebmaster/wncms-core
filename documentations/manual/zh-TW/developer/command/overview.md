@@ -253,6 +253,27 @@ php artisan wncms:links:update partner-link --name="Partner Plus" --is-pinned=fa
 - 明確傳入空值會清除 nullable patch 欄位；明確傳入空的 `status`、`slug`、`name` 或 `url` 會回傳 `422`。Boolean 欄位只接受 `true`、`false`、`1`、`0`、`yes`、`no`、`on` 或 `off`。
 - Dry-run 不會執行 `wncms.backend.links.update.attributes.before`，因為 hook 可能有 side effects。Dry-run 的 changes 是 hook 前的結果；成功寫入的 response 與 audit attributes 會反映 hook 修改後的值與 changes。
 
+## `wncms:links:delete`
+
+透過 guarded automation path 刪除一個 Link。
+
+```bash
+# 預設：僅預覽
+php artisan wncms:links:delete partner-link --json
+
+# 寫入模式需要擁有 link_delete 的 actor
+php artisan wncms:links:delete partner-link --actor-user=1 --force --json
+```
+
+行為摘要：
+
+- 預設 dry-run；刪除需要 `--force`，`--dry-run` 一律阻止寫入。
+- 需要來自 `--actor-user=` 或已配置 system actor 的 actor，且必須擁有 `link_delete` permission。
+- `--website=` 會限制 target lookup；即使省略此參數，guard 也會檢查 target Link 現有 website IDs。
+- 未知 website ID 回傳 `422`；缺少 actor 回傳 `401`；permission 或 website scope 失敗回傳 `403`；找不到或不在 scope 內的 target 回傳 `404`。
+- 成功刪除會在 transaction 中執行，回傳 deleted target 與 audit ID，在 `mutation_audits` 保存 target snapshot，之後 flush `links` cache。Link 沒有 delete hooks，因此不會派發 hooks。
+- 支援 `{identifier}`、`--website=`、`--actor-user=`、`--dry-run`、`--force` 與 `--json`。
+
 ## `wncms:install-default-theme`
 
 安裝或重新安裝核心預設主題資源到 `public/themes`。

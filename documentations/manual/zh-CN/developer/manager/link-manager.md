@@ -58,8 +58,9 @@ WNCMS 提供 CLI helpers，可用于 scripts 或本地操作中检视 Links 资�
 - `php artisan wncms:links:inspect {identifier}`
 - `php artisan wncms:links:create`
 - `php artisan wncms:links:update {identifier}`
+- `php artisan wncms:links:delete {identifier}`
 
-List 与 inspect commands 使用 `LinkManager` 执行 read-only queries，并支持以 `--json` 输出 JSON。Create 与 update 使用 `LinkAutomationService`；两者默认 dry-run，只有在 `--force` 搭配允许的 `--actor-user=` 或已配置 system actor 时才会写入。Update 接受 patch 字段、需要 `link_edit`、会保留未提供的字段，并且即使省略 `--website`，仍会依 target Link 现有 website IDs 执行 guard。成功写入会 flush `links` cache，并写入 `mutation_audits` record。
+List 与 inspect commands 使用 `LinkManager` 执行 read-only queries，并支持以 `--json` 输出 JSON。Create、update 与 delete 使用 `LinkAutomationService`；三者默认 dry-run，只有在 `--force` 搭配允许的 `--actor-user=` 或已配置 system actor 时才会写入。Delete 需要 `link_delete`，会在 `mutation_audits` 保留 target snapshot，并且即使省略 `--website`，仍会依 target Link 现有 website IDs 执行 guard。成功写入会 flush `links` cache；Link 没有 delete hooks，因此 delete 不会派发 hooks。
 
 ## 过滤与选项
 

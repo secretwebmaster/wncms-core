@@ -81,6 +81,7 @@ class MutationAuditService
         return $this->redact([
             'dry_run' => (bool) ($plan['dry_run'] ?? true),
             'will_write' => (bool) ($plan['will_write'] ?? false),
+            'target' => (array) ($plan['target'] ?? []),
             'attributes' => (array) ($plan['attributes'] ?? []),
             'changes' => (array) ($plan['changes'] ?? []),
             'relationships' => (array) ($plan['relationships'] ?? []),

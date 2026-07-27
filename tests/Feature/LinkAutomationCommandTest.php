@@ -730,6 +730,159 @@ class LinkAutomationCommandTest extends TestCase
         $this->assertTrue((bool) $link->is_pinned);
     }
 
+    public function test_links_delete_outputs_dry_run_without_writing_by_default(): void
+    {
+        $link = Link::create($this->linkData(['slug' => 'automation-delete-dry-run-' . uniqid()]));
+        $beforeAuditCount = MutationAudit::count();
+        $exitCode = Artisan::call('wncms:links:delete', ['identifier' => $link->id, '--json' => true]);
+        $decoded = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertSame(202, $decoded['code']);
+        $this->assertSame('success', $decoded['status']);
+        $this->assertSame('wncms:links:delete', $decoded['meta']['command']);
+        $this->assertTrue($decoded['data']['plan']['dry_run']);
+        $this->assertTrue(Link::whereKey($link->id)->exists());
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
+    public function test_links_delete_force_deletes_with_actor_and_audit(): void
+    {
+        $admin = $this->automationAdmin();
+        $link = Link::create($this->linkData(['slug' => 'automation-delete-force-' . uniqid()]));
+        $beforeAuditCount = MutationAudit::count();
+        $exitCode = Artisan::call('wncms:links:delete', ['identifier' => $link->id, '--actor-user' => $admin->id, '--force' => true, '--json' => true]);
+        $decoded = json_decode(trim(Artisan::output()), true);
+        $audit = MutationAudit::find($decoded['data']['audit']['id']);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertSame(200, $decoded['code']);
+        $this->assertFalse(Link::whereKey($link->id)->exists());
+        $this->assertSame($beforeAuditCount + 1, MutationAudit::count());
+        $this->assertSame($link->id, $decoded['data']['deleted']['id']);
+        $this->assertSame('delete', $audit->action);
+        $this->assertSame('link_delete', $audit->permission);
+        $this->assertSame($link->id, $audit->model_id);
+        $this->assertSame($link->id, $audit->input_summary['target']['id']);
+    }
+
+    public function test_links_delete_force_requires_actor_and_permission(): void
+    {
+        $link = Link::create($this->linkData());
+        $missingActorExitCode = Artisan::call('wncms:links:delete', ['identifier' => $link->id, '--force' => true, '--json' => true]);
+        $missingActor = json_decode(trim(Artisan::output()), true);
+        $member = User::create([
+            'username' => 'automation-delete-member-' . uniqid(),
+            'email' => 'automation-delete-member-' . uniqid() . '@example.com',
+            'password' => Hash::make('wncms.cc'),
+            'email_verified_at' => now(),
+        ]);
+        $member->assignRole('member');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $deniedExitCode = Artisan::call('wncms:links:delete', ['identifier' => $link->id, '--actor-user' => $member->id, '--force' => true, '--json' => true]);
+        $denied = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(1, $missingActorExitCode);
+        $this->assertSame(401, $missingActor['code']);
+        $this->assertSame(1, $deniedExitCode);
+        $this->assertSame(403, $denied['code']);
+        $this->assertSame(['link_delete'], $denied['errors']['permission']);
+        $this->assertTrue(Link::whereKey($link->id)->exists());
+    }
+
+    public function test_links_delete_returns_conflict_when_deleting_listener_cancels_mutation(): void
+    {
+        $admin = $this->automationAdmin();
+        $link = Link::create($this->linkData());
+        $beforeAuditCount = MutationAudit::count();
+        $dispatcher = clone Link::getEventDispatcher();
+        Link::setEventDispatcher(clone $dispatcher);
+        $listener = function () {
+            return false;
+        };
+        Link::deleting($listener);
+
+        try {
+            $exitCode = Artisan::call('wncms:links:delete', ['identifier' => $link->id, '--actor-user' => $admin->id, '--force' => true, '--json' => true]);
+            $decoded = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $exitCode);
+            $this->assertSame(409, $decoded['code']);
+            $this->assertSame(['cancelled'], $decoded['errors']['delete']);
+            $this->assertTrue(Link::whereKey($link->id)->exists());
+            $this->assertSame($beforeAuditCount, MutationAudit::count());
+        } finally {
+            Link::setEventDispatcher($dispatcher);
+        }
+    }
+
+    public function test_links_delete_rejects_unknown_website_and_cross_website_target_scope(): void
+    {
+        $originalModels = config('wncms.models');
+        config(['wncms.models.link.website_mode' => 'multi']);
+        $website = Website::first();
+        $otherWebsite = Website::query()->whereKey('!=', $website->id)->first() ?: Website::create(['domain' => 'automation-delete-scope-' . uniqid() . '.test', 'site_name' => 'Automation Delete Scope Website']);
+        $admin = $this->automationAdmin($website);
+        $link = Link::create($this->linkData());
+        $link->bindWebsites([$otherWebsite->id]);
+
+        try {
+            $unknownExitCode = Artisan::call('wncms:links:delete', ['identifier' => $link->id, '--website' => 99999996, '--actor-user' => $admin->id, '--force' => true, '--json' => true]);
+            $unknown = json_decode(trim(Artisan::output()), true);
+            $zeroWebsiteExitCode = Artisan::call('wncms:links:delete', ['identifier' => $link->id, '--website' => 0, '--json' => true]);
+            $zeroWebsite = json_decode(trim(Artisan::output()), true);
+            $member = User::create([
+                'username' => 'automation-delete-scope-member-' . uniqid(),
+                'email' => 'automation-delete-scope-member-' . uniqid() . '@example.com',
+                'password' => Hash::make('wncms.cc'),
+                'email_verified_at' => now(),
+            ]);
+            $member->assignRole('member');
+            $member->givePermissionTo('link_delete');
+            $member->websites()->sync([$website->id]);
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+            $scopeExitCode = Artisan::call('wncms:links:delete', ['identifier' => $link->id, '--actor-user' => $member->id, '--force' => true, '--json' => true]);
+            $scope = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $unknownExitCode);
+            $this->assertSame(422, $unknown['code']);
+            $this->assertSame(1, $zeroWebsiteExitCode);
+            $this->assertSame(422, $zeroWebsite['code']);
+            $this->assertSame(['invalid'], $zeroWebsite['errors']['website_ids']);
+            $this->assertSame(1, $scopeExitCode);
+            $this->assertSame(403, $scope['code']);
+            $this->assertSame([$otherWebsite->id], $scope['errors']['website_ids']);
+            $this->assertTrue(Link::whereKey($link->id)->exists());
+        } finally {
+            config(['wncms.models' => $originalModels]);
+        }
+    }
+
+    public function test_links_delete_returns_not_found_for_missing_or_out_of_scope_target(): void
+    {
+        $originalModels = config('wncms.models');
+        config(['wncms.models.link.website_mode' => 'multi']);
+        $website = Website::first();
+        $otherWebsite = Website::query()->whereKey('!=', $website->id)->first() ?: Website::create(['domain' => 'automation-delete-lookup-' . uniqid() . '.test', 'site_name' => 'Automation Delete Lookup Website']);
+        $link = Link::create($this->linkData());
+        $link->bindWebsites([$otherWebsite->id]);
+
+        try {
+            $missingExitCode = Artisan::call('wncms:links:delete', ['identifier' => 'missing-delete-' . uniqid(), '--json' => true]);
+            $missing = json_decode(trim(Artisan::output()), true);
+            $outOfScopeExitCode = Artisan::call('wncms:links:delete', ['identifier' => $link->id, '--website' => $website->id, '--json' => true]);
+            $outOfScope = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $missingExitCode);
+            $this->assertSame(404, $missing['code']);
+            $this->assertSame(1, $outOfScopeExitCode);
+            $this->assertSame(404, $outOfScope['code']);
+            $this->assertTrue(Link::whereKey($link->id)->exists());
+        } finally {
+            config(['wncms.models' => $originalModels]);
+        }
+    }
+
     /**
      * Build test link data with stable defaults.
      *
@@ -764,6 +917,7 @@ class LinkAutomationCommandTest extends TestCase
     {
         Permission::findOrCreate('link_create', 'web');
         Permission::findOrCreate('link_edit', 'web');
+        Permission::findOrCreate('link_delete', 'web');
 
         $admin = User::where('email', 'admin@demo.com')->first() ?: User::first();
         if (!$admin->hasRole('admin')) {
@@ -777,6 +931,9 @@ class LinkAutomationCommandTest extends TestCase
         }
         if (!$admin->hasPermissionTo('link_edit')) {
             $admin->givePermissionTo('link_edit');
+        }
+        if (!$admin->hasPermissionTo('link_delete')) {
+            $admin->givePermissionTo('link_delete');
         }
         if ($website && !$admin->websites()->where('websites.id', $website->id)->exists()) {
             $admin->websites()->syncWithoutDetaching([$website->id]);

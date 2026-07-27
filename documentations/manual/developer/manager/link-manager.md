@@ -58,8 +58,9 @@ Available commands:
 - `php artisan wncms:links:inspect {identifier}`
 - `php artisan wncms:links:create`
 - `php artisan wncms:links:update {identifier}`
+- `php artisan wncms:links:delete {identifier}`
 
-The list and inspect commands use `LinkManager` for read-only queries and support JSON output with `--json`. Create and update use `LinkAutomationService`; both default to dry-run and only write when `--force` is combined with an allowed `--actor-user=` or configured system actor. Update accepts patch fields, requires `link_edit`, preserves omitted fields, and guards against the target Link's existing website IDs even when `--website` is omitted. Successful writes flush `links` cache and write a `mutation_audits` record.
+The list and inspect commands use `LinkManager` for read-only queries and support JSON output with `--json`. Create, update, and delete use `LinkAutomationService`; all default to dry-run and only write when `--force` is combined with an allowed `--actor-user=` or configured system actor. Delete requires `link_delete`, preserves a target snapshot in `mutation_audits`, and guards against the target Link's existing website IDs even when `--website` is omitted. Successful writes flush `links` cache; delete intentionally dispatches no hooks because Link has no delete hooks.
 
 ## Filtering and options
 
