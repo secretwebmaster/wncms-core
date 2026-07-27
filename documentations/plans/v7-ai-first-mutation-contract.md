@@ -131,9 +131,22 @@ The first Links mutation service milestone has two layers:
 - File/media changes are declared as unsupported in dry-run v1 unless a later media mutation contract is added.
 - Tag changes can be declared in the relationship plan; guarded create can write link categories and tags, while update/delete tag writes wait for their dedicated commands.
 
+### Guarded Link Bulk Update v1
+
+- `wncms:links:bulk-update` accepts `--items=` as a JSON array containing between 1 and 100 unique Link targets.
+- Each item uses `identifier` (ID or slug) and may patch only `url` and `sort`, matching the existing backend bulk-update behavior.
+- The command is atomic: invalid JSON, duplicate targets, missing targets, invalid fields, actor/permission failures, or website-scope failures prevent every write.
+- Dry-run returns every target plan without writing; write mode requires `--force` plus an actor with `link_edit`.
+- `--website=` limits every target lookup, while each target's current website IDs are checked even when the option is omitted.
+- Write mode resolves and guards the full target set again inside one transaction before applying any updates.
+- No hooks are dispatched because the existing backend Link bulk-update path defines no bulk-update hooks.
+- Each changed Link writes one `mutation_audits` row with a shared run ID; no-op targets do not write audit rows.
+- The `links` cache is flushed once after the transaction commits and only when at least one Link changed.
+
 ## Next Implementation Steps
 
-1. Add guarded Link bulk mutation commands with explicit target-list safety rules.
-2. Add shared output rendering for Link CLI commands before expanding to more domains.
-3. Add API v2 tests for Links resource mutations and bridge actions.
-4. Draft the MCP packaging and enablement design before exposing mutation tools.
+1. Implement the guarded Link bulk-update contract above.
+2. Add guarded Link bulk tag synchronization as a separate mutation command.
+3. Add shared output rendering for Link CLI commands before expanding to more domains.
+4. Add API v2 tests for Links resource mutations and bridge actions.
+5. Draft the MCP packaging and enablement design before exposing mutation tools.

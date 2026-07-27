@@ -144,7 +144,7 @@ Manual docs should describe human and agent workflows together:
 ### Phase 2 - Links Reference Parity
 
 1. Continue hardening `LinkAutomationService` as the reusable mutation service returning structured result objects.
-2. Build on the existing Link CLI commands (`list`, `inspect`, guarded `create`, guarded `update`) and add delete, bulk update, and bulk sync tags.
+2. Build on the existing Link CLI commands (`list`, `inspect`, guarded `create`, guarded `update`, guarded `delete`) and add bulk update and bulk sync tags.
 3. Add Link MCP tools matching the CLI/API contracts.
 4. Add API v2 contract tests for Links resource and bridge actions.
 5. Update Links docs with backend UI, CLI, API v2, MCP, permissions, audit, and multisite notes.
@@ -190,7 +190,7 @@ These domains should require stronger confirmation, audit, environment gating, a
 
 ## Concrete Next Tasks
 
-1. Add guarded Link update/delete CLI commands reusing the create command's `--dry-run`, `--force`, actor, permission, website scope, cache flush, hook, and `mutation_audits` pattern.
+1. Add guarded Link bulk update and bulk tag-sync CLI commands with atomic target-list validation, `--dry-run`, `--force`, actor, permission, website scope, cache flush, and `mutation_audits`.
 2. Add API v2 tests for `links` resource actions and bridge actions.
 3. Draft MCP packaging/design doc and implement read-only discovery tools before Link mutation tools.
 4. Update Links API docs so the current "no dedicated links resource endpoint spec is finalized" gap is closed for v7.
