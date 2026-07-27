@@ -568,6 +568,11 @@ return [
             'links' => [
                 'label' => 'Links',
                 'reference' => true,
+                'surface_statuses' => [
+                    'api_v2' => 'Partial',
+                    'docs' => 'Partial',
+                    'tests' => 'Partial',
+                ],
                 'backend_routes' => [
                     'links.index',
                     'links.create',
@@ -600,8 +605,12 @@ return [
                     'documentations/manual/user/dashboard/links.md',
                     'documentations/manual/developer/manager/link-manager.md',
                     'documentations/manual/developer/event/links.md',
+                    'documentations/manual/developer/command/overview.md',
                 ],
-                'tests' => ['tests/Feature/LinkHookIntegrationTest.php'],
+                'tests' => [
+                    'tests/Feature/LinkHookIntegrationTest.php',
+                    'tests/Feature/LinkAutomationCommandTest.php',
+                ],
             ],
             'settings' => [
                 'label' => 'Settings',

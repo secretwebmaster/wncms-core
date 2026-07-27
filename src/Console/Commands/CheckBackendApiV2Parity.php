@@ -259,6 +259,11 @@ class CheckBackendApiV2Parity extends Command
             $status = 'Missing';
         }
 
+        $statusOverride = (string) (($definition['surface_statuses'] ?? [])[$surface['key']] ?? '');
+        if (in_array($statusOverride, ['Complete', 'Partial', 'Missing', 'Not applicable', 'Needs design'], true)) {
+            $status = $statusOverride;
+        }
+
         return $this->coverageAssessment($status, $items, $found, $missing);
     }
 
