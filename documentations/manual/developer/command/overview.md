@@ -287,6 +287,7 @@ php artisan wncms:links:bulk-update --items='[{"identifier":42,"sort":10}]' --we
 ```
 
 `--items=` must be a JSON array with 1-100 items. Every item requires `identifier` (Link ID or slug), may contain only `url` and `sort`, must include at least one patch field, and a supplied `url` must not be empty.
+When supplied, `sort` must be a JSON integer or an integer-form string such as `10` or `"-10"`; `null`, booleans, floats, and float-form strings are rejected.
 
 Behavior summary:
 

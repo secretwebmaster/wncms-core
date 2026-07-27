@@ -287,6 +287,7 @@ php artisan wncms:links:bulk-update --items='[{"identifier":42,"sort":10}]' --we
 ```
 
 `--items=` 必須是包含 1-100 個項目的 JSON 陣列。每項都需要 `identifier`（Link ID 或 slug），只能包含 `url` 與 `sort`，至少提供一個更新欄位；提供 `url` 時不得為空。
+提供 `sort` 時必須是 JSON 整數或整數形式字串，例如 `10` 或 `"-10"`；`null`、布林值、浮點數與浮點形式字串都會被拒絕。
 
 行為摘要：
 

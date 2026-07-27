@@ -1093,12 +1093,23 @@ class LinkAutomationService
                 $errors['url'][] = "required:{$index}";
             }
 
-            if (array_key_exists('sort', $item) && $item['sort'] !== null && !is_int($item['sort']) && !is_numeric($item['sort'])) {
+            if (array_key_exists('sort', $item) && !$this->validBulkSort($item['sort'])) {
                 $errors['sort'][] = "invalid:{$index}";
             }
         }
 
         return $errors;
+    }
+
+    /**
+     * Determine whether a bulk sort value is an integer or integer-form string.
+     *
+     * @param  mixed  $value
+     * @return bool
+     */
+    protected function validBulkSort(mixed $value): bool
+    {
+        return is_int($value) || (is_string($value) && preg_match('/^-?\d+$/', $value) === 1);
     }
 
     /**

@@ -1189,6 +1189,23 @@ class LinkAutomationCommandTest extends TestCase
         $this->assertSame($beforeAuditCount, MutationAudit::count());
     }
 
+    public function test_links_bulk_update_rejects_non_integer_sort_values(): void
+    {
+        $link = Link::create($this->linkData(['sort' => 10]));
+
+        foreach ([null, true, 1.5, '1.5'] as $sort) {
+            $exitCode = Artisan::call('wncms:links:bulk-update', [
+                '--items' => json_encode([['identifier' => $link->id, 'sort' => $sort]]),
+                '--json' => true,
+            ]);
+            $decoded = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $exitCode);
+            $this->assertSame(422, $decoded['code']);
+            $this->assertSame(10, $link->fresh()->sort);
+        }
+    }
+
     /**
      * Build test link data with stable defaults.
      *
