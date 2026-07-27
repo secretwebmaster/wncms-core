@@ -230,6 +230,29 @@ php artisan wncms:links:create --name="Partner" --url=https://example.com --webs
 - 成功写入时会建立 Link，并在 Link 使用 scoped website mode 时绑定 requested websites、同步 requested link categories/tags、flush `links` cache、dispatch 既有 Link store hooks，并写入 `mutation_audits` record。
 - 支持 `--name=`、`--url=`、`--status=`、`--slug=`、`--tracking-code=`、`--website=`、`--description=`、`--slogan=`、`--external-thumbnail=`、`--remark=`、`--sort=`、`--color=`、`--background=`、`--is-pinned`、`--is-recommended`、`--expired-at=`、`--hit-at=`、`--clicks=`、`--contact=`、`--link-categories=`、`--link-tags=`。
 
+## `wncms:links:update`
+
+透过 guarded automation path 更新指定的 Link 字段。
+
+```bash
+# 默认只预览 patch，不会写入资料
+php artisan wncms:links:update partner-link --name="Partner Plus" --json
+
+# 写入模式需要有 link_edit 权限的 actor
+php artisan wncms:links:update partner-link --name="Partner Plus" --is-pinned=false --actor-user=1 --force --json
+```
+
+行为摘要：
+- 只会更新提供的 patch 字段；未提供的字段会保留。
+- 默认 dry-run；未提供 `--force` 不会写入，`--dry-run` 永远会阻止写入。
+- 写入模式需要来自 `--actor-user=` 或 `wncms.automation.system_actor_user_id` 的 actor，且必须拥有 `link_edit` permission。
+- `--website=` 会限制 target lookup。Guard 总是检查 target Link 现有的 website IDs，因此省略该选项也不能绕过跨站保护。
+- 未知 website ID 返回 `422`；缺少 scoped target 返回 `404`；缺少 actor 返回 `401`；permission 或 website scope 失败返回 `403`。
+- 无变化的 patch 会成功返回 `200`，且不会 flush cache 或写入 audit。成功写入会 dispatch 既有 Link update hooks、在 transaction 后 flush `links` cache，并写入 `mutation_audits` record。
+- 支持 `--status=`、`--tracking-code=`、`--slug=`、`--name=`、`--url=`、`--slogan=`、`--description=`、`--external-thumbnail=`、`--remark=`、`--sort=`、`--color=`、`--background=`、`--is-pinned=true|false`、`--is-recommended=true|false`、`--expired-at=`、`--hit-at=`、`--clicks=`、`--contact=`、`--website=`、`--actor-user=`、`--dry-run`、`--force` 与 `--json`。
+- 明确传入空值会清除 nullable patch 字段；明确传入空的 `status`、`slug`、`name` 或 `url` 会返回 `422`。Boolean 字段只接受 `true`、`false`、`1`、`0`、`yes`、`no`、`on` 或 `off`。
+- Dry-run 不会执行 `wncms.backend.links.update.attributes.before`，因为 hook 可能有 side effects。Dry-run 的 changes 是 hook 前的结果；成功写入的 response 与 audit attributes 会反映 hook 修改后的值与 changes。
+
 ## `wncms:install-default-theme`
 
 安装或重新安装核心默认主题资源到 `public/themes`。

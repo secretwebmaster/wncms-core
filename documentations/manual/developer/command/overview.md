@@ -230,6 +230,29 @@ Behavior summary:
 - Successful writes create the Link, bind requested websites when Link uses scoped website mode, sync requested link categories/tags, flush `links` cache, dispatch existing Link store hooks, and store a `mutation_audits` record.
 - Supports `--name=`, `--url=`, `--status=`, `--slug=`, `--tracking-code=`, `--website=`, `--description=`, `--slogan=`, `--external-thumbnail=`, `--remark=`, `--sort=`, `--color=`, `--background=`, `--is-pinned`, `--is-recommended`, `--expired-at=`, `--hit-at=`, `--clicks=`, `--contact=`, `--link-categories=`, and `--link-tags=`.
 
+## `wncms:links:update`
+
+Update selected Link fields through the guarded automation path.
+
+```bash
+# Default mode previews the patch and does not write data
+php artisan wncms:links:update partner-link --name="Partner Plus" --json
+
+# Write mode requires an actor with link_edit permission
+php artisan wncms:links:update partner-link --name="Partner Plus" --is-pinned=false --actor-user=1 --force --json
+```
+
+Behavior summary:
+- Only supplied patch fields are changed; omitted fields are preserved.
+- Defaults to dry-run unless `--force` is supplied; `--dry-run` always prevents writes.
+- Write mode requires an actor from `--actor-user=` or `wncms.automation.system_actor_user_id`, with `link_edit` permission.
+- `--website=` restricts target lookup. The guard always checks the target Link's existing website IDs, so omitting the option cannot bypass cross-site protection.
+- Unknown website IDs return `422`; missing scoped targets return `404`; missing actors return `401`; permission or website-scope failures return `403`.
+- A no-op patch returns a successful `200` result without cache flush or audit write. Successful writes dispatch existing Link update hooks, flush `links` cache after the transaction, and write a `mutation_audits` record.
+- Supports `--status=`, `--tracking-code=`, `--slug=`, `--name=`, `--url=`, `--slogan=`, `--description=`, `--external-thumbnail=`, `--remark=`, `--sort=`, `--color=`, `--background=`, `--is-pinned=true|false`, `--is-recommended=true|false`, `--expired-at=`, `--hit-at=`, `--clicks=`, `--contact=`, `--website=`, `--actor-user=`, `--dry-run`, `--force`, and `--json`.
+- Explicit empty values clear nullable patch fields; explicit empty `status`, `slug`, `name`, or `url` returns `422`. Boolean fields accept only `true`, `false`, `1`, `0`, `yes`, `no`, `on`, or `off`.
+- Dry-run does not execute `wncms.backend.links.update.attributes.before`, because hooks may have side effects. The dry-run changes are pre-hook; the successful write response and audit attributes reflect hook-mutated values and changes.
+
 ## `wncms:install-default-theme`
 
 Install or reinstall core default theme assets into `public/themes`.

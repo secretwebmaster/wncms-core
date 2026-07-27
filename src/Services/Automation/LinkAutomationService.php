@@ -218,8 +218,151 @@ class LinkAutomationService
 
         $attributes = $this->normalizeUpdateAttributes($input);
         $changes = $this->attributeChanges($link, $attributes);
+        $options['guard_website_ids'] = $this->websiteIds($link);
 
         return $this->mutationPlan('update', $attributes, $link, $input, $options, $this->validateMutation('update', $attributes), $changes);
+    }
+
+    /**
+     * Update a link through the guarded automation path.
+     *
+     * Patch input only changes supplied attributes. Existing backend update
+     * hooks receive the declared actor and the auth context is restored after.
+     *
+     * @param  string|int  $identifier
+     * @param  array  $input
+     * @param  array  $options
+     * @return array
+     */
+    public function update(string|int $identifier, array $input, array $options = []): array
+    {
+        $force = (bool) ($options['force'] ?? false);
+        $dryRun = (bool) ($options['dry_run'] ?? false) || !$force;
+        $options['write_mode'] = !$dryRun;
+        $meta = $this->mutationResultMeta('update', $input, $options, $dryRun);
+        $websiteErrors = $this->lookupWebsiteErrors($options);
+
+        if (!empty($websiteErrors)) {
+            return AutomationResult::fail('Link update website validation failed.', null, $meta, $websiteErrors, 422);
+        }
+
+        $plan = $this->planUpdate($identifier, $input, $options);
+        if (!$plan) {
+            return AutomationResult::fail('Link not found.', null, $meta, [
+                'identifier' => [(string) $identifier],
+            ], 404);
+        }
+
+        if (($plan['validation']['status'] ?? 'fail') !== 'pass') {
+            return AutomationResult::fail('Link update validation failed.', [
+                'plan' => $plan,
+            ], $meta, (array) ($plan['validation']['errors'] ?? []), 422);
+        }
+
+        if (($plan['guard']['status'] ?? 'fail') !== 'pass') {
+            return AutomationResult::fail('Link update guard check failed.', [
+                'plan' => $plan,
+            ], $meta, (array) ($plan['guard']['errors'] ?? []), (int) ($plan['guard']['code'] ?? 403));
+        }
+
+        if ($dryRun) {
+            return AutomationResult::success('Link update dry-run plan generated.', [
+                'plan' => $plan,
+            ], $meta, 202);
+        }
+
+        if (empty($plan['changes'])) {
+            return AutomationResult::success('Link update skipped; no changes detected.', [
+                'item' => $plan['target'],
+                'plan' => $plan,
+            ], $meta, 200);
+        }
+
+        $actorResult = app(AutomationActorResolver::class)->resolve($options, true);
+        $actor = $actorResult['model'] ?? null;
+        if (!$actor instanceof Authenticatable) {
+            return AutomationResult::fail('Link update actor resolution failed.', [
+                'plan' => $plan,
+            ], $meta, (array) ($actorResult['errors'] ?? ['actor' => ['invalid']]), (int) ($actorResult['code'] ?? 401));
+        }
+
+        $authGuard = Auth::guard();
+        $previousActor = $authGuard->user();
+        $authGuard->setUser($actor);
+
+        try {
+            $result = DB::transaction(function () use ($actor, $input, $options, $plan, $meta) {
+                $modelClass = wncms()->getModelClass('link');
+                $link = $modelClass::query()->with(['websites'])->find($plan['target']['id']);
+
+                if (!$link) {
+                    return AutomationResult::fail('Link not found.', [
+                        'plan' => $plan,
+                    ], $meta, [
+                        'identifier' => [(string) ($plan['target']['id'] ?? '')],
+                    ], 404);
+                }
+
+                $request = Request::create('/', 'PUT', $this->requestPayloadFromPlan($input, $plan));
+                $request->setUserResolver(fn() => $actor);
+                $hookValidationErrors = $this->validateUpdateHooks($link, $request);
+
+                if (!empty($hookValidationErrors)) {
+                    return AutomationResult::fail('Link update hook validation failed.', [
+                        'plan' => $plan,
+                    ], $meta, $hookValidationErrors, 422);
+                }
+
+                $attributes = (array) ($plan['attributes'] ?? []);
+                Event::dispatch('wncms.backend.links.update.attributes.before', [$link, $request, &$attributes]);
+                $writtenChanges = $this->attributeChanges($link, $attributes);
+                $link->update($attributes);
+                Event::dispatch('wncms.backend.links.update.after', [$link, $request]);
+
+                $link->loadMissing(['websites']);
+                $writtenPlan = $plan;
+                $writtenPlan['dry_run'] = false;
+                $writtenPlan['will_write'] = true;
+                $writtenPlan['target'] = $this->normalizeLink($link, false);
+                $writtenPlan['attributes'] = $attributes;
+                $writtenPlan['changes'] = $writtenChanges;
+                $writtenPlan['audit'] = app(MutationAuditService::class)->previewFromPlan($writtenPlan, [
+                    'surface' => (string) ($options['surface'] ?? 'service'),
+                    'domain' => 'links',
+                    'run_id' => $options['run_id'] ?? null,
+                    'actor_type' => $writtenPlan['guard']['actor']['type'] ?? null,
+                    'actor_id' => $writtenPlan['guard']['actor']['id'] ?? null,
+                ]);
+
+                $audit = app(MutationAuditService::class)->writeFromPlan($writtenPlan, [
+                    'model_id' => (int) $link->getKey(),
+                    'result_code' => 200,
+                    'result_status' => 'success',
+                    'message' => 'Link updated.',
+                ]);
+
+                return AutomationResult::success('Link updated.', [
+                    'item' => $this->normalizeLink($link, true),
+                    'changes' => $writtenChanges,
+                    'plan' => $writtenPlan,
+                    'audit' => [
+                        'id' => (int) $audit->getKey(),
+                    ],
+                ], $meta, 200);
+            });
+        } finally {
+            if ($previousActor instanceof Authenticatable) {
+                $authGuard->setUser($previousActor);
+            } else {
+                $authGuard->forgetUser();
+            }
+        }
+
+        if (($result['status'] ?? null) === 'success') {
+            wncms()->cache()->flush(['links']);
+        }
+
+        return $result;
     }
 
     /**
@@ -315,14 +458,12 @@ class LinkAutomationService
                 continue;
             }
 
-            if (in_array($field, ['tracking_code', 'slug'], true) && !$this->hasValue($input[$field])) {
-                continue;
-            }
-
             $attributes[$field] = match ($type) {
-                'bool' => $this->mutationBoolean($input[$field]),
+                'bool' => $this->validMutationBoolean($input[$field])
+                    ? $this->mutationBoolean($input[$field])
+                    : $input[$field],
                 'int' => $this->mutationInteger($input[$field]),
-                'value' => $this->mutationValue($input[$field]),
+                'value' => $this->mutationNullableValue($input[$field]),
                 default => $this->mutationString($input[$field]),
             };
         }
@@ -345,8 +486,8 @@ class LinkAutomationService
     protected function mutationPlan(string $operation, array $attributes, ?Model $target, array $input, array $options, array $errors, array $changes = []): array
     {
         $writeMode = (bool) ($options['write_mode'] ?? false);
-        $notes = $operation === 'create'
-            ? ['Create writes are available through guarded automation when actor, permission, website scope, and audit checks pass.']
+        $notes = in_array($operation, ['create', 'update'], true)
+            ? [ucfirst($operation) . ' writes are available through guarded automation when actor, permission, website scope, and audit checks pass.']
             : ['Real writes for this operation are still pending; use the dry-run plan as v7 implementation input.'];
 
         if (!$writeMode) {
@@ -366,7 +507,9 @@ class LinkAutomationService
             'attributes' => $attributes,
             'changes' => $changes,
             'relationships' => [
-                'website_ids' => $this->mutationWebsiteIds($input, $options),
+                'website_ids' => array_key_exists('guard_website_ids', $options)
+                    ? $this->normalizeIdList($options['guard_website_ids'])
+                    : $this->mutationWebsiteIds($input, $options),
                 'tags' => $this->mutationTags($input),
                 'media' => $this->mutationMedia($input),
             ],
@@ -428,6 +571,20 @@ class LinkAutomationService
             }
         }
 
+        if ($operation === 'update') {
+            foreach (['status', 'slug', 'name', 'url'] as $field) {
+                if (array_key_exists($field, $attributes) && !$this->hasValue($attributes[$field])) {
+                    $errors[$field][] = 'required';
+                }
+            }
+
+            foreach (['is_pinned', 'is_recommended'] as $field) {
+                if (array_key_exists($field, $attributes) && !is_bool($attributes[$field])) {
+                    $errors[$field][] = 'invalid';
+                }
+            }
+        }
+
         if (array_key_exists('status', $attributes) && !$this->validLinkStatus($attributes['status'])) {
             $errors['status'][] = 'invalid';
         }
@@ -485,6 +642,28 @@ class LinkAutomationService
         $rules = [];
         $messages = [];
         Event::dispatch('wncms.backend.links.store.before', [$request, &$rules, &$messages]);
+
+        if (empty($rules)) {
+            return [];
+        }
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        return $validator->fails() ? $validator->errors()->toArray() : [];
+    }
+
+    /**
+     * Run existing Link update hook validation rules.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $link
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    protected function validateUpdateHooks(Model $link, Request $request): array
+    {
+        $rules = [];
+        $messages = [];
+        Event::dispatch('wncms.backend.links.update.before', [$link, $request, &$rules, &$messages]);
 
         if (empty($rules)) {
             return [];
@@ -676,6 +855,35 @@ class LinkAutomationService
     }
 
     /**
+     * Validate explicit website filters before they are used for target lookup.
+     *
+     * @param  array  $options
+     * @return array
+     */
+    protected function lookupWebsiteErrors(array $options): array
+    {
+        $websiteIds = [];
+        foreach (['website_id', 'website'] as $key) {
+            if (array_key_exists($key, $options)) {
+                $websiteIds = array_merge($websiteIds, $this->normalizeIdList($options[$key]));
+            }
+        }
+
+        $websiteIds = array_values(array_unique(array_filter($websiteIds, fn(int $id) => $id > 0)));
+        if (empty($websiteIds)) {
+            return [];
+        }
+
+        $websiteClass = wncms()->getModelClass('website');
+        $existingIds = $websiteClass::query()->whereKey($websiteIds)->pluck((new $websiteClass())->getKeyName())
+            ->map(fn($id) => (int) $id)
+            ->all();
+        $missingIds = array_values(array_diff($websiteIds, $existingIds));
+
+        return empty($missingIds) ? [] : ['website_ids' => $missingIds];
+    }
+
+    /**
      * Normalize tag relationship input for a mutation plan.
      *
      * @param array $input
@@ -843,6 +1051,23 @@ class LinkAutomationService
     }
 
     /**
+     * Determine whether a patch value is an accepted boolean literal.
+     *
+     * @param  mixed  $value
+     * @return bool
+     */
+    protected function validMutationBoolean(mixed $value): bool
+    {
+        if (is_bool($value) || $value === 0 || $value === 1) {
+            return true;
+        }
+
+        return is_string($value) && in_array(strtolower($value), [
+            '0', '1', 'true', 'false', 'yes', 'no', 'on', 'off',
+        ], true);
+    }
+
+    /**
      * Normalize mutation values that can be scalar or translated arrays.
      *
      * @param mixed $value
@@ -851,6 +1076,17 @@ class LinkAutomationService
     protected function mutationValue(mixed $value): mixed
     {
         return $this->scalar($value);
+    }
+
+    /**
+     * Normalize nullable patch values while preserving explicit clears.
+     *
+     * @param  mixed  $value
+     * @return mixed
+     */
+    protected function mutationNullableValue(mixed $value): mixed
+    {
+        return $this->hasValue($value) ? $this->mutationValue($value) : null;
     }
 
     /**
