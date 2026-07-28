@@ -60,8 +60,9 @@ WNCMS 提供 CLI helpers，可用于 scripts 或本地操作中检视 Links 资�
 - `php artisan wncms:links:update {identifier}`
 - `php artisan wncms:links:delete {identifier}`
 - `php artisan wncms:links:bulk-update --items='[...]'`
+- `php artisan wncms:links:bulk-sync-tags --identifiers='[...]' --action=sync`
 
-List 与 inspect commands 使用 `LinkManager` 执行 read-only queries，并支持以 `--json` 输出 JSON。Create、update、delete 与 bulk update 使用 `LinkAutomationService`；它们默认 dry-run，只有在 `--force` 搭配允许的 `--actor-user=` 或已配置 system actor 时才会写入。Bulk update 接受 1-100 个唯一 ID/slug 目标，只能原子更新 `url` 与 `sort`：会在一个 transaction 内重新解析并 guard 全部目标，每个实际变更的目标都会写入共享 run ID 的 `mutation_audits`，无变更目标不写审计，且只在批次有变更后一次 flush `links` cache。`--website` 会限制全部查询，即使省略也会继续 guard 目标原有 website IDs。Delete 需要 `link_delete`，会保留 target snapshot 且不派发 hooks；bulk update 同样刻意不派发 hooks。
+List 与 inspect commands 使用 `LinkManager` 执行 read-only queries，并支持以 `--json` 输出 JSON。Create、update、delete、bulk update 与 bulk tag synchronization 使用 `LinkAutomationService`；全部默认为 dry-run，只有在 `--force` 搭配允许的 `--actor-user=` 或已配置 system actor 时才会写入。Bulk update 接受 1-100 个唯一 ID/slug 目标并原子更新 `url` 与 `sort`。Bulk tag synchronization 接受 1-100 个 ID/slug，以及 `sync`、`attach` 或 `detach` action；已提供的 category/tag 类型会标准化，而省略或空的类型保持不变。两个 bulk commands 都会在一个 transaction 中重新解析并 guard 全部目标，只审计实际变更的 Link 且共用一个 run ID，并在有变更的提交后只刷新一次 `links` cache。`--website` 会限制全部查询，即使省略也会持续 guard 目标原有 website IDs。无效输入返回 `422`，缺少 actor 返回 `401`，权限或网站范围拒绝返回 `403`，缺失/scoped targets 返回 `404`，stale 或 aborted batches 返回 `409`。Delete 需要 `link_delete`，会保留 target snapshot 且不派发 hooks；两个 bulk commands 也刻意不派发 hooks。
 
 ## 过滤与选项
 

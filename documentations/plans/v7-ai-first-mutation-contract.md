@@ -143,9 +143,18 @@ The first Links mutation service milestone has two layers:
 - Each changed Link writes one `mutation_audits` row with a shared run ID; no-op targets do not write audit rows.
 - The `links` cache is flushed once after the transaction commits and only when at least one Link changed.
 
+### Guarded Link Bulk Tag Synchronization v1
+
+- `wncms:links:bulk-sync-tags` accepts `--identifiers=` as a JSON array containing between 1 and 100 Link IDs or slugs, `--action=sync|attach|detach`, and optional JSON `--categories=` / `--tags=` name lists.
+- Tag names are trimmed scalar values with deterministic de-duplication. At least one non-empty tag type is required; omitted or empty types are left unchanged.
+- `sync` replaces only supplied tag types, `attach` adds only supplied names, and `detach` removes only supplied names, matching the backend Link bulk tag behavior.
+- The command is atomic: malformed input, duplicate resolved targets, missing targets, actor/permission failures, website-scope failures, stale tag state, or later transaction aborts prevent every write.
+- Dry-run returns `202`; guarded write mode requires `--force` plus an actor with `link_edit` and returns `200` for completed or no-op runs.
+- Write mode locks, resolves, and guards the full target set again in one transaction, compares the approved and fresh tag states, and dispatches no bulk tag hooks.
+- Each changed Link writes one `mutation_audits` row with a shared run ID; no-op targets do not write audit rows, and the `links` cache flushes once after a changed commit.
+
 ## Next Implementation Steps
 
-1. Add guarded Link bulk tag synchronization as a separate mutation command.
-2. Add shared output rendering for Link CLI commands before expanding to more domains.
-3. Add API v2 tests for Links resource mutations and bridge actions.
-4. Draft the MCP packaging and enablement design before exposing mutation tools.
+1. Add shared output rendering for Link CLI commands before expanding to more domains.
+2. Add API v2 tests for Links resource mutations and bridge actions.
+3. Draft the MCP packaging and enablement design before exposing mutation tools.

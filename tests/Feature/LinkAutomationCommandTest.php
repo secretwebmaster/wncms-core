@@ -1206,6 +1206,255 @@ class LinkAutomationCommandTest extends TestCase
         }
     }
 
+    public function test_links_bulk_sync_tags_outputs_atomic_dry_run_without_writing(): void
+    {
+        $first = Link::create($this->linkData());
+        $second = Link::create($this->linkData());
+        $first->syncTagsWithType(['Existing category'], 'link_category');
+        $second->syncTagsWithType(['Existing tag'], 'link_tag');
+        $beforeAuditCount = MutationAudit::count();
+        $cache = wncms()->cache()->tags(['links']);
+        $cache->put('link-bulk-sync-tags-dry-run', 'unchanged', 60);
+
+        $exitCode = Artisan::call('wncms:links:bulk-sync-tags', [
+            '--identifiers' => json_encode([$first->id, $second->slug]),
+            '--categories' => json_encode(['Partners']),
+            '--tags' => json_encode(['Featured']),
+            '--json' => true,
+        ]);
+        $decoded = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertSame(202, $decoded['code']);
+        $this->assertTrue($decoded['data']['plan']['atomic']);
+        $this->assertSame(['requested' => 2, 'changed' => 2, 'noop' => 0], $decoded['data']['plan']['summary']);
+        $this->assertSame(['Existing category'], $this->tagNames($first->fresh(), 'link_category'));
+        $this->assertSame(['Existing tag'], $this->tagNames($second->fresh(), 'link_tag'));
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+        $this->assertSame('unchanged', $cache->get('link-bulk-sync-tags-dry-run'));
+    }
+
+    public function test_links_bulk_sync_tags_force_applies_sync_attach_and_detach(): void
+    {
+        $admin = $this->automationAdmin();
+        $link = Link::create($this->linkData());
+        $link->syncTagsWithType(['Old category'], 'link_category');
+        $link->syncTagsWithType(['Old tag'], 'link_tag');
+
+        $syncExitCode = Artisan::call('wncms:links:bulk-sync-tags', [
+            '--identifiers' => json_encode([$link->id]),
+            '--action' => 'sync',
+            '--categories' => json_encode(['Partners']),
+            '--actor-user' => $admin->id,
+            '--force' => true,
+            '--json' => true,
+        ]);
+        $sync = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(0, $syncExitCode);
+        $this->assertSame(200, $sync['code']);
+        $this->assertSame(['Partners'], $this->tagNames($link->fresh(), 'link_category'));
+        $this->assertSame(['Old tag'], $this->tagNames($link->fresh(), 'link_tag'));
+
+        $attachExitCode = Artisan::call('wncms:links:bulk-sync-tags', [
+            '--identifiers' => json_encode([$link->slug]),
+            '--action' => 'attach',
+            '--tags' => json_encode(['Featured']),
+            '--actor-user' => $admin->id,
+            '--force' => true,
+            '--json' => true,
+        ]);
+        $attach = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(0, $attachExitCode);
+        $this->assertSame(200, $attach['code']);
+        $this->assertSame(['Partners'], $this->tagNames($link->fresh(), 'link_category'));
+        $this->assertSame(['Featured', 'Old tag'], $this->tagNames($link->fresh(), 'link_tag'));
+
+        $detachExitCode = Artisan::call('wncms:links:bulk-sync-tags', [
+            '--identifiers' => json_encode([$link->id]),
+            '--action' => 'detach',
+            '--categories' => json_encode(['Partners']),
+            '--actor-user' => $admin->id,
+            '--force' => true,
+            '--json' => true,
+        ]);
+        $detach = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(0, $detachExitCode);
+        $this->assertSame(200, $detach['code']);
+        $this->assertSame([], $this->tagNames($link->fresh(), 'link_category'));
+        $this->assertSame(['Featured', 'Old tag'], $this->tagNames($link->fresh(), 'link_tag'));
+    }
+
+    public function test_links_bulk_sync_tags_audits_only_changes_with_one_run_id(): void
+    {
+        $admin = $this->automationAdmin();
+        $changed = Link::create($this->linkData());
+        $noop = Link::create($this->linkData());
+        $noop->syncTagsWithType(['Partners'], 'link_category');
+        $beforeAuditCount = MutationAudit::count();
+
+        $exitCode = Artisan::call('wncms:links:bulk-sync-tags', [
+            '--identifiers' => json_encode([$changed->id, $noop->id]),
+            '--action' => 'sync',
+            '--categories' => json_encode(['Partners']),
+            '--actor-user' => $admin->id,
+            '--force' => true,
+            '--json' => true,
+        ]);
+        $decoded = json_decode(trim(Artisan::output()), true);
+        $audits = MutationAudit::query()->latest('id')->take(1)->get();
+
+        $this->assertSame(0, $exitCode);
+        $this->assertSame(200, $decoded['code']);
+        $this->assertSame(['requested' => 2, 'changed' => 1, 'noop' => 1], $decoded['data']['summary']);
+        $this->assertSame($beforeAuditCount + 1, MutationAudit::count());
+        $this->assertSame($changed->id, $audits->first()->model_id);
+        $this->assertSame($decoded['data']['run_id'], $audits->first()->run_id);
+    }
+
+    public function test_links_bulk_sync_tags_rejects_invalid_input_without_partial_writes(): void
+    {
+        $link = Link::create($this->linkData());
+        $link->syncTagsWithType(['Existing category'], 'link_category');
+        $beforeAuditCount = MutationAudit::count();
+        $tooManyIdentifiers = array_map(fn(int $index) => $index + 100000, range(0, 100));
+        $payloads = [
+            ['--identifiers' => '{broken', '--categories' => json_encode(['Partners'])],
+            ['--identifiers' => json_encode([$link->id]), '--action' => 'invalid', '--categories' => json_encode(['Partners'])],
+            ['--identifiers' => json_encode([$link->id]), '--categories' => json_encode([]), '--tags' => json_encode([])],
+            ['--identifiers' => json_encode([$link->id]), '--categories' => json_encode([['invalid']])],
+            ['--identifiers' => json_encode([$link->id, $link->slug]), '--categories' => json_encode(['Partners'])],
+            ['--identifiers' => json_encode($tooManyIdentifiers), '--categories' => json_encode(['Partners'])],
+        ];
+
+        foreach ($payloads as $payload) {
+            $exitCode = Artisan::call('wncms:links:bulk-sync-tags', array_merge($payload, ['--json' => true]));
+            $decoded = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $exitCode);
+            $this->assertSame(422, $decoded['code']);
+            $this->assertSame(['Existing category'], $this->tagNames($link->fresh(), 'link_category'));
+        }
+
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
+    public function test_links_bulk_sync_tags_rejects_missing_actor_permission_and_scoped_target(): void
+    {
+        $originalModels = config('wncms.models');
+        config(['wncms.models.link.website_mode' => 'multi']);
+        $website = Website::first();
+        $otherWebsite = Website::query()->whereKey('!=', $website->id)->first() ?: Website::create([
+            'domain' => 'automation-bulk-tag-scope-' . uniqid() . '.test',
+            'site_name' => 'Automation Bulk Tag Scope Website',
+        ]);
+        $admin = $this->automationAdmin($website);
+        $link = Link::create($this->linkData());
+        $link->bindWebsites([$otherWebsite->id]);
+        $beforeAuditCount = MutationAudit::count();
+        $member = User::create([
+            'username' => 'bulk-tag-member-' . uniqid(),
+            'email' => 'bulk-tag-member-' . uniqid() . '@example.com',
+            'password' => Hash::make('wncms.cc'),
+            'email_verified_at' => now(),
+        ]);
+        $member->assignRole('member');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        try {
+            $missingActorExitCode = Artisan::call('wncms:links:bulk-sync-tags', [
+                '--identifiers' => json_encode([$link->id]),
+                '--categories' => json_encode(['Partners']),
+                '--force' => true,
+                '--json' => true,
+            ]);
+            $missingActor = json_decode(trim(Artisan::output()), true);
+            $deniedExitCode = Artisan::call('wncms:links:bulk-sync-tags', [
+                '--identifiers' => json_encode([$link->id]),
+                '--categories' => json_encode(['Partners']),
+                '--actor-user' => $member->id,
+                '--force' => true,
+                '--json' => true,
+            ]);
+            $denied = json_decode(trim(Artisan::output()), true);
+            $scopedExitCode = Artisan::call('wncms:links:bulk-sync-tags', [
+                '--identifiers' => json_encode([$link->id]),
+                '--categories' => json_encode(['Partners']),
+                '--website' => $website->id,
+                '--actor-user' => $admin->id,
+                '--force' => true,
+                '--json' => true,
+            ]);
+            $scoped = json_decode(trim(Artisan::output()), true);
+
+            $this->assertSame(1, $missingActorExitCode);
+            $this->assertSame(401, $missingActor['code']);
+            $this->assertSame(1, $deniedExitCode);
+            $this->assertSame(403, $denied['code']);
+            $this->assertSame(1, $scopedExitCode);
+            $this->assertSame(404, $scoped['code']);
+            $this->assertSame([], $this->tagNames($link->fresh(), 'link_category'));
+            $this->assertSame($beforeAuditCount, MutationAudit::count());
+        } finally {
+            config(['wncms.models' => $originalModels]);
+        }
+    }
+
+    public function test_links_bulk_sync_tags_rolls_back_and_rejects_stale_tag_state(): void
+    {
+        $admin = $this->automationAdmin();
+        $first = Link::create($this->linkData());
+        $second = Link::create($this->linkData());
+        $beforeAuditCount = MutationAudit::count();
+        $eventCount = 0;
+        $phase = 'stale';
+
+        Event::listen('eloquent.retrieved: ' . Link::class, function () use (&$eventCount, &$phase, $second) {
+            $eventCount++;
+            if ($phase === 'stale' && $eventCount === 3) {
+                $second->syncTagsWithType(['Stale category'], 'link_category');
+            }
+
+            if ($phase === 'later_failure' && $eventCount === 6) {
+                $second->syncTagsWithType(['Later category'], 'link_category');
+            }
+        });
+
+        $staleExitCode = Artisan::call('wncms:links:bulk-sync-tags', [
+            '--identifiers' => json_encode([$first->id, $second->id]),
+            '--categories' => json_encode(['Partners']),
+            '--actor-user' => $admin->id,
+            '--force' => true,
+            '--json' => true,
+        ]);
+        $stale = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(1, $staleExitCode);
+        $this->assertSame(409, $stale['code']);
+        $this->assertSame([], $this->tagNames($first->fresh(), 'link_category'));
+        $this->assertSame([], $this->tagNames($second->fresh(), 'link_category'));
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+
+        $phase = 'later_failure';
+        $eventCount = 0;
+        $rollbackExitCode = Artisan::call('wncms:links:bulk-sync-tags', [
+            '--identifiers' => json_encode([$first->id, $second->id]),
+            '--categories' => json_encode(['Partners']),
+            '--actor-user' => $admin->id,
+            '--force' => true,
+            '--json' => true,
+        ]);
+        $rollback = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(1, $rollbackExitCode);
+        $this->assertSame(409, $rollback['code']);
+        $this->assertSame([], $this->tagNames($first->fresh(), 'link_category'));
+        $this->assertSame([], $this->tagNames($second->fresh(), 'link_category'));
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
     /**
      * Build test link data with stable defaults.
      *
@@ -1234,6 +1483,22 @@ class LinkAutomationCommandTest extends TestCase
             'is_recommended' => false,
             'hit_at' => null,
         ], $overrides);
+    }
+
+    /**
+     * Return normalized Link tag names for one tag type.
+     *
+     * @param Link $link
+     * @param string $type
+     * @return array
+     */
+    protected function tagNames(Link $link, string $type): array
+    {
+        return $link->tagsWithType($type)
+            ->pluck('name')
+            ->sort()
+            ->values()
+            ->all();
     }
 
     protected function automationAdmin(?Website $website = null): User

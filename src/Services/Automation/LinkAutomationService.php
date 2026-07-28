@@ -337,6 +337,248 @@ class LinkAutomationService
     }
 
     /**
+     * Build an atomic dry-run plan for multiple Link tag mutations.
+     *
+     * @param  array  $identifiers
+     * @param  string  $action
+     * @param  array  $tags
+     * @param  array  $options
+     * @return array
+     */
+    public function planBulkSyncTags(array $identifiers, string $action, array $tags, array $options = []): array
+    {
+        $writeMode = (bool) ($options['write_mode'] ?? false);
+        $validationErrors = $this->bulkSyncTagsValidationErrors($identifiers, $action, $tags);
+        $normalizedTags = $this->normalizeBulkSyncTags($tags)['tags'];
+        $plannedItems = [];
+        $websiteIds = [];
+
+        if (empty($validationErrors)) {
+            foreach ($identifiers as $identifier) {
+                $link = $this->findLink($identifier, $options);
+                if (!$link) {
+                    $validationErrors['target'][] = (string) $identifier;
+                    continue;
+                }
+
+                $before = $this->linkTagState($link);
+                $after = $this->bulkSyncTagState($before, $action, $normalizedTags);
+                $targetWebsiteIds = $this->websiteIds($link);
+                $websiteIds = array_merge($websiteIds, $targetWebsiteIds);
+                $plannedItems[] = [
+                    'identifier' => $identifier,
+                    'status' => $before === $after ? 'noop' : 'change',
+                    'before' => $before,
+                    'after' => $after,
+                    'target' => $this->normalizeLink($link, false),
+                    'website_ids' => $targetWebsiteIds,
+                ];
+            }
+        }
+
+        $targetIds = array_filter(array_map(fn(array $item) => (int) ($item['target']['id'] ?? 0), $plannedItems));
+        $duplicateIds = array_filter(array_count_values($targetIds), fn(int $count) => $count > 1);
+        if (!empty($duplicateIds)) {
+            $validationErrors['identifiers'][] = 'duplicate_target';
+        }
+
+        $summary = [
+            'requested' => count($identifiers),
+            'changed' => count(array_filter($plannedItems, fn(array $item) => $item['status'] === 'change')),
+            'noop' => count(array_filter($plannedItems, fn(array $item) => $item['status'] === 'noop')),
+        ];
+        $plan = [
+            'operation' => 'bulk_sync_tags',
+            'action' => $action,
+            'atomic' => true,
+            'dry_run' => !$writeMode,
+            'will_write' => false,
+            'model_key' => 'link',
+            'items' => $plannedItems,
+            'summary' => $summary,
+            'relationships' => [
+                'website_ids' => array_values(array_unique($websiteIds)),
+                'tags' => $normalizedTags,
+            ],
+            'safety' => [
+                'permission' => 'link_edit',
+                'actor_required' => true,
+                'audit_required' => true,
+                'audit_storage' => 'mutation_audits',
+                'force_required_for_write' => true,
+                'write_mode' => $writeMode ? 'guarded' : 'dry_run',
+            ],
+            'validation' => [
+                'status' => empty($validationErrors) ? 'pass' : 'fail',
+                'errors' => $validationErrors,
+            ],
+            'cache' => [
+                'flush_tags' => ['links'],
+            ],
+            'hooks' => [],
+            'notes' => [
+                'The batch is atomic: no item is written unless every target, guard, tag state, and audit check passes.',
+                'Bulk tag synchronization intentionally dispatches no Link hooks.',
+            ],
+        ];
+        $plan['guard'] = app(MutationGuardService::class)->preview($plan, [
+            'write_mode' => $writeMode,
+            'actor_user_id' => $options['actor_user_id'] ?? null,
+            'actor_user' => $options['actor_user'] ?? null,
+            'user_id' => $options['user_id'] ?? null,
+        ]);
+
+        return $plan;
+    }
+
+    /**
+     * Atomically synchronize Link tags through the guarded automation path.
+     *
+     * @param  array  $identifiers
+     * @param  string  $action
+     * @param  array  $tags
+     * @param  array  $options
+     * @return array
+     */
+    public function bulkSyncTags(array $identifiers, string $action, array $tags, array $options = []): array
+    {
+        $force = (bool) ($options['force'] ?? false);
+        $dryRun = (bool) ($options['dry_run'] ?? false) || !$force;
+        $options['write_mode'] = !$dryRun;
+        $meta = $this->mutationResultMeta('bulk_sync_tags', [
+            'identifiers' => $identifiers,
+            'action' => $action,
+            'tags' => $tags,
+        ], $options, $dryRun);
+        $websiteErrors = $this->lookupWebsiteErrors($options);
+
+        if (!empty($websiteErrors)) {
+            return AutomationResult::fail('Link bulk tag synchronization website validation failed.', null, $meta, $websiteErrors, 422);
+        }
+
+        $plan = $this->planBulkSyncTags($identifiers, $action, $tags, $options);
+        if (($plan['validation']['status'] ?? 'fail') !== 'pass') {
+            $errors = (array) ($plan['validation']['errors'] ?? []);
+            $missingIdentifiers = (array) ($errors['target'] ?? []);
+            if (!empty($missingIdentifiers)) {
+                return AutomationResult::fail('Link not found.', ['plan' => $plan], $meta, [
+                    'identifier' => $missingIdentifiers,
+                ], 404);
+            }
+
+            return AutomationResult::fail('Link bulk tag synchronization validation failed.', ['plan' => $plan], $meta, $errors, 422);
+        }
+
+        if (($plan['guard']['status'] ?? 'fail') !== 'pass') {
+            return AutomationResult::fail('Link bulk tag synchronization guard check failed.', ['plan' => $plan], $meta, (array) ($plan['guard']['errors'] ?? []), (int) ($plan['guard']['code'] ?? 403));
+        }
+
+        if ($dryRun) {
+            return AutomationResult::success('Link bulk tag synchronization dry-run plan generated.', ['plan' => $plan], $meta, 202);
+        }
+
+        $actorResult = app(AutomationActorResolver::class)->resolve($options, true);
+        $actor = $actorResult['model'] ?? null;
+        if (!$actor instanceof Authenticatable) {
+            return AutomationResult::fail('Link bulk tag synchronization actor resolution failed.', ['plan' => $plan], $meta, (array) ($actorResult['errors'] ?? ['actor' => ['invalid']]), (int) ($actorResult['code'] ?? 401));
+        }
+
+        $authGuard = Auth::guard();
+        $previousActor = $authGuard->user();
+        $authGuard->setUser($actor);
+        $runId = (string) ($options['run_id'] ?? Str::uuid());
+
+        try {
+            $result = DB::transaction(function () use ($actor, $identifiers, $action, $tags, $options, $plan, $meta, $runId) {
+                $freshPlan = $this->planBulkSyncTags($identifiers, $action, $tags, array_merge($options, [
+                    'lock_for_update' => true,
+                ]));
+                if (($freshPlan['validation']['status'] ?? 'fail') !== 'pass') {
+                    $errors = (array) ($freshPlan['validation']['errors'] ?? []);
+                    $missingIdentifiers = (array) ($errors['target'] ?? []);
+
+                    throw new BulkSyncTagsAbortException(AutomationResult::fail(!empty($missingIdentifiers) ? 'Link not found.' : 'Link bulk tag synchronization validation failed.', [
+                        'plan' => $freshPlan,
+                    ], $meta, !empty($missingIdentifiers) ? ['identifier' => $missingIdentifiers] : $errors, !empty($missingIdentifiers) ? 404 : 422));
+                }
+
+                if (($freshPlan['guard']['status'] ?? 'fail') !== 'pass') {
+                    throw new BulkSyncTagsAbortException(AutomationResult::fail('Link bulk tag synchronization guard check failed.', ['plan' => $freshPlan], $meta, (array) ($freshPlan['guard']['errors'] ?? []), (int) ($freshPlan['guard']['code'] ?? 403)));
+                }
+
+                if (!$this->sameBulkSyncTagsApproval($plan, $freshPlan)) {
+                    throw new BulkSyncTagsAbortException(AutomationResult::fail('Link bulk tag synchronization became stale.', ['plan' => $freshPlan], $meta, [
+                        'items' => ['stale'],
+                    ], 409));
+                }
+
+                $audits = [];
+                foreach ($freshPlan['items'] as $item) {
+                    if (($item['status'] ?? null) !== 'change') {
+                        continue;
+                    }
+
+                    $link = $this->findLink($item['identifier'], array_merge($options, [
+                        'lock_for_update' => true,
+                    ]));
+                    if (!$link) {
+                        throw new BulkSyncTagsAbortException(AutomationResult::fail('Link not found.', ['plan' => $freshPlan], $meta, [
+                            'identifier' => [(string) $item['identifier']],
+                        ], 404));
+                    }
+
+                    if ($this->linkTagState($link) !== (array) $item['before']) {
+                        throw new BulkSyncTagsAbortException(AutomationResult::fail('Link bulk tag synchronization became stale.', ['plan' => $freshPlan], $meta, [
+                            'items' => ['stale'],
+                        ], 409));
+                    }
+
+                    $this->applyBulkSyncTags($link, $action, (array) ($freshPlan['relationships']['tags'] ?? []));
+                    if ($this->linkTagState($link) !== (array) $item['after']) {
+                        throw new BulkSyncTagsAbortException(AutomationResult::fail('Link bulk tag synchronization was cancelled.', ['plan' => $freshPlan], $meta, [
+                            'items' => ['cancelled'],
+                        ], 409));
+                    }
+
+                    $auditPlan = $this->bulkSyncTagAuditPlan($freshPlan, $item, $link, $actor, $runId, $options);
+                    $audit = app(MutationAuditService::class)->writeFromPlan($auditPlan, [
+                        'model_id' => (int) $link->getKey(),
+                        'result_code' => 200,
+                        'result_status' => 'success',
+                        'message' => 'Link bulk tags synchronized.',
+                    ]);
+                    $audits[] = (int) $audit->getKey();
+                }
+
+                $freshPlan['dry_run'] = false;
+                $freshPlan['will_write'] = $freshPlan['summary']['changed'] > 0;
+
+                return AutomationResult::success('Link bulk tag synchronization completed.', [
+                    'summary' => $freshPlan['summary'],
+                    'items' => $freshPlan['items'],
+                    'plan' => $freshPlan,
+                    'run_id' => $runId,
+                    'audit_ids' => $audits,
+                ], $meta, 200);
+            });
+        } catch (BulkSyncTagsAbortException $exception) {
+            $result = $exception->result();
+        } finally {
+            if ($previousActor instanceof Authenticatable) {
+                $authGuard->setUser($previousActor);
+            } else {
+                $authGuard->forgetUser();
+            }
+        }
+
+        if (($result['status'] ?? null) === 'success' && (($result['data']['summary']['changed'] ?? 0) > 0)) {
+            wncms()->cache()->flush(['links']);
+        }
+
+        return $result;
+    }
+
+    /**
      * Atomically update multiple Links through the guarded automation path.
      *
      * Every target and permission check is repeated inside the transaction.
@@ -1044,6 +1286,249 @@ class LinkAutomationService
         }
 
         return $errors;
+    }
+
+    /**
+     * Return validation errors for a Link bulk tag synchronization payload.
+     *
+     * @param  array  $identifiers
+     * @param  string  $action
+     * @param  array  $tags
+     * @return array
+     */
+    protected function bulkSyncTagsValidationErrors(array $identifiers, string $action, array $tags): array
+    {
+        $errors = [];
+
+        if (!array_is_list($identifiers) || empty($identifiers)) {
+            $errors['identifiers'][] = 'required';
+        } elseif (count($identifiers) > 100) {
+            $errors['identifiers'][] = 'maximum:100';
+        }
+
+        foreach ($identifiers as $index => $identifier) {
+            if (!$this->hasValue($identifier)) {
+                $errors['identifier'][] = "required:{$index}";
+            } elseif (!is_string($identifier) && !is_int($identifier)) {
+                $errors['identifier'][] = "invalid:{$index}";
+            }
+        }
+
+        if (!in_array($action, ['sync', 'attach', 'detach'], true)) {
+            $errors['action'][] = 'invalid';
+        }
+
+        $normalizedTags = $this->normalizeBulkSyncTags($tags);
+        foreach ($normalizedTags['errors'] as $field => $messages) {
+            $errors[$field] = array_merge((array) ($errors[$field] ?? []), $messages);
+        }
+
+        if (empty($normalizedTags['tags']['link_categories']) && empty($normalizedTags['tags']['link_tags'])) {
+            $errors['tags'][] = 'required';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Normalize supported Link tag names while preserving their input order.
+     *
+     * @param  array  $tags
+     * @return array
+     */
+    protected function normalizeBulkSyncTags(array $tags): array
+    {
+        $normalized = [
+            'link_categories' => [],
+            'link_tags' => [],
+        ];
+        $errors = [];
+
+        foreach ($normalized as $key => $unused) {
+            $values = $tags[$key] ?? [];
+            if (!is_array($values) || !array_is_list($values)) {
+                $errors[$key][] = 'invalid';
+                continue;
+            }
+
+            foreach ($values as $index => $value) {
+                if (!is_scalar($value)) {
+                    $errors[$key][] = "invalid:{$index}";
+                    continue;
+                }
+
+                $value = trim((string) $value);
+                if ($value === '') {
+                    $errors[$key][] = "required:{$index}";
+                    continue;
+                }
+
+                if (!in_array($value, $normalized[$key], true)) {
+                    $normalized[$key][] = $value;
+                }
+            }
+        }
+
+        return [
+            'tags' => $normalized,
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Return the comparable tag state for a Link.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $link
+     * @return array
+     */
+    protected function linkTagState(Model $link): array
+    {
+        return [
+            'link_categories' => $this->linkTagNames($link, 'link_category'),
+            'link_tags' => $this->linkTagNames($link, 'link_tag'),
+        ];
+    }
+
+    /**
+     * Return sorted names for one Link tag type.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $link
+     * @param  string  $type
+     * @return array
+     */
+    protected function linkTagNames(Model $link, string $type): array
+    {
+        if (!method_exists($link, 'tags')) {
+            return [];
+        }
+
+        return $link->tags()
+            ->where('type', $type)
+            ->get()
+            ->map(fn(Model $tag) => trim((string) $this->scalar($tag->getAttribute('name'))))
+            ->filter(fn(string $name) => $name !== '')
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Apply one tag action to the current Link tag state.
+     *
+     * @param  array  $before
+     * @param  string  $action
+     * @param  array  $tags
+     * @return array
+     */
+    protected function bulkSyncTagState(array $before, string $action, array $tags): array
+    {
+        $after = $before;
+
+        foreach (['link_categories', 'link_tags'] as $key) {
+            $names = (array) ($tags[$key] ?? []);
+            if (empty($names)) {
+                continue;
+            }
+
+            $current = (array) ($before[$key] ?? []);
+            $after[$key] = match ($action) {
+                'attach' => array_values(array_unique(array_merge($current, $names))),
+                'detach' => array_values(array_diff($current, $names)),
+                default => $names,
+            };
+            sort($after[$key]);
+        }
+
+        return $after;
+    }
+
+    /**
+     * Determine whether fresh bulk tag state matches the approved plan.
+     *
+     * @param  array  $approvedPlan
+     * @param  array  $freshPlan
+     * @return bool
+     */
+    protected function sameBulkSyncTagsApproval(array $approvedPlan, array $freshPlan): bool
+    {
+        $approvedItems = array_map(fn(array $item) => [
+            'target_id' => $item['target']['id'] ?? null,
+            'status' => $item['status'] ?? null,
+            'before' => $item['before'] ?? [],
+            'after' => $item['after'] ?? [],
+        ], (array) ($approvedPlan['items'] ?? []));
+        $freshItems = array_map(fn(array $item) => [
+            'target_id' => $item['target']['id'] ?? null,
+            'status' => $item['status'] ?? null,
+            'before' => $item['before'] ?? [],
+            'after' => $item['after'] ?? [],
+        ], (array) ($freshPlan['items'] ?? []));
+
+        return $approvedItems === $freshItems;
+    }
+
+    /**
+     * Apply the planned Link tag action to selected tag types only.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $link
+     * @param  string  $action
+     * @param  array  $tags
+     * @return void
+     */
+    protected function applyBulkSyncTags(Model $link, string $action, array $tags): void
+    {
+        foreach ([
+            'link_categories' => 'link_category',
+            'link_tags' => 'link_tag',
+        ] as $key => $type) {
+            $names = (array) ($tags[$key] ?? []);
+            if (empty($names)) {
+                continue;
+            }
+
+            match ($action) {
+                'attach' => $link->attachTags($names, $type),
+                'detach' => $link->detachTags($names, $type),
+                default => $link->syncTagsWithType($names, $type),
+            };
+        }
+    }
+
+    /**
+     * Build one changed Link audit plan for bulk tag synchronization.
+     *
+     * @param  array  $plan
+     * @param  array  $item
+     * @param  \Illuminate\Database\Eloquent\Model  $link
+     * @param  \Illuminate\Contracts\Auth\Authenticatable  $actor
+     * @param  string  $runId
+     * @param  array  $options
+     * @return array
+     */
+    protected function bulkSyncTagAuditPlan(array $plan, array $item, Model $link, Authenticatable $actor, string $runId, array $options): array
+    {
+        $auditPlan = $plan;
+        $auditPlan['dry_run'] = false;
+        $auditPlan['will_write'] = true;
+        $auditPlan['target'] = $this->normalizeLink($link, true);
+        $auditPlan['attributes'] = [];
+        $auditPlan['changes'] = [
+            'tags' => [
+                'from' => $item['before'],
+                'to' => $item['after'],
+            ],
+        ];
+        $auditPlan['relationships']['website_ids'] = $this->websiteIds($link);
+        $auditPlan['audit'] = app(MutationAuditService::class)->previewFromPlan($auditPlan, [
+            'surface' => (string) ($options['surface'] ?? 'service'),
+            'domain' => 'links',
+            'run_id' => $runId,
+            'actor_type' => $auditPlan['guard']['actor']['type'] ?? null,
+            'actor_id' => $auditPlan['guard']['actor']['id'] ?? (int) $actor->getKey(),
+        ]);
+
+        return $auditPlan;
     }
 
     /**

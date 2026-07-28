@@ -297,6 +297,28 @@ Behavior summary:
 - Success returns `200`; malformed input returns `422`; missing actors return `401`; permission/site denial returns `403`; missing or scoped-out targets return `404`; cancelled or stale batches return `409`.
 - Changed Links receive one `mutation_audits` row each with a shared run ID. No-op items receive no audit row, and the `links` cache flushes once only after a committed batch with changes. No bulk-update hooks are dispatched.
 
+## `wncms:links:bulk-sync-tags`
+
+Atomically synchronize Link categories and tags for up to 100 Links.
+
+```bash
+# Default mode validates and previews tag changes without writing
+php artisan wncms:links:bulk-sync-tags --identifiers='[42,"partner-link"]' --action=sync --categories='["Partners"]' --tags='["Featured"]' --json
+
+# Write mode requires an allowed actor and can scope all target lookups
+php artisan wncms:links:bulk-sync-tags --identifiers='[42]' --action=attach --tags='["Featured"]' --website=1 --actor-user=1 --force --json
+```
+
+`--identifiers=` must be a JSON array containing 1-100 Link IDs or slugs. `--categories=` and `--tags=` are JSON arrays of trimmed scalar names; duplicate names are removed in input order, and at least one non-empty tag type is required. `--action=` accepts `sync`, `attach`, or `detach`. Omitted or empty tag types are left unchanged: `sync` replaces only supplied types, `attach` adds only supplied names, and `detach` removes only supplied names.
+
+Behavior summary:
+
+- The command is atomic: malformed JSON, invalid actions or tag names, duplicate resolved targets, missing or website-scoped-out targets, and guard failures prevent every write.
+- It is dry-run by default. `--force` enables guarded writes; `--dry-run` always wins and returns `202` without writing. A completed write or no-op run returns `200`.
+- Write mode requires an actor from `--actor-user=` or the configured system actor with `link_edit`. `--website=` scopes every lookup, and each target's existing website IDs are always permission-checked.
+- Invalid input returns `422`; missing actors return `401`; permission/site denial returns `403`; missing or scoped-out targets return `404`; stale tag state or an aborted transaction returns `409`.
+- Changed Links receive one `mutation_audits` row each with a shared run ID. No-op items receive no audit row, and the `links` cache flushes once only after a committed batch with changes. No bulk tag synchronization hooks are dispatched.
+
 ## `wncms:install-default-theme`
 
 Install or reinstall core default theme assets into `public/themes`.

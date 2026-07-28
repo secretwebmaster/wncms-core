@@ -297,6 +297,28 @@ php artisan wncms:links:bulk-update --items='[{"identifier":42,"sort":10}]' --we
 - 成功回傳 `200`；輸入錯誤為 `422`；缺少 actor 為 `401`；權限或網站範圍拒絕為 `403`；目標不存在或超出範圍為 `404`；取消或過期批次為 `409`。
 - 每個實際變更的 Link 都會寫入一筆共用 run ID 的 `mutation_audits`；無變更項目不寫審計。只有已提交且有變更的批次才會一次性刷新 `links` 快取，且不會派發 bulk-update hooks。
 
+## `wncms:links:bulk-sync-tags`
+
+以原子方式同步最多 100 個 Link 的分類與標籤。
+
+```bash
+# 預設模式只驗證並預覽標籤變更，不寫入資料
+php artisan wncms:links:bulk-sync-tags --identifiers='[42,"partner-link"]' --action=sync --categories='["Partners"]' --tags='["Featured"]' --json
+
+# 寫入模式需要已獲授權的 actor，並可限制所有目標查詢的網站範圍
+php artisan wncms:links:bulk-sync-tags --identifiers='[42]' --action=attach --tags='["Featured"]' --website=1 --actor-user=1 --force --json
+```
+
+`--identifiers=` 必須是含有 1-100 個 Link ID 或 slug 的 JSON 陣列。`--categories=` 與 `--tags=` 是已 trim 的純量名稱 JSON 陣列；重複名稱會依輸入順序去重，且至少要提供一種非空標籤類型。`--action=` 可使用 `sync`、`attach` 或 `detach`。省略或空的標籤類型會保持不變：`sync` 只替換已提供的類型，`attach` 只加入已提供的名稱，`detach` 只移除已提供的名稱。
+
+行為摘要：
+
+- 指令是原子的：格式錯誤的 JSON、無效 action 或標籤名稱、重複解析後的目標、缺失或超出網站範圍的目標，以及 guard 失敗都會阻止所有寫入。
+- 預設是 dry-run。`--force` 啟用受保護的寫入；`--dry-run` 永遠優先並返回 `202` 且不寫入。完成寫入或 no-op 執行返回 `200`。
+- 寫入模式需要來自 `--actor-user=` 或已設定 system actor 且擁有 `link_edit` 的 actor。`--website=` 會限制每一個查詢，且始終檢查每個目標現有的網站 IDs 權限。
+- 無效輸入返回 `422`；缺少 actor 返回 `401`；權限或網站拒絕返回 `403`；缺失或超出範圍的目標返回 `404`；過期標籤狀態或已中止的 transaction 返回 `409`。
+- 已變更的 Link 每個會寫入一筆共用 run ID 的 `mutation_audits`；no-op 項目不會寫入審計，且只有已提交且有變更的批次才會刷新一次 `links` 快取。不派發 bulk tag synchronization hooks。
+
 ## `wncms:install-default-theme`
 
 安裝或重新安裝核心預設主題資源到 `public/themes`。

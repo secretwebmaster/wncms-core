@@ -28,7 +28,7 @@ class CheckBackendApiV2ParityCommandTest extends TestCase
         $this->assertTrue($domains['links']['reference']);
         $this->assertSame('Complete', $domains['links']['surfaces']['backend_ui']['status']);
         $this->assertSame('Partial', $domains['links']['surfaces']['api_v2']['status']);
-        $this->assertSame('Partial', $domains['links']['surfaces']['cli']['status']);
+        $this->assertSame('Complete', $domains['links']['surfaces']['cli']['status']);
         $this->assertSame('Partial', $domains['links']['surfaces']['docs']['status']);
         $this->assertSame('Partial', $domains['links']['surfaces']['tests']['status']);
         $this->assertContains('documentations/manual/developer/command/overview.md', $domains['links']['surfaces']['docs']['found']);

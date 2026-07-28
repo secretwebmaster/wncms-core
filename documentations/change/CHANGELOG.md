@@ -5,6 +5,7 @@
 - 新增可輸出 JSON 的 `wncms:links:list` 與 `wncms:links:inspect`，以及受保護的 `wncms:links:create`、`wncms:links:update`、`wncms:links:delete` 異動指令。
 - Link 異動預設為 dry-run；實際寫入需搭配 `--force` 與明確或已設定的 automation actor，並會執行權限、網站範圍檢查及寫入 `mutation_audits`。
 - 新增具語意 surface status 的 parity coverage 報表，以及原子化 `wncms:links:bulk-update` URL/sort 寫入、共用 run 審計與提交後一次快取刷新。
+- 新增原子化 `wncms:links:bulk-sync-tags` 分類/標籤同步，具備受保護 actor、過期狀態防護、共用 run 審計與提交後一次快取刷新。
 
 ## v6.3.9-alpha1 2026-06-16
 
