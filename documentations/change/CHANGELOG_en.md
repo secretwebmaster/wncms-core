@@ -6,7 +6,7 @@
 - Link mutations now default to dry-run, require `--force` with an explicit or configured automation actor for writes, enforce permission and website scope, and store results in `mutation_audits`.
 - Added parity coverage reporting with semantic surface status, and atomic `wncms:links:bulk-update` URL/sort writes with shared-run audits and one post-commit cache flush.
 - Added atomic `wncms:links:bulk-sync-tags` category/tag synchronization with guarded actors, stale-state protection, shared-run audits, and one post-commit cache flush.
-- Added a guarded Links backend API v2 reference contract with website-scoped reads, preview-first token-actor mutations, atomic bulk update/tag sync, API v2 audits, and no unguarded bulk-delete route.
+- Added a guarded Links backend API v2 reference contract with token-authorized website-scoped reads, preview-first token-actor mutations, atomic bulk update/tag sync, API v2 audits, and no unguarded bulk-delete route.
 
 ## v6.3.9-alpha1 2026-06-16
 

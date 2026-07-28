@@ -6,7 +6,7 @@
 - Link 变更默认 dry-run；实际写入需搭配 `--force` 与明确或已配置的 automation actor，并会执行权限、网站范围检查及写入 `mutation_audits`。
 - 新增具有语义 surface status 的 parity coverage 报告，以及原子化 `wncms:links:bulk-update` URL/sort 写入、共享 run 审计与提交后一次缓存刷新。
 - 新增原子化 `wncms:links:bulk-sync-tags` 分类/标签同步，具备受保护 actor、过期状态防护、共享 run 审计与提交后一次缓存刷新。
-- 新增受保护的 Links backend API v2 参考契约，提供网站范围读取、预览优先的 token actor 变更、原子 bulk update/tag sync、API v2 审计，并移除未受保护的 bulk-delete 路由。
+- 新增受保护的 Links backend API v2 参考契约，提供经 token 使用者授权的网站范围读取、预览优先的 token actor 变更、原子 bulk update/tag sync、API v2 审计，并移除未受保护的 bulk-delete 路由。
 
 ## v6.3.9-alpha1 2026-06-16
 

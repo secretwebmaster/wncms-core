@@ -40,9 +40,12 @@ current request website. List, inspect, update, delete, and bulk target lookups
 are limited to that website when Link website mode is `single` or `multi`.
 
 - A missing current website context returns `409`.
-- An unknown website ID returns a validation failure.
+- An unknown website ID returns `422`.
+- Reads verify the selected website against the token user. Non-admin users must
+  have it in their `websites` relationship; `admin` and `superadmin` roles may
+  select any existing website. A denied website returns `403`.
 - A target outside the selected website is reported as not found.
-- Forced writes also verify that the token actor may access the selected website.
+- Forced writes use the same website-access policy.
 
 ## List Links
 

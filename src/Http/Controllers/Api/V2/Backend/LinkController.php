@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Wncms\Services\Automation\AutomationResult;
 use Wncms\Services\Automation\LinkAutomationService;
+use Wncms\Services\Automation\MutationGuardService;
 
 class LinkController extends ApiV2Controller
 {
@@ -15,9 +16,12 @@ class LinkController extends ApiV2Controller
      * Create the Links API v2 transport adapter.
      *
      * @param  \Wncms\Services\Automation\LinkAutomationService  $service
+     * @param  \Wncms\Services\Automation\MutationGuardService  $guard
      */
-    public function __construct(protected LinkAutomationService $service)
-    {
+    public function __construct(
+        protected LinkAutomationService $service,
+        protected MutationGuardService $guard
+    ) {
     }
 
     /**
@@ -39,7 +43,11 @@ class LinkController extends ApiV2Controller
                 'sort' => ['nullable', Rule::in(['id', 'sort', 'name', 'clicks', 'created_at', 'updated_at'])],
                 'direction' => ['nullable', Rule::in(['asc', 'desc'])],
             ]);
-            $websiteId = $this->websiteId($request);
+            $scope = $this->resolveReadWebsite($request, 'list');
+            if ($scope['error'] !== null) {
+                return $this->automationResponse($scope['error']);
+            }
+            $websiteId = $scope['website_id'];
             $data = $this->service->list(array_merge([
                 'status' => 'active',
                 'page' => 1,
@@ -76,7 +84,11 @@ class LinkController extends ApiV2Controller
             $request->validate([
                 'website_id' => ['nullable', 'integer', 'min:1'],
             ]);
-            $websiteId = $this->websiteId($request);
+            $scope = $this->resolveReadWebsite($request, 'inspect');
+            if ($scope['error'] !== null) {
+                return $this->automationResponse($scope['error']);
+            }
+            $websiteId = $scope['website_id'];
             $item = $this->service->inspect($id, [
                 'website_id' => $websiteId,
             ]);
@@ -238,16 +250,60 @@ class LinkController extends ApiV2Controller
     }
 
     /**
-     * Resolve the explicit or current WNCMS website ID.
+     * Resolve and authorize the explicit or current WNCMS website for a read.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return int|null
+     * @param  string  $action
+     * @return array{website_id: int|null, error: array|null}
      */
-    protected function websiteId(Request $request): ?int
+    protected function resolveReadWebsite(Request $request, string $action): array
     {
         $website = $request->input('website_id') ?? wncms()->website()->get()?->getKey();
+        if ($website === null) {
+            return [
+                'website_id' => null,
+                'error' => AutomationResult::fail(
+                    'Website context is not available',
+                    null,
+                    $this->readMeta($action, null),
+                    ['website_id' => ['required']],
+                    409
+                ),
+            ];
+        }
 
-        return $website === null ? null : (int) $website;
+        $websiteId = (int) $website;
+        $guard = $this->guard->preview([
+            'safety' => [
+                'permission' => '',
+            ],
+            'relationships' => [
+                'website_ids' => [$websiteId],
+            ],
+        ], [
+            'write_mode' => true,
+            'actor_user_id' => (int) $request->user()->getKey(),
+        ]);
+
+        if (($guard['status'] ?? 'fail') === 'fail') {
+            $code = (int) ($guard['code'] ?? 403);
+
+            return [
+                'website_id' => $websiteId,
+                'error' => AutomationResult::fail(
+                    $code === 422 ? 'Website validation failed.' : 'Website access denied.',
+                    null,
+                    $this->readMeta($action, $websiteId),
+                    (array) ($guard['errors'] ?? []),
+                    $code
+                ),
+            ];
+        }
+
+        return [
+            'website_id' => $websiteId,
+            'error' => null,
+        ];
     }
 
     /**

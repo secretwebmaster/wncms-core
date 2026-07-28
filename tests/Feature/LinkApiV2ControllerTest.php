@@ -45,26 +45,32 @@ class LinkApiV2ControllerTest extends TestCase
     {
         $website = Website::firstOrFail();
 
-        $this->getJson('/api/v2/backend/links?website_id=' . $website->id)
+        $unauthenticated = $this->getJson('/api/v2/backend/links?website_id=' . $website->id);
+        $unauthenticated
             ->assertUnauthorized()
             ->assertJsonPath('code', 401);
+        $this->assertAutomationEnvelope($unauthenticated);
 
         [, $token] = $this->tokenUser([], $website);
 
-        $this->withToken($token)
-            ->getJson('/api/v2/backend/links?website_id=' . $website->id)
+        $readForbidden = $this->withToken($token)
+            ->getJson('/api/v2/backend/links?website_id=' . $website->id);
+        $readForbidden
             ->assertForbidden()
             ->assertJsonPath('code', 403);
+        $this->assertAutomationEnvelope($readForbidden);
 
-        $this->withToken($token)
+        $mutationForbidden = $this->withToken($token)
             ->postJson('/api/v2/backend/links/bulk_update', [
                 'items' => [
                     ['identifier' => 99999999, 'sort' => 10],
                 ],
                 'website_id' => $website->id,
-            ])
+            ]);
+        $mutationForbidden
             ->assertForbidden()
             ->assertJsonPath('code', 403);
+        $this->assertAutomationEnvelope($mutationForbidden);
     }
 
     /**
@@ -125,30 +131,90 @@ class LinkApiV2ControllerTest extends TestCase
             array_keys($list->json())
         );
 
-        $this->withToken($token)
-            ->getJson("/api/v2/backend/links/{$first->id}?website_id={$website->id}")
+        $inspectById = $this->withToken($token)
+            ->getJson("/api/v2/backend/links/{$first->id}?website_id={$website->id}");
+        $inspectById
             ->assertOk()
             ->assertJsonPath('data.item.id', $first->id);
+        $this->assertAutomationEnvelope($inspectById);
 
-        $this->withToken($token)
-            ->getJson("/api/v2/backend/links/{$second->slug}?website_id={$website->id}")
+        $inspectBySlug = $this->withToken($token)
+            ->getJson("/api/v2/backend/links/{$second->slug}?website_id={$website->id}");
+        $inspectBySlug
             ->assertOk()
             ->assertJsonPath('data.item.slug', $second->slug);
+        $this->assertAutomationEnvelope($inspectBySlug);
 
-        $this->withToken($token)
-            ->getJson("/api/v2/backend/links/{$crossWebsite->id}?website_id={$website->id}")
+        $crossWebsiteTarget = $this->withToken($token)
+            ->getJson("/api/v2/backend/links/{$crossWebsite->id}?website_id={$website->id}");
+        $crossWebsiteTarget
             ->assertNotFound()
             ->assertJsonPath('code', 404);
+        $this->assertAutomationEnvelope($crossWebsiteTarget);
 
-        $this->withToken($token)
-            ->getJson("/api/v2/backend/links?website_id={$website->id}&status=archived")
-            ->assertUnprocessable()
-            ->assertJsonPath('code', 422);
+        $invalidQueries = [
+            'status=archived',
+            'sort=tracking_code',
+            'direction=sideways',
+            'page=0',
+            'per_page=0',
+            'per_page=101',
+        ];
 
-        $this->withToken($token)
-            ->getJson("/api/v2/backend/links?website_id={$website->id}&sort=tracking_code")
+        foreach ($invalidQueries as $query) {
+            $invalid = $this->withToken($token)
+                ->getJson("/api/v2/backend/links?website_id={$website->id}&{$query}");
+            $invalid
+                ->assertUnprocessable()
+                ->assertJsonPath('code', 422);
+            $this->assertAutomationEnvelope($invalid);
+        }
+
+        $deniedList = $this->withToken($token)
+            ->getJson("/api/v2/backend/links?website_id={$otherWebsite->id}");
+        $deniedList
+            ->assertForbidden()
+            ->assertJsonPath('code', 403)
+            ->assertJsonPath('errors.website_ids.0', $otherWebsite->id);
+        $this->assertAutomationEnvelope($deniedList);
+
+        $deniedInspect = $this->withToken($token)
+            ->getJson("/api/v2/backend/links/{$crossWebsite->id}?website_id={$otherWebsite->id}");
+        $deniedInspect
+            ->assertForbidden()
+            ->assertJsonPath('code', 403)
+            ->assertJsonPath('errors.website_ids.0', $otherWebsite->id);
+        $this->assertAutomationEnvelope($deniedInspect);
+
+        $unknownWebsiteId = (int) Website::max('id') + 1000;
+        $unknownWebsite = $this->withToken($token)
+            ->getJson("/api/v2/backend/links?website_id={$unknownWebsiteId}");
+        $unknownWebsite
             ->assertUnprocessable()
-            ->assertJsonPath('code', 422);
+            ->assertJsonPath('code', 422)
+            ->assertJsonPath('errors.website_ids.0', $unknownWebsiteId);
+        $this->assertAutomationEnvelope($unknownWebsite);
+    }
+
+    /**
+     * Verify Links API v2 reports a stable conflict without a current website.
+     *
+     * @return void
+     */
+    public function test_links_api_v2_requires_current_website_context_when_none_is_explicit(): void
+    {
+        $website = Website::firstOrFail();
+        [, $token] = $this->tokenUser(['link_index'], $website);
+
+        Website::query()->delete();
+        wncms()->cache()->flush(['websites']);
+
+        $missingContext = $this->withToken($token)->getJson('/api/v2/backend/links');
+        $missingContext
+            ->assertStatus(409)
+            ->assertJsonPath('code', 409)
+            ->assertJsonPath('message', 'Website context is not available');
+        $this->assertAutomationEnvelope($missingContext);
     }
 
     /**
@@ -209,6 +275,7 @@ class LinkApiV2ControllerTest extends TestCase
                 ->assertJsonPath('status', 'success')
                 ->assertJsonPath('meta.surface', 'api_v2')
                 ->assertJsonPath('meta.dry_run', true);
+            $this->assertAutomationEnvelope($response);
         }
 
         $this->assertSame($beforeLinkCount, Link::count());
@@ -261,34 +328,43 @@ class LinkApiV2ControllerTest extends TestCase
         $create->assertCreated()
             ->assertJsonPath('meta.actor_user_id', $actor->id)
             ->assertJsonPath('meta.surface', 'api_v2');
+        $this->assertAutomationEnvelope($create);
         $this->assertFalse(wncms()->cache()->tags(['links'])->has($cacheKey));
 
-        $this->withToken($token)->patchJson("/api/v2/backend/links/{$updateTarget->id}", [
+        $update = $this->withToken($token)->patchJson("/api/v2/backend/links/{$updateTarget->id}", [
             'sort' => 11,
             'website_id' => $website->id,
             'force' => true,
-        ])->assertOk()->assertJsonPath('meta.actor_user_id', $actor->id);
+        ]);
+        $update->assertOk()->assertJsonPath('meta.actor_user_id', $actor->id);
+        $this->assertAutomationEnvelope($update);
 
-        $this->withToken($token)->postJson('/api/v2/backend/links/bulk_update', [
+        $bulkUpdate = $this->withToken($token)->postJson('/api/v2/backend/links/bulk_update', [
             'items' => [
                 ['identifier' => $bulkUpdateTarget->id, 'sort' => 21],
             ],
             'website_id' => $website->id,
             'force' => true,
-        ])->assertOk()->assertJsonPath('data.summary.changed', 1);
+        ]);
+        $bulkUpdate->assertOk()->assertJsonPath('data.summary.changed', 1);
+        $this->assertAutomationEnvelope($bulkUpdate);
 
-        $this->withToken($token)->postJson('/api/v2/backend/links/bulk_sync_tags', [
+        $bulkSyncTags = $this->withToken($token)->postJson('/api/v2/backend/links/bulk_sync_tags', [
             'identifiers' => [$bulkTagTarget->slug],
             'action' => 'sync',
             'link_categories' => ['Partners'],
             'website_id' => $website->id,
             'force' => true,
-        ])->assertOk()->assertJsonPath('data.summary.changed', 1);
+        ]);
+        $bulkSyncTags->assertOk()->assertJsonPath('data.summary.changed', 1);
+        $this->assertAutomationEnvelope($bulkSyncTags);
 
-        $this->withToken($token)->deleteJson("/api/v2/backend/links/{$deleteTarget->id}", [
+        $delete = $this->withToken($token)->deleteJson("/api/v2/backend/links/{$deleteTarget->id}", [
             'website_id' => $website->id,
             'force' => true,
-        ])->assertOk()->assertJsonPath('meta.actor_user_id', $actor->id);
+        ]);
+        $delete->assertOk()->assertJsonPath('meta.actor_user_id', $actor->id);
+        $this->assertAutomationEnvelope($delete);
 
         $this->assertTrue(Link::where('slug', $createdSlug)->exists());
         $this->assertSame(11, $updateTarget->fresh()->sort);
@@ -310,13 +386,15 @@ class LinkApiV2ControllerTest extends TestCase
         $this->assertSame(['api_v2'], $audits->pluck('surface')->unique()->values()->all());
 
         wncms()->cache()->put($cacheKey, 'cached', 60, ['links']);
-        $this->withToken($token)->postJson('/api/v2/backend/links/bulk_update', [
+        $noChange = $this->withToken($token)->postJson('/api/v2/backend/links/bulk_update', [
             'items' => [
                 ['identifier' => $bulkUpdateTarget->id, 'sort' => 21],
             ],
             'website_id' => $website->id,
             'force' => true,
-        ])->assertOk()->assertJsonPath('data.summary.changed', 0);
+        ]);
+        $noChange->assertOk()->assertJsonPath('data.summary.changed', 0);
+        $this->assertAutomationEnvelope($noChange);
         $this->assertTrue(wncms()->cache()->tags(['links'])->has($cacheKey));
         $this->assertSame($beforeAuditCount + 5, MutationAudit::count());
     }
@@ -511,5 +589,19 @@ class LinkApiV2ControllerTest extends TestCase
             ->sort()
             ->values()
             ->all();
+    }
+
+    /**
+     * Assert the stable automation envelope keys in their canonical order.
+     *
+     * @param  \Illuminate\Testing\TestResponse  $response
+     * @return void
+     */
+    protected function assertAutomationEnvelope($response): void
+    {
+        $this->assertSame(
+            ['code', 'status', 'message', 'data', 'meta', 'errors'],
+            array_keys($response->json())
+        );
     }
 }
