@@ -7,6 +7,7 @@
 - semantic surface status を含む parity coverage レポートと、原子的な `wncms:links:bulk-update` の URL/sort 書き込み、共通 run 監査、コミット後 1 回のキャッシュ更新を追加しました。
 - 原子的な `wncms:links:bulk-sync-tags` の分類/タグ同期を追加し、保護された actor、stale state 防止、共通 run 監査、コミット後 1 回のキャッシュ更新を実現しました。
 - 保護された Links backend API v2 参照契約を追加し、token ユーザー認可済みのサイトスコープ読み取り、preview-first の token actor 変更、原子的 bulk update/tag sync、API v2 監査を提供し、未保護の bulk-delete ルートを無効化しました。
+- オプトインかつローカル専用の MCP server を追加し、structured・サイトスコープ・読み取り専用の `wncms-links-list` と `wncms-links-inspect` tools を提供します。web transport と mutation tools は公開しません。
 
 ## v6.3.9-alpha1 2026-06-16
 

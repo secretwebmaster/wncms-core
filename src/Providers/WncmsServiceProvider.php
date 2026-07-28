@@ -80,6 +80,7 @@ class WncmsServiceProvider extends ServiceProvider
         // Core resources
         $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
         $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
+        $this->loadMcpRoutes();
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'wncms');
         $this->loadTranslationsFrom(__DIR__ . '/../../lang', 'wncms');
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
@@ -214,6 +215,7 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function registerServiceProviders(): void
     {
+        $this->app->register(\Laravel\Mcp\Server\McpServiceProvider::class);
         $this->app->register(\Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class);
         $this->app->register(\Wncms\Providers\ViewServiceProvider::class);
     }
@@ -568,5 +570,19 @@ class WncmsServiceProvider extends ServiceProvider
                 wncms()->registerModel($class);
             }
         }
+    }
+
+    /**
+     * Load the opt-in local MCP server registration.
+     *
+     * @return void
+     */
+    protected function loadMcpRoutes(): void
+    {
+        if (!(bool) config('wncms.mcp.enabled', false)) {
+            return;
+        }
+
+        require __DIR__ . '/../../routes/ai.php';
     }
 }

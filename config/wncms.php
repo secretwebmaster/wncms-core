@@ -46,6 +46,11 @@ return [
         'system_actor_user_id' => env('WNCMS_AUTOMATION_SYSTEM_ACTOR_USER_ID'),
     ],
 
+    'mcp' => [
+        'enabled' => env('WNCMS_MCP_ENABLED', false),
+        'server' => 'wncms',
+    ],
+
     // 'ecommerce' => [
     //     'default_currency_symbol' => '$',
     //     'default_currency_unit' => 'USD',

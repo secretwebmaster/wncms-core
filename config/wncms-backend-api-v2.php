@@ -573,6 +573,7 @@ return [
                 'reference' => true,
                 'surface_statuses' => [
                     'api_v2' => 'Partial',
+                    'mcp' => 'Complete',
                     'docs' => 'Complete',
                     'tests' => 'Complete',
                 ],
@@ -602,18 +603,25 @@ return [
                     'wncms:links:bulk-update',
                     'wncms:links:bulk-sync-tags',
                 ],
-                'mcp_tools' => [],
+                'mcp_tools' => [
+                    'wncms-links-list',
+                    'wncms-links-inspect',
+                ],
                 'docs' => [
                     'documentations/manual/api/endpoints/links.md',
                     'documentations/manual/user/dashboard/links.md',
                     'documentations/manual/developer/manager/link-manager.md',
                     'documentations/manual/developer/event/links.md',
                     'documentations/manual/developer/command/overview.md',
+                    'documentations/manual/developer/mcp/overview.md',
+                    'documentations/manual/zh-CN/developer/mcp/overview.md',
+                    'documentations/manual/zh-TW/developer/mcp/overview.md',
                 ],
                 'tests' => [
                     'tests/Feature/LinkHookIntegrationTest.php',
                     'tests/Feature/LinkAutomationCommandTest.php',
                     'tests/Feature/LinkApiV2ControllerTest.php',
+                    'tests/Feature/Mcp/LinksToolsTest.php',
                 ],
             ],
             'settings' => [

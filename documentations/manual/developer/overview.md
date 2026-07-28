@@ -62,3 +62,4 @@ If you are developing locally:
 - [Manager → Base Manager](./manager/base-manager.md)
 - [Plugin → Development Overview](./plugin/overview.md)
 - [Locale → Localization Overview](./locale/localization-overview.md)
+- [MCP → Local Server Overview](./mcp/overview.md)

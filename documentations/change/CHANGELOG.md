@@ -7,6 +7,7 @@
 - 新增具語意 surface status 的 parity coverage 報表，以及原子化 `wncms:links:bulk-update` URL/sort 寫入、共用 run 審計與提交後一次快取刷新。
 - 新增原子化 `wncms:links:bulk-sync-tags` 分類/標籤同步，具備受保護 actor、過期狀態防護、共用 run 審計與提交後一次快取刷新。
 - 新增受保護的 Links backend API v2 參考契約，提供經 token 使用者授權的網站範圍讀取、預覽優先的 token actor 異動、原子 bulk update/tag sync、API v2 審計，並移除未受保護的 bulk-delete 路由。
+- 新增選擇性啟用且僅限本機的 MCP server，提供 structured、網站範圍、唯讀的 `wncms-links-list` 與 `wncms-links-inspect` tools；不開放 web transport 或 mutation tools。
 
 ## v6.3.9-alpha1 2026-06-16
 

@@ -34,7 +34,15 @@ class CheckBackendApiV2ParityCommandTest extends TestCase
         $this->assertContains('documentations/manual/developer/command/overview.md', $domains['links']['surfaces']['docs']['found']);
         $this->assertContains('tests/Feature/LinkAutomationCommandTest.php', $domains['links']['surfaces']['tests']['found']);
         $this->assertContains('tests/Feature/LinkApiV2ControllerTest.php', $domains['links']['surfaces']['tests']['found']);
-        $this->assertSame('Missing', $domains['links']['surfaces']['mcp']['status']);
+        $this->assertContains('tests/Feature/Mcp/LinksToolsTest.php', $domains['links']['surfaces']['tests']['found']);
+        $this->assertContains('documentations/manual/developer/mcp/overview.md', $domains['links']['surfaces']['docs']['found']);
+        $this->assertContains('documentations/manual/zh-CN/developer/mcp/overview.md', $domains['links']['surfaces']['docs']['found']);
+        $this->assertContains('documentations/manual/zh-TW/developer/mcp/overview.md', $domains['links']['surfaces']['docs']['found']);
+        $this->assertSame('Complete', $domains['links']['surfaces']['mcp']['status']);
+        $this->assertSame([
+            'wncms-links-list',
+            'wncms-links-inspect',
+        ], $domains['links']['surfaces']['mcp']['found']);
 
         $this->assertArrayHasKey('api_v2_backend_resources', $domains);
         $this->assertSame('Not applicable', $domains['api_v2_backend_resources']['surfaces']['backend_ui']['status']);

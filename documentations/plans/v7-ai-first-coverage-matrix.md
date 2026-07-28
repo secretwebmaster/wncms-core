@@ -1,7 +1,7 @@
 # WNCMS v7 AI-First Coverage Matrix
 
-Date: 2026-06-25
-Status: Proposed
+Date: 2026-07-28
+Status: Active
 Related roadmap: [v7 AI-first roadmap](./v7-ai-first-roadmap.md)
 
 ## Purpose
@@ -17,8 +17,9 @@ The audit is based on static inspection of:
 - Permissions and install defaults: `database/seeders/RolesSeeder.php`, `config/permission.php`
 - Tests: `tests/Feature/*`, `tests/Unit/*`
 - Manual and planning docs under `documentations/manual` and `documentations/plans`
+- Local MCP registration and tools: `routes/ai.php`, `src/Mcp/*`
 
-No MCP server or MCP tool implementation was found in the current codebase. MCP statuses are therefore `Missing` or `Needs design`.
+The first MCP slice is implemented for Links: an opt-in local server exposes `wncms-links-list` and `wncms-links-inspect`. Other domain MCP surfaces remain `Missing` or `Needs design`, and mutation MCP is intentionally out of scope.
 
 ## Status Legend
 
@@ -33,7 +34,7 @@ No MCP server or MCP tool implementation was found in the current codebase. MCP 
 - Backend UI coverage is strong for classic admin CRUD domains.
 - Backend API v2 already provides a broad foundation through config-driven resources and bridge actions.
 - CLI coverage is mostly installer, scaffolding, update, plugin, theme, setting, website, and diagnostics oriented. Domain CRUD CLI coverage is largely missing.
-- MCP coverage is absent.
+- MCP coverage is complete for read-only Links list/inspect; other domains and all MCP mutations remain absent or need design.
 - Tests are concentrated around posts, comments, menu source behavior, link hooks, plugin lifecycle, API auth settings, and a small API v2 authorization path. Most backend API v2 resources do not yet have direct contract tests.
 - Documentation has good developer coverage for commands, managers, hooks, themes, plugins, and selected v1 API endpoints. API v2 resource/action coverage and many admin domains still need explicit docs.
 - Permissions exist broadly through route middleware, API v2 config, and `RolesSeeder`. Audit logging is not consistently implemented for UI, CLI, API, or future MCP mutations.
@@ -49,7 +50,7 @@ No MCP server or MCP tool implementation was found in the current codebase. MCP 
 | Pages | Complete - CRUD, templates, theme page creation, builder load/save/editor, widgets. | Missing | Partial - v1 page controller is placeholder-like; v2 resource and page builder actions exist. | Missing | Missing - no dedicated page controller/API tests found. | Partial - v1 docs explicitly call pages API placeholder; theme/page docs exist. | Partial - `can:page_*` and website/theme context exist; builder mutation audit and automation safety need design. |
 | Tags | Complete - CRUD, type creation, bulk create/store, CSV import, keywords, parent updates. | Missing | Partial - v1 list/exist/store and v2 resource plus tag bridge actions exist. | Missing | Partial - tag behavior is covered indirectly through posts/links; no dedicated tag controller/API tests found. | Partial - v1 tag API docs and tag type docs exist; v2/backend docs are missing. | Partial - `can:tag_*`, tag keyword permissions, cache flushes, and multisite binding support exist; audit missing. |
 | Menus | Complete - CRUD plus menu item editing, source search, source resolution. | Missing | Partial - v1 menu list/store/sync/show; v2 resource and menu bridge actions exist. | Missing | Partial - menu source controller and manager tests cover source resolution/editor flows. | Partial - v1 menu API, theme menu, and event docs exist; backend API v2 docs are limited. | Partial - `can:menu_*`, cache flushes, and source permissions exist; destructive sync audit and CLI/MCP safeguards missing. |
-| Links | Complete - CRUD, clone, bulk update, bulk sync tags, hookable form/index flow. | Complete - `wncms:links:list`, `wncms:links:inspect`, guarded `wncms:links:create`, guarded patch `wncms:links:update`, guarded `wncms:links:delete`, atomic guarded `wncms:links:bulk-update`, and atomic guarded `wncms:links:bulk-sync-tags` exist with JSON output. | Partial - dedicated guarded v2 list/inspect/create/update/delete/bulk-update/bulk-sync-tags routes use `LinkAutomationService`; guarded bulk delete remains intentionally unavailable and no v1 links contract is finalized. | Missing | Complete - Link hooks, guarded CLI dry-run/write/actor/scope/atomicity/stale-state/rollback/audit behavior, and real HTTP API v2 authentication/filtering/preview/forced-write/atomicity/route-gap behavior are covered. | Complete - Link manager, event, dashboard, CLI, and three-locale API v2 reference docs cover routes, permissions, website scope, preview/force, audits, envelopes, and the bulk-delete gap. | Partial - `can:link_*`, cache flushes, hooks, and guarded CLI/API actor/permission/target-scope/audit paths exist; UI mutations still lack the unified audit contract and API guarded bulk delete remains absent. |
+| Links | Complete - CRUD, clone, bulk update, bulk sync tags, hookable form/index flow. | Complete - `wncms:links:list`, `wncms:links:inspect`, guarded `wncms:links:create`, guarded patch `wncms:links:update`, guarded `wncms:links:delete`, atomic guarded `wncms:links:bulk-update`, and atomic guarded `wncms:links:bulk-sync-tags` exist with JSON output. | Partial - dedicated guarded v2 list/inspect/create/update/delete/bulk-update/bulk-sync-tags routes use `LinkAutomationService`; guarded bulk delete remains intentionally unavailable and no v1 links contract is finalized. | Complete - opt-in local `wncms-links-list` and `wncms-links-inspect` reuse `LinkAutomationService`, require a valid website scope, return structured envelopes, and expose no mutation tools. | Complete - Link hooks, guarded CLI/API behavior, and MCP registration/schema/envelope/website-isolation/read-only behavior are covered by dedicated tests including `tests/Feature/Mcp/LinksToolsTest.php`. | Complete - Link manager, event, dashboard, CLI, three-locale API v2 references, and three-locale `developer/mcp/overview.md` pages cover enablement, schemas, envelopes, scope, and security. | Partial - guarded CLI/API actor, permission, target-scope, audit paths and trusted-local read-only MCP exist; UI mutations still lack the unified audit contract, API guarded bulk delete remains absent, and mutation MCP is out of scope. |
 | Settings | Complete - backend tabs, API settings, model website modes, SMTP/Google tests, quick links. | Partial - `wncms:setting-update` updates one key/value without a broader settings contract. | Partial - v2 bridge actions for update/tests/quick links; no generic settings resource. | Missing | Partial - API auth settings and session lifetime tests cover selected settings behavior. | Partial - settings event/system setting docs exist; v2 settings API docs are missing. | Partial - `can:setting_*`, settings cache flow, and model website mode UI exist; CLI has no permission/audit layer. |
 | Plugins | Complete - index, upload, activate raw/record, upgrade, deactivate, delete. | Partial - `wncms:activate-plugin` and `wncms:verify-plugin-hooks`; no upload/deactivate/delete CLI. | Partial - v2 plugin index and bridge actions for upload/upgrade/activate/deactivate/delete. | Missing | Partial - plugin lifecycle, compatibility, diagnostics tests exist; controller/API tests are limited. | Complete for plugin development and lifecycle docs; backend API v2 operation docs still needed. | Partial - `can:plugin_*`, dependency/deactivation safeguards, lifecycle remarks exist; no structured audit record. |
 | Themes | Complete - index, upload, delete; default theme install via Tools. | Partial - create, pack, remove, install-default-theme commands exist, but no list/inspect/update CLI contract. | Partial - v2 theme index and bridge upload/delete; no broader theme management API contract. | Missing | Missing - no dedicated theme controller/manager tests found. | Partial - theme development docs exist; automation/API docs incomplete. | Partial - `can:theme_*`, delete is blocked when websites use the theme; no audit or consistent website-scope contract for CLI/API. |
@@ -61,7 +62,7 @@ No MCP server or MCP tool implementation was found in the current codebase. MCP 
 | Channels | Complete - CRUD and bulk delete. | Missing | Partial - v2 `channels` resource exists. | Missing | Missing - no dedicated channel tests found. | Missing - no dedicated operator/API docs found. | Partial - `can:channel_*` exists; no audit or explicit multisite automation contract. |
 | Clicks | Partial - backend index, summary, delete, bulk delete; frontend record route/job exists. | Missing | Partial - v2 `clicks` index/destroy/bulk_delete plus summary action; no create/update API by design. | Missing | Missing - no dedicated click tests found. | Missing - no dedicated operator/API docs found. | Partial - `can:click_*` exists; click recording has cooldown setting; audit and retention policy need design. |
 | Parameters | Complete - CRUD and bulk delete. | Missing | Partial - v2 `parameters` resource exists. | Missing | Missing - no dedicated parameter tests found. | Missing - no dedicated operator/API docs found. | Partial - `can:parameter_*` exists; no audit or explicit multisite automation contract. |
-| API v2 backend resources | Not applicable - this is an API foundation rather than a Blade domain. | Partial - `wncms:check-backend-api-v2-parity` checks backend route names against v2 equivalents and now reports configured v7 coverage with `--coverage` / `--json`. | Partial - broad resources/actions are configured; plan still lists remaining business route mapping, validation, and docs hardening. | Needs design - likely a reusable contract source for MCP schemas, but no MCP exists. | Partial - model authorization test covers one v2 mutation path; most resources/actions lack contract tests. | Partial - API overview, maintainer planning notes, and v2 route plans exist; public resource/action reference docs are incomplete. | Partial - token auth, whitelist, website-context middleware, and per-action permissions exist; no unified audit or parity policy for CLI/MCP. |
+| API v2 backend resources | Not applicable - this is an API foundation rather than a Blade domain. | Partial - `wncms:check-backend-api-v2-parity` checks backend route names against v2 equivalents and now reports configured v7 coverage with `--coverage` / `--json`. | Partial - broad resources/actions are configured; plan still lists remaining business route mapping, validation, and docs hardening. | Needs design - Links now has a direct service-backed local read slice, but broader API-to-MCP schema reuse and mutation policy are not designed. | Partial - model authorization and complete Links API/MCP contract tests exist; most resources/actions lack contract tests. | Partial - API overview, maintainer planning notes, Links API/MCP references, and v2 route plans exist; public resource/action reference docs remain incomplete. | Partial - token auth, whitelist, website-context middleware, and per-action permissions exist; broader CLI/MCP parity and mutation governance remain incomplete. |
 
 ## Recommended Reference Domain
 
@@ -73,7 +74,7 @@ Reasons:
 - It has a `LinkManager`, backend controller, backend views, route permissions, cache flushing, tag support, and website scoping hooks through BaseModel/Manager behavior.
 - It already has dedicated hook tests and documented hook points.
 - It is already present in backend API v2 resources and has extra v2 bridge actions for `bulk_update` and `bulk_sync_tags`.
-- Its remaining gaps match v7 goals cleanly: update/delete/bulk CLI parity, no MCP, no API v2 contract tests, no finalized links API doc, and no consistent audit/multisite automation contract across UI/API/MCP.
+- It now demonstrates the v7 reference pattern across guarded CLI, guarded API v2, and trusted-local read-only MCP. Remaining gaps are UI mutation audit parity, guarded API bulk delete, and any separately approved mutation MCP contract.
 
 Pages are a possible second reference, but the builder/template surface makes them less suitable as the first parity pattern. Posts have better tests and v1 API coverage, but their media, comments, bulk clone, demo generation, and translation behavior make them a heavier starting point.
 
@@ -92,13 +93,15 @@ WNCMS needs one v7 automation contract shared by CLI, API v2, and MCP. The propo
 
 ### MCP Contract
 
-No MCP surface exists today. v7 should decide:
+The first contract now ships inside `wncms-core` with official `laravel/mcp:^0.9`:
 
-- Whether MCP ships inside `wncms-core`, an optional companion package, or a plugin.
-- Whether v7.0 MCP is read-only first, mutation-capable for reference domains only, or broader.
-- How MCP tools authenticate and map to WNCMS permissions.
-- How production environments enable/disable MCP and scope website access.
-- How MCP schemas are generated or reviewed from managers/API resource contracts.
+- Disabled by default through `WNCMS_MCP_ENABLED`.
+- Local standard-input/output transport only; no web route, OAuth, or remote transport.
+- Read-only Links list/inspect tools backed by `LinkAutomationService`.
+- Mandatory valid website selection, with the enabled trusted local process as the read authority.
+- Stable automation envelopes returned as structured MCP content.
+
+Broader domain coverage and every mutation MCP tool still need separate schema, actor, permission, confirmation, audit, and transport decisions.
 
 ### Audit And Governance
 
@@ -131,13 +134,13 @@ Manual docs should describe human and agent workflows together:
 
 1. Freeze the v7 automation contract: names, JSON envelopes, exit codes, dry-run/force behavior, website scope, and audit fields.
 2. Keep the runtime coverage registry in `config/wncms-backend-api-v2.php` aligned with this matrix and inspect it through `wncms:check-backend-api-v2-parity --coverage --json`.
-3. Decide MCP packaging and enablement model.
+3. Keep the approved core, opt-in, local-only MCP packaging and enablement model stable.
 4. Keep maintainer-only SOP in root ignored files and publish only stable user-facing automation behavior in `documentations/manual`.
 
 ### Phase 1 - Read-Only Discovery
 
 1. Add read-only CLI commands for discovery: websites, settings, enabled models, routes, plugins, themes, updates, and system health.
-2. Build a read-only MCP proof of concept for the same discovery operations.
+2. Extend the completed read-only Links MCP reference to approved discovery operations.
 3. Add tests for JSON schema stability, permission failures, and website-context failures.
 4. Document agent workflows for diagnostics and site inspection.
 
@@ -145,7 +148,7 @@ Manual docs should describe human and agent workflows together:
 
 1. Continue hardening `LinkAutomationService` as the reusable mutation service returning structured result objects.
 2. Build on the existing Link CLI commands (`list`, `inspect`, guarded `create`, guarded `update`, guarded `delete`) and add bulk update and bulk sync tags.
-3. Add Link MCP tools matching the CLI/API contracts.
+3. Maintain the completed local read-only Link MCP tools and keep mutation MCP out of scope.
 4. Add API v2 contract tests for Links resource and bridge actions.
 5. Update Links docs with backend UI, CLI, API v2, MCP, permissions, audit, and multisite notes.
 6. Use this implementation as the reference for future CRUD domains.
@@ -190,11 +193,11 @@ These domains should require stronger confirmation, audit, environment gating, a
 
 ## Concrete Next Tasks
 
-1. Add guarded Link bulk update and bulk tag-sync CLI commands with atomic target-list validation, `--dry-run`, `--force`, actor, permission, website scope, cache flush, and `mutation_audits`.
-2. Add API v2 tests for `links` resource actions and bridge actions.
-3. Draft MCP packaging/design doc and implement read-only discovery tools before Link mutation tools.
-4. Update Links API docs so the current "no dedicated links resource endpoint spec is finalized" gap is closed for v7.
-5. Repeat the Links pattern for Tags and Menus, then Posts and Pages.
+1. Add unified audit coverage to Link backend UI mutations.
+2. Design guarded API v2 Link bulk delete only if a safe contract is approved.
+3. Keep mutation MCP out of scope until actor, permission, confirmation, audit, and transport policy is approved.
+4. Extend the read-only local MCP pattern to another approved discovery domain.
+5. Repeat the guarded Links CLI/API pattern for Tags and Menus, then Posts and Pages.
 
 ## Open Questions
 
