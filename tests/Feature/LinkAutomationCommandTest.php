@@ -1322,6 +1322,8 @@ class LinkAutomationCommandTest extends TestCase
         $tooManyIdentifiers = array_map(fn(int $index) => $index + 100000, range(0, 100));
         $payloads = [
             ['--identifiers' => '{broken', '--categories' => json_encode(['Partners'])],
+            ['--identifiers' => '{"0":' . $link->id . '}', '--categories' => json_encode(['Partners'])],
+            ['--identifiers' => json_encode([$link->id]), '--categories' => '{}', '--tags' => json_encode(['Featured'])],
             ['--identifiers' => json_encode([$link->id]), '--action' => 'invalid', '--categories' => json_encode(['Partners'])],
             ['--identifiers' => json_encode([$link->id]), '--categories' => json_encode([]), '--tags' => json_encode([])],
             ['--identifiers' => json_encode([$link->id]), '--categories' => json_encode([['invalid']])],

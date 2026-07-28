@@ -78,7 +78,7 @@ class BulkSyncLinkTags extends Command
             return null;
         }
 
-        $decoded = json_decode($json, true);
+        $decoded = json_decode($json);
 
         return json_last_error() === JSON_ERROR_NONE && is_array($decoded) && array_is_list($decoded) ? $decoded : null;
     }
