@@ -95,6 +95,92 @@ class LinkAutomationCommandTest extends TestCase
         $this->assertSame('Link not found.', $decoded['message']);
     }
 
+    public function test_link_commands_keep_their_human_success_tables(): void
+    {
+        $website = Website::first();
+        $link = Link::create($this->linkData());
+
+        Artisan::call('wncms:links:list');
+        $listOutput = Artisan::output();
+        Artisan::call('wncms:links:inspect', ['identifier' => $link->id]);
+        $inspectOutput = Artisan::output();
+        Artisan::call('wncms:links:create', [
+            '--name' => 'Automation Human Plan',
+            '--url' => 'https://example.com/human-plan',
+            '--website' => $website->id,
+        ]);
+        $createOutput = Artisan::output();
+        Artisan::call('wncms:links:update', [
+            'identifier' => $link->id,
+            '--name' => 'Automation Human Update',
+            '--website' => $website->id,
+        ]);
+        $updateOutput = Artisan::output();
+        Artisan::call('wncms:links:delete', [
+            'identifier' => $link->id,
+            '--website' => $website->id,
+        ]);
+        $deleteOutput = Artisan::output();
+        Artisan::call('wncms:links:bulk-update', [
+            '--items' => json_encode([['identifier' => $link->id, 'sort' => 20]]),
+            '--website' => $website->id,
+        ]);
+        $bulkUpdateOutput = Artisan::output();
+        Artisan::call('wncms:links:bulk-sync-tags', [
+            '--identifiers' => json_encode([$link->id]),
+            '--categories' => json_encode(['Partners']),
+            '--website' => $website->id,
+        ]);
+        $bulkTagOutput = Artisan::output();
+
+        $this->assertStringContainsString('WNCMS Links', $listOutput);
+        $this->assertStringContainsString('Page ', $listOutput);
+        $this->assertStringContainsString('Field', $inspectOutput);
+        $this->assertStringContainsString('Value', $inspectOutput);
+        $this->assertStringContainsString($link->name, $inspectOutput);
+        $this->assertStringContainsString('operation', $createOutput);
+        $this->assertStringContainsString('operation', $updateOutput);
+        $this->assertStringContainsString('operation', $deleteOutput);
+        $this->assertStringContainsString('Requested', $bulkUpdateOutput);
+        $this->assertStringContainsString('Requested', $bulkTagOutput);
+    }
+
+    public function test_link_command_human_failures_share_message_and_error_table(): void
+    {
+        Artisan::call('wncms:links:inspect', [
+            'identifier' => 'missing-link-' . uniqid(),
+        ]);
+        $inspectOutput = Artisan::output();
+        Artisan::call('wncms:links:bulk-update', ['--items' => '{invalid']);
+        $validationOutput = Artisan::output();
+
+        $this->assertStringContainsString('Link not found.', $inspectOutput);
+        $this->assertStringContainsString('Field', $inspectOutput);
+        $this->assertStringContainsString('Errors', $inspectOutput);
+        $this->assertStringContainsString('Link bulk update validation failed.', $validationOutput);
+        $this->assertStringContainsString('Field', $validationOutput);
+        $this->assertStringContainsString('Errors', $validationOutput);
+    }
+
+    public function test_link_commands_keep_the_exact_json_envelope_and_exit_mapping(): void
+    {
+        $successExitCode = Artisan::call('wncms:links:list', ['--json' => true]);
+        $successOutput = Artisan::output();
+        $success = json_decode(trim($successOutput), true);
+        $failureExitCode = Artisan::call('wncms:links:inspect', [
+            'identifier' => 'missing-link-' . uniqid(),
+            '--json' => true,
+        ]);
+        $failureOutput = Artisan::output();
+        $failure = json_decode(trim($failureOutput), true);
+
+        $this->assertStringContainsString("{\n", $successOutput);
+        $this->assertSame(['code', 'status', 'message', 'data', 'meta', 'errors'], array_keys($success));
+        $this->assertSame(['code', 'status', 'message', 'data', 'meta', 'errors'], array_keys($failure));
+        $this->assertSame(0, $successExitCode);
+        $this->assertSame(1, $failureExitCode);
+    }
+
     public function test_links_create_outputs_dry_run_without_writing_by_default(): void
     {
         $website = Website::first();

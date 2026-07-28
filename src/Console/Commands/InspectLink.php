@@ -2,11 +2,10 @@
 
 namespace Wncms\Console\Commands;
 
-use Illuminate\Console\Command;
 use Wncms\Services\Automation\AutomationResult;
 use Wncms\Services\Automation\LinkAutomationService;
 
-class InspectLink extends Command
+class InspectLink extends AutomationCommand
 {
     protected $signature = 'wncms:links:inspect
         {identifier : Link ID or slug}
@@ -33,38 +32,16 @@ class InspectLink extends Command
                 'identifier' => [$identifier],
             ], 404);
 
-            return $this->outputResult($result, true);
+            return $this->outputAutomationResult($result);
         }
 
         $result = AutomationResult::success('Link inspected.', [
             'item' => $item,
         ], $this->resultMeta('inspect'));
 
-        return $this->outputResult($result, false);
-    }
-
-    /**
-     * Output a command result.
-     *
-     * @param array $result
-     * @param bool $isError
-     * @return int
-     */
-    protected function outputResult(array $result, bool $isError): int
-    {
-        if ((bool) $this->option('json')) {
-            $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            return $isError ? self::FAILURE : self::SUCCESS;
-        }
-
-        if ($isError) {
-            $this->error((string) $result['message']);
-            return self::FAILURE;
-        }
-
-        $this->renderTable((array) ($result['data']['item'] ?? []));
-
-        return self::SUCCESS;
+        return $this->outputAutomationResult($result, function (array $result): void {
+            $this->renderTable((array) ($result['data']['item'] ?? []));
+        });
     }
 
     /**

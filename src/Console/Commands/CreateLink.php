@@ -2,10 +2,9 @@
 
 namespace Wncms\Console\Commands;
 
-use Illuminate\Console\Command;
 use Wncms\Services\Automation\LinkAutomationService;
 
-class CreateLink extends Command
+class CreateLink extends AutomationCommand
 {
     protected $signature = 'wncms:links:create
         {--name= : Link name}
@@ -52,7 +51,9 @@ class CreateLink extends Command
             'force' => (bool) $this->option('force'),
         ]);
 
-        return $this->outputResult($result);
+        return $this->outputAutomationResult($result, function (array $result): void {
+            $this->renderSuccessSummary($result);
+        });
     }
 
     /**
@@ -112,26 +113,13 @@ class CreateLink extends Command
     }
 
     /**
-     * Output a command result.
+     * Render the human-readable success summary.
      *
      * @param array $result
-     * @return int
+     * @return void
      */
-    protected function outputResult(array $result): int
+    protected function renderSuccessSummary(array $result): void
     {
-        $isError = ($result['status'] ?? 'fail') !== 'success';
-
-        if ((bool) $this->option('json')) {
-            $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            return $isError ? self::FAILURE : self::SUCCESS;
-        }
-
-        if ($isError) {
-            $this->error((string) ($result['message'] ?? 'Link create failed.'));
-            $this->renderErrors((array) ($result['errors'] ?? []));
-            return self::FAILURE;
-        }
-
         $this->line((string) ($result['message'] ?? 'Link create completed.'));
 
         if ((int) ($result['code'] ?? 200) === 202) {
@@ -139,8 +127,6 @@ class CreateLink extends Command
         }
 
         $this->renderSummary((array) ($result['data'] ?? []));
-
-        return self::SUCCESS;
     }
 
     /**
@@ -153,13 +139,7 @@ class CreateLink extends Command
     {
         $item = (array) ($data['item'] ?? []);
         if (!empty($item)) {
-            $this->table(['Field', 'Value'], [
-                ['id', (string) ($item['id'] ?? '')],
-                ['status', (string) ($item['status'] ?? '')],
-                ['slug', (string) ($item['slug'] ?? '')],
-                ['name', (string) ($item['name'] ?? '')],
-                ['url', (string) ($item['url'] ?? '')],
-            ]);
+            $this->renderLinkItemSummary($item);
             return;
         }
 
@@ -168,36 +148,7 @@ class CreateLink extends Command
             return;
         }
 
-        $this->table(['Field', 'Value'], [
-            ['operation', (string) ($plan['operation'] ?? '')],
-            ['validation', (string) ($plan['validation']['status'] ?? '')],
-            ['guard', (string) ($plan['guard']['status'] ?? '')],
-            ['will_write', !empty($plan['will_write']) ? 'yes' : 'no'],
-            ['audit_table', (string) ($plan['audit']['table'] ?? '')],
-        ]);
-    }
-
-    /**
-     * Render command errors as a small table.
-     *
-     * @param array $errors
-     * @return void
-     */
-    protected function renderErrors(array $errors): void
-    {
-        if (empty($errors)) {
-            return;
-        }
-
-        $rows = [];
-        foreach ($errors as $field => $messages) {
-            $rows[] = [
-                (string) $field,
-                is_array($messages) ? implode(', ', array_map('strval', $messages)) : (string) $messages,
-            ];
-        }
-
-        $this->table(['Field', 'Errors'], $rows);
+        $this->renderMutationPlanSummary($plan);
     }
 
     /**

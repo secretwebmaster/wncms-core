@@ -2,11 +2,10 @@
 
 namespace Wncms\Console\Commands;
 
-use Illuminate\Console\Command;
 use Wncms\Services\Automation\AutomationResult;
 use Wncms\Services\Automation\LinkAutomationService;
 
-class ListLinks extends Command
+class ListLinks extends AutomationCommand
 {
     protected $signature = 'wncms:links:list
         {--status=active : Filter by status, or all for every status}
@@ -40,14 +39,9 @@ class ListLinks extends Command
 
         $result = AutomationResult::success('Links listed.', $data, $this->resultMeta('list'));
 
-        if ((bool) $this->option('json')) {
-            $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            return self::SUCCESS;
-        }
-
-        $this->renderTable($data);
-
-        return self::SUCCESS;
+        return $this->outputAutomationResult($result, function (array $result): void {
+            $this->renderTable((array) ($result['data'] ?? []));
+        });
     }
 
     /**

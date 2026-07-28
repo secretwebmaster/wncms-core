@@ -2,11 +2,10 @@
 
 namespace Wncms\Console\Commands;
 
-use Illuminate\Console\Command;
 use Wncms\Services\Automation\AutomationResult;
 use Wncms\Services\Automation\LinkAutomationService;
 
-class BulkUpdateLinks extends Command
+class BulkUpdateLinks extends AutomationCommand
 {
     protected $signature = 'wncms:links:bulk-update
         {--items= : JSON array of Link update items}
@@ -47,10 +46,14 @@ class BulkUpdateLinks extends Command
                 'items' => ['invalid_json'],
             ], 422);
 
-            return $this->outputResult($result);
+            return $this->outputAutomationResult($result, function (array $result): void {
+                $this->renderSuccessSummary($result);
+            });
         }
 
-        return $this->outputResult(app(LinkAutomationService::class)->bulkUpdate($items, $options));
+        return $this->outputAutomationResult(app(LinkAutomationService::class)->bulkUpdate($items, $options), function (array $result): void {
+            $this->renderSuccessSummary($result);
+        });
     }
 
     /**
@@ -71,28 +74,13 @@ class BulkUpdateLinks extends Command
     }
 
     /**
-     * Output a command result.
+     * Render the human-readable success summary.
      *
      * @param  array  $result
-     * @return int
+     * @return void
      */
-    protected function outputResult(array $result): int
+    protected function renderSuccessSummary(array $result): void
     {
-        $isError = ($result['status'] ?? 'fail') !== 'success';
-
-        if ((bool) $this->option('json')) {
-            $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-
-            return $isError ? self::FAILURE : self::SUCCESS;
-        }
-
-        if ($isError) {
-            $this->error((string) ($result['message'] ?? 'Link bulk update failed.'));
-            $this->renderErrors((array) ($result['errors'] ?? []));
-
-            return self::FAILURE;
-        }
-
         $this->line((string) ($result['message'] ?? 'Link bulk update completed.'));
         $summary = (array) ($result['data']['summary'] ?? $result['data']['plan']['summary'] ?? []);
         if (!empty($summary)) {
@@ -102,30 +90,5 @@ class BulkUpdateLinks extends Command
                 (string) ($summary['noop'] ?? 0),
             ]]);
         }
-
-        return self::SUCCESS;
-    }
-
-    /**
-     * Render command errors as a small table.
-     *
-     * @param  array  $errors
-     * @return void
-     */
-    protected function renderErrors(array $errors): void
-    {
-        if (empty($errors)) {
-            return;
-        }
-
-        $rows = [];
-        foreach ($errors as $field => $messages) {
-            $rows[] = [
-                (string) $field,
-                is_array($messages) ? implode(', ', array_map('strval', $messages)) : (string) $messages,
-            ];
-        }
-
-        $this->table(['Field', 'Errors'], $rows);
     }
 }

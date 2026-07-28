@@ -2,11 +2,10 @@
 
 namespace Wncms\Console\Commands;
 
-use Illuminate\Console\Command;
 use Wncms\Services\Automation\AutomationResult;
 use Wncms\Services\Automation\LinkAutomationService;
 
-class BulkSyncLinkTags extends Command
+class BulkSyncLinkTags extends AutomationCommand
 {
     protected $signature = 'wncms:links:bulk-sync-tags
         {--identifiers= : JSON array of Link IDs or slugs}
@@ -41,7 +40,7 @@ class BulkSyncLinkTags extends Command
         ];
 
         if ($identifiers === null || $categories === null || $tagNames === null) {
-            return $this->outputResult(AutomationResult::fail('Link bulk tag synchronization validation failed.', null, [
+            return $this->outputAutomationResult(AutomationResult::fail('Link bulk tag synchronization validation failed.', null, [
                 'surface' => 'cli',
                 'command' => (string) $this->getName(),
                 'domain' => 'links',
@@ -50,7 +49,9 @@ class BulkSyncLinkTags extends Command
                 'force' => (bool) $this->option('force'),
             ], [
                 'input' => ['invalid_json'],
-            ], 422));
+            ], 422), function (array $result): void {
+                $this->renderSuccessSummary($result);
+            });
         }
 
         $tags = [
@@ -58,7 +59,9 @@ class BulkSyncLinkTags extends Command
             'link_tags' => $tagNames,
         ];
 
-        return $this->outputResult(app(LinkAutomationService::class)->bulkSyncTags($identifiers, (string) $this->option('action'), $tags, $options));
+        return $this->outputAutomationResult(app(LinkAutomationService::class)->bulkSyncTags($identifiers, (string) $this->option('action'), $tags, $options), function (array $result): void {
+            $this->renderSuccessSummary($result);
+        });
     }
 
     /**
@@ -84,28 +87,13 @@ class BulkSyncLinkTags extends Command
     }
 
     /**
-     * Output a command result.
+     * Render the human-readable success summary.
      *
      * @param  array  $result
-     * @return int
+     * @return void
      */
-    protected function outputResult(array $result): int
+    protected function renderSuccessSummary(array $result): void
     {
-        $isError = ($result['status'] ?? 'fail') !== 'success';
-
-        if ((bool) $this->option('json')) {
-            $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-
-            return $isError ? self::FAILURE : self::SUCCESS;
-        }
-
-        if ($isError) {
-            $this->error((string) ($result['message'] ?? 'Link bulk tag synchronization failed.'));
-            $this->renderErrors((array) ($result['errors'] ?? []));
-
-            return self::FAILURE;
-        }
-
         $this->line((string) ($result['message'] ?? 'Link bulk tag synchronization completed.'));
         $summary = (array) ($result['data']['summary'] ?? $result['data']['plan']['summary'] ?? []);
         if (!empty($summary)) {
@@ -115,30 +103,5 @@ class BulkSyncLinkTags extends Command
                 (string) ($summary['noop'] ?? 0),
             ]]);
         }
-
-        return self::SUCCESS;
-    }
-
-    /**
-     * Render command errors as a small table.
-     *
-     * @param  array  $errors
-     * @return void
-     */
-    protected function renderErrors(array $errors): void
-    {
-        if (empty($errors)) {
-            return;
-        }
-
-        $rows = [];
-        foreach ($errors as $field => $messages) {
-            $rows[] = [
-                (string) $field,
-                is_array($messages) ? implode(', ', array_map('strval', $messages)) : (string) $messages,
-            ];
-        }
-
-        $this->table(['Field', 'Errors'], $rows);
     }
 }

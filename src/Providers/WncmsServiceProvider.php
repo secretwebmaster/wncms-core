@@ -519,7 +519,11 @@ class WncmsServiceProvider extends ServiceProvider
             $class = 'Wncms\\Console\\Commands\\' . $file->getFilenameWithoutExtension();
 
             if (class_exists($class)) {
-                $commandClasses[] = $class;
+                $reflection = new \ReflectionClass($class);
+
+                if ($reflection->isInstantiable()) {
+                    $commandClasses[] = $class;
+                }
             }
         }
 
