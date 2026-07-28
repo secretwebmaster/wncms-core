@@ -1,7 +1,7 @@
 # WNCMS v7 Links Parity Completion Design
 
 - Date: 2026-07-27
-- Status: Draft for implementation review
+- Status: Approved
 - Scope: Link bulk tag synchronization, shared CLI rendering, Links API v2, and local MCP read tools
 
 ## Objective
