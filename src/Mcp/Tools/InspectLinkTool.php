@@ -108,7 +108,24 @@ class InspectLinkTool extends Tool
             'tool' => 'wncms-links-inspect',
             'domain' => 'links',
             'action' => 'inspect',
-            'website_id' => $websiteId ?? ($request->get('website_id') === null ? null : (int) $request->get('website_id')),
+            'website_id' => $websiteId ?? $this->normalizeWebsiteId($request->get('website_id')),
         ];
+    }
+
+    /**
+     * Normalize an untrusted website ID for failure metadata.
+     *
+     * @param  mixed  $value
+     * @return int|null
+     */
+    protected function normalizeWebsiteId(mixed $value): ?int
+    {
+        if (! is_int($value) && ! is_string($value)) {
+            return null;
+        }
+
+        $websiteId = filter_var($value, FILTER_VALIDATE_INT);
+
+        return $websiteId !== false && $websiteId >= 1 ? $websiteId : null;
     }
 }

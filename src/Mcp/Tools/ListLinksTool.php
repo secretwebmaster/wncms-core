@@ -120,15 +120,49 @@ class ListLinksTool extends Tool
      */
     protected function resultMeta(Request $request, array $options = [], ?int $websiteId = null): array
     {
+        $status = $options['status'] ?? $request->get('status', 'active');
+        $sort = $options['sort'] ?? $request->get('sort', 'id');
+        $direction = $options['direction'] ?? $request->get('direction', 'desc');
+
         return [
             'surface' => 'mcp',
             'tool' => 'wncms-links-list',
             'domain' => 'links',
             'action' => 'list',
-            'website_id' => $websiteId ?? ($request->get('website_id') === null ? null : (int) $request->get('website_id')),
-            'status' => (string) ($options['status'] ?? $request->get('status', 'active')),
-            'sort' => (string) ($options['sort'] ?? $request->get('sort', 'id')),
-            'direction' => (string) ($options['direction'] ?? $request->get('direction', 'desc')),
+            'website_id' => $websiteId ?? $this->normalizeWebsiteId($request->get('website_id')),
+            'status' => $this->normalizeChoice($status, ['active', 'inactive', 'all'], 'active'),
+            'sort' => $this->normalizeChoice($sort, ['id', 'sort', 'name', 'clicks', 'created_at', 'updated_at'], 'id'),
+            'direction' => $this->normalizeChoice($direction, ['asc', 'desc'], 'desc'),
         ];
+    }
+
+    /**
+     * Normalize an untrusted metadata choice to an allowed string.
+     *
+     * @param  mixed  $value
+     * @param  array  $allowed
+     * @param  string  $default
+     * @return string
+     */
+    protected function normalizeChoice(mixed $value, array $allowed, string $default): string
+    {
+        return is_string($value) && in_array($value, $allowed, true) ? $value : $default;
+    }
+
+    /**
+     * Normalize an untrusted website ID for failure metadata.
+     *
+     * @param  mixed  $value
+     * @return int|null
+     */
+    protected function normalizeWebsiteId(mixed $value): ?int
+    {
+        if (! is_int($value) && ! is_string($value)) {
+            return null;
+        }
+
+        $websiteId = filter_var($value, FILTER_VALIDATE_INT);
+
+        return $websiteId !== false && $websiteId >= 1 ? $websiteId : null;
     }
 }

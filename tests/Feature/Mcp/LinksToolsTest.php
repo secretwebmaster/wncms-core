@@ -294,6 +294,100 @@ class LinksToolsTest extends TestCase
     }
 
     /**
+     * Verify malformed scalar inputs keep the structured contract without writes.
+     *
+     * @return void
+     */
+    public function test_malformed_scalar_inputs_return_structured_validation_envelopes_without_writes(): void
+    {
+        $beforeCounts = [
+            'links' => Link::count(),
+            'website_pivots' => DB::table('model_has_websites')->count(),
+            'tag_pivots' => DB::table('taggables')->count(),
+            'audits' => MutationAudit::count(),
+        ];
+        $listCases = [
+            'status' => [
+                'arguments' => ['website_id' => $this->website->id, 'status' => []],
+                'website_id' => $this->website->id,
+            ],
+            'sort' => [
+                'arguments' => ['website_id' => $this->website->id, 'sort' => []],
+                'website_id' => $this->website->id,
+            ],
+            'direction' => [
+                'arguments' => ['website_id' => $this->website->id, 'direction' => []],
+                'website_id' => $this->website->id,
+            ],
+            'website_id' => [
+                'arguments' => ['website_id' => []],
+                'website_id' => null,
+            ],
+        ];
+
+        foreach ($listCases as $field => $case) {
+            WncmsServer::tool(ListLinksTool::class, $case['arguments'])
+                ->assertOk()
+                ->assertName('wncms-links-list')
+                ->assertStructuredContent(function (AssertableJson $json) use ($case, $field): void {
+                    $json
+                        ->where('code', 422)
+                        ->where('status', 'fail')
+                        ->where('message', 'Links list validation failed.')
+                        ->where('data', null)
+                        ->where('meta.surface', 'mcp')
+                        ->where('meta.tool', 'wncms-links-list')
+                        ->where('meta.domain', 'links')
+                        ->where('meta.action', 'list')
+                        ->where('meta.website_id', $case['website_id'])
+                        ->where('meta.status', 'active')
+                        ->where('meta.sort', 'id')
+                        ->where('meta.direction', 'desc')
+                        ->has("errors.{$field}")
+                        ->etc();
+                });
+        }
+
+        WncmsServer::tool(InspectLinkTool::class, [
+            'identifier' => [],
+            'website_id' => $this->website->id,
+        ])->assertOk()
+            ->assertName('wncms-links-inspect')
+            ->assertStructuredContent(fn (AssertableJson $json) => $json
+                ->where('code', 422)
+                ->where('status', 'fail')
+                ->where('message', 'Link inspect validation failed.')
+                ->where('data', null)
+                ->where('meta.surface', 'mcp')
+                ->where('meta.tool', 'wncms-links-inspect')
+                ->where('meta.domain', 'links')
+                ->where('meta.action', 'inspect')
+                ->where('meta.website_id', $this->website->id)
+                ->has('errors.identifier')
+                ->etc());
+
+        WncmsServer::tool(InspectLinkTool::class, [
+            'identifier' => 'any-link',
+            'website_id' => [],
+        ])->assertOk()
+            ->assertStructuredContent(fn (AssertableJson $json) => $json
+                ->where('code', 422)
+                ->where('status', 'fail')
+                ->where('message', 'Link inspect validation failed.')
+                ->where('data', null)
+                ->where('meta.website_id', null)
+                ->has('errors.website_id')
+                ->etc());
+
+        $this->assertSame($beforeCounts, [
+            'links' => Link::count(),
+            'website_pivots' => DB::table('model_has_websites')->count(),
+            'tag_pivots' => DB::table('taggables')->count(),
+            'audits' => MutationAudit::count(),
+        ]);
+    }
+
+    /**
      * Create one Link and bind it to the selected website.
      *
      * @param  \Wncms\Models\Website  $website
