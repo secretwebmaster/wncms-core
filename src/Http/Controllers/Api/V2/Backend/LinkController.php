@@ -173,6 +173,7 @@ class LinkController extends ApiV2Controller
      * Preview or execute an atomic guarded Link bulk update.
      *
      * @param  \Illuminate\Http\Request  $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function bulkUpdate(Request $request): JsonResponse
@@ -216,6 +217,7 @@ class LinkController extends ApiV2Controller
      * Preview or execute an atomic guarded Link tag synchronization.
      *
      * @param  \Illuminate\Http\Request  $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function bulkSyncTags(Request $request): JsonResponse
