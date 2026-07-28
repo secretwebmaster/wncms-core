@@ -95,6 +95,11 @@ class LinkAutomationCommandTest extends TestCase
         $this->assertSame('Link not found.', $decoded['message']);
     }
 
+    /**
+     * Verify Link commands preserve their human-readable success tables.
+     *
+     * @return void
+     */
     public function test_link_commands_keep_their_human_success_tables(): void
     {
         $website = Website::first();
@@ -145,6 +150,11 @@ class LinkAutomationCommandTest extends TestCase
         $this->assertStringContainsString('Requested', $bulkTagOutput);
     }
 
+    /**
+     * Verify Link command failures share the message and error table output.
+     *
+     * @return void
+     */
     public function test_link_command_human_failures_share_message_and_error_table(): void
     {
         Artisan::call('wncms:links:inspect', [
@@ -162,6 +172,11 @@ class LinkAutomationCommandTest extends TestCase
         $this->assertStringContainsString('Errors', $validationOutput);
     }
 
+    /**
+     * Verify Link commands preserve the JSON envelope and exit mapping.
+     *
+     * @return void
+     */
     public function test_link_commands_keep_the_exact_json_envelope_and_exit_mapping(): void
     {
         $successExitCode = Artisan::call('wncms:links:list', ['--json' => true]);
