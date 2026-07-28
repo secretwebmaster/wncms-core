@@ -1591,8 +1591,9 @@ class LinkAutomationCommandTest extends TestCase
     /**
      * Return normalized Link tag names for one tag type.
      *
-     * @param Link $link
-     * @param string $type
+     * @param  \Wncms\Models\Link  $link
+     * @param  string  $type
+     *
      * @return array
      */
     protected function tagNames(Link $link, string $type): array

@@ -179,8 +179,9 @@ class LinkController extends ApiV2Controller
     {
         try {
             $this->authorizeLinkAction('update', $request);
+            $validated = $this->validateBulkUpdateTransport($request);
             $result = $this->service->bulkUpdate(
-                (array) $request->input('items', []),
+                $validated['items'],
                 $this->mutationOptions($request)
             );
 
@@ -188,6 +189,27 @@ class LinkController extends ApiV2Controller
         } catch (\Throwable $exception) {
             return $this->fromThrowable($exception);
         }
+    }
+
+    /**
+     * Validate and normalize the bulk update transport payload.
+     *
+     * JSON objects with numeric keys are rejected instead of being treated as lists.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     *
+     * @return array
+     */
+    protected function validateBulkUpdateTransport(Request $request): array
+    {
+        return $request->validate([
+            'items' => ['required', 'array', 'list', function (string $attribute, mixed $value, \Closure $fail) use ($request): void {
+                if (! $this->isJsonListInput($request, $attribute)) {
+                    $fail('The ' . str_replace('_', ' ', $attribute) . ' field must be a JSON list.');
+                }
+            }],
+            'items.*' => ['array'],
+        ]);
     }
 
     /**
@@ -223,6 +245,7 @@ class LinkController extends ApiV2Controller
      * JSON objects with numeric keys are rejected instead of being treated as lists.
      *
      * @param  \Illuminate\Http\Request  $request
+     *
      * @return array
      */
     protected function validateBulkSyncTagsTransport(Request $request): array
@@ -249,6 +272,7 @@ class LinkController extends ApiV2Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  string  $attribute
+     *
      * @return bool
      */
     protected function isJsonListInput(Request $request, string $attribute): bool

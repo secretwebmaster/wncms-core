@@ -510,6 +510,60 @@ class LinkApiV2ControllerTest extends TestCase
     }
 
     /**
+     * Verify bulk update transport rejects malformed JSON shapes without writes.
+     *
+     * @return void
+     */
+    public function test_links_api_v2_bulk_update_rejects_malformed_transport_shapes_without_writes(): void
+    {
+        $website = Website::firstOrFail();
+        [, $token] = $this->tokenUser(['link_edit'], $website);
+        $link = $this->websiteLink($website, ['sort' => 10]);
+        $beforeCounts = [
+            'links' => Link::count(),
+            'website_pivots' => DB::table('model_has_websites')->count(),
+            'audits' => MutationAudit::count(),
+        ];
+        $payloads = [
+            [
+                'items' => (object) ['0' => ['identifier' => $link->id, 'sort' => 11]],
+            ],
+            [
+                'items' => 'invalid',
+            ],
+        ];
+
+        foreach ($payloads as $payload) {
+            $response = $this->withToken($token)->postJson('/api/v2/backend/links/bulk_update', array_merge($payload, [
+                'website_id' => $website->id,
+                'force' => true,
+            ]));
+
+            $response->assertUnprocessable()->assertJsonPath('code', 422);
+            $this->assertAutomationEnvelope($response);
+            $this->assertSame(10, $link->fresh()->sort);
+            $this->assertSame($beforeCounts, [
+                'links' => Link::count(),
+                'website_pivots' => DB::table('model_has_websites')->count(),
+                'audits' => MutationAudit::count(),
+            ]);
+        }
+
+        $valid = $this->withToken($token)->postJson('/api/v2/backend/links/bulk_update', [
+            'items' => [
+                ['identifier' => $link->id, 'sort' => 11],
+            ],
+            'website_id' => $website->id,
+            'force' => true,
+        ]);
+
+        $valid->assertOk()->assertJsonPath('data.summary.changed', 1);
+        $this->assertAutomationEnvelope($valid);
+        $this->assertSame(11, $link->fresh()->sort);
+        $this->assertSame($beforeCounts['audits'] + 1, MutationAudit::count());
+    }
+
+    /**
      * Verify the unguarded Links bulk-delete route is not registered.
      *
      * @return void
