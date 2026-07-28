@@ -200,12 +200,13 @@ class LinkController extends ApiV2Controller
     {
         try {
             $this->authorizeLinkAction('update', $request);
+            $validated = $this->validateBulkSyncTagsTransport($request);
             $result = $this->service->bulkSyncTags(
-                (array) $request->input('identifiers', []),
-                (string) $request->input('action', 'sync'),
+                $validated['identifiers'],
+                $validated['action'] ?? 'sync',
                 [
-                    'link_categories' => (array) $request->input('link_categories', []),
-                    'link_tags' => (array) $request->input('link_tags', []),
+                    'link_categories' => $validated['link_categories'] ?? [],
+                    'link_tags' => $validated['link_tags'] ?? [],
                 ],
                 $this->mutationOptions($request)
             );
@@ -214,6 +215,55 @@ class LinkController extends ApiV2Controller
         } catch (\Throwable $exception) {
             return $this->fromThrowable($exception);
         }
+    }
+
+    /**
+     * Validate and normalize the bulk tag transport payload.
+     *
+     * JSON objects with numeric keys are rejected instead of being treated as lists.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    protected function validateBulkSyncTagsTransport(Request $request): array
+    {
+        $jsonList = function (string $attribute, mixed $value, \Closure $fail) use ($request): void {
+            if (! $this->isJsonListInput($request, $attribute)) {
+                $fail('The ' . str_replace('_', ' ', $attribute) . ' field must be a JSON list.');
+            }
+        };
+
+        return $request->validate([
+            'identifiers' => ['required', 'array', 'list', $jsonList],
+            'action' => ['nullable', 'string', Rule::in(['sync', 'attach', 'detach'])],
+            'link_categories' => ['nullable', 'array', 'list', $jsonList],
+            'link_tags' => ['nullable', 'array', 'list', $jsonList],
+        ]);
+    }
+
+    /**
+     * Determine whether a JSON field was encoded as a list rather than an object.
+     *
+     * Laravel decodes numeric-key JSON objects into PHP arrays, so raw JSON shape is
+     * checked before the validated transport data reaches the automation service.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $attribute
+     * @return bool
+     */
+    protected function isJsonListInput(Request $request, string $attribute): bool
+    {
+        if (! $request->isJson()) {
+            return true;
+        }
+
+        $payload = json_decode($request->getContent());
+
+        if (json_last_error() !== JSON_ERROR_NONE || ! is_object($payload) || ! property_exists($payload, $attribute)) {
+            return true;
+        }
+
+        return is_array($payload->{$attribute});
     }
 
     /**

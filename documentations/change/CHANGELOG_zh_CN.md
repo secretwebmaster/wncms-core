@@ -8,6 +8,7 @@
 - 新增原子化 `wncms:links:bulk-sync-tags` 分类/标签同步，具备受保护 actor、过期状态防护、共享 run 审计与提交后一次缓存刷新。
 - 新增受保护的 Links backend API v2 参考契约，提供经 token 使用者授权的网站范围读取、预览优先的 token actor 变更、原子 bulk update/tag sync、API v2 审计，并移除未受保护的 bulk-delete 路由。
 - 新增选择性启用且仅限本机的 MCP server，提供 structured、网站范围、只读的 `wncms-links-list` 与 `wncms-links-inspect` tools；不开放 web transport 或 mutation tools。
+- 强化 Link bulk-tag API transport 验证，并避免 rollback 删除由宿主项目拥有的 personal access token 数据表。
 
 ## v6.3.9-alpha1 2026-06-16
 

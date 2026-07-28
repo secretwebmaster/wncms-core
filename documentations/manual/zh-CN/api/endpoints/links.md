@@ -115,19 +115,31 @@ curl -X PATCH "https://your-domain.com/api/v2/backend/links/partner-site" \
   -d '{"website_id": 1, "sort": 20, "force": true}'
 ```
 
+Delete：
+
+```bash
+curl -X DELETE "https://your-domain.com/api/v2/backend/links/partner-site" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"website_id": 1, "force": true}'
+```
+
 ## 原子化 Bulk Update
 
 每个 item 包含 `identifier`，以及 `url`、`sort` 或两者。一次最多 100 个唯一目标。
 
-```json
-{
+```bash
+curl -X POST "https://your-domain.com/api/v2/backend/links/bulk_update" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
   "website_id": 1,
   "items": [
     {"identifier": 10, "sort": 20},
     {"identifier": "partner-site", "url": "https://new.example"}
   ],
   "force": true
-}
+}'
 ```
 
 写入前与 transaction 内都会验证全部目标。任何缺失、越界、无效或 stale
@@ -138,19 +150,25 @@ curl -X PATCH "https://your-domain.com/api/v2/backend/links/partner-site" \
 `action` 可为 `sync`、`attach` 或 `detach`。必须提供至少一个非空的
 `link_categories` 或 `link_tags`；省略的 tag type 保持不变。
 
-```json
-{
+```bash
+curl -X POST "https://your-domain.com/api/v2/backend/links/bulk_sync_tags" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
   "website_id": 1,
   "identifiers": [10, "partner-site"],
   "action": "sync",
   "link_categories": ["Partners"],
   "link_tags": ["Featured"],
   "force": true
-}
+}'
 ```
 
 操作具有原子性，每个有变更的 Link 会使用同一个 run ID 写入一笔 audit；
 no-op 目标不会写 audit。
+
+JSON 请求中的 `identifiers`、`link_categories` 和 `link_tags` 必须编码为 JSON
+列表；对象与标量值会被拒绝并返回 `422`。
 
 ## 回应 Envelope
 

@@ -579,10 +579,10 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function loadMcpRoutes(): void
     {
-        if (!(bool) config('wncms.mcp.enabled', false)) {
+        if (! (bool) config('wncms.mcp.enabled', false)) {
             return;
         }
 
-        require __DIR__ . '/../../routes/ai.php';
+        require __DIR__.'/../../routes/ai.php';
     }
 }

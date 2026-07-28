@@ -459,6 +459,57 @@ class LinkApiV2ControllerTest extends TestCase
     }
 
     /**
+     * Verify bulk tag transport rejects malformed JSON shapes before any writes.
+     *
+     * @return void
+     */
+    public function test_links_api_v2_bulk_sync_tags_rejects_malformed_transport_shapes_without_writes(): void
+    {
+        $website = Website::firstOrFail();
+        [, $token] = $this->tokenUser(['link_edit'], $website);
+        $link = $this->websiteLink($website);
+        $link->syncTagsWithType(['Existing category'], 'link_category');
+        $beforeCounts = [
+            'links' => Link::count(),
+            'tag_pivots' => DB::table('taggables')->count(),
+            'audits' => MutationAudit::count(),
+        ];
+        $payloads = [
+            [
+                'identifiers' => (object) ['0' => $link->id],
+                'action' => 'sync',
+                'link_categories' => ['Partners'],
+            ],
+            [
+                'identifiers' => [$link->id],
+                'action' => 'sync',
+                'link_tags' => 'Featured',
+            ],
+            [
+                'identifiers' => [$link->id],
+                'action' => ['sync'],
+                'link_categories' => ['Partners'],
+            ],
+        ];
+
+        foreach ($payloads as $payload) {
+            $response = $this->withToken($token)->postJson('/api/v2/backend/links/bulk_sync_tags', array_merge($payload, [
+                'website_id' => $website->id,
+                'force' => true,
+            ]));
+
+            $response->assertUnprocessable()->assertJsonPath('code', 422);
+            $this->assertAutomationEnvelope($response);
+            $this->assertSame(['Existing category'], $this->tagNames($link->fresh(), 'link_category'));
+            $this->assertSame($beforeCounts, [
+                'links' => Link::count(),
+                'tag_pivots' => DB::table('taggables')->count(),
+                'audits' => MutationAudit::count(),
+            ]);
+        }
+    }
+
+    /**
      * Verify the unguarded Links bulk-delete route is not registered.
      *
      * @return void

@@ -82,7 +82,7 @@ class LinksToolsTest extends TestCase
         $packageRoot = dirname(__DIR__, 3);
         $command = [
             PHP_BINARY,
-            $packageRoot . '/vendor/bin/testbench',
+            $packageRoot.'/vendor/bin/testbench',
             'mcp:start',
             'wncms',
         ];
@@ -104,7 +104,7 @@ class LinksToolsTest extends TestCase
         $this->assertFalse($disabled->isSuccessful());
         $this->assertStringContainsString(
             'MCP Server with name [wncms] not found',
-            $disabled->getOutput() . $disabled->getErrorOutput()
+            $disabled->getOutput().$disabled->getErrorOutput()
         );
     }
 

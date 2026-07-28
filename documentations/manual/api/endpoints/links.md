@@ -188,6 +188,9 @@ curl -X POST "https://your-domain.com/api/v2/backend/links/bulk_sync_tags" \
 The operation is atomic and writes one audit for each changed Link with a shared
 run ID. No-op targets do not create audits.
 
+For JSON requests, `identifiers`, `link_categories`, and `link_tags` must be
+encoded as JSON lists. Objects and scalar values are rejected with `422`.
+
 ## Response Envelope
 
 Every Links API v2 response uses:

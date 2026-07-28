@@ -24,6 +24,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('personal_access_tokens');
+        // A pre-existing personal_access_tokens table may be owned by the host application.
     }
 };

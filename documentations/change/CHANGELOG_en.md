@@ -8,6 +8,7 @@
 - Added atomic `wncms:links:bulk-sync-tags` category/tag synchronization with guarded actors, stale-state protection, shared-run audits, and one post-commit cache flush.
 - Added a guarded Links backend API v2 reference contract with token-authorized website-scoped reads, preview-first token-actor mutations, atomic bulk update/tag sync, API v2 audits, and no unguarded bulk-delete route.
 - Added an opt-in local-only MCP server with structured, website-scoped, read-only `wncms-links-list` and `wncms-links-inspect` tools; no web transport or mutation tools are exposed.
+- Hardened Link bulk-tag API transport validation and protected host-owned personal access token tables from rollback deletion.
 
 ## v6.3.9-alpha1 2026-06-16
 

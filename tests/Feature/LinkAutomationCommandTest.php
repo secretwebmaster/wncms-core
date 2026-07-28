@@ -1604,6 +1604,14 @@ class LinkAutomationCommandTest extends TestCase
             ->all();
     }
 
+    /**
+     * Return an administrator authorized for protected Link mutations.
+     *
+     * Ensures command tests have the required Link permissions and optional website scope.
+     *
+     * @param  \Wncms\Models\Website|null  $website
+     * @return \Wncms\Models\User
+     */
     protected function automationAdmin(?Website $website = null): User
     {
         Permission::findOrCreate('link_create', 'web');
