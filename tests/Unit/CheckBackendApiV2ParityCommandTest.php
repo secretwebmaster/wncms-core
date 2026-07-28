@@ -29,10 +29,11 @@ class CheckBackendApiV2ParityCommandTest extends TestCase
         $this->assertSame('Complete', $domains['links']['surfaces']['backend_ui']['status']);
         $this->assertSame('Partial', $domains['links']['surfaces']['api_v2']['status']);
         $this->assertSame('Complete', $domains['links']['surfaces']['cli']['status']);
-        $this->assertSame('Partial', $domains['links']['surfaces']['docs']['status']);
-        $this->assertSame('Partial', $domains['links']['surfaces']['tests']['status']);
+        $this->assertSame('Complete', $domains['links']['surfaces']['docs']['status']);
+        $this->assertSame('Complete', $domains['links']['surfaces']['tests']['status']);
         $this->assertContains('documentations/manual/developer/command/overview.md', $domains['links']['surfaces']['docs']['found']);
         $this->assertContains('tests/Feature/LinkAutomationCommandTest.php', $domains['links']['surfaces']['tests']['found']);
+        $this->assertContains('tests/Feature/LinkApiV2ControllerTest.php', $domains['links']['surfaces']['tests']['found']);
         $this->assertSame('Missing', $domains['links']['surfaces']['mcp']['status']);
 
         $this->assertArrayHasKey('api_v2_backend_resources', $domains);

@@ -30,6 +30,27 @@ example2.com
 222.333.444.555
 ```
 
+## Backend API v2 Bearer Tokens
+
+Backend API v2 routes use access tokens issued by:
+
+```text
+POST /api/v2/backend/auth/login
+```
+
+Send the returned token in the bearer header:
+
+```bash
+curl "https://your-domain.com/api/v2/backend/links?website_id=1" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json"
+```
+
+For guarded Links mutations, the user associated with this token is always the
+automation actor. Route permissions (`link_index`, `link_create`, `link_edit`,
+or `link_delete`) are checked against that user, and forced writes record the
+user ID in `mutation_audits`. The token does not bypass website scope.
+
 ## Simple Authentication (Recommended)
 
 The most common authentication method using API tokens.

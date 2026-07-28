@@ -23,6 +23,7 @@ use Wncms\Http\Controllers\ThemeController;
 use Wncms\Http\Controllers\Api\V2\Backend\AdvertisementController as ApiV2AdvertisementController;
 use Wncms\Http\Controllers\Api\V2\Backend\CommentController as ApiV2CommentController;
 use Wncms\Http\Controllers\Api\V2\Backend\ClickController as ApiV2ClickController;
+use Wncms\Http\Controllers\Api\V2\Backend\LinkController as ApiV2LinkController;
 use Wncms\Http\Controllers\Api\V2\Backend\PackageController as ApiV2PackageController;
 use Wncms\Http\Controllers\Api\V2\Backend\PageBuilderController as ApiV2PageBuilderController;
 use Wncms\Http\Controllers\Api\V2\Backend\PluginController as ApiV2PluginController;
@@ -78,6 +79,7 @@ return [
         ],
         'links' => [
             'model_key' => 'link',
+            'controller' => ApiV2LinkController::class,
             'permissions' => [
                 'index' => 'link_index',
                 'show' => 'link_edit',
@@ -86,6 +88,7 @@ return [
                 'destroy' => 'link_delete',
                 'bulk_delete' => 'link_bulk_delete',
             ],
+            'enable_bulk_delete' => false,
         ],
         'menus' => [
             'model_key' => 'menu',
@@ -340,8 +343,8 @@ return [
         ['name' => 'comments.delete_post', 'method' => 'post', 'uri' => 'comments/{id}/delete', 'controller' => \Wncms\Http\Controllers\Api\V2\Backend\CommentController::class, 'action' => 'destroyViaPost', 'permission' => 'comment_delete'],
 
         // Link extras
-        ['name' => 'links.bulk_update', 'method' => 'post', 'uri' => 'links/bulk_update', 'controller' => \Wncms\Http\Controllers\Backend\LinkController::class, 'action' => 'bulk_update', 'permission' => 'link_edit'],
-        ['name' => 'links.bulk_sync_tags', 'method' => 'post', 'uri' => 'links/bulk_sync_tags', 'controller' => \Wncms\Http\Controllers\Backend\LinkController::class, 'action' => 'bulk_sync_tags', 'permission' => 'link_edit'],
+        ['name' => 'links.bulk_update', 'method' => 'post', 'uri' => 'links/bulk_update', 'controller' => ApiV2LinkController::class, 'action' => 'bulkUpdate', 'permission' => 'link_edit'],
+        ['name' => 'links.bulk_sync_tags', 'method' => 'post', 'uri' => 'links/bulk_sync_tags', 'controller' => ApiV2LinkController::class, 'action' => 'bulkSyncTags', 'permission' => 'link_edit'],
     ],
 
     'coverage' => [
@@ -570,8 +573,8 @@ return [
                 'reference' => true,
                 'surface_statuses' => [
                     'api_v2' => 'Partial',
-                    'docs' => 'Partial',
-                    'tests' => 'Partial',
+                    'docs' => 'Complete',
+                    'tests' => 'Complete',
                 ],
                 'backend_routes' => [
                     'links.index',
@@ -610,6 +613,7 @@ return [
                 'tests' => [
                     'tests/Feature/LinkHookIntegrationTest.php',
                     'tests/Feature/LinkAutomationCommandTest.php',
+                    'tests/Feature/LinkApiV2ControllerTest.php',
                 ],
             ],
             'settings' => [

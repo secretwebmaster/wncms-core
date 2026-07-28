@@ -22,6 +22,21 @@ WNCMS also provides **v2** route groups for the new admin stack:
 - `/api/v2/frontend/*` for frontend-facing v2 endpoints
 - `/api/v2/translations` for namespace/group translation payloads (for example `namespace=wncms&group=word`)
 
+## Links Backend API v2 Reference
+
+`/api/v2/backend/links` is the guarded API v2 reference resource. It provides
+website-scoped list and ID/slug inspect reads plus preview-first create, patch,
+delete, atomic bulk update, and atomic bulk tag synchronization.
+
+All mutation requests use the authenticated bearer-token user as actor, preview
+by default with HTTP `202`, and write only when `force=true` and `dry_run` is not
+true. Successful writes create `mutation_audits` records with
+`surface=api_v2`. Guarded Links bulk delete is intentionally unavailable, so the
+Links API v2 surface remains partial for that explicit gap.
+
+See [Links API v2 Endpoints](./endpoints/links.md) for exact routes, permissions,
+filters, request payloads, and response envelopes.
+
 ## Features
 
 - **Posts Management**: Create, update, delete, and retrieve posts with advanced filtering

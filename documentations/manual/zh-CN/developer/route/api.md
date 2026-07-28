@@ -9,6 +9,33 @@ WNCMS 会保留旧版 `/api/v1/*` 端点以保持兼容，并新增 v2 路由拆
 
 `routes/api.php` 仍是总入口，负责载入 v1 与 v2 路由文件。
 
+## 受保护的 Links API v2 路由
+
+`config/wncms-backend-api-v2.php` 的 `links` 资源会解析到专用的
+`Wncms\Http\Controllers\Api\V2\Backend\LinkController`。CRUD transport
+方法与 `links.bulk_update` / `links.bulk_sync_tags` action 都委派给
+`LinkAutomationService`，不会使用后台 HTML controller。
+
+路由名称保持为：
+
+```text
+api.v2.backend.links.index
+api.v2.backend.links.show
+api.v2.backend.links.store
+api.v2.backend.links.update
+api.v2.backend.links.destroy
+api.v2.backend.links.bulk_update
+api.v2.backend.links.bulk_sync_tags
+```
+
+在受保护 bulk-delete service 完成前，Links 的 `enable_bulk_delete` 必须为
+`false`，因此不会注册 `api.v2.backend.links.bulk_delete`。专用 controller
+应维持 transport adapter 职责：验证 HTTP 输入、按 Links 资源权限表授权、
+把 token 使用者及明确/当前网站传给 automation service，并依 service
+envelope 的 code 返回 HTTP status。
+
+公开请求规范请参阅 [Links API v2 端点](../../api/endpoints/links.md)。
+
 ## 档案位置
 
 ```

@@ -9,6 +9,36 @@ WNCMS keeps legacy `/api/v1/*` endpoints for compatibility, and now introduces a
 
 The `routes/api.php` file remains the entrypoint that includes both v1 and v2 route files.
 
+## Guarded Links API v2 Routing
+
+The `links` resource in `config/wncms-backend-api-v2.php` resolves to the
+dedicated `Wncms\Http\Controllers\Api\V2\Backend\LinkController`. Its CRUD
+transport methods and `links.bulk_update` / `links.bulk_sync_tags` actions
+delegate to `LinkAutomationService`; they do not use the backend HTML controller.
+
+Resource and action route names remain:
+
+```text
+api.v2.backend.links.index
+api.v2.backend.links.show
+api.v2.backend.links.store
+api.v2.backend.links.update
+api.v2.backend.links.destroy
+api.v2.backend.links.bulk_update
+api.v2.backend.links.bulk_sync_tags
+```
+
+Set `enable_bulk_delete` to `false` for Links until a guarded bulk-delete
+service exists. This intentionally leaves
+`api.v2.backend.links.bulk_delete` unregistered. The dedicated controller must
+remain a transport adapter: validate HTTP inputs, authorize from the Links
+resource permission map, pass the token user and selected/current website to
+the automation service, and return the service envelope using its declared
+HTTP code.
+
+See [Links API v2 Endpoints](../../api/endpoints/links.md) for the public
+request contract.
+
 ## File Location
 
 ```

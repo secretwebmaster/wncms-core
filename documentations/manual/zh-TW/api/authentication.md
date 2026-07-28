@@ -30,6 +30,27 @@ example2.com
 222.333.444.555
 ```
 
+## Backend API v2 Bearer Token
+
+Backend API v2 路由使用以下端點簽發的 access token：
+
+```text
+POST /api/v2/backend/auth/login
+```
+
+將回傳的 token 放入 bearer header：
+
+```bash
+curl "https://your-domain.com/api/v2/backend/links?website_id=1" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json"
+```
+
+對於受保護的 Links mutation，此 token 關聯的使用者始終是 automation actor。
+系統會針對該使用者檢查 `link_index`、`link_create`、`link_edit` 或
+`link_delete`，強制寫入也會把使用者 ID 記錄在 `mutation_audits`。
+Token 不會繞過網站範圍。
+
 ## 簡易驗證（建議）
 
 使用 API token 的最常見身份驗證方法。

@@ -2,6 +2,7 @@
 
 namespace Wncms\Http\Controllers\Api\V2\Backend;
 
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +23,9 @@ class BridgeController extends ApiV2Controller
             }
 
             if (!empty($action['permission'])) {
-                abort_unless(auth()->user()?->can($action['permission']), SymfonyResponse::HTTP_FORBIDDEN);
+                if (!auth()->user()?->can($action['permission'])) {
+                    throw new AuthorizationException();
+                }
             }
 
             $controller = app($action['controller']);

@@ -22,6 +22,20 @@ WNCMS 也提供 **v2** 路由群组给新版管理后台：
 - `/api/v2/frontend/*`：前台侧 v2 端点
 - `/api/v2/translations`：按 namespace/group 读取翻译字典（例如 `namespace=wncms&group=word`）
 
+## Links Backend API v2 参考资源
+
+`/api/v2/backend/links` 是受保护的 API v2 参考资源，提供网站范围内的列表、
+ID/slug 查看，以及预览优先的 create、patch、delete、原子 bulk update 与
+原子 bulk tag sync。
+
+所有 mutation 都使用已验证 bearer token 使用者作为 actor，默认以 HTTP `202`
+预览；只有 `force=true` 且 `dry_run` 不为 true 时才会写入。成功写入会建立
+`surface=api_v2` 的 `mutation_audits`。受保护的 Links bulk delete 尚未提供，
+因此 Links API v2 仅因这个明确缺口维持 Partial。
+
+完整路由、权限、筛选、payload 与回应 envelope 请参阅
+[Links API v2 端点](./endpoints/links.md)。
+
 ## 功能特色
 
 - **文章管理**：建立、更新、删除和检索文章，并提供进阶筛选功能
