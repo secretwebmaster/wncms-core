@@ -9,6 +9,7 @@
 - 新增受保護的 Links backend API v2 參考契約，提供經 token 使用者授權的網站範圍讀取、預覽優先的 token actor 異動、原子 bulk update/tag sync、API v2 審計，並移除未受保護的 bulk-delete 路由。
 - 新增選擇性啟用且僅限本機的 MCP server，提供 structured、網站範圍、唯讀的 `wncms-links-list` 與 `wncms-links-inspect` tools；不開放 web transport 或 mutation tools。
 - 強化 Link bulk-tag API transport 驗證，並避免 rollback 刪除由宿主專案擁有的 personal access token 資料表。
+- 當沒有可用的目前網站時，認證版面會改用系統中繼資料，避免登入與註冊頁面在應用程式啟動初期發生錯誤。
 
 ## v6.3.9-alpha1 2026-06-16
 

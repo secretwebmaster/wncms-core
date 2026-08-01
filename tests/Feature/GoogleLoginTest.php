@@ -35,6 +35,18 @@ class GoogleLoginTest extends TestCase
         parent::tearDown();
     }
 
+    /**
+     * Render the auth layout with system metadata when no website is shared.
+     *
+     * @return void
+     */
+    public function test_auth_layout_uses_system_metadata_when_website_is_unavailable(): void
+    {
+        $html = view('wncms::auth.login')->render();
+
+        $this->assertStringContainsString('<title>WNCMS</title>', $html);
+    }
+
     public function test_login_page_shows_google_button_when_enabled_and_configured(): void
     {
         $this->get(route('login'))

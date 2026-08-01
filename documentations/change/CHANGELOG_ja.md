@@ -9,6 +9,7 @@
 - 保護された Links backend API v2 参照契約を追加し、token ユーザー認可済みのサイトスコープ読み取り、preview-first の token actor 変更、原子的 bulk update/tag sync、API v2 監査を提供し、未保護の bulk-delete ルートを無効化しました。
 - オプトインかつローカル専用の MCP server を追加し、structured・サイトスコープ・読み取り専用の `wncms-links-list` と `wncms-links-inspect` tools を提供します。web transport と mutation tools は公開しません。
 - Link bulk-tag API transport の検証を強化し、rollback によるホスト所有の personal access token テーブル削除を防止しました。
+- 有効な現在のウェブサイトがない場合、認証レイアウトはシステムメタデータへフォールバックし、アプリケーション起動初期のログイン・登録ページの失敗を防止します。
 
 ## v6.3.9-alpha1 2026-06-16
 

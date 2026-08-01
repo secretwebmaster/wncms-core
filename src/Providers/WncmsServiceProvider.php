@@ -440,18 +440,18 @@ class WncmsServiceProvider extends ServiceProvider
 
     /**
      * Setup shared view variables and composers.
+     *
+     * @return void
      */
     protected function loadGlobalVariables(): void
     {
         View::share('wncms', wncms());
+        View::share('website', null);
 
         if (function_exists('wncms_is_installed') && wncms_is_installed()) {
             View::share('website', wncms()->website()->get());
 
             View::composer('*', function ($view) {
-                // Share errors with all views
-                // $view->with('errors', session()->get('errors', new \Illuminate\Support\ViewErrorBag()));
-
                 if (Route::currentRouteName() && str_starts_with(Route::currentRouteName(), 'frontend.')) {
                     $view->with('user', auth()->user());
                 }

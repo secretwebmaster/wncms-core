@@ -9,6 +9,7 @@
 - Added a guarded Links backend API v2 reference contract with token-authorized website-scoped reads, preview-first token-actor mutations, atomic bulk update/tag sync, API v2 audits, and no unguarded bulk-delete route.
 - Added an opt-in local-only MCP server with structured, website-scoped, read-only `wncms-links-list` and `wncms-links-inspect` tools; no web transport or mutation tools are exposed.
 - Hardened Link bulk-tag API transport validation and protected host-owned personal access token tables from rollback deletion.
+- Auth layouts now fall back to system metadata when no active website is available, preventing login and registration pages from failing during early application boot.
 
 ## v6.3.9-alpha1 2026-06-16
 
