@@ -15,7 +15,7 @@
         "laravel/sanctum": "^4.1",
         "laravel/socialite": "^5.26",
         "secretwebmaster/laravel-localization": "^2.4.1",
-        "spatie/laravel-medialibrary": "^11.21",
+        "spatie/laravel-medialibrary": "^11.23",
         "spatie/laravel-permission": "^6.21",
         "secretwebmaster/wncms-tags": "^1.8.1",
         "secretwebmaster/wncms-translatable": "^1.4.1",
@@ -31,6 +31,9 @@
         "orchestra/testbench": "^11.0",
         "barryvdh/laravel-debugbar": "^4.1",
         "laravel/tinker": "^3.0"
+    },
+    "conflict": {
+        "phpseclib/phpseclib": "<3.0.54"
     },
     "repositories": [
         {
