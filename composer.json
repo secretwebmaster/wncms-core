@@ -37,28 +37,40 @@
             "type": "path",
             "url": "../laravel-localization",
             "options": {
-                "symlink": true
+                "symlink": true,
+                "versions": {
+                    "secretwebmaster/laravel-localization": "2.4.1"
+                }
             }
         },
         {
             "type": "path",
             "url": "../laravel-optionable",
             "options": {
-                "symlink": true
+                "symlink": true,
+                "versions": {
+                    "secretwebmaster/laravel-optionable": "2.1.1"
+                }
             }
         },
         {
             "type": "path",
             "url": "../wncms-tags",
             "options": {
-                "symlink": true
+                "symlink": true,
+                "versions": {
+                    "secretwebmaster/wncms-tags": "1.8.1"
+                }
             }
         },
         {
             "type": "path",
             "url": "../wncms-translatable",
             "options": {
-                "symlink": true
+                "symlink": true,
+                "versions": {
+                    "secretwebmaster/wncms-translatable": "1.4.1"
+                }
             }
         }
     ],
