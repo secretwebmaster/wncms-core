@@ -10,7 +10,7 @@
 - 新增选择性启用且仅限本机的 MCP server，提供 structured、网站范围、只读的 `wncms-links-list` 与 `wncms-links-inspect` tools；不开放 web transport 或 mutation tools。
 - 强化 Link bulk-tag API transport 验证，并避免 rollback 删除由宿主项目拥有的 personal access token 数据表。
 - 当没有可用的当前网站时，认证页面会改用系统元数据，避免登录与注册页面在应用程序启动初期发生错误。
-- 提高 production 依赖套件的安全版本下限，避免安装存在漏洞的 phpseclib 与 Media Library 版本。
+- 提高 production 依赖套件的安全版本下限，避免安装存在漏洞的 phpseclib、Media Library 与 CommonMark 版本。
 
 ## v6.3.9-alpha1 2026-06-16
 

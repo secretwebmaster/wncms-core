@@ -10,7 +10,7 @@
 - Added an opt-in local-only MCP server with structured, website-scoped, read-only `wncms-links-list` and `wncms-links-inspect` tools; no web transport or mutation tools are exposed.
 - Hardened Link bulk-tag API transport validation and protected host-owned personal access token tables from rollback deletion.
 - Auth layouts now fall back to system metadata when no active website is available, preventing login and registration pages from failing during early application boot.
-- Raised production dependency safety floors to prevent installation of vulnerable phpseclib and Media Library releases.
+- Raised production dependency safety floors to prevent installation of vulnerable phpseclib, Media Library, and CommonMark releases.
 
 ## v6.3.9-alpha1 2026-06-16
 
