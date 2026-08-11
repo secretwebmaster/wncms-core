@@ -5,11 +5,14 @@ namespace Wncms\Tests\Unit;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Support\Facades\Artisan;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\ApiContractValidator;
+use Wncms\Api\V2\Contracts\ApiContractProvider;
 use Wncms\Api\V2\Data\ApiDomainContract;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Api\V2\Data\ApiSchema;
+use Wncms\Api\V2\Exceptions\ApiContractException;
 use Wncms\Tests\TestCase;
 
 class CheckBackendApiV2ParityCommandTest extends TestCase
@@ -92,6 +95,58 @@ class CheckBackendApiV2ParityCommandTest extends TestCase
     }
 
     /**
+     * Verify registry and OpenAPI bootstrap exceptions remain machine-readable.
+     *
+     * @param  class-string<\Wncms\Api\V2\Contracts\ApiContractProvider>  $providerClass
+     * @return void
+     */
+    #[DataProvider('contractBootstrapFailureProvider')]
+    public function test_contract_mode_wraps_registry_and_openapi_bootstrap_failures(string $providerClass): void
+    {
+        config(['wncms-api-v2.providers' => [$providerClass]]);
+        app()->forgetInstance(ApiContractRegistry::class);
+
+        $exitCode = Artisan::call('wncms:check-backend-api-v2-parity', [
+            '--contract' => true,
+            '--json' => true,
+        ]);
+
+        $decoded = json_decode(trim(Artisan::output()), true, flags: JSON_THROW_ON_ERROR);
+
+        $expectedErrors = [
+            'contract.bootstrap_failed' => [
+                [
+                    'exception_class' => ApiContractException::class,
+                    'reason' => 'API v2 contract dependencies could not be constructed.',
+                ],
+            ],
+        ];
+
+        $this->assertSame(1, $exitCode);
+        $this->assertSame('fail', $decoded['status']);
+        $this->assertSame('api-v2-contract', $decoded['meta']['mode']);
+        $this->assertSame(0, $decoded['data']['operation_count']);
+        $this->assertFalse($decoded['data']['v7_parity_eligible']);
+        $this->assertSame([], $decoded['data']['warnings']);
+        $this->assertSame($expectedErrors, $decoded['data']['errors']);
+        $this->assertSame($expectedErrors, $decoded['errors']);
+    }
+
+    /**
+     * Provide real contract providers that fail during container bootstrap.
+     *
+     * @return array<string, array{class-string<\Wncms\Api\V2\Contracts\ApiContractProvider>}>
+     */
+    public static function contractBootstrapFailureProvider(): array
+    {
+        return [
+            'duplicate domain' => [DuplicateDomainContractProvider::class],
+            'duplicate operation id' => [DuplicateOperationContractProvider::class],
+            'OpenAPI method and path collision' => [CollidingOpenApiContractProvider::class],
+        ];
+    }
+
+    /**
      * Verify adding contract mode does not change the default parity JSON shape.
      *
      * @return void
@@ -168,5 +223,100 @@ class CheckBackendApiV2ParityCommandTest extends TestCase
         }
 
         return $indexed;
+    }
+}
+
+final class DuplicateDomainContractProvider implements ApiContractProvider
+{
+    /**
+     * Register a duplicate domain fixture.
+     *
+     * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
+     * @return void
+     */
+    public function register(ApiContractRegistry $registry): void
+    {
+        $registry->registerDomain(new ApiDomainContract('posts', 'Posts'));
+        $registry->registerDomain(new ApiDomainContract('posts', 'Duplicate Posts'));
+    }
+}
+
+trait BuildsCommandApiOperation
+{
+    /**
+     * Build one read operation fixture.
+     *
+     * @param  string  $id
+     * @param  string  $path
+     * @param  string  $routeName
+     * @return \Wncms\Api\V2\Data\ApiOperationContract
+     */
+    private function operation(string $id, string $path, string $routeName): ApiOperationContract
+    {
+        return new ApiOperationContract(
+            id: $id,
+            domain: 'posts',
+            surface: 'backend',
+            method: 'GET',
+            path: $path,
+            routeName: $routeName,
+            permission: 'post_show',
+            ability: null,
+            websiteScoped: true,
+            risk: 'read',
+            implementation: 'domain',
+            request: ApiSchema::object(),
+            response: ApiSchema::object(),
+        );
+    }
+}
+
+final class DuplicateOperationContractProvider implements ApiContractProvider
+{
+    use BuildsCommandApiOperation;
+
+    /**
+     * Register a duplicate operation identifier fixture.
+     *
+     * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
+     * @return void
+     */
+    public function register(ApiContractRegistry $registry): void
+    {
+        $registry->registerDomain(new ApiDomainContract('posts', 'Posts'));
+        $operation = $this->operation(
+            'backend.posts.show',
+            '/api/v2/backend/posts/{id}',
+            'api.v2.backend.posts.show',
+        );
+        $registry->registerOperation($operation);
+        $registry->registerOperation($operation);
+    }
+
+}
+
+final class CollidingOpenApiContractProvider implements ApiContractProvider
+{
+    use BuildsCommandApiOperation;
+
+    /**
+     * Register two operations that collide in the OpenAPI path map.
+     *
+     * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
+     * @return void
+     */
+    public function register(ApiContractRegistry $registry): void
+    {
+        $registry->registerDomain(new ApiDomainContract('posts', 'Posts'));
+        $registry->registerOperation($this->operation(
+            'backend.posts.show',
+            '/api/v2/backend/posts/{id}',
+            'api.v2.backend.posts.show',
+        ));
+        $registry->registerOperation($this->operation(
+            'backend.posts.inspect',
+            '/api/v2/backend/posts/{id}',
+            'api.v2.backend.posts.inspect',
+        ));
     }
 }

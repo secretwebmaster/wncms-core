@@ -25,7 +25,7 @@ class CheckBackendApiV2Parity extends Command
     public function handle(): int
     {
         if ((bool) $this->option('contract')) {
-            return $this->handleContractValidation(app(ApiContractValidator::class));
+            return $this->handleContractMode();
         }
 
         if ((bool) $this->option('coverage')) {
@@ -33,6 +33,67 @@ class CheckBackendApiV2Parity extends Command
         }
 
         return $this->handleBackendApiV2Parity();
+    }
+
+    /**
+     * Resolve and validate the installed API v2 contract safely.
+     *
+     * Provider registration and OpenAPI generation both occur while the
+     * validator is resolved, so this command boundary must retain the
+     * machine-readable result even when either dependency cannot be built.
+     *
+     * @return int
+     */
+    protected function handleContractMode(): int
+    {
+        try {
+            return $this->handleContractValidation(app(ApiContractValidator::class));
+        } catch (\Throwable $exception) {
+            return $this->handleContractBootstrapFailure($exception);
+        }
+    }
+
+    /**
+     * Report a contract dependency construction failure.
+     *
+     * Exception messages are intentionally omitted because provider supplied
+     * values are not guaranteed to be JSON-safe or stable automation fields.
+     *
+     * @param  \Throwable  $exception
+     * @return int
+     */
+    protected function handleContractBootstrapFailure(\Throwable $exception): int
+    {
+        $errors = [
+            'contract.bootstrap_failed' => [
+                [
+                    'exception_class' => $exception::class,
+                    'reason' => 'API v2 contract dependencies could not be constructed.',
+                ],
+            ],
+        ];
+        $report = [
+            'operation_count' => 0,
+            'v7_parity_eligible' => false,
+            'v7_parity_ineligible_operation_ids' => [],
+            'errors' => $errors,
+            'warnings' => [],
+        ];
+        $message = 'API v2 contract validation could not start.';
+
+        $this->outputResult([
+            'code' => 500,
+            'status' => 'fail',
+            'message' => $message,
+            'data' => $report,
+            'meta' => $this->resultMeta('api-v2-contract'),
+            'errors' => $errors,
+        ], true, function () use ($message, $errors): void {
+            $this->error($message);
+            $this->line('Error group count: '.count($errors));
+        });
+
+        return self::FAILURE;
     }
 
     /**

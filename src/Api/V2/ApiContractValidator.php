@@ -110,7 +110,8 @@ final class ApiContractValidator
     {
         $domains = $this->registry->domains();
         $operationIds = [];
-        $bindings = [];
+        $methodPathBindings = [];
+        $routeNameBindings = [];
 
         foreach ($operations as $registryKey => $operation) {
             $operationIds[$operation->id][] = (string) $registryKey;
@@ -134,15 +135,20 @@ final class ApiContractValidator
             $this->validateOperationPath($operation);
             $this->validateOperationSchemas($operation);
 
-            $bindingKey = implode('|', [
-                strtoupper($operation->method),
-                $this->normalizePath($operation->path),
-                $operation->routeName,
-            ]);
-            $bindings[$bindingKey]['method'] = strtoupper($operation->method);
-            $bindings[$bindingKey]['path'] = $this->normalizePath($operation->path);
-            $bindings[$bindingKey]['route_name'] = $operation->routeName;
-            $bindings[$bindingKey]['operation_ids'][] = $operation->id;
+            $method = strtoupper($operation->method);
+            $path = $this->normalizePath($operation->path);
+            $methodPathKey = $method.'|'.$path;
+            $methodPathBindings[$methodPathKey]['method'] = $method;
+            $methodPathBindings[$methodPathKey]['path'] = $path;
+            $methodPathBindings[$methodPathKey]['route_names'][] = $operation->routeName;
+            $methodPathBindings[$methodPathKey]['operation_ids'][] = $operation->id;
+
+            $routeNameBindings[$operation->routeName]['route_name'] = $operation->routeName;
+            $routeNameBindings[$operation->routeName]['bindings'][$methodPathKey] = [
+                'method' => $method,
+                'path' => $path,
+            ];
+            $routeNameBindings[$operation->routeName]['operation_ids'][] = $operation->id;
         }
 
         foreach ($operationIds as $operationId => $registryKeys) {
@@ -157,17 +163,40 @@ final class ApiContractValidator
             ]);
         }
 
-        foreach ($bindings as $binding) {
+        foreach ($methodPathBindings as $binding) {
             $operationIds = array_values(array_unique($binding['operation_ids']));
             if (count($operationIds) <= 1) {
                 continue;
             }
 
             sort($operationIds);
-            $this->error('route.binding_duplicate', [
+            $routeNames = array_values(array_unique($binding['route_names']));
+            sort($routeNames);
+            $details = [
                 'method' => $binding['method'],
                 'operation_ids' => $operationIds,
                 'path' => $binding['path'],
+            ];
+            if (count($routeNames) === 1) {
+                $details['route_name'] = $routeNames[0];
+            } else {
+                $details['route_names'] = $routeNames;
+            }
+
+            $this->error('route.binding_duplicate', $details);
+        }
+
+        foreach ($routeNameBindings as $binding) {
+            $operationIds = array_values(array_unique($binding['operation_ids']));
+            if (count($operationIds) <= 1) {
+                continue;
+            }
+
+            sort($operationIds);
+            ksort($binding['bindings']);
+            $this->error('route.name_duplicate', [
+                'bindings' => array_values($binding['bindings']),
+                'operation_ids' => $operationIds,
                 'route_name' => $binding['route_name'],
             ]);
         }
@@ -351,16 +380,21 @@ final class ApiContractValidator
     {
         if (is_array($value)) {
             foreach ($value as $key => $item) {
-                $childLocation = is_int($key)
-                    ? $location."[{$key}]"
-                    : $location.'.'.$key;
+                $childLocation = $this->schemaChildLocation($location, $key);
+                if (is_string($key) && ! $this->isValidUtf8($key)) {
+                    $issues[] = [
+                        'location' => $childLocation,
+                        'reason' => 'JSON Schema map keys must be valid UTF-8.',
+                    ];
+                }
+
                 $this->validateSchemaJsonValues($item, $childLocation, $issues);
             }
 
             return;
         }
 
-        if (is_string($value) && preg_match('//u', $value) === 1) {
+        if (is_string($value) && $this->isValidUtf8($value)) {
             return;
         }
 
@@ -390,6 +424,10 @@ final class ApiContractValidator
      */
     private function validateSchemaNode(mixed $schema, string $location, array &$issues): void
     {
+        if (is_bool($schema)) {
+            return;
+        }
+
         if (! is_array($schema)) {
             $issues[] = [
                 'location' => $location,
@@ -417,34 +455,40 @@ final class ApiContractValidator
             ];
         }
 
-        $properties = $schema['properties'] ?? null;
-        if ($properties !== null) {
-            if (! is_array($properties) || ($properties !== [] && array_is_list($properties))) {
+        foreach (['$defs', 'properties', 'patternProperties', 'dependentSchemas'] as $keyword) {
+            if (! array_key_exists($keyword, $schema)) {
+                continue;
+            }
+
+            $children = $schema[$keyword];
+            if (! is_array($children) || ($children !== [] && array_is_list($children))) {
                 $issues[] = [
-                    'location' => $location.'.properties',
-                    'reason' => 'JSON Schema properties must be an object map.',
+                    'location' => $location.'.'.$keyword,
+                    'reason' => "JSON Schema {$keyword} must be an object map.",
                 ];
-            } else {
-                foreach ($properties as $name => $propertySchema) {
-                    if (! is_string($name) || $name === '') {
-                        $issues[] = [
-                            'location' => $location.'.properties',
-                            'reason' => 'JSON Schema property names must be non-empty strings.',
-                        ];
 
-                        continue;
-                    }
+                continue;
+            }
 
-                    $this->validateSchemaNode($propertySchema, $location.'.properties.'.$name, $issues);
+            foreach ($children as $name => $child) {
+                if ($keyword === 'properties' && (! is_string($name) || $name === '')) {
+                    $issues[] = [
+                        'location' => $location.'.properties',
+                        'reason' => 'JSON Schema property names must be non-empty strings.',
+                    ];
+
+                    continue;
                 }
+
+                $this->validateSchemaNode(
+                    $child,
+                    $this->schemaChildLocation($location.'.'.$keyword, $name),
+                    $issues,
+                );
             }
         }
 
-        if (array_key_exists('items', $schema)) {
-            $this->validateSchemaNode($schema['items'], $location.'.items', $issues);
-        }
-
-        foreach (['allOf', 'anyOf', 'oneOf'] as $keyword) {
+        foreach (['allOf', 'anyOf', 'oneOf', 'prefixItems'] as $keyword) {
             if (! array_key_exists($keyword, $schema)) {
                 continue;
             }
@@ -464,19 +508,21 @@ final class ApiContractValidator
             }
         }
 
-        if (array_key_exists('not', $schema)) {
-            $this->validateSchemaNode($schema['not'], $location.'.not', $issues);
-        }
-
-        if (array_key_exists('additionalProperties', $schema)
-            && ! is_bool($schema['additionalProperties'])
-            && ! is_array($schema['additionalProperties'])) {
-            $issues[] = [
-                'location' => $location.'.additionalProperties',
-                'reason' => 'JSON Schema additionalProperties must be a boolean or schema.',
-            ];
-        } elseif (isset($schema['additionalProperties']) && is_array($schema['additionalProperties'])) {
-            $this->validateSchemaNode($schema['additionalProperties'], $location.'.additionalProperties', $issues);
+        foreach ([
+            'not',
+            'items',
+            'contains',
+            'if',
+            'then',
+            'else',
+            'propertyNames',
+            'additionalProperties',
+            'unevaluatedProperties',
+            'unevaluatedItems',
+        ] as $keyword) {
+            if (array_key_exists($keyword, $schema)) {
+                $this->validateSchemaNode($schema[$keyword], $location.'.'.$keyword, $issues);
+            }
         }
 
         $this->validateRequiredProperties($schema, $location, $issues);
@@ -501,7 +547,7 @@ final class ApiContractValidator
             if (! in_array($type, self::JSON_SCHEMA_TYPES, true)) {
                 $issues[] = [
                     'location' => $location.'.type',
-                    'reason' => "Unsupported JSON Schema type '{$type}'.",
+                    'reason' => "Unsupported JSON Schema type '".$this->safeString($type)."'.",
                 ];
             }
 
@@ -582,14 +628,14 @@ final class ApiContractValidator
             if (isset($seen[$name])) {
                 $issues[] = [
                     'location' => $itemLocation,
-                    'reason' => "Required property '{$name}' is duplicated.",
+                    'reason' => "Required property '".$this->safeString($name)."' is duplicated.",
                 ];
             }
 
             if (! array_key_exists($name, $properties)) {
                 $issues[] = [
                     'location' => $itemLocation,
-                    'reason' => "Required property '{$name}' is not declared in properties.",
+                    'reason' => "Required property '".$this->safeString($name)."' is not declared in properties.",
                 ];
             }
 
@@ -941,6 +987,53 @@ final class ApiContractValidator
     }
 
     /**
+     * Build a JSON-safe child location for a schema map or list key.
+     *
+     * Invalid UTF-8 keys are represented by their deterministic hexadecimal
+     * bytes so the error report never contains the invalid source bytes.
+     *
+     * @param  string  $location
+     * @param  int|string  $key
+     * @return string
+     */
+    private function schemaChildLocation(string $location, int|string $key): string
+    {
+        if (is_int($key)) {
+            return $location."[{$key}]";
+        }
+
+        if ($this->isValidUtf8($key)) {
+            return $location.'.'.$key;
+        }
+
+        return $location.'.<key-hex:'.bin2hex($key).'>';
+    }
+
+    /**
+     * Determine whether a string contains valid UTF-8.
+     *
+     * @param  string  $value
+     * @return bool
+     */
+    private function isValidUtf8(string $value): bool
+    {
+        return preg_match('//u', $value) === 1;
+    }
+
+    /**
+     * Return a stable JSON-safe representation of an arbitrary string.
+     *
+     * @param  string  $value
+     * @return string
+     */
+    private function safeString(string $value): string
+    {
+        return $this->isValidUtf8($value)
+            ? $value
+            : '<value-hex:'.bin2hex($value).'>';
+    }
+
+    /**
      * Build a stable route binding key.
      *
      * @param  string  $method
@@ -1008,16 +1101,24 @@ final class ApiContractValidator
      */
     private function normalizeMap(array $value): array
     {
+        $normalized = [];
+
         foreach ($value as $key => $item) {
+            $safeKey = is_string($key) ? $this->safeString($key) : $key;
+
             if (is_array($item)) {
-                $value[$key] = $this->normalizeMap($item);
+                $item = $this->normalizeMap($item);
+            } elseif (is_string($item)) {
+                $item = $this->safeString($item);
             }
+
+            $normalized[$safeKey] = $item;
         }
 
-        if ($value !== [] && ! array_is_list($value)) {
-            ksort($value);
+        if ($normalized !== [] && ! array_is_list($normalized)) {
+            ksort($normalized);
         }
 
-        return $value;
+        return $normalized;
     }
 }

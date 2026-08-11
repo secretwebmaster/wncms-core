@@ -87,6 +87,76 @@ class ApiContractValidatorTest extends TestCase
     }
 
     /**
+     * Verify method-path and route-name collisions are detected independently.
+     *
+     * @return void
+     */
+    public function test_it_rejects_method_path_and_route_name_collisions_independently(): void
+    {
+        $registry = $this->registry([
+            $this->operation(
+                'backend.posts.show',
+                'GET',
+                '/api/v2/backend/posts/{id}',
+                'api.v2.backend.posts.show',
+            ),
+            $this->operation(
+                'backend.posts.inspect',
+                'GET',
+                '/api//v2/backend/posts/{id}/',
+                'api.v2.backend.posts.inspect',
+            ),
+            $this->operation(
+                'backend.posts.archive',
+                'POST',
+                '/api/v2/backend/posts/{id}/archive',
+                'api.v2.backend.posts.show',
+            ),
+        ]);
+
+        $result = (new ApiContractValidator(
+            $registry,
+            $this->routes([
+                ['GET', 'api/v2/backend/posts/{id}', 'api.v2.backend.posts.show'],
+                ['GET', 'api/v2/backend/posts/{id}', 'api.v2.backend.posts.inspect'],
+                ['POST', 'api/v2/backend/posts/{id}/archive', 'api.v2.backend.posts.show'],
+            ]),
+            $this->openApi([
+                ['backend.posts.show', 'GET', '/api/v2/backend/posts/{id}'],
+                ['backend.posts.archive', 'POST', '/api/v2/backend/posts/{id}/archive'],
+            ]),
+        ))->validate();
+
+        $this->assertSame([
+            [
+                'method' => 'GET',
+                'operation_ids' => ['backend.posts.inspect', 'backend.posts.show'],
+                'path' => '/api/v2/backend/posts/{id}',
+                'route_names' => [
+                    'api.v2.backend.posts.inspect',
+                    'api.v2.backend.posts.show',
+                ],
+            ],
+        ], $result['errors']['route.binding_duplicate']);
+        $this->assertSame([
+            [
+                'bindings' => [
+                    [
+                        'method' => 'GET',
+                        'path' => '/api/v2/backend/posts/{id}',
+                    ],
+                    [
+                        'method' => 'POST',
+                        'path' => '/api/v2/backend/posts/{id}/archive',
+                    ],
+                ],
+                'operation_ids' => ['backend.posts.archive', 'backend.posts.show'],
+                'route_name' => 'api.v2.backend.posts.show',
+            ],
+        ], $result['errors']['route.name_duplicate']);
+    }
+
+    /**
      * Verify missing routes and exact method, path, and name mismatches are reported.
      *
      * @return void
@@ -355,6 +425,241 @@ class ApiContractValidatorTest extends TestCase
     }
 
     /**
+     * Verify invalid UTF-8 map keys are reported with a safe stable identifier.
+     *
+     * @return void
+     */
+    public function test_it_reports_non_json_safe_schema_keys_without_leaking_invalid_bytes(): void
+    {
+        $operation = $this->operation(
+            id: 'backend.posts.show',
+            method: 'GET',
+            path: '/api/v2/backend/posts/{id}',
+            routeName: 'api.v2.backend.posts.show',
+            response: $this->schema([
+                'properties' => [
+                    "\xB1\x31" => ['type' => 'string'],
+                    "\xB2\x32" => ['type' => 'integer'],
+                ],
+                'x-numeric-values' => [0 => true, 1 => false],
+            ]),
+        );
+
+        $result = (new ApiContractValidator(
+            $this->registry([$operation]),
+            $this->routes([['GET', 'api/v2/backend/posts/{id}', 'api.v2.backend.posts.show']]),
+            $this->openApi([['backend.posts.show', 'GET', '/api/v2/backend/posts/{id}']]),
+        ))->validate();
+
+        $this->assertSame([
+            [
+                'direction' => 'response',
+                'location' => '$.properties.<key-hex:b131>',
+                'operation_id' => 'backend.posts.show',
+                'reason' => 'JSON Schema map keys must be valid UTF-8.',
+            ],
+            [
+                'direction' => 'response',
+                'location' => '$.properties.<key-hex:b232>',
+                'operation_id' => 'backend.posts.show',
+                'reason' => 'JSON Schema map keys must be valid UTF-8.',
+            ],
+        ], $result['errors']['contract.schema_invalid']);
+        $encoded = json_encode($result, JSON_THROW_ON_ERROR);
+        $this->assertStringContainsString('<key-hex:b131>', $encoded);
+        $this->assertStringNotContainsString("\xB1\x31", $encoded);
+        $this->assertStringNotContainsString("\xB2\x32", $encoded);
+    }
+
+    /**
+     * Verify every 2020-12 schema-bearing keyword accepts nested boolean schemas.
+     *
+     * @return void
+     */
+    public function test_it_accepts_boolean_schemas_in_all_core_schema_bearing_keywords(): void
+    {
+        $schema = $this->schema([
+            '$defs' => ['truthy' => true],
+            'properties' => ['published' => false],
+            'patternProperties' => ['^x-' => true],
+            'dependentSchemas' => ['published' => false],
+            'allOf' => [true],
+            'anyOf' => [false],
+            'oneOf' => [true, ['type' => 'object']],
+            'prefixItems' => [true, false],
+            'not' => false,
+            'items' => true,
+            'contains' => false,
+            'if' => true,
+            'then' => false,
+            'else' => true,
+            'propertyNames' => false,
+            'additionalProperties' => true,
+            'unevaluatedProperties' => false,
+            'unevaluatedItems' => true,
+            'x-safe-annotation' => [0 => 'first', 1 => 'second'],
+        ]);
+        $operation = $this->operation(
+            id: 'backend.posts.show',
+            method: 'GET',
+            path: '/api/v2/backend/posts/{id}',
+            routeName: 'api.v2.backend.posts.show',
+            response: $schema,
+        );
+
+        $result = (new ApiContractValidator(
+            $this->registry([$operation]),
+            $this->routes([['GET', 'api/v2/backend/posts/{id}', 'api.v2.backend.posts.show']]),
+            $this->openApi([['backend.posts.show', 'GET', '/api/v2/backend/posts/{id}']]),
+        ))->validate();
+
+        $this->assertSame([], $result['errors']);
+    }
+
+    /**
+     * Verify malformed schema-map keyword containers are rejected.
+     *
+     * @return void
+     */
+    public function test_it_rejects_malformed_schema_map_keywords(): void
+    {
+        $errors = $this->schemaErrors([
+            '$defs' => 'invalid',
+            'properties' => [true],
+            'patternProperties' => false,
+            'dependentSchemas' => 42,
+        ]);
+
+        $this->assertSame([
+            '$.$defs',
+            '$.dependentSchemas',
+            '$.patternProperties',
+            '$.properties',
+        ], array_column($errors, 'location'));
+        $this->assertSame([
+            'JSON Schema $defs must be an object map.',
+            'JSON Schema dependentSchemas must be an object map.',
+            'JSON Schema patternProperties must be an object map.',
+            'JSON Schema properties must be an object map.',
+        ], array_column($errors, 'reason'));
+    }
+
+    /**
+     * Verify every schema-map keyword recursively validates its child schemas.
+     *
+     * @return void
+     */
+    public function test_it_rejects_malformed_children_in_schema_map_keywords(): void
+    {
+        $errors = $this->schemaErrors([
+            '$defs' => ['invalid' => 'value'],
+            'properties' => ['invalid' => 1],
+            'patternProperties' => ['^invalid$' => null],
+            'dependentSchemas' => ['invalid' => 1.5],
+        ]);
+
+        $this->assertSame([
+            '$.$defs.invalid',
+            '$.dependentSchemas.invalid',
+            '$.patternProperties.^invalid$',
+            '$.properties.invalid',
+        ], array_column($errors, 'location'));
+        foreach ($errors as $error) {
+            $this->assertSame('A JSON Schema node must be an object or boolean.', $error['reason']);
+        }
+    }
+
+    /**
+     * Verify malformed schema-list keyword containers are rejected.
+     *
+     * @return void
+     */
+    public function test_it_rejects_malformed_schema_list_keywords(): void
+    {
+        $errors = $this->schemaErrors([
+            'allOf' => false,
+            'anyOf' => ['type' => 'string'],
+            'oneOf' => [],
+            'prefixItems' => 'invalid',
+        ]);
+
+        $this->assertSame([
+            '$.allOf',
+            '$.anyOf',
+            '$.oneOf',
+            '$.prefixItems',
+        ], array_column($errors, 'location'));
+        $this->assertSame([
+            'JSON Schema allOf must be a non-empty schema list.',
+            'JSON Schema anyOf must be a non-empty schema list.',
+            'JSON Schema oneOf must be a non-empty schema list.',
+            'JSON Schema prefixItems must be a non-empty schema list.',
+        ], array_column($errors, 'reason'));
+    }
+
+    /**
+     * Verify every schema-list keyword recursively validates its child schemas.
+     *
+     * @return void
+     */
+    public function test_it_rejects_malformed_children_in_schema_list_keywords(): void
+    {
+        $errors = $this->schemaErrors([
+            'allOf' => ['invalid'],
+            'anyOf' => [1],
+            'oneOf' => [null],
+            'prefixItems' => [1.5],
+        ]);
+
+        $this->assertSame([
+            '$.allOf[0]',
+            '$.anyOf[0]',
+            '$.oneOf[0]',
+            '$.prefixItems[0]',
+        ], array_column($errors, 'location'));
+        foreach ($errors as $error) {
+            $this->assertSame('A JSON Schema node must be an object or boolean.', $error['reason']);
+        }
+    }
+
+    /**
+     * Verify malformed single-schema keyword values are rejected recursively.
+     *
+     * @return void
+     */
+    public function test_it_rejects_malformed_single_schema_keywords(): void
+    {
+        $errors = $this->schemaErrors([
+            'not' => 'invalid',
+            'items' => 1,
+            'contains' => null,
+            'if' => 'invalid',
+            'then' => 1.5,
+            'else' => 'invalid',
+            'propertyNames' => 2,
+            'additionalProperties' => null,
+            'unevaluatedProperties' => 'invalid',
+            'unevaluatedItems' => 3,
+        ]);
+
+        $this->assertSame([
+            '$.additionalProperties',
+            '$.contains',
+            '$.else',
+            '$.if',
+            '$.items',
+            '$.not',
+            '$.propertyNames',
+            '$.then',
+            '$.unevaluatedItems',
+            '$.unevaluatedProperties',
+        ], array_column($errors, 'location'));
+        foreach ($errors as $error) {
+            $this->assertSame('A JSON Schema node must be an object or boolean.', $error['reason']);
+        }
+    }
+
+    /**
      * Verify registry identifiers and OpenAPI operation coverage are exactly one-to-one.
      *
      * @return void
@@ -450,6 +755,31 @@ class ApiContractValidatorTest extends TestCase
             $this->routes([]),
             $this->openApi([]),
         ))->validate();
+    }
+
+    /**
+     * Return response-schema errors for one raw schema fixture.
+     *
+     * @param  array<string, mixed>  $schema
+     * @return array<int, array<string, mixed>>
+     */
+    private function schemaErrors(array $schema): array
+    {
+        $operation = $this->operation(
+            id: 'backend.posts.show',
+            method: 'GET',
+            path: '/api/v2/backend/posts/{id}',
+            routeName: 'api.v2.backend.posts.show',
+            response: $this->schema($schema),
+        );
+
+        $result = (new ApiContractValidator(
+            $this->registry([$operation]),
+            $this->routes([['GET', 'api/v2/backend/posts/{id}', 'api.v2.backend.posts.show']]),
+            $this->openApi([['backend.posts.show', 'GET', '/api/v2/backend/posts/{id}']]),
+        ))->validate();
+
+        return $result['errors']['contract.schema_invalid'] ?? [];
     }
 
     /**
