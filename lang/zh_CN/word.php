@@ -2418,6 +2418,8 @@ $words = [
     'raw_plugins' => '原始插件',
     'plugins_pending_first_activation' => '待首次启用插件',
     'plugins_index' => '插件列表',
+    'enable_mutation_audit' => '启用变更审计',
+    'enable_mutation_audit_description' => '记录成功的后台 UI、CLI 与 API 变更。启用后会增加快照与审计查询；停用后将不保留变更问责记录。',
 ];
 
 $locale = basename(__DIR__);

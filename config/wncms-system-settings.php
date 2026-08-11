@@ -111,6 +111,7 @@ return [
             ['type' => 'switch', 'name' => 'use_custom_admin_dashbaord'],
             ['type' => 'switch', 'name' => 'hide_default_admin_dashboard_items'],
             ['type' => 'switch', 'name' => 'hide_system_update_log'],
+            ['type' => 'switch', 'name' => 'enable_mutation_audit'],
         ]
     ],
     'analytics' => [

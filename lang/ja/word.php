@@ -2412,6 +2412,8 @@ $words = [
     'raw_plugins' => '生プラグイン',
     'plugins_pending_first_activation' => '初回有効化待ちプラグイン',
     'plugins_index' => 'プラグイン一覧',
+    'enable_mutation_audit' => '変更監査を有効化',
+    'enable_mutation_audit_description' => '成功したバックエンド UI、CLI、API の変更を記録します。有効化するとスナップショットと監査クエリが追加され、無効化すると変更の追跡記録は保存されません。',
 ];
 
 $locale = basename(__DIR__);

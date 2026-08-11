@@ -2418,6 +2418,8 @@ $words = [
     'raw_plugins' => 'Raw Plugins',
     'plugins_pending_first_activation' => 'Plugins Pending First Activation',
     'plugins_index' => 'Plugins Index',
+    'enable_mutation_audit' => 'Enable mutation audit',
+    'enable_mutation_audit_description' => 'Record successful backend UI, CLI, and API mutations. Enabling this adds snapshot and audit queries; disabling it removes mutation accountability.',
 ];
 
 $locale = basename(__DIR__);

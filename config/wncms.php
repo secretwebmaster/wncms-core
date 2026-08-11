@@ -46,6 +46,10 @@ return [
         'system_actor_user_id' => env('WNCMS_AUTOMATION_SYSTEM_ACTOR_USER_ID'),
     ],
 
+    'mutation_audit' => [
+        'enabled' => false,
+    ],
+
     'mcp' => [
         'enabled' => env('WNCMS_MCP_ENABLED', false),
         'server' => 'wncms',

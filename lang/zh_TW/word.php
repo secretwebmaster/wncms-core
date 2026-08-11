@@ -2423,6 +2423,8 @@ $words = [
     'plugins_pending_first_activation' => '待首次啟用外掛',
     'plugins_index' => '外掛列表',
     'example' => '範例',
+    'enable_mutation_audit' => '啟用異動審計',
+    'enable_mutation_audit_description' => '記錄成功的後台 UI、CLI 與 API 異動。啟用後會增加快照與審計查詢；停用後將不保留異動問責記錄。',
 ];
 
 $locale = basename(__DIR__);

@@ -241,8 +241,22 @@ class WncmsServiceProvider extends ServiceProvider
 
         $this->loadSessionSettings();
 
+        $this->loadMutationAuditSettings();
+
         // Runtime model website mode override from system settings
         $this->loadModelWebsiteModeSettings();
+    }
+
+    /**
+     * Load the global mutation audit setting into runtime config.
+     *
+     * @return void
+     */
+    protected function loadMutationAuditSettings(): void
+    {
+        config([
+            'wncms.mutation_audit.enabled' => (bool) gss('enable_mutation_audit', false),
+        ]);
     }
 
     protected function loadCacheCompatibilitySettings(): void
