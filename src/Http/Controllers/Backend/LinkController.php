@@ -210,6 +210,8 @@ class LinkController extends BackendController
             $request->validate($rules, $messages);
         }
 
+        $trackingCodeUsesFallback = $request->input('tracking_code') === null;
+        $slugUsesFallback = !$request->input('slug');
         $attributes = [
             'status' => $request->input('status'),
             'tracking_code' => $request->input('tracking_code') ?? $link->tracking_code,
@@ -232,15 +234,33 @@ class LinkController extends BackendController
         ];
 
         Event::dispatch('wncms.backend.links.update.attributes.before', [$link, $request, &$attributes]);
+        $refreshTrackingCodeFallback = $trackingCodeUsesFallback
+            && ($attributes['tracking_code'] ?? null) === $link->tracking_code;
+        $refreshSlugFallback = $slugUsesFallback
+            && ($attributes['slug'] ?? null) === $link->slug;
 
         $addedMedia = [];
         $removedMedia = [];
 
         try {
-            $this->auditedMutation(function () use ($attributes, $link, $request, &$addedMedia, &$removedMedia): void {
+            $this->auditedMutation(function () use (
+                $attributes,
+                $link,
+                $request,
+                $refreshTrackingCodeFallback,
+                $refreshSlugFallback,
+                &$addedMedia,
+                &$removedMedia
+            ): void {
                 $auditEnabled = $this->mutationAuditService()->enabled();
                 if ($auditEnabled) {
                     $link = $this->modelClass::query()->whereKey($link->getKey())->lockForUpdate()->firstOrFail();
+                    if ($refreshTrackingCodeFallback) {
+                        $attributes['tracking_code'] = $link->tracking_code;
+                    }
+                    if ($refreshSlugFallback) {
+                        $attributes['slug'] = $link->slug;
+                    }
                 }
                 $before = $auditEnabled ? $this->linkAuditState($link) : [];
 
@@ -736,16 +756,12 @@ class LinkController extends BackendController
             }
 
             $beforeMedia = $link->media()->where('collection_name', $collection)->get();
-            $mediaClass = $link->getMediaModel();
-            $newMedia = $mediaClass::withoutEvents(function () use ($collection, $link, $shouldRemove, $shouldUpload) {
-                if ($shouldRemove) {
-                    $link->clearMediaCollection($collection);
-                }
-
-                return $shouldUpload
-                    ? $link->addMediaFromRequest($collection)->toMediaCollection($collection)
-                    : null;
-            });
+            if ($beforeMedia->isNotEmpty()) {
+                $link->media()->where('collection_name', $collection)->delete();
+            }
+            $newMedia = $shouldUpload
+                ? $link->addMediaFromRequest($collection)->toMediaCollection($collection)
+                : null;
 
             if ($newMedia !== null) {
                 $addedMedia[] = $newMedia;

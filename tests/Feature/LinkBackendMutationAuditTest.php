@@ -122,6 +122,32 @@ class LinkBackendMutationAuditTest extends TestCase
         $this->assertSame($beforeAuditCount + 1, MutationAudit::count());
     }
 
+    public function test_enabled_update_rebuilds_fallback_fields_from_locked_model(): void
+    {
+        config(['wncms.mutation_audit.enabled' => true]);
+        $link = Link::create($this->linkData([
+            'tracking_code' => 'before-lock-code',
+            'slug' => 'before-lock-slug',
+        ]));
+        Event::listen('wncms.backend.links.update.attributes.before', function () use ($link): void {
+            DB::table('links')->where('id', $link->id)->update([
+                'tracking_code' => 'locked-current-code',
+                'slug' => 'locked-current-slug',
+            ]);
+        });
+        $payload = $this->linkData(['name' => 'Fallback-safe update']);
+        $payload['tracking_code'] = null;
+        $payload['slug'] = '';
+
+        $this->patch(route('links.update', $link->id), $payload)
+            ->assertRedirect(route('links.edit', ['id' => $link->id]));
+
+        $link->refresh();
+        $this->assertSame('locked-current-code', $link->tracking_code);
+        $this->assertSame('locked-current-slug', $link->slug);
+        $this->assertSame('Fallback-safe update', $link->name);
+    }
+
     public function test_enabled_destroy_audits_pre_delete_snapshot(): void
     {
         config(['wncms.mutation_audit.enabled' => true]);
@@ -247,6 +273,7 @@ class LinkBackendMutationAuditTest extends TestCase
         $newMedia = $link->fresh()->getFirstMedia('link_thumbnail');
         $this->assertNotNull($newMedia);
         $this->assertNotSame($oldMedia->id, $newMedia->id);
+        $this->assertNotEmpty($newMedia->uuid);
         Storage::disk('public')->assertMissing($oldPath);
         Storage::disk('public')->assertExists($newMedia->getPathRelativeToRoot());
         $this->assertSame(
