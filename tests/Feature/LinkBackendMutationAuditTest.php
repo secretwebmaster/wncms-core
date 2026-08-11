@@ -5,6 +5,8 @@ namespace Wncms\Tests\Feature;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 use Mockery;
 use RuntimeException;
 use Wncms\Models\Link;
@@ -162,6 +164,129 @@ class LinkBackendMutationAuditTest extends TestCase
         $this->assertSame('Before rollback', $link->fresh()->name);
     }
 
+    public function test_enabled_create_removes_uploaded_media_when_audit_rolls_back(): void
+    {
+        Storage::fake('public');
+        config([
+            'media-library.disk_name' => 'public',
+            'wncms.mutation_audit.enabled' => true,
+        ]);
+        $mock = Mockery::mock(BackendMutationAuditService::class, [app(MutationAuditService::class)])
+            ->makePartial();
+        $mock->shouldReceive('write')->once()->andThrow(new RuntimeException('audit failed'));
+        $this->app->instance(BackendMutationAuditService::class, $mock);
+        $payload = $this->linkData([
+            'link_thumbnail' => UploadedFile::fake()->create('rollback-create.jpg', 4, 'image/jpeg'),
+        ]);
+        $slug = $this->lastSlug;
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->post(route('links.store'), $payload);
+            $this->fail('Expected create audit persistence failure.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('audit failed', $exception->getMessage());
+        }
+
+        $this->assertFalse(Link::where('slug', $slug)->exists());
+        $this->assertSame([], Storage::disk('public')->allFiles());
+    }
+
+    public function test_enabled_update_preserves_removed_media_when_audit_rolls_back(): void
+    {
+        Storage::fake('public');
+        config([
+            'media-library.disk_name' => 'public',
+            'wncms.mutation_audit.enabled' => true,
+        ]);
+        $link = Link::create($this->linkData(['name' => 'Media rollback before']));
+        $media = $link->addMedia(UploadedFile::fake()->create('rollback-existing.jpg', 4, 'image/jpeg'))
+            ->toMediaCollection('link_thumbnail');
+        $path = $media->getPathRelativeToRoot();
+        Storage::disk('public')->assertExists($path);
+        $mock = Mockery::mock(BackendMutationAuditService::class, [app(MutationAuditService::class)])
+            ->makePartial();
+        $mock->shouldReceive('write')->once()->andThrow(new RuntimeException('audit failed'));
+        $this->app->instance(BackendMutationAuditService::class, $mock);
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->patch(route('links.update', $link->id), $this->linkData([
+                'slug' => $link->slug,
+                'name' => 'Media rollback after',
+                'link_thumbnail_remove' => 1,
+            ]));
+            $this->fail('Expected update audit persistence failure.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('audit failed', $exception->getMessage());
+        }
+
+        $this->assertSame('Media rollback before', $link->fresh()->name);
+        $this->assertDatabaseHas('media', ['id' => $media->id]);
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_enabled_update_cleans_replaced_media_after_audited_commit(): void
+    {
+        Storage::fake('public');
+        config([
+            'media-library.disk_name' => 'public',
+            'wncms.mutation_audit.enabled' => true,
+        ]);
+        $link = Link::create($this->linkData(['name' => 'Media replacement before']));
+        $oldMedia = $link->addMedia(UploadedFile::fake()->create('replacement-old.jpg', 4, 'image/jpeg'))
+            ->toMediaCollection('link_thumbnail');
+        $oldPath = $oldMedia->getPathRelativeToRoot();
+
+        $this->patch(route('links.update', $link->id), $this->linkData([
+            'slug' => $link->slug,
+            'name' => 'Media replacement after',
+            'link_thumbnail' => UploadedFile::fake()->create('replacement-new.jpg', 4, 'image/jpeg'),
+        ]))->assertRedirect(route('links.edit', ['id' => $link->id]));
+
+        $newMedia = $link->fresh()->getFirstMedia('link_thumbnail');
+        $this->assertNotNull($newMedia);
+        $this->assertNotSame($oldMedia->id, $newMedia->id);
+        Storage::disk('public')->assertMissing($oldPath);
+        Storage::disk('public')->assertExists($newMedia->getPathRelativeToRoot());
+        $this->assertSame(
+            [$newMedia->id],
+            MutationAudit::latest('id')->firstOrFail()->input_summary['changes']['after']['relationships']['media']['link_thumbnail']
+        );
+    }
+
+    public function test_enabled_single_mutations_do_not_audit_cancelled_model_events(): void
+    {
+        config(['wncms.mutation_audit.enabled' => true]);
+        $updateTarget = Link::create($this->linkData(['name' => 'Cancelled update before']));
+        $deleteTarget = Link::create($this->linkData(['name' => 'Cancelled delete target']));
+        $beforeAuditCount = MutationAudit::count();
+        Event::listen('eloquent.updating: ' . Link::class, fn (): bool => false);
+        Event::listen('eloquent.deleting: ' . Link::class, fn (): bool => false);
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->patch(route('links.update', $updateTarget->id), $this->linkData([
+                'slug' => $updateTarget->slug,
+                'name' => 'Cancelled update after',
+            ]));
+            $this->fail('Expected cancelled Link update failure.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Link update was cancelled.', $exception->getMessage());
+        }
+
+        try {
+            $this->delete(route('links.destroy', $deleteTarget->id));
+            $this->fail('Expected cancelled Link delete failure.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Link delete was cancelled.', $exception->getMessage());
+        }
+
+        $this->assertSame('Cancelled update before', $updateTarget->fresh()->name);
+        $this->assertTrue(Link::whereKey($deleteTarget->id)->exists());
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
     public function test_disabled_bulk_mutations_write_without_audits(): void
     {
         config(['wncms.mutation_audit.enabled' => false]);
@@ -206,6 +331,25 @@ class LinkBackendMutationAuditTest extends TestCase
         $this->assertSame(['link_bulk_delete'], $audits->pluck('permission')->unique()->values()->all());
         $this->assertCount(1, $audits->pluck('run_id')->unique());
         $this->assertEqualsCanonicalizing([$first->id, $second->id], $audits->pluck('model_id')->all());
+    }
+
+    public function test_enabled_bulk_delete_preserves_query_delete_event_semantics(): void
+    {
+        config(['wncms.mutation_audit.enabled' => true]);
+        $first = Link::create($this->linkData());
+        $second = Link::create($this->linkData());
+        $deletingEvents = 0;
+        Event::listen('eloquent.deleting: ' . Link::class, function () use (&$deletingEvents): void {
+            $deletingEvents++;
+        });
+
+        $this->withHeader('X-Requested-With', 'XMLHttpRequest')->postJson(route('links.bulk_delete'), [
+            'model_ids' => [$first->id, $second->id],
+        ])->assertOk();
+
+        $this->assertSame(0, $deletingEvents);
+        $this->assertFalse(Link::whereKey($first->id)->exists());
+        $this->assertFalse(Link::whereKey($second->id)->exists());
     }
 
     public function test_enabled_bulk_update_audits_changed_links_only(): void
@@ -306,6 +450,27 @@ class LinkBackendMutationAuditTest extends TestCase
 
         $this->assertSame(10, $first->fresh()->sort);
         $this->assertSame(20, $second->fresh()->sort);
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
+    public function test_enabled_bulk_update_rolls_back_when_model_event_cancels_write(): void
+    {
+        config(['wncms.mutation_audit.enabled' => true]);
+        $link = Link::create($this->linkData(['sort' => 10]));
+        $beforeAuditCount = MutationAudit::count();
+        Event::listen('eloquent.updating: ' . Link::class, fn (): bool => false);
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->postJson(route('links.bulk_update'), [
+                'data' => [['id' => $link->id, 'sort' => 20]],
+            ]);
+            $this->fail('Expected cancelled Link bulk update failure.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Link bulk update was cancelled.', $exception->getMessage());
+        }
+
+        $this->assertSame(10, $link->fresh()->sort);
         $this->assertSame($beforeAuditCount, MutationAudit::count());
     }
 

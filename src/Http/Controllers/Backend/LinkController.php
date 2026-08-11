@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
+use RuntimeException;
+use Spatie\MediaLibrary\MediaCollections\Filesystem as MediaFilesystem;
+use Throwable;
 use Wncms\Services\Automation\BackendMutationAuditService;
 
 class LinkController extends BackendController
@@ -124,53 +127,47 @@ class LinkController extends BackendController
 
         Event::dispatch('wncms.backend.links.store.attributes.before', [$request, &$attributes]);
 
-        $link = $this->auditedMutation(function () use ($attributes, $request) {
-            $link = $this->modelClass::create($attributes);
-            $this->syncBackendMutationWebsites($link);
+        $addedMedia = [];
+        $removedMedia = [];
 
-            //thumbnail
-            if (!empty($request->link_thumbnail_remove)) {
-                $link->clearMediaCollection('link_thumbnail');
-            }
+        try {
+            $link = $this->auditedMutation(function () use ($attributes, $request, &$addedMedia, &$removedMedia) {
+                $link = $this->modelClass::create($attributes);
+                $this->syncBackendMutationWebsites($link);
 
-            if (!empty($request->link_thumbnail)) {
-                $link->addMediaFromRequest('link_thumbnail')->toMediaCollection('link_thumbnail');
-            }
+                $this->mutateLinkMedia($link, $request, $addedMedia, $removedMedia);
 
-            // icon
-            if (!empty($request->link_icon_remove)) {
-                $link->clearMediaCollection('link_icon');
-            }
+                //tags
+                $link->syncTagsFromTagify($request->link_categories, 'link_category');
+                $link->syncTagsFromTagify($request->link_tags, 'link_tag');
 
-            if (!empty($request->link_icon)) {
-                $link->addMediaFromRequest('link_icon')->toMediaCollection('link_icon');
-            }
+                Event::dispatch('wncms.backend.links.store.after', [$link, $request]);
 
-            //tags
-            $link->syncTagsFromTagify($request->link_categories, 'link_category');
-            $link->syncTagsFromTagify($request->link_tags, 'link_tag');
+                if ($this->mutationAuditService()->enabled()) {
+                    $link->refresh();
+                    $after = $this->linkAuditState($link);
+                    $this->mutationAuditService()->write(
+                        $link,
+                        'links',
+                        'create',
+                        'link_create',
+                        [],
+                        $after,
+                        (array) ($after['relationships']['website_ids'] ?? []),
+                        (array) ($after['relationships'] ?? []),
+                        null,
+                        'Link created.'
+                    );
+                }
 
-            Event::dispatch('wncms.backend.links.store.after', [$link, $request]);
+                return $link;
+            });
+        } catch (Throwable $exception) {
+            $this->removeMediaFiles($addedMedia);
+            throw $exception;
+        }
 
-            if ($this->mutationAuditService()->enabled()) {
-                $link->refresh();
-                $after = $this->linkAuditState($link);
-                $this->mutationAuditService()->write(
-                    $link,
-                    'links',
-                    'create',
-                    'link_create',
-                    [],
-                    $after,
-                    (array) ($after['relationships']['website_ids'] ?? []),
-                    (array) ($after['relationships'] ?? []),
-                    null,
-                    'Link created.'
-                );
-            }
-
-            return $link;
-        });
+        $this->removeMediaFiles($removedMedia);
 
         $this->flush(['links']);
 
@@ -236,61 +233,60 @@ class LinkController extends BackendController
 
         Event::dispatch('wncms.backend.links.update.attributes.before', [$link, $request, &$attributes]);
 
-        $this->auditedMutation(function () use ($attributes, $link, $request): void {
-            $auditEnabled = $this->mutationAuditService()->enabled();
-            $before = $auditEnabled ? $this->linkAuditState($link) : [];
+        $addedMedia = [];
+        $removedMedia = [];
 
-            $link->update($attributes);
-            $this->syncBackendMutationWebsites($link);
-
-            // thumbnail
-            if (!empty($request->link_thumbnail_remove)) {
-                $link->clearMediaCollection('link_thumbnail');
-            }
-
-            if (!empty($request->link_thumbnail)) {
-                $link->addMediaFromRequest('link_thumbnail')->toMediaCollection('link_thumbnail');
-            }
-
-            // icon
-            if (!empty($request->link_icon_remove)) {
-                $link->clearMediaCollection('link_icon');
-            }
-
-            if (!empty($request->link_icon)) {
-                $link->addMediaFromRequest('link_icon')->toMediaCollection('link_icon');
-            }
-
-            // tags
-            if (method_exists($link, 'syncTagsFromTagify')) {
-                $link->syncTagsFromTagify($request->link_categories, 'link_category');
-                $link->syncTagsFromTagify($request->link_tags, 'link_tag');
-            }
-
-            Event::dispatch('wncms.backend.links.update.after', [$link, $request]);
-
-            if ($auditEnabled) {
-                $link->refresh();
-                $after = $this->linkAuditState($link);
-                if ($before !== $after) {
-                    $this->mutationAuditService()->write(
-                        $link,
-                        'links',
-                        'update',
-                        'link_edit',
-                        $before,
-                        $after,
-                        (array) ($after['relationships']['website_ids'] ?? []),
-                        [
-                            'before' => (array) ($before['relationships'] ?? []),
-                            'after' => (array) ($after['relationships'] ?? []),
-                        ],
-                        null,
-                        'Link updated.'
-                    );
+        try {
+            $this->auditedMutation(function () use ($attributes, $link, $request, &$addedMedia, &$removedMedia): void {
+                $auditEnabled = $this->mutationAuditService()->enabled();
+                if ($auditEnabled) {
+                    $link = $this->modelClass::query()->whereKey($link->getKey())->lockForUpdate()->firstOrFail();
                 }
-            }
-        });
+                $before = $auditEnabled ? $this->linkAuditState($link) : [];
+
+                if ($link->update($attributes) !== true) {
+                    throw new RuntimeException('Link update was cancelled.');
+                }
+                $this->syncBackendMutationWebsites($link);
+
+                $this->mutateLinkMedia($link, $request, $addedMedia, $removedMedia);
+
+                // tags
+                if (method_exists($link, 'syncTagsFromTagify')) {
+                    $link->syncTagsFromTagify($request->link_categories, 'link_category');
+                    $link->syncTagsFromTagify($request->link_tags, 'link_tag');
+                }
+
+                Event::dispatch('wncms.backend.links.update.after', [$link, $request]);
+
+                if ($auditEnabled) {
+                    $link->refresh();
+                    $after = $this->linkAuditState($link);
+                    if ($before !== $after) {
+                        $this->mutationAuditService()->write(
+                            $link,
+                            'links',
+                            'update',
+                            'link_edit',
+                            $before,
+                            $after,
+                            (array) ($after['relationships']['website_ids'] ?? []),
+                            [
+                                'before' => (array) ($before['relationships'] ?? []),
+                                'after' => (array) ($after['relationships'] ?? []),
+                            ],
+                            null,
+                            'Link updated.'
+                        );
+                    }
+                }
+            });
+        } catch (Throwable $exception) {
+            $this->removeMediaFiles($addedMedia);
+            throw $exception;
+        }
+
+        $this->removeMediaFiles($removedMedia);
 
         $this->flush(['links']);
 
@@ -318,8 +314,15 @@ class LinkController extends BackendController
         }
 
         $this->auditedMutation(function () use ($link): void {
+            $link = $this->modelClass::query()->whereKey($link->getKey())->lockForUpdate()->first();
+            if (!$link) {
+                throw new RuntimeException('Link delete target became unavailable.');
+            }
+
             $before = $this->linkAuditState($link);
-            $link->delete();
+            if ($link->delete() !== true) {
+                throw new RuntimeException('Link delete was cancelled.');
+            }
             $this->mutationAuditService()->write(
                 $link,
                 'links',
@@ -354,14 +357,18 @@ class LinkController extends BackendController
         $modelIds = is_array($request->model_ids)
             ? $request->model_ids
             : explode(',', (string) $request->model_ids);
-        $links = $this->modelClass::whereIn('id', $modelIds)->get();
         $runId = (string) Str::uuid();
-        $count = DB::transaction(function () use ($links, $runId): int {
+        $count = DB::transaction(function () use ($modelIds, $runId): int {
             $deleted = 0;
+            $links = $this->modelClass::query()
+                ->whereIn('id', $modelIds)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
 
             foreach ($links as $link) {
                 $before = $this->linkAuditState($link);
-                if ($link->delete() !== true) {
+                if ($this->modelClass::query()->whereKey($link->getKey())->delete() !== 1) {
                     continue;
                 }
 
@@ -495,8 +502,14 @@ class LinkController extends BackendController
 
             if ($this->mutationAuditService()->enabled()) {
                 $runId = (string) Str::uuid();
-                $changed = DB::transaction(function () use ($links, $action, $link_categories, $link_tags, $runId): int {
+                $modelIds = $links->pluck('id')->all();
+                $changed = DB::transaction(function () use ($modelIds, $action, $link_categories, $link_tags, $runId): int {
                     $count = 0;
+                    $links = $this->modelClass::query()
+                        ->whereIn('id', $modelIds)
+                        ->orderBy('id')
+                        ->lockForUpdate()
+                        ->get();
 
                     foreach ($links as $link) {
                         $before = $this->linkAuditState($link);
@@ -566,9 +579,24 @@ class LinkController extends BackendController
         $runId = (string) Str::uuid();
         $count = DB::transaction(function () use ($request, $runId): int {
             $changed = 0;
+            $items = (array) $request->data;
+            $modelIds = collect($items)
+                ->pluck('id')
+                ->filter(fn ($id): bool => is_numeric($id))
+                ->map(fn ($id): int => (int) $id)
+                ->unique()
+                ->sort()
+                ->values()
+                ->all();
+            $links = $this->modelClass::query()
+                ->whereIn('id', $modelIds)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy(fn ($link): int => (int) $link->getKey());
 
-            foreach ((array) $request->data as $item) {
-                $link = $this->modelClass::find($item['id']);
+            foreach ($items as $item) {
+                $link = $links->get((int) $item['id']);
                 if (!$link) {
                     continue;
                 }
@@ -585,9 +613,14 @@ class LinkController extends BackendController
                 }
 
                 $before = $this->linkAuditState($link);
-                $link->update($updateData);
+                if ($link->update($updateData) !== true) {
+                    throw new RuntimeException('Link bulk update was cancelled.');
+                }
                 $link->refresh();
                 $after = $this->linkAuditState($link);
+                if ($before === $after) {
+                    continue;
+                }
                 $this->mutationAuditService()->write(
                     $link,
                     'links',
@@ -667,6 +700,82 @@ class LinkController extends BackendController
     protected function mutationAuditService(): BackendMutationAuditService
     {
         return app(BackendMutationAuditService::class);
+    }
+
+    /**
+     * Apply Link media changes with filesystem compensation for audited rollbacks.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $link
+     * @param  \Illuminate\Http\Request  $request
+     * @param  array  $addedMedia
+     * @param  array  $removedMedia
+     * @return void
+     */
+    protected function mutateLinkMedia($link, Request $request, array &$addedMedia, array &$removedMedia): void
+    {
+        $collections = [
+            'link_thumbnail' => 'link_thumbnail_remove',
+            'link_icon' => 'link_icon_remove',
+        ];
+
+        foreach ($collections as $collection => $removeInput) {
+            $shouldRemove = !empty($request->{$removeInput});
+            $shouldUpload = !empty($request->{$collection});
+            if (!$shouldRemove && !$shouldUpload) {
+                continue;
+            }
+
+            if (!$this->mutationAuditService()->enabled()) {
+                if ($shouldRemove) {
+                    $link->clearMediaCollection($collection);
+                }
+                if ($shouldUpload) {
+                    $link->addMediaFromRequest($collection)->toMediaCollection($collection);
+                }
+                continue;
+            }
+
+            $beforeMedia = $link->media()->where('collection_name', $collection)->get();
+            $mediaClass = $link->getMediaModel();
+            $newMedia = $mediaClass::withoutEvents(function () use ($collection, $link, $shouldRemove, $shouldUpload) {
+                if ($shouldRemove) {
+                    $link->clearMediaCollection($collection);
+                }
+
+                return $shouldUpload
+                    ? $link->addMediaFromRequest($collection)->toMediaCollection($collection)
+                    : null;
+            });
+
+            if ($newMedia !== null) {
+                $addedMedia[] = $newMedia;
+            }
+
+            $remainingIds = $link->media()
+                ->where('collection_name', $collection)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+            foreach ($beforeMedia as $media) {
+                if (!in_array((int) $media->getKey(), $remainingIds, true)) {
+                    $removedMedia[] = $media;
+                }
+            }
+        }
+    }
+
+    /**
+     * Remove physical files for media rows already committed or rolled back.
+     *
+     * @param  array  $mediaItems
+     * @return void
+     */
+    protected function removeMediaFiles(array $mediaItems): void
+    {
+        $filesystem = app(MediaFilesystem::class);
+        foreach ($mediaItems as $media) {
+            $filesystem->removeAllFiles($media);
+        }
     }
 
     /**

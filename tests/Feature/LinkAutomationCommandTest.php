@@ -1068,6 +1068,30 @@ class LinkAutomationCommandTest extends TestCase
         $this->assertSame($beforeAuditCount + 1, MutationAudit::count());
         $this->assertSame($decoded['data']['run_id'], $audit->run_id);
         $this->assertSame($changed->id, $audit->model_id);
+        $this->assertSame(['enabled' => true, 'ids' => [$audit->id]], $decoded['data']['audit']);
+    }
+
+    public function test_links_bulk_update_force_returns_empty_audit_ids_when_disabled(): void
+    {
+        config(['wncms.mutation_audit.enabled' => false]);
+        $admin = $this->automationAdmin();
+        $link = Link::create($this->linkData(['sort' => 10]));
+        $beforeAuditCount = MutationAudit::count();
+
+        $exitCode = Artisan::call('wncms:links:bulk-update', [
+            '--items' => json_encode([
+                ['identifier' => $link->id, 'sort' => 20],
+            ]),
+            '--actor-user' => $admin->id,
+            '--force' => true,
+            '--json' => true,
+        ]);
+        $decoded = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertSame(20, $link->fresh()->sort);
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+        $this->assertSame(['enabled' => false, 'ids' => []], $decoded['data']['audit']);
     }
 
     public function test_links_bulk_update_rejects_invalid_or_duplicate_items_without_writing(): void

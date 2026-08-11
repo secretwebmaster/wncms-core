@@ -430,6 +430,35 @@ class LinkApiV2ControllerTest extends TestCase
     }
 
     /**
+     * Verify disabled API bulk writes return an empty stable audit ID list.
+     *
+     * @return void
+     */
+    public function test_links_api_v2_forced_bulk_update_returns_empty_audit_ids_when_disabled(): void
+    {
+        config(['wncms.mutation_audit.enabled' => false]);
+        $website = Website::firstOrFail();
+        [, $token] = $this->tokenUser(['link_edit'], $website);
+        $link = $this->websiteLink($website, ['sort' => 10]);
+        $beforeAuditCount = MutationAudit::count();
+
+        $response = $this->withToken($token)->postJson('/api/v2/backend/links/bulk_update', [
+            'items' => [
+                ['identifier' => $link->id, 'sort' => 20],
+            ],
+            'website_id' => $website->id,
+            'force' => true,
+        ]);
+
+        $response->assertOk()->assertJsonPath('data.audit', [
+            'enabled' => false,
+            'ids' => [],
+        ]);
+        $this->assertSame(20, $link->fresh()->sort);
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
+    /**
      * Verify scoped, missing, and stale bulk targets never produce partial writes.
      *
      * @return void
