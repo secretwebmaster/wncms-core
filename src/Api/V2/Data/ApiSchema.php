@@ -2,7 +2,7 @@
 
 namespace Wncms\Api\V2\Data;
 
-final class ApiSchema
+final class ApiSchema implements \JsonSerializable
 {
     /**
      * Create a schema value.
@@ -94,5 +94,36 @@ final class ApiSchema
     public function toArray(): array
     {
         return $this->schema;
+    }
+
+    /**
+     * Export the JSON Schema value with stable object map types.
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return self::normalizeForJson($this->schema);
+    }
+
+    /**
+     * Normalize nested schema property maps for JSON serialization.
+     *
+     * @param  array<int|string, mixed>  $value
+     * @return array<int|string, mixed>
+     */
+    private static function normalizeForJson(array $value): array
+    {
+        foreach ($value as $key => $item) {
+            if (is_array($item)) {
+                $value[$key] = self::normalizeForJson($item);
+            }
+        }
+
+        if (isset($value['properties']) && is_array($value['properties'])) {
+            $value['properties'] = (object) $value['properties'];
+        }
+
+        return $value;
     }
 }

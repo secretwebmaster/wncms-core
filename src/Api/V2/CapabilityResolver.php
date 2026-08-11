@@ -55,6 +55,11 @@ final class CapabilityResolver
             );
         }
 
+        foreach ($domains as &$domain) {
+            $domain['operations'] = (object) $domain['operations'];
+        }
+        unset($domain);
+
         return [
             'schema_version' => (string) config('wncms-api-v2.schema_version', '2.0.0'),
             'domains' => $domains,
@@ -101,8 +106,8 @@ final class CapabilityResolver
             'fields' => $operation->fields,
             'available' => $disabledReasons === [],
             'disabled_reasons' => $disabledReasons,
-            'request_schema' => $operation->request->toArray(),
-            'response_schema' => $operation->response->toArray(),
+            'request_schema' => $operation->request->jsonSerialize(),
+            'response_schema' => $operation->response->jsonSerialize(),
         ];
     }
 }

@@ -144,6 +144,51 @@ class CapabilitiesEndpointTest extends TestCase
     }
 
     /**
+     * Verify a fully permission-filtered operation map remains a JSON object.
+     *
+     * @return void
+     */
+    public function test_permission_filtered_domain_operations_remain_an_object_on_the_wire(): void
+    {
+        $website = Website::firstOrFail();
+        [, $token] = $this->tokenUser([], $website);
+
+        Permission::findOrCreate('capability_hidden', 'web');
+        config(['wncms-api-v2.providers' => [CapabilitiesEndpointTestProvider::class]]);
+        app()->forgetInstance(ApiContractRegistry::class);
+
+        $response = $this->withToken($token)->getJson('/api/v2/capabilities');
+
+        $response->assertOk();
+        $wire = json_decode((string) $response->getContent());
+        $operations = $wire->data->domains->filtered_demo->operations;
+        $this->assertIsObject($operations);
+        $this->assertSame([], get_object_vars($operations));
+    }
+
+    /**
+     * Verify empty JSON Schema property maps remain objects on the wire.
+     *
+     * @return void
+     */
+    public function test_empty_schema_properties_remain_an_object_on_the_wire(): void
+    {
+        $website = Website::firstOrFail();
+        [, $token] = $this->tokenUser([], $website);
+
+        config(['wncms-api-v2.providers' => [CapabilitiesEndpointTestProvider::class]]);
+        app()->forgetInstance(ApiContractRegistry::class);
+
+        $response = $this->withToken($token)->getJson('/api/v2/capabilities');
+
+        $response->assertOk();
+        $wire = json_decode((string) $response->getContent());
+        $properties = $wire->data->domains->plugin_demo->operations->{'plugin.demo.inspect'}->request_schema->properties;
+        $this->assertIsObject($properties);
+        $this->assertSame([], get_object_vars($properties));
+    }
+
+    /**
      * Create a token user with selected permissions and website access.
      *
      * @param  array<int, string>  $permissions
@@ -224,6 +269,23 @@ class CapabilitiesEndpointTestProvider implements ApiContractProvider
             sorts: ['id'],
             includes: ['owner'],
             fields: ['id', 'name'],
+        ));
+
+        $registry->registerDomain(new ApiDomainContract('filtered_demo', 'Filtered Demo'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'plugin.filtered.inspect',
+            domain: 'filtered_demo',
+            surface: 'plugin',
+            method: 'GET',
+            path: '/api/v2/filtered-demo',
+            routeName: 'api.v2.filtered_demo.inspect',
+            permission: 'capability_hidden',
+            ability: 'filtered-demo:read',
+            websiteScoped: false,
+            risk: 'read',
+            implementation: 'domain',
+            request: ApiSchema::object(),
+            response: ApiSchema::object(),
         ));
     }
 }

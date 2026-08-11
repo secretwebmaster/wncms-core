@@ -52,14 +52,14 @@ class AssignApiV2RequestId
         $response->headers->set('X-Request-ID', $requestId);
 
         if ($response instanceof JsonResponse) {
-            $payload = $response->getData(true);
-            if (is_array($payload)) {
-                $meta = is_array($payload['meta'] ?? null) ? $payload['meta'] : [];
-                $meta['request_id'] = $requestId;
-                if (($payload['status'] ?? null) === 'fail' && ! isset($meta['error_code'])) {
-                    $meta['error_code'] = $this->responses->errorCodeForStatus($response->getStatusCode());
+            $payload = $response->getData();
+            if (is_object($payload)) {
+                $meta = is_object($payload->meta ?? null) ? $payload->meta : (object) [];
+                $meta->request_id = $requestId;
+                if (($payload->status ?? null) === 'fail' && ! isset($meta->error_code)) {
+                    $meta->error_code = $this->responses->errorCodeForStatus($response->getStatusCode());
                 }
-                $payload['meta'] = $meta;
+                $payload->meta = $meta;
                 $response->setData($payload);
             }
         }

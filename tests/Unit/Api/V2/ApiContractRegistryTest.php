@@ -91,6 +91,36 @@ class ApiContractRegistryTest extends TestCase
         $this->assertSame(['type' => 'boolean'], ApiSchema::boolean()->toArray());
     }
 
+    /**
+     * Verify empty property maps retain object semantics during JSON serialization.
+     *
+     * @return void
+     */
+    public function test_empty_object_schema_has_an_object_property_map_when_json_encoded(): void
+    {
+        $this->assertSame(
+            '{"type":"object","properties":{}}',
+            json_encode(ApiSchema::object(), JSON_THROW_ON_ERROR)
+        );
+        $this->assertSame(
+            ['type' => 'object', 'properties' => []],
+            ApiSchema::object()->toArray()
+        );
+    }
+
+    /**
+     * Verify nested empty object schemas retain object property maps.
+     *
+     * @return void
+     */
+    public function test_nested_empty_object_schema_has_an_object_property_map_when_json_encoded(): void
+    {
+        $this->assertSame(
+            '{"type":"array","items":{"type":"object","properties":{}}}',
+            json_encode(ApiSchema::arrayOf(ApiSchema::object()), JSON_THROW_ON_ERROR)
+        );
+    }
+
     public function test_it_exports_empty_optional_operation_values_by_default(): void
     {
         $operation = new ApiOperationContract(
