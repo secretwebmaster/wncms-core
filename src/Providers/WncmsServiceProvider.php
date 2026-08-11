@@ -15,6 +15,7 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Str;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Api\V2\ApiContractValidator;
 use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\ApiV2ResponseFinalizer;
 use Wncms\Api\V2\Contracts\AtomicOperationRepository;
@@ -23,6 +24,7 @@ use Wncms\Api\V2\Contracts\OperationRepository;
 use Wncms\Api\V2\IdempotencyService;
 use Wncms\Api\V2\OperationService;
 use Wncms\Api\V2\OperationValidator;
+use Wncms\Api\V2\OpenApiDocumentBuilder;
 use Wncms\Api\V2\ReplayResponseTrust;
 use Wncms\Api\V2\Repositories\CacheIdempotencyStore;
 use Wncms\Api\V2\Repositories\CacheOperationRepository;
@@ -283,6 +285,15 @@ class WncmsServiceProvider extends ServiceProvider
             }
 
             return $registry;
+        });
+
+        $this->app->bind(ApiContractValidator::class, function ($app) {
+            return new ApiContractValidator(
+                $app->make(ApiContractRegistry::class),
+                $app['router']->getRoutes(),
+                $app->make(OpenApiDocumentBuilder::class)->build(),
+                (array) config('wncms-api-v2.contract.excluded_route_names', [])
+            );
         });
     }
 

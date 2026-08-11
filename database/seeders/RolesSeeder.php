@@ -128,6 +128,7 @@ class RolesSeeder extends Seeder
             'analytics_index',
             'cache_clear',
             'cache_flush',
+            'operation_cancel',
             'post_bulk_clone',
             'post_bulk_set_websites',
             'post_bulk_sync_tags',

@@ -72,6 +72,9 @@ class CapabilitiesEndpointTest extends TestCase
         $this->assertTrue($operations['backend.links.index']['website_scoped']);
         $this->assertSame([], $operations['backend.links.index']['disabled_reasons']);
         $this->assertArrayNotHasKey('backend.links.show', $operations);
+        $operationContracts = $response->json('data.domains.operations.operations');
+        $this->assertArrayHasKey('backend.operations.show', $operationContracts);
+        $this->assertArrayNotHasKey('backend.operations.cancel', $operationContracts);
         $this->assertSame(
             [
                 'method',
@@ -95,6 +98,27 @@ class CapabilitiesEndpointTest extends TestCase
         );
         $this->assertAutomationEnvelope($response);
         $this->assertTrue(Route::has('api.v2.capabilities'));
+    }
+
+    /**
+     * Verify the declared cancellation permission controls runtime discovery.
+     *
+     * @return void
+     */
+    public function test_capabilities_expose_operation_cancellation_only_with_its_runtime_permission(): void
+    {
+        $website = Website::firstOrFail();
+        [, $token] = $this->tokenUser(['operation_cancel'], $website);
+
+        $response = $this->withToken($token)->getJson('/api/v2/capabilities');
+
+        $response->assertOk();
+        $operations = $response->json('data.domains.operations.operations');
+        $this->assertSame('operation_cancel', $operations['backend.operations.cancel']['permission']);
+        $this->assertTrue($operations['backend.operations.cancel']['idempotent']);
+        $this->assertFalse($operations['backend.operations.cancel']['website_scoped']);
+        $this->assertTrue($operations['backend.operations.cancel']['available']);
+        $this->assertAutomationEnvelope($response);
     }
 
     /**

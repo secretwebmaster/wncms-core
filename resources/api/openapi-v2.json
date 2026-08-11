@@ -3094,6 +3094,342 @@
                 }
             }
         },
+        "/api/v2/backend/operations/{id}": {
+            "get": {
+                "operationId": "backend.operations.show",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "x-wncms-permission": null,
+                "x-wncms-ability": null,
+                "x-wncms-website-scoped": false,
+                "x-wncms-risk": "read",
+                "x-wncms-implementation": "domain",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "2XX": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/SuccessEnvelope"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        },
+                                                        "type": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "queued",
+                                                                "running",
+                                                                "succeeded",
+                                                                "failed",
+                                                                "cancelled"
+                                                            ]
+                                                        },
+                                                        "progress": {
+                                                            "type": "integer",
+                                                            "minimum": 0,
+                                                            "maximum": 100
+                                                        },
+                                                        "cancellable": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "actor_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "website_ids": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "oneOf": [
+                                                                    {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    {
+                                                                        "type": "string"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "result": {
+                                                            "oneOf": [
+                                                                {
+                                                                    "type": "object"
+                                                                },
+                                                                {
+                                                                    "type": "array"
+                                                                },
+                                                                {
+                                                                    "type": "string"
+                                                                },
+                                                                {
+                                                                    "type": "number"
+                                                                },
+                                                                {
+                                                                    "type": "boolean"
+                                                                },
+                                                                {
+                                                                    "type": "null"
+                                                                }
+                                                            ]
+                                                        },
+                                                        "error": {
+                                                            "oneOf": [
+                                                                {
+                                                                    "type": "object"
+                                                                },
+                                                                {
+                                                                    "type": "array"
+                                                                },
+                                                                {
+                                                                    "type": "null"
+                                                                }
+                                                            ]
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        },
+                                                        "updated_at": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        },
+                                                        "expires_at": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "type",
+                                                        "status",
+                                                        "progress",
+                                                        "cancellable",
+                                                        "actor_id",
+                                                        "website_ids",
+                                                        "result",
+                                                        "error",
+                                                        "created_at",
+                                                        "updated_at",
+                                                        "expires_at"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Error response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/backend/operations/{id}/cancel": {
+            "post": {
+                "operationId": "backend.operations.cancel",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "x-wncms-permission": "operation_cancel",
+                "x-wncms-ability": null,
+                "x-wncms-website-scoped": false,
+                "x-wncms-risk": "destructive",
+                "x-wncms-implementation": "domain",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {}
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "2XX": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/SuccessEnvelope"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        },
+                                                        "type": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "queued",
+                                                                "running",
+                                                                "succeeded",
+                                                                "failed",
+                                                                "cancelled"
+                                                            ]
+                                                        },
+                                                        "progress": {
+                                                            "type": "integer",
+                                                            "minimum": 0,
+                                                            "maximum": 100
+                                                        },
+                                                        "cancellable": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "actor_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "website_ids": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "oneOf": [
+                                                                    {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    {
+                                                                        "type": "string"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "result": {
+                                                            "oneOf": [
+                                                                {
+                                                                    "type": "object"
+                                                                },
+                                                                {
+                                                                    "type": "array"
+                                                                },
+                                                                {
+                                                                    "type": "string"
+                                                                },
+                                                                {
+                                                                    "type": "number"
+                                                                },
+                                                                {
+                                                                    "type": "boolean"
+                                                                },
+                                                                {
+                                                                    "type": "null"
+                                                                }
+                                                            ]
+                                                        },
+                                                        "error": {
+                                                            "oneOf": [
+                                                                {
+                                                                    "type": "object"
+                                                                },
+                                                                {
+                                                                    "type": "array"
+                                                                },
+                                                                {
+                                                                    "type": "null"
+                                                                }
+                                                            ]
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        },
+                                                        "updated_at": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        },
+                                                        "expires_at": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "type",
+                                                        "status",
+                                                        "progress",
+                                                        "cancellable",
+                                                        "actor_id",
+                                                        "website_ids",
+                                                        "result",
+                                                        "error",
+                                                        "created_at",
+                                                        "updated_at",
+                                                        "expires_at"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Error response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/backend/packages": {
             "get": {
                 "operationId": "backend.packages.index",

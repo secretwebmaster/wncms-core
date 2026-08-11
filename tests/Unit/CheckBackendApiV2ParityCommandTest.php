@@ -2,11 +2,114 @@
 
 namespace Wncms\Tests\Unit;
 
+use Illuminate\Routing\Route;
+use Illuminate\Routing\RouteCollection;
 use Illuminate\Support\Facades\Artisan;
+use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Api\V2\ApiContractValidator;
+use Wncms\Api\V2\Data\ApiDomainContract;
+use Wncms\Api\V2\Data\ApiOperationContract;
+use Wncms\Api\V2\Data\ApiSchema;
 use Wncms\Tests\TestCase;
 
 class CheckBackendApiV2ParityCommandTest extends TestCase
 {
+    /**
+     * Verify the runtime registry, routes, and OpenAPI document pass the contract check.
+     *
+     * @return void
+     */
+    public function test_it_outputs_the_valid_api_v2_contract_as_json(): void
+    {
+        $exitCode = Artisan::call('wncms:check-backend-api-v2-parity', [
+            '--contract' => true,
+            '--json' => true,
+        ]);
+
+        $decoded = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertSame('success', $decoded['status']);
+        $this->assertSame('api-v2-contract', $decoded['meta']['mode']);
+        $this->assertGreaterThan(0, $decoded['data']['operation_count']);
+        $this->assertSame([], $decoded['data']['errors']);
+        $this->assertIsArray($decoded['data']['warnings']);
+    }
+
+    /**
+     * Verify invalid contract fixtures return exit one with grouped machine errors.
+     *
+     * @return void
+     */
+    public function test_contract_mode_returns_machine_readable_errors_and_exit_one(): void
+    {
+        $registry = new ApiContractRegistry();
+        $registry->registerDomain(new ApiDomainContract('posts', 'Posts'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'backend.posts.update',
+            domain: 'posts',
+            surface: 'backend',
+            method: 'PATCH',
+            path: '/api/v2/backend/posts/{id}',
+            routeName: 'api.v2.backend.posts.update',
+            permission: null,
+            ability: null,
+            websiteScoped: true,
+            risk: 'write',
+            implementation: 'domain',
+            request: ApiSchema::object(),
+            response: ApiSchema::object(),
+        ));
+        $routes = new RouteCollection();
+        $route = new Route(['PUT'], 'api/v2/backend/posts/{id}', static fn (): null => null);
+        $route->name('api.v2.backend.posts.update');
+        $routes->add($route);
+        app()->instance(ApiContractValidator::class, new ApiContractValidator(
+            $registry,
+            $routes,
+            [
+                'openapi' => '3.1.0',
+                'paths' => [
+                    '/api/v2/backend/posts/{id}' => [
+                        'patch' => ['operationId' => 'backend.posts.update'],
+                    ],
+                ],
+            ],
+        ));
+
+        $exitCode = Artisan::call('wncms:check-backend-api-v2-parity', [
+            '--contract' => true,
+            '--json' => true,
+        ]);
+
+        $decoded = json_decode(trim(Artisan::output()), true);
+        $this->assertSame(1, $exitCode);
+        $this->assertSame('fail', $decoded['status']);
+        $this->assertSame('api-v2-contract', $decoded['meta']['mode']);
+        $this->assertArrayHasKey('contract.permission_missing', $decoded['data']['errors']);
+        $this->assertArrayHasKey('route.method_mismatch', $decoded['data']['errors']);
+        $this->assertSame($decoded['data']['errors'], $decoded['errors']);
+    }
+
+    /**
+     * Verify adding contract mode does not change the default parity JSON shape.
+     *
+     * @return void
+     */
+    public function test_default_parity_mode_remains_backward_compatible(): void
+    {
+        $exitCode = Artisan::call('wncms:check-backend-api-v2-parity', [
+            '--json' => true,
+        ]);
+
+        $decoded = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertSame('fail', $decoded['status']);
+        $this->assertSame('backend-api-v2-parity', $decoded['meta']['mode']);
+        $this->assertSame(['links.bulk_delete'], $decoded['data']['missing_backend_route_names']);
+    }
+
     public function test_it_outputs_v7_ai_first_coverage_as_json(): void
     {
         $exitCode = Artisan::call('wncms:check-backend-api-v2-parity', [

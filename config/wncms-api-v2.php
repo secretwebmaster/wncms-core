@@ -24,8 +24,22 @@ return [
             \Illuminate\Cache\DatabaseStore::class,
         ],
     ],
+    'contract' => [
+        // These routes deliver/authenticate the contract itself or support the legacy admin shell.
+        // Every other named api/v2 route must have a registry operation and OpenAPI entry.
+        'excluded_route_names' => [
+            'api.v2.openapi',
+            'api.v2.capabilities',
+            'api.v2.backend.auth.login',
+            'api.v2.backend.auth.logout',
+            'api.v2.backend.auth.me',
+            'api.v2.backend.i18n.ui',
+            'api.v2.backend.translations',
+        ],
+    ],
     'providers' => [
         \Wncms\Api\V2\Providers\CoreFrontendContractProvider::class,
+        \Wncms\Api\V2\Providers\CoreBackendContractProvider::class,
         \Wncms\Api\V2\Providers\LegacyBackendContractProvider::class,
     ],
 ];

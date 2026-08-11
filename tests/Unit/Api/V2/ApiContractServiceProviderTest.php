@@ -19,6 +19,8 @@ class ApiContractServiceProviderTest extends TestCase
         $this->assertSame($registry, app(ApiContractRegistry::class));
         $this->assertNotNull($registry->operation('frontend.health'));
         $this->assertNotNull($registry->operation('system.translations'));
+        $this->assertNotNull($registry->operation('backend.operations.show'));
+        $this->assertSame('operation_cancel', $registry->operation('backend.operations.cancel')?->permission);
         $this->assertNotNull($registry->operation('backend.links.index'));
         $this->assertNotNull($registry->operation('backend.links.bulk_update'));
         $this->assertSame('legacy_bridge', $registry->operation('backend.links.bulk_update')?->implementation);

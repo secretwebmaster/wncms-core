@@ -5,9 +5,12 @@ namespace Wncms\Tests\Feature\Api\V2;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 use Wncms\Api\V2\Contracts\AtomicOperationRepository;
 use Wncms\Api\V2\Contracts\OperationRepository;
 use Wncms\Api\V2\Enums\AsyncOperationStatus;
@@ -30,6 +33,7 @@ class OperationEndpointTest extends TestCase
         parent::setUp();
 
         auth()->forgetGuards();
+        app(PermissionRegistrar::class)->registerPermissions(Gate::getFacadeRoot());
         Cache::flush();
         Cache::flushLocks();
         CarbonImmutable::setTestNow('2026-08-12 08:00:00 UTC');
@@ -216,6 +220,7 @@ class OperationEndpointTest extends TestCase
     public function test_cancel_endpoint_is_idempotent_and_does_not_require_a_website(): void
     {
         $user = $this->newUser('cancel');
+        $this->grantCancelPermission($user);
         $service = app(OperationService::class);
         $operation = $service->queue('packages.activate', (int) $user->getAuthIdentifier(), [], true);
         $service->start($operation->id);
@@ -292,6 +297,7 @@ class OperationEndpointTest extends TestCase
     public function test_cancel_rejects_a_non_cancellable_operation_with_conflict_envelope(): void
     {
         $user = $this->newUser('non-cancellable');
+        $this->grantCancelPermission($user);
         $operation = app(OperationService::class)->queue(
             'exports.posts',
             (int) $user->getAuthIdentifier()
@@ -304,6 +310,37 @@ class OperationEndpointTest extends TestCase
         $response
             ->assertStatus(409)
             ->assertJsonPath('meta.error_code', 'request.conflict');
+        $this->assertEnvelope($response);
+        $this->assertSame(
+            AsyncOperationStatus::Queued,
+            app(OperationRepository::class)->find($operation->id)?->status
+        );
+    }
+
+    /**
+     * Verify an owning actor without the declared cancellation permission is denied.
+     *
+     * @return void
+     */
+    public function test_cancel_requires_the_declared_operation_permission(): void
+    {
+        Permission::findOrCreate('operation_cancel', 'web');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $user = $this->newUser('permission-denied');
+        $operation = app(OperationService::class)->queue(
+            'themes.activate',
+            (int) $user->getAuthIdentifier(),
+            [],
+            true
+        );
+
+        $response = $this->actingAs($user)
+            ->withHeader('Idempotency-Key', 'permission-denied-key-0001')
+            ->postJson("/api/v2/backend/operations/{$operation->id}/cancel");
+
+        $response
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'authorization.denied');
         $this->assertEnvelope($response);
         $this->assertSame(
             AsyncOperationStatus::Queued,
@@ -328,6 +365,20 @@ class OperationEndpointTest extends TestCase
             'password' => Hash::make('operation-password'),
             'email_verified_at' => now(),
         ]);
+    }
+
+    /**
+     * Grant the permission declared by the formal cancellation contract.
+     *
+     * @param  \Wncms\Models\User  $user
+     *
+     * @return void
+     */
+    protected function grantCancelPermission(User $user): void
+    {
+        $permission = Permission::findOrCreate('operation_cancel', 'web');
+        $user->givePermissionTo($permission);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
     /**

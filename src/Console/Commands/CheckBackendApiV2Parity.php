@@ -6,11 +6,13 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use Wncms\Api\V2\ApiContractValidator;
 
 class CheckBackendApiV2Parity extends Command
 {
     protected $signature = 'wncms:check-backend-api-v2-parity
         {--coverage : Report configured v7 AI-first domain coverage}
+        {--contract : Validate API v2 registry, runtime routes, and OpenAPI consistency}
         {--json : Output result data as JSON}';
 
     protected $description = 'Ensure backend API v2 parity and report v7 AI-first automation coverage.';
@@ -22,11 +24,51 @@ class CheckBackendApiV2Parity extends Command
      */
     public function handle(): int
     {
+        if ((bool) $this->option('contract')) {
+            return $this->handleContractValidation(app(ApiContractValidator::class));
+        }
+
         if ((bool) $this->option('coverage')) {
             return $this->handleCoverageReport();
         }
 
         return $this->handleBackendApiV2Parity();
+    }
+
+    /**
+     * Validate the installed API v2 contract for CI and automation consumers.
+     *
+     * @param  \Wncms\Api\V2\ApiContractValidator  $validator
+     * @return int
+     */
+    protected function handleContractValidation(ApiContractValidator $validator): int
+    {
+        $report = $validator->validate();
+        $failed = $report['errors'] !== [];
+        $message = $failed
+            ? 'API v2 contract validation failed.'
+            : 'API v2 contract validation passed.';
+
+        $this->outputResult([
+            'code' => $failed ? 500 : 200,
+            'status' => $failed ? 'fail' : 'success',
+            'message' => $message,
+            'data' => $report,
+            'meta' => $this->resultMeta('api-v2-contract'),
+            'errors' => $failed ? $report['errors'] : [],
+        ], $failed, function () use ($message, $report, $failed): void {
+            if ($failed) {
+                $this->error($message);
+            } else {
+                $this->info($message);
+            }
+
+            $this->line('Registered operation count: '.$report['operation_count']);
+            $this->line('Error group count: '.count($report['errors']));
+            $this->line('Warning group count: '.count($report['warnings']));
+        });
+
+        return $failed ? self::FAILURE : self::SUCCESS;
     }
 
     /**
@@ -74,7 +116,7 @@ class CheckBackendApiV2Parity extends Command
                 'meta' => $this->resultMeta('backend-api-v2-parity'),
                 'errors' => [
                     'missing_backend_api_v2_routes' => array_map(
-                        fn(string $name) => "api.v2.backend.{$name}",
+                        fn (string $name) => "api.v2.backend.{$name}",
                         $missing
                     ),
                 ],
@@ -113,7 +155,7 @@ class CheckBackendApiV2Parity extends Command
             'data' => $report,
             'meta' => $this->resultMeta('v7-ai-first-coverage'),
             'errors' => [],
-        ], false, fn() => $this->renderCoverageReport($report));
+        ], false, fn () => $this->renderCoverageReport($report));
 
         return self::SUCCESS;
     }

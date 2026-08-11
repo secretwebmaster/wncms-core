@@ -10,6 +10,8 @@ use Wncms\Api\V2\OperationService;
 
 class OperationController extends ApiV2Controller
 {
+    public const CANCEL_PERMISSION = 'operation_cancel';
+
     /**
      * Create the API v2 operation controller.
      *
@@ -56,6 +58,8 @@ class OperationController extends ApiV2Controller
         if ($this->operations->findForActor($id, $this->actorId($request)) === null) {
             return $this->notFound();
         }
+
+        abort_unless($request->user()?->can(self::CANCEL_PERMISSION), Response::HTTP_FORBIDDEN);
 
         return $this->ok($this->operations->cancel($id), 'operation_cancelled');
     }
