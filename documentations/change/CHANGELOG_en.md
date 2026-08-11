@@ -11,6 +11,7 @@
 - Hardened Link bulk-tag API transport validation and protected host-owned personal access token tables from rollback deletion.
 - Auth layouts now fall back to system metadata when no active website is available, preventing login and registration pages from failing during early application boot.
 - Raised production dependency safety floors to prevent installation of vulnerable phpseclib, Media Library, and CommonMark releases.
+- Added a default-disabled global mutation audit setting and transactionally audited all Link backend UI writes when enabled, while CLI/API responses preserve stable disabled audit metadata.
 
 ## v6.3.9-alpha1 2026-06-16
 

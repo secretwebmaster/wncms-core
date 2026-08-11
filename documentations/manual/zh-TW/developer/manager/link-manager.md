@@ -64,6 +64,16 @@ WNCMS 提供 CLI helpers，可用於 scripts 或本地操作中檢視 Links 資�
 
 List 與 inspect commands 使用 `LinkManager` 執行 read-only queries，並支援以 `--json` 輸出 JSON。Create、update、delete、bulk update 與 bulk tag synchronization 使用 `LinkAutomationService`；全部預設為 dry-run，只有在 `--force` 搭配允許的 `--actor-user=` 或已設定 system actor 時才會寫入。Bulk update 接受 1-100 個唯一 ID/slug 目標並原子更新 `url` 與 `sort`。Bulk tag synchronization 接受 1-100 個 ID/slug，以及 `sync`、`attach` 或 `detach` action；已提供的 category/tag 類型會標準化，而省略或空的類型保持不變。兩個 bulk commands 都會在一個 transaction 中重新解析並 guard 全部目標，只審計實際變更的 Link 且共用一個 run ID，並在有變更的提交後只刷新一次 `links` cache。`--website` 會限制全部查詢，即使省略也會持續 guard 目標原有 website IDs。無效輸入返回 `422`，缺少 actor 返回 `401`，權限或網站範圍拒絕返回 `403`，缺失/scoped targets 返回 `404`，stale 或 aborted batches 返回 `409`。Delete 需要 `link_delete`，會保留 target snapshot 且不派發 hooks；兩個 bulk commands 也刻意不派發 hooks。
 
+## 全域異動審計設定
+
+異動審計持久化由 **設定 → Admin → `enable_mutation_audit`** 控制，預設停用。執行時整合可讀取 `config('wncms.mutation_audit.enabled', false)`，不需重複查詢設定儲存。
+
+停用路徑以效能為優先：Link 後台 UI 寫入不會收集僅供審計使用的快照，也不會寫入 `mutation_audits`；CLI/API 寫入仍保留既有驗證、actor、權限、網站範圍、stale-state 與交易保護，但略過審計寫入。停用也會失去 CLI/API 異動問責紀錄，因此允許 automation 寫入的網站建議啟用此設定。
+
+啟用後，Link 後台的 create、update、delete、bulk delete、bulk update 與 bulk tag synchronization 都會被審計。Model 異動與審計紀錄位於同一交易；no-op 或失敗異動不會產生審計，審計失敗會回滾對應異動，cache 只在成功且確有變更的提交後刷新。Bulk 寫入每個 request 共用一個 run ID，並會遮蔽巢狀的敏感值。
+
+兩種模式下 automation response 都維持穩定審計結構。單筆寫入提供 `audit.enabled` 與可為 null 的 `audit.id`；bulk 寫入提供 `audit.enabled` 與 `audit.ids`（停用時為空陣列）。Dry-run plan 永不寫入審計，並會在 `plan.audit` 提供相同的 enabled 狀態。
+
 ## 過濾與選項
 
 `buildListQuery()` 支援以下選項：

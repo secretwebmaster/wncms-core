@@ -11,6 +11,7 @@
 - 強化 Link bulk-tag API transport 驗證，並避免 rollback 刪除由宿主專案擁有的 personal access token 資料表。
 - 當沒有可用的目前網站時，認證版面會改用系統中繼資料，避免登入與註冊頁面在應用程式啟動初期發生錯誤。
 - 提高 production 相依套件的安全版本下限，避免安裝存在漏洞的 phpseclib、Media Library 與 CommonMark 版本。
+- 新增預設停用的全域異動審計設定；啟用後會以交易方式審計所有 Link 後台 UI 寫入，CLI/API 在停用時仍保留穩定的審計 metadata。
 
 ## v6.3.9-alpha1 2026-06-16
 

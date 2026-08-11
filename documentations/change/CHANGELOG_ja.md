@@ -11,6 +11,7 @@
 - Link bulk-tag API transport の検証を強化し、rollback によるホスト所有の personal access token テーブル削除を防止しました。
 - 有効な現在のウェブサイトがない場合、認証レイアウトはシステムメタデータへフォールバックし、アプリケーション起動初期のログイン・登録ページの失敗を防止します。
 - production 依存パッケージの安全な最低バージョンを引き上げ、脆弱な phpseclib、Media Library、CommonMark の導入を防止しました。
+- デフォルト無効のグローバル変更監査設定を追加し、有効時は Link バックエンド UI の全書き込みをトランザクション内で監査します。無効時も CLI/API は安定した監査 metadata を維持します。
 
 ## v6.3.9-alpha1 2026-06-16
 

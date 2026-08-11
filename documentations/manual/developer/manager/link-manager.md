@@ -64,6 +64,16 @@ Available commands:
 
 The list and inspect commands use `LinkManager` for read-only queries and support JSON output with `--json`. Create, update, delete, bulk update, and bulk tag synchronization use `LinkAutomationService`; all default to dry-run and only write when `--force` is combined with an allowed `--actor-user=` or configured system actor. Bulk update accepts 1-100 unique ID/slug targets and patches only `url` and `sort` atomically. Bulk tag synchronization accepts 1-100 IDs/slugs plus `sync`, `attach`, or `detach` actions; supplied category/tag types are normalized, while omitted or empty types stay unchanged. Both bulk commands re-resolve and guard every target in one transaction, audit only changed Links with one run ID, and flush the `links` cache once after a changed commit. `--website` scopes every lookup, and existing target website IDs remain guarded even when it is omitted. Invalid input returns `422`, missing actors `401`, denied permission or website scope `403`, missing/scoped targets `404`, and stale or aborted batches `409`. Delete requires `link_delete`, preserves a target snapshot in `mutation_audits`, and dispatches no hooks; both bulk commands also intentionally dispatch no hooks.
 
+## Global mutation audit setting
+
+Mutation audit persistence is controlled at **Settings → Admin → `enable_mutation_audit`** and defaults to disabled. At runtime, integrations can inspect `config('wncms.mutation_audit.enabled', false)` without repeatedly querying settings storage.
+
+The disabled path prioritizes performance: Link backend UI writes do not collect audit-only snapshots or insert `mutation_audits` rows, and CLI/API writes retain their existing validation, actor, permission, website-scope, stale-state, and transaction safeguards while skipping audit inserts. This also removes CLI/API mutation accountability, so enabling the setting is recommended for sites that permit automation writes.
+
+When enabled, Link backend create, update, delete, bulk delete, bulk update, and bulk tag synchronization are audited. Model changes and audit rows share a transaction; no-op or failed changes create no audit row, an audit failure rolls back the associated mutation, and cache invalidation occurs after a successful changed commit. Bulk writes use one shared run ID per request, and sensitive nested values are redacted.
+
+Automation responses keep a stable audit shape in both modes. Single writes expose `audit.enabled` and nullable `audit.id`; bulk writes expose `audit.enabled` and `audit.ids` (an empty array when disabled). Dry-run plans never persist an audit row and expose the same enabled state in `plan.audit`.
+
 ## Filtering and options
 
 `buildListQuery()` supports the following options:

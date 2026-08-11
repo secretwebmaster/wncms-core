@@ -64,6 +64,16 @@ WNCMS 提供 CLI helpers，可用于 scripts 或本地操作中检视 Links 资�
 
 List 与 inspect commands 使用 `LinkManager` 执行 read-only queries，并支持以 `--json` 输出 JSON。Create、update、delete、bulk update 与 bulk tag synchronization 使用 `LinkAutomationService`；全部默认为 dry-run，只有在 `--force` 搭配允许的 `--actor-user=` 或已配置 system actor 时才会写入。Bulk update 接受 1-100 个唯一 ID/slug 目标并原子更新 `url` 与 `sort`。Bulk tag synchronization 接受 1-100 个 ID/slug，以及 `sync`、`attach` 或 `detach` action；已提供的 category/tag 类型会标准化，而省略或空的类型保持不变。两个 bulk commands 都会在一个 transaction 中重新解析并 guard 全部目标，只审计实际变更的 Link 且共用一个 run ID，并在有变更的提交后只刷新一次 `links` cache。`--website` 会限制全部查询，即使省略也会持续 guard 目标原有 website IDs。无效输入返回 `422`，缺少 actor 返回 `401`，权限或网站范围拒绝返回 `403`，缺失/scoped targets 返回 `404`，stale 或 aborted batches 返回 `409`。Delete 需要 `link_delete`，会保留 target snapshot 且不派发 hooks；两个 bulk commands 也刻意不派发 hooks。
 
+## 全局变更审计设置
+
+变更审计持久化由 **设置 → Admin → `enable_mutation_audit`** 控制，默认停用。运行时整合可读取 `config('wncms.mutation_audit.enabled', false)`，无需重复查询设置存储。
+
+停用路径以性能为优先：Link 后台 UI 写入不会收集仅供审计使用的快照，也不会写入 `mutation_audits`；CLI/API 写入仍保留既有验证、actor、权限、网站范围、stale-state 与事务保护，但跳过审计写入。停用也会失去 CLI/API 变更问责记录，因此允许 automation 写入的网站建议启用此设置。
+
+启用后，Link 后台的 create、update、delete、bulk delete、bulk update 与 bulk tag synchronization 都会被审计。Model 变更与审计记录位于同一事务；no-op 或失败变更不会产生审计，审计失败会回滚对应变更，cache 只在成功且确有变更的提交后刷新。Bulk 写入每个 request 共用一个 run ID，并会遮蔽嵌套的敏感值。
+
+两种模式下 automation response 都维持稳定审计结构。单笔写入提供 `audit.enabled` 与可为 null 的 `audit.id`；bulk 写入提供 `audit.enabled` 与 `audit.ids`（停用时为空数组）。Dry-run plan 永不写入审计，并会在 `plan.audit` 提供相同的 enabled 状态。
+
 ## 过滤与选项
 
 `buildListQuery()` 支援以下选项：
