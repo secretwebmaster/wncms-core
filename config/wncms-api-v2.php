@@ -13,6 +13,7 @@ return [
         'lock_seconds' => 15,
     ],
     'operations' => [
+        'store' => env('WNCMS_API_V2_OPERATION_STORE'),
         'ttl_seconds' => 86400,
     ],
     'providers' => [

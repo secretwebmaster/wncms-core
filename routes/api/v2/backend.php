@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Wncms\Http\Controllers\Api\V2\Backend\AuthController;
 use Wncms\Http\Controllers\Api\V2\Backend\BridgeController;
 use Wncms\Http\Controllers\Api\V2\Backend\I18nController;
+use Wncms\Http\Controllers\Api\V2\Backend\OperationController;
 use Wncms\Http\Controllers\Api\V2\Backend\ResourceController;
 
 Route::prefix('v2/backend')
@@ -17,6 +18,11 @@ Route::prefix('v2/backend')
             Route::get('/auth/me', [AuthController::class, 'me'])->name('auth.me');
             Route::get('/i18n/ui', [I18nController::class, 'ui'])->name('i18n.ui');
             Route::get('/translations', [I18nController::class, 'translations'])->name('translations');
+            Route::get('/operations/{id}', [OperationController::class, 'show'])->name('operations.show');
+            Route::post('/operations/{id}/cancel', [OperationController::class, 'cancel'])
+                ->defaults('api_operation_id', 'backend.operations.cancel')
+                ->middleware('api_v2_idempotency')
+                ->name('operations.cancel');
         });
 
         Route::middleware(['api_v2_token_auth', 'api_v2_has_website'])->group(function () {

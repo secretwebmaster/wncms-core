@@ -18,9 +18,12 @@ use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\ApiV2ResponseFinalizer;
 use Wncms\Api\V2\Contracts\IdempotencyStore;
+use Wncms\Api\V2\Contracts\OperationRepository;
 use Wncms\Api\V2\IdempotencyService;
+use Wncms\Api\V2\OperationService;
 use Wncms\Api\V2\ReplayResponseTrust;
 use Wncms\Api\V2\Repositories\CacheIdempotencyStore;
+use Wncms\Api\V2\Repositories\CacheOperationRepository;
 
 class WncmsServiceProvider extends ServiceProvider
 {
@@ -245,6 +248,21 @@ class WncmsServiceProvider extends ServiceProvider
                 $app->make(ApiResponseFactory::class),
                 $app->make(ApiV2ResponseFinalizer::class),
                 $replayResponseTrust
+            );
+        });
+
+        $this->app->singleton(OperationRepository::class, function ($app) {
+            return new CacheOperationRepository(
+                $app->make(CacheFactory::class),
+                config('wncms-api-v2.operations.store'),
+                $app->environment('production')
+            );
+        });
+
+        $this->app->bind(OperationService::class, function ($app) {
+            return new OperationService(
+                $app->make(OperationRepository::class),
+                (int) config('wncms-api-v2.operations.ttl_seconds', 86400)
             );
         });
 
