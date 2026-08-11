@@ -3,6 +3,7 @@ diff.txt
 *.backup
 *.bak
 /composer.lock
+/.worktrees/
 
 # Agent Skills
 /AGENTS.md
