@@ -99,7 +99,8 @@ domain services added in later plans own business behavior.
 
 Cover deterministic ordering, duplicate domain/operation rejection, immutable
 array export, valid surfaces (`frontend`, `backend`, `system`), methods, risk
-levels, and implementation markers:
+levels, and implementation markers (`domain`, `legacy_resource`,
+`legacy_controller`, `legacy_bridge`):
 
 ```php
 $registry = new ApiContractRegistry;
@@ -238,6 +239,10 @@ $this->assertSame(
     'domain',
     $registry->operation('backend.links.index')?->implementation
 );
+$this->assertSame(
+    'legacy_controller',
+    $registry->operation('backend.posts.index')?->implementation
+);
 ```
 
 Also iterate every enabled resource route and configured action and assert it
@@ -264,10 +269,12 @@ $resourceMethods = [
 ];
 ```
 
-Use `domain` only when a dedicated API v2 resource controller is configured;
-use `legacy_resource` for the generic `ResourceController`; classify every
-configured bridge action as `legacy_bridge`. Preserve its exact HTTP method,
-URI, route name, permission, and website-scoped status.
+Use `domain` only for the configured `coverage.reference_domain` resource
+(`links` at this stage). Use `legacy_resource` for the generic
+`ResourceController`, `legacy_controller` for every other dedicated API v2
+resource controller that has not completed a domain-service migration, and
+`legacy_bridge` for every configured bridge action. Preserve each operation's
+exact HTTP method, URI, route name, permission, and website-scoped status.
 
 In `WncmsServiceProvider::mergeConfigs()`, add `wncms-api-v2`. In `register()`,
 call a new `registerApiV2ContractServices(): void` after configs are merged. The
@@ -829,8 +836,11 @@ git commit -m "feat(api-v2): add asynchronous operation contract"
 - [ ] **Step 1: Write failing validator and command tests**
 
 Inject fixtures for duplicate route bindings, missing routes, method/path
-mismatches, missing backend permissions, invalid risk values, malformed schemas,
-and OpenAPI operations absent from the registry. Assert the valid runtime with:
+mismatches, missing permissions on formal `domain` backend mutations, invalid
+risk/implementation values, malformed schemas, and OpenAPI operations absent
+from the registry. Legacy operations without permissions produce warnings rather
+than errors and remain ineligible for completed v7 parity. Assert the valid
+runtime with:
 
 ```php
 $this->assertSame(0, $exitCode);
@@ -838,6 +848,7 @@ $this->assertSame('success', $decoded['status']);
 $this->assertSame('api-v2-contract', $decoded['meta']['mode']);
 $this->assertGreaterThan(0, $decoded['data']['operation_count']);
 $this->assertSame([], $decoded['data']['errors']);
+$this->assertIsArray($decoded['data']['warnings']);
 ```
 
 Invalid fixtures return CLI exit 1 and grouped machine-readable errors.
@@ -849,9 +860,11 @@ Expected: validator and `--contract` option do not exist.
 - [ ] **Step 3: Implement deterministic validation**
 
 Validate exact HTTP method, normalized path, route name, domain ownership,
-permission presence for backend mutations, allowed risk/implementation values,
-request/response schemas, unique operation IDs, and one-to-one OpenAPI coverage.
-Add `--contract` without changing existing default or `--coverage` behavior.
+permission presence for formal `domain` backend mutations, allowed
+risk/implementation values, request/response schemas, unique operation IDs, and
+one-to-one OpenAPI coverage. Report a stable warning for a permissionless
+`legacy_resource`, `legacy_controller`, or `legacy_bridge` mutation. Add
+`--contract` without changing existing default or `--coverage` behavior.
 
 - [ ] **Step 4: Run parity and OpenAPI checks**
 
@@ -907,8 +920,8 @@ Document exact endpoint URLs, authentication requirements, envelope keys,
 request/error IDs, capability filtering, all `x-wncms-*` OpenAPI extensions,
 idempotency header behavior, `If-Match`, operation states/transitions, cache TTL,
 and the provisional cache-backed operation limitation. State explicitly that
-legacy operations marked `legacy_resource` or `legacy_bridge` are discoverable
-but do not satisfy final v7 domain parity.
+legacy operations marked `legacy_resource`, `legacy_controller`, or
+`legacy_bridge` are discoverable but do not satisfy final v7 domain parity.
 
 - [ ] **Step 2: Update the coverage matrix**
 
