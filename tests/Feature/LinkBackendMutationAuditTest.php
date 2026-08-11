@@ -162,6 +162,153 @@ class LinkBackendMutationAuditTest extends TestCase
         $this->assertSame('Before rollback', $link->fresh()->name);
     }
 
+    public function test_disabled_bulk_mutations_write_without_audits(): void
+    {
+        config(['wncms.mutation_audit.enabled' => false]);
+        $deleteTarget = Link::create($this->linkData());
+        $updateTarget = Link::create($this->linkData(['sort' => 10]));
+        $tagTarget = Link::create($this->linkData());
+        $beforeAuditCount = MutationAudit::count();
+
+        $this->withHeader('X-Requested-With', 'XMLHttpRequest')->postJson(route('links.bulk_delete'), [
+            'model_ids' => [$deleteTarget->id],
+        ])->assertOk();
+        $this->postJson(route('links.bulk_update'), [
+            'data' => [['id' => $updateTarget->id, 'sort' => 20]],
+        ])->assertOk()->assertJsonPath('data.count', 1);
+        $this->postJson(route('links.bulk_sync_tags'), [
+            'model_ids' => [$tagTarget->id],
+            'formData' => $this->bulkTagFormData('sync', ['Disabled category']),
+        ])->assertOk()->assertJsonPath('status', 'success');
+
+        $this->assertFalse(Link::whereKey($deleteTarget->id)->exists());
+        $this->assertSame(20, $updateTarget->fresh()->sort);
+        $this->assertSame(['Disabled category'], $this->tagNames($tagTarget->fresh(), 'link_category'));
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
+    public function test_enabled_bulk_delete_audits_each_link_with_shared_run_id(): void
+    {
+        config(['wncms.mutation_audit.enabled' => true]);
+        $first = Link::create($this->linkData());
+        $second = Link::create($this->linkData());
+        $first->bindWebsites([$this->website->id]);
+        $second->bindWebsites([$this->website->id]);
+        $beforeAuditId = (int) MutationAudit::max('id');
+
+        $this->withHeader('X-Requested-With', 'XMLHttpRequest')->postJson(route('links.bulk_delete'), [
+            'model_ids' => [$first->id, $second->id],
+        ])->assertOk();
+
+        $audits = MutationAudit::where('id', '>', $beforeAuditId)->orderBy('id')->get();
+        $this->assertCount(2, $audits);
+        $this->assertSame(['bulk_delete'], $audits->pluck('action')->unique()->values()->all());
+        $this->assertSame(['link_bulk_delete'], $audits->pluck('permission')->unique()->values()->all());
+        $this->assertCount(1, $audits->pluck('run_id')->unique());
+        $this->assertEqualsCanonicalizing([$first->id, $second->id], $audits->pluck('model_id')->all());
+    }
+
+    public function test_enabled_bulk_update_audits_changed_links_only(): void
+    {
+        config(['wncms.mutation_audit.enabled' => true]);
+        $changed = Link::create($this->linkData(['sort' => 10]));
+        $unchanged = Link::create($this->linkData(['sort' => 30]));
+        $beforeAuditId = (int) MutationAudit::max('id');
+
+        $this->postJson(route('links.bulk_update'), [
+            'data' => [
+                ['id' => $changed->id, 'sort' => 20],
+                ['id' => $unchanged->id, 'sort' => 30],
+                ['id' => 99999999, 'sort' => 40],
+            ],
+        ])->assertOk()->assertJsonPath('data.count', 1);
+
+        $audits = MutationAudit::where('id', '>', $beforeAuditId)->get();
+        $this->assertCount(1, $audits);
+        $this->assertSame('bulk_update', $audits->first()->action);
+        $this->assertSame('link_edit', $audits->first()->permission);
+        $this->assertSame($changed->id, $audits->first()->model_id);
+        $this->assertSame(20, $changed->fresh()->sort);
+    }
+
+    public function test_enabled_bulk_tag_actions_audit_changed_links_with_request_run_ids(): void
+    {
+        config(['wncms.mutation_audit.enabled' => true]);
+        $first = Link::create($this->linkData());
+        $second = Link::create($this->linkData());
+        $beforeAuditId = (int) MutationAudit::max('id');
+
+        $this->postJson(route('links.bulk_sync_tags'), [
+            'model_ids' => [$first->id, $second->id],
+            'formData' => $this->bulkTagFormData('sync', ['Alpha']),
+        ])->assertOk()->assertJsonPath('status', 'success');
+        $syncAudits = MutationAudit::where('id', '>', $beforeAuditId)->orderBy('id')->get();
+        $this->assertCount(2, $syncAudits);
+        $this->assertCount(1, $syncAudits->pluck('run_id')->unique());
+
+        $this->postJson(route('links.bulk_sync_tags'), [
+            'model_ids' => [$first->id],
+            'formData' => $this->bulkTagFormData('attach', ['Beta']),
+        ])->assertOk()->assertJsonPath('status', 'success');
+        $this->postJson(route('links.bulk_sync_tags'), [
+            'model_ids' => [$first->id],
+            'formData' => $this->bulkTagFormData('detach', ['Alpha']),
+        ])->assertOk()->assertJsonPath('status', 'success');
+
+        $audits = MutationAudit::where('id', '>', $beforeAuditId)->orderBy('id')->get();
+        $this->assertCount(4, $audits);
+        $this->assertSame(['bulk_sync_tags'], $audits->pluck('action')->unique()->values()->all());
+        $this->assertSame(['link_edit'], $audits->pluck('permission')->unique()->values()->all());
+        $this->assertSame(['Beta'], $this->tagNames($first->fresh(), 'link_category'));
+    }
+
+    public function test_invalid_bulk_tag_requests_do_not_write_audits(): void
+    {
+        config(['wncms.mutation_audit.enabled' => true]);
+        $link = Link::create($this->linkData());
+        $beforeAuditCount = MutationAudit::count();
+
+        $this->postJson(route('links.bulk_sync_tags'), [
+            'formData' => $this->bulkTagFormData('sync', ['Alpha']),
+        ])->assertOk()->assertJsonPath('status', 'fail');
+        $this->postJson(route('links.bulk_sync_tags'), [
+            'model_ids' => [$link->id],
+            'formData' => $this->bulkTagFormData('invalid', ['Alpha']),
+        ])->assertOk()->assertJsonPath('status', 'fail');
+
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
+    public function test_enabled_bulk_update_rolls_back_entire_batch_when_second_audit_fails(): void
+    {
+        config(['wncms.mutation_audit.enabled' => true]);
+        $first = Link::create($this->linkData(['sort' => 10]));
+        $second = Link::create($this->linkData(['sort' => 20]));
+        $beforeAuditCount = MutationAudit::count();
+        $mock = Mockery::mock(BackendMutationAuditService::class, [app(MutationAuditService::class)])
+            ->makePartial();
+        $mock->shouldReceive('write')->once()->passthru()->ordered();
+        $mock->shouldReceive('write')->once()->andThrow(new RuntimeException('second audit failed'))->ordered();
+        $this->app->instance(BackendMutationAuditService::class, $mock);
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->postJson(route('links.bulk_update'), [
+                'data' => [
+                    ['id' => $first->id, 'sort' => 11],
+                    ['id' => $second->id, 'sort' => 21],
+                ],
+            ]);
+            $this->fail('Expected second audit persistence failure.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('second audit failed', $exception->getMessage());
+        }
+
+        $this->assertSame(10, $first->fresh()->sort);
+        $this->assertSame(20, $second->fresh()->sort);
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+    }
+
     protected string $lastSlug = '';
 
     /**
@@ -194,5 +341,34 @@ class LinkBackendMutationAuditTest extends TestCase
             'clicks' => 0,
             'contact' => '@audit',
         ], $overrides);
+    }
+
+    /**
+     * Build the serialized bulk tag form payload.
+     *
+     * @param  string  $action
+     * @param  array  $categories
+     * @param  array  $tags
+     * @return string
+     */
+    protected function bulkTagFormData(string $action, array $categories = [], array $tags = []): string
+    {
+        return http_build_query([
+            'action' => $action,
+            'link_categories' => json_encode(array_map(fn (string $name): array => ['name' => $name], $categories)),
+            'link_tags' => json_encode(array_map(fn (string $name): array => ['name' => $name], $tags)),
+        ]);
+    }
+
+    /**
+     * Return sorted Link tag names for one type.
+     *
+     * @param  \Wncms\Models\Link  $link
+     * @param  string  $type
+     * @return array
+     */
+    protected function tagNames(Link $link, string $type): array
+    {
+        return $link->tagsWithType($type)->pluck('name')->sort()->values()->all();
     }
 }

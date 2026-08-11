@@ -5,6 +5,7 @@ namespace Wncms\Http\Controllers\Backend;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 use Wncms\Services\Automation\BackendMutationAuditService;
 
 class LinkController extends BackendController
@@ -339,12 +340,74 @@ class LinkController extends BackendController
     }
 
     /**
+     * Delete multiple Links and audit each successful deletion when enabled.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return mixed
+     */
+    public function bulk_delete(Request $request)
+    {
+        if (!$this->mutationAuditService()->enabled()) {
+            return parent::bulk_delete($request);
+        }
+
+        $modelIds = is_array($request->model_ids)
+            ? $request->model_ids
+            : explode(',', (string) $request->model_ids);
+        $links = $this->modelClass::whereIn('id', $modelIds)->get();
+        $runId = (string) Str::uuid();
+        $count = DB::transaction(function () use ($links, $runId): int {
+            $deleted = 0;
+
+            foreach ($links as $link) {
+                $before = $this->linkAuditState($link);
+                if ($link->delete() !== true) {
+                    continue;
+                }
+
+                $this->mutationAuditService()->write(
+                    $link,
+                    'links',
+                    'bulk_delete',
+                    'link_bulk_delete',
+                    $before,
+                    [],
+                    (array) ($before['relationships']['website_ids'] ?? []),
+                    (array) ($before['relationships'] ?? []),
+                    $runId,
+                    'Link bulk deleted.'
+                );
+                $deleted++;
+            }
+
+            return $deleted;
+        });
+
+        if ($count > 0) {
+            $this->flush(['links']);
+        }
+
+        if ($request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => __('wncms::word.successfully_deleted_count', ['count' => $count]),
+            ]);
+        }
+
+        return back()->withMessage(__('wncms::word.successfully_deleted_count', ['count' => $count]));
+    }
+
+    /**
      * Bulk update link sort and url
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function bulk_update(Request $request)
     {
+        if ($this->mutationAuditService()->enabled()) {
+            return $this->auditedBulkUpdate($request);
+        }
+
         $count = 0;
 
         foreach ($request->data as $item) {
@@ -427,36 +490,53 @@ class LinkController extends BackendController
             $link_tags = collect(json_decode($formDataArray['link_tags'], true))->pluck('name')->toArray();
             // info($link_tags);
 
-            foreach ($links as $link) {
-                if (($formDataArray['action'] == 'sync')) {
-                    if (!empty($link_categories)) {
-                        $link->syncTagsWithType($link_categories, 'link_category');
+            $action = (string) $formDataArray['action'];
+            $changed = 0;
+
+            if ($this->mutationAuditService()->enabled()) {
+                $runId = (string) Str::uuid();
+                $changed = DB::transaction(function () use ($links, $action, $link_categories, $link_tags, $runId): int {
+                    $count = 0;
+
+                    foreach ($links as $link) {
+                        $before = $this->linkAuditState($link);
+                        $this->applyBulkTagMutation($link, $action, $link_categories, $link_tags);
+                        $after = $this->linkAuditState($link);
+                        if ($before === $after) {
+                            continue;
+                        }
+
+                        $this->mutationAuditService()->write(
+                            $link,
+                            'links',
+                            'bulk_sync_tags',
+                            'link_edit',
+                            $before,
+                            $after,
+                            (array) ($after['relationships']['website_ids'] ?? []),
+                            [
+                                'before' => (array) ($before['relationships'] ?? []),
+                                'after' => (array) ($after['relationships'] ?? []),
+                            ],
+                            $runId,
+                            'Link bulk tags synchronized.'
+                        );
+                        $count++;
                     }
-                    if (!empty($link_tags)) {
-                        $link->syncTagsWithType($link_tags, 'link_tag');
-                    }
+
+                    return $count;
+                });
+            } else {
+                foreach ($links as $link) {
+                    $this->applyBulkTagMutation($link, $action, $link_categories, $link_tags);
                 }
 
-                if (($formDataArray['action'] == 'attach')) {
-                    if (!empty($link_categories)) {
-                        $link->attachTags($link_categories, 'link_category');
-                    }
-                    if (!empty($link_tags)) {
-                        $link->attachTags($link_tags, 'link_tag');
-                    }
-                }
-
-                if (($formDataArray['action'] == 'detach')) {
-                    if (!empty($link_categories)) {
-                        $link->detachTags($link_categories, 'link_category');
-                    }
-                    if (!empty($link_tags)) {
-                        $link->detachTags($link_tags, 'link_tag');
-                    }
-                }
+                $changed = $links->count();
             }
 
-            wncms()->cache()->flush(['links']);
+            if ($changed > 0) {
+                wncms()->cache()->flush(['links']);
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -472,6 +552,110 @@ class LinkController extends BackendController
                 'message' => __('wncms::word.error') . ": " . $e->getMessage(),
                 'restoreBtn' => true,
             ]);
+        }
+    }
+
+    /**
+     * Run an audited bulk Link update in one transaction.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function auditedBulkUpdate(Request $request)
+    {
+        $runId = (string) Str::uuid();
+        $count = DB::transaction(function () use ($request, $runId): int {
+            $changed = 0;
+
+            foreach ((array) $request->data as $item) {
+                $link = $this->modelClass::find($item['id']);
+                if (!$link) {
+                    continue;
+                }
+
+                $updateData = [];
+                if (isset($item['sort']) && $link->sort != $item['sort']) {
+                    $updateData['sort'] = $item['sort'];
+                }
+                if (isset($item['url']) && $link->url != $item['url']) {
+                    $updateData['url'] = $item['url'];
+                }
+                if (empty($updateData)) {
+                    continue;
+                }
+
+                $before = $this->linkAuditState($link);
+                $link->update($updateData);
+                $link->refresh();
+                $after = $this->linkAuditState($link);
+                $this->mutationAuditService()->write(
+                    $link,
+                    'links',
+                    'bulk_update',
+                    'link_edit',
+                    $before,
+                    $after,
+                    (array) ($after['relationships']['website_ids'] ?? []),
+                    [
+                        'before' => (array) ($before['relationships'] ?? []),
+                        'after' => (array) ($after['relationships'] ?? []),
+                    ],
+                    $runId,
+                    'Link bulk updated.'
+                );
+                $changed++;
+            }
+
+            return $changed;
+        });
+
+        if ($count > 0) {
+            wncms()->cache()->flush(['links']);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => __('wncms::word.successfully_updated_count', ['count' => $count]),
+            'data' => ['count' => $count],
+        ]);
+    }
+
+    /**
+     * Apply one existing bulk tag operation to a Link.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $link
+     * @param  string  $action
+     * @param  array  $linkCategories
+     * @param  array  $linkTags
+     * @return void
+     */
+    protected function applyBulkTagMutation($link, string $action, array $linkCategories, array $linkTags): void
+    {
+        if ($action === 'sync') {
+            if (!empty($linkCategories)) {
+                $link->syncTagsWithType($linkCategories, 'link_category');
+            }
+            if (!empty($linkTags)) {
+                $link->syncTagsWithType($linkTags, 'link_tag');
+            }
+        }
+
+        if ($action === 'attach') {
+            if (!empty($linkCategories)) {
+                $link->attachTags($linkCategories, 'link_category');
+            }
+            if (!empty($linkTags)) {
+                $link->attachTags($linkTags, 'link_tag');
+            }
+        }
+
+        if ($action === 'detach') {
+            if (!empty($linkCategories)) {
+                $link->detachTags($linkCategories, 'link_category');
+            }
+            if (!empty($linkTags)) {
+                $link->detachTags($linkTags, 'link_tag');
+            }
         }
     }
 
@@ -494,6 +678,7 @@ class LinkController extends BackendController
     protected function linkAuditState($link): array
     {
         $websiteIds = $link->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+        $link->unsetRelation('tags');
         $linkCategories = $link->tagsWithType('link_category')->pluck('name')->sort()->values()->all();
         $linkTags = $link->tagsWithType('link_tag')->pluck('name')->sort()->values()->all();
         $media = [];
