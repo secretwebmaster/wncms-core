@@ -72,8 +72,14 @@ map 会序列化为 JSON object，而不是 array。
             "fields": [],
             "available": true,
             "disabled_reasons": [],
-            "request_schema": {},
-            "response_schema": {}
+            "request_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "response_schema": {
+              "type": "object",
+              "properties": {}
+            }
           }
         }
       }

@@ -75,8 +75,14 @@ domain-keyed `data.domains` object. Each visible operation contains:
             "fields": [],
             "available": true,
             "disabled_reasons": [],
-            "request_schema": {},
-            "response_schema": {}
+            "request_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "response_schema": {
+              "type": "object",
+              "properties": {}
+            }
           }
         }
       }
