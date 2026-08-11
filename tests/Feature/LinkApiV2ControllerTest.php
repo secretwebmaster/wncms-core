@@ -34,6 +34,7 @@ class LinkApiV2ControllerTest extends TestCase
         uss('enable_api_access', 1);
         uss('api_access_whitelist', '');
         config(['wncms.models.link.website_mode' => 'multi']);
+        config(['wncms.mutation_audit.enabled' => true]);
     }
 
     /**
@@ -397,6 +398,35 @@ class LinkApiV2ControllerTest extends TestCase
         $this->assertAutomationEnvelope($noChange);
         $this->assertTrue(wncms()->cache()->tags(['links'])->has($cacheKey));
         $this->assertSame($beforeAuditCount + 5, MutationAudit::count());
+    }
+
+    /**
+     * Verify API writes remain successful and return stable audit metadata when disabled.
+     *
+     * @return void
+     */
+    public function test_links_api_v2_forced_create_writes_without_audit_when_disabled(): void
+    {
+        config(['wncms.mutation_audit.enabled' => false]);
+        $website = Website::firstOrFail();
+        [, $token] = $this->tokenUser(['link_create'], $website);
+        $slug = 'api-forced-create-no-audit-' . uniqid();
+        $beforeAuditCount = MutationAudit::count();
+
+        $response = $this->withToken($token)->postJson('/api/v2/backend/links', [
+            'name' => 'API forced create without audit',
+            'url' => 'https://example.com/api-forced-create-without-audit',
+            'slug' => $slug,
+            'website_id' => $website->id,
+            'force' => true,
+        ]);
+
+        $response->assertCreated()->assertJsonPath('data.audit', [
+            'enabled' => false,
+            'id' => null,
+        ]);
+        $this->assertTrue(Link::where('slug', $slug)->exists());
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
     }
 
     /**

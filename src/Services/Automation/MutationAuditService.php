@@ -8,6 +8,16 @@ use Wncms\Models\MutationAudit;
 class MutationAuditService
 {
     /**
+     * Determine whether mutation audit persistence is enabled.
+     *
+     * @return bool
+     */
+    public function enabled(): bool
+    {
+        return (bool) config('wncms.mutation_audit.enabled', false);
+    }
+
+    /**
      * Build the audit payload that a dry-run mutation would write later.
      *
      * @param array $plan
@@ -29,7 +39,11 @@ class MutationAuditService
             : 'Mutation validation or guard check failed.';
 
         return [
-            'will_write' => false,
+            'enabled' => $this->enabled(),
+            'will_write' => $this->enabled()
+                && !(bool) ($plan['dry_run'] ?? true)
+                && (bool) ($plan['will_write'] ?? false)
+                && $isSuccess,
             'table' => (new MutationAudit())->getTable(),
             'attributes' => [
                 'run_id' => (string) ($meta['run_id'] ?? Str::uuid()),
@@ -61,13 +75,31 @@ class MutationAuditService
      *
      * @param array $plan
      * @param array $overrides
-     * @return \Wncms\Models\MutationAudit
+     * @return \Wncms\Models\MutationAudit|null
      */
-    public function writeFromPlan(array $plan, array $overrides = []): MutationAudit
+    public function writeFromPlan(array $plan, array $overrides = []): ?MutationAudit
     {
+        if (!$this->enabled()) {
+            return null;
+        }
+
         $attributes = (array) ($plan['audit']['attributes'] ?? $this->previewFromPlan($plan)['attributes']);
 
         return MutationAudit::create(array_merge($attributes, $overrides));
+    }
+
+    /**
+     * Build stable audit response metadata.
+     *
+     * @param  \Wncms\Models\MutationAudit|null  $audit
+     * @return array{enabled: bool, id: int|null}
+     */
+    public function reference(?MutationAudit $audit = null): array
+    {
+        return [
+            'enabled' => $this->enabled(),
+            'id' => $audit === null ? null : (int) $audit->getKey(),
+        ];
     }
 
     /**

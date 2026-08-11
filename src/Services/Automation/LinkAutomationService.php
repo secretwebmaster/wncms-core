@@ -196,9 +196,7 @@ class LinkAutomationService
                 return AutomationResult::success('Link created.', [
                     'item' => $this->normalizeLink($link, true),
                     'plan' => $writtenPlan,
-                    'audit' => [
-                        'id' => (int) $audit->getKey(),
-                    ],
+                    'audit' => app(MutationAuditService::class)->reference($audit),
                 ], $meta, 201);
             });
         } catch (LinkMutationAbortException $exception) {
@@ -547,7 +545,9 @@ class LinkAutomationService
                         'result_status' => 'success',
                         'message' => 'Link bulk tags synchronized.',
                     ]);
-                    $audits[] = (int) $audit->getKey();
+                    if ($audit !== null) {
+                        $audits[] = (int) $audit->getKey();
+                    }
                 }
 
                 $freshPlan['dry_run'] = false;
@@ -559,6 +559,10 @@ class LinkAutomationService
                     'plan' => $freshPlan,
                     'run_id' => $runId,
                     'audit_ids' => $audits,
+                    'audit' => [
+                        'enabled' => app(MutationAuditService::class)->enabled(),
+                        'ids' => $audits,
+                    ],
                 ], $meta, 200);
             });
         } catch (BulkSyncTagsAbortException $exception) {
@@ -704,7 +708,9 @@ class LinkAutomationService
                         'result_status' => 'success',
                         'message' => 'Link bulk updated.',
                     ]);
-                    $audits[] = (int) $audit->getKey();
+                    if ($audit !== null) {
+                        $audits[] = (int) $audit->getKey();
+                    }
                 }
 
                 $freshPlan['dry_run'] = false;
@@ -716,6 +722,10 @@ class LinkAutomationService
                     'plan' => $freshPlan,
                     'run_id' => $runId,
                     'audit_ids' => $audits,
+                    'audit' => [
+                        'enabled' => app(MutationAuditService::class)->enabled(),
+                        'ids' => $audits,
+                    ],
                 ], $meta, 200);
             });
         } catch (BulkUpdateAbortException $exception) {
@@ -905,9 +915,7 @@ class LinkAutomationService
                     'item' => $this->normalizeLink($link, true),
                     'changes' => $writtenChanges,
                     'plan' => $writtenPlan,
-                    'audit' => [
-                        'id' => (int) $audit->getKey(),
-                    ],
+                    'audit' => app(MutationAuditService::class)->reference($audit),
                 ], $meta, 200);
             });
         } catch (LinkMutationAbortException $exception) {
@@ -1054,9 +1062,7 @@ class LinkAutomationService
                 return AutomationResult::success('Link deleted.', [
                     'deleted' => $deleted,
                     'plan' => $writtenPlan,
-                    'audit' => [
-                        'id' => (int) $audit->getKey(),
-                    ],
+                    'audit' => app(MutationAuditService::class)->reference($audit),
                 ], $meta, 200);
             });
         } finally {

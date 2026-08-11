@@ -19,6 +19,13 @@ class LinkAutomationCommandTest extends TestCase
 {
     use DatabaseTransactions;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['wncms.mutation_audit.enabled' => true]);
+    }
+
     public function test_links_list_outputs_json_with_filters(): void
     {
         $keyword = 'Automation CLI ' . uniqid();
@@ -300,6 +307,33 @@ class LinkAutomationCommandTest extends TestCase
         } finally {
             config(['wncms.models' => $originalModels]);
         }
+    }
+
+    public function test_links_create_force_writes_without_audit_when_disabled(): void
+    {
+        config(['wncms.mutation_audit.enabled' => false]);
+        $admin = $this->automationAdmin();
+        $slug = 'automation-cli-create-no-audit-' . uniqid();
+        $beforeAuditCount = MutationAudit::count();
+
+        $exitCode = Artisan::call('wncms:links:create', [
+            '--json' => true,
+            '--name' => 'Automation CLI without audit',
+            '--url' => 'https://example.com/cli-without-audit',
+            '--slug' => $slug,
+            '--actor-user' => $admin->id,
+            '--force' => true,
+        ]);
+
+        $decoded = json_decode(trim(Artisan::output()), true);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertTrue(Link::where('slug', $slug)->exists());
+        $this->assertSame($beforeAuditCount, MutationAudit::count());
+        $this->assertSame([
+            'enabled' => false,
+            'id' => null,
+        ], $decoded['data']['audit']);
     }
 
     public function test_links_create_rejects_missing_website_for_admin(): void
