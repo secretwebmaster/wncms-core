@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Str;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Wncms\Api\V2\ApiContractRegistry;
 
 class WncmsServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,8 @@ class WncmsServiceProvider extends ServiceProvider
 
         // Package configs
         $this->mergeConfigs();
+
+        $this->registerApiV2ContractServices();
 
         // Laravel 13 compatibility (opt-in): allow cached object unserialization when needed.
         $this->loadCacheCompatibilitySettings();
@@ -191,6 +194,7 @@ class WncmsServiceProvider extends ServiceProvider
             'media-library',
             'translatable',
             'wncms-system-settings',
+            'wncms-api-v2',
             'wncms-backend-api-v2',
             'wncms-tags',
             'permission',
@@ -200,6 +204,24 @@ class WncmsServiceProvider extends ServiceProvider
         foreach ($configs as $config) {
             $this->mergeConfigFrom(__DIR__ . "/../../config/{$config}.php", $config);
         }
+    }
+
+    /**
+     * Register API v2 contract services.
+     *
+     * @return void
+     */
+    protected function registerApiV2ContractServices(): void
+    {
+        $this->app->singleton(ApiContractRegistry::class, function ($app) {
+            $registry = new ApiContractRegistry;
+
+            foreach (config('wncms-api-v2.providers', []) as $providerClass) {
+                $app->make($providerClass)->register($registry);
+            }
+
+            return $registry;
+        });
     }
 
     /**
