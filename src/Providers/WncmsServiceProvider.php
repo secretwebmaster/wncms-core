@@ -15,6 +15,7 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Str;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Api\V2\ApiV2ResponseFinalizer;
 use Wncms\Api\V2\Contracts\IdempotencyStore;
 use Wncms\Api\V2\Repositories\CacheIdempotencyStore;
 
@@ -218,6 +219,8 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function registerApiV2ContractServices(): void
     {
+        $this->app->singleton(ApiV2ResponseFinalizer::class);
+
         $this->app->singleton(IdempotencyStore::class, function ($app) {
             return new CacheIdempotencyStore(
                 $app->make(CacheFactory::class),

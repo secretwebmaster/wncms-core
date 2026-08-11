@@ -2,6 +2,8 @@
 
 namespace Wncms\Tests\Feature\Api\V2;
 
+use Closure;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -48,6 +50,10 @@ class IdempotencyMiddlewareTest extends TestCase
         Cache::flushLocks();
         config(['wncms-api-v2.idempotency.store' => 'array']);
         $this->actingAs(User::firstOrFail());
+        $this->app['router']->aliasMiddleware(
+            'api_v2_test_website_context',
+            TestWebsiteContextMiddleware::class
+        );
 
         Route::post('/api/v2/_test/idempotent/{subject}', function (Request $request, string $subject) {
             $this->executions++;
@@ -119,6 +125,48 @@ class IdempotencyMiddlewareTest extends TestCase
         })
             ->defaults('api_operation_id', 'backend.test.wire')
             ->middleware(['api_v2_request_id', 'api_v2_idempotency']);
+
+        Route::post('/api/v2/_test/idempotent-spoofed-request-id/{subject}', function (string $subject) {
+            $this->executions++;
+
+            return app(ApiResponseFactory::class)->success([
+                'execution' => $this->executions,
+                'subject' => $subject,
+            ], 'created', 201)->header(
+                'X-Request-ID',
+                '123e4567-e89b-42d3-a456-426614174099'
+            );
+        })
+            ->defaults('api_operation_id', 'backend.test.spoofed-request-id')
+            ->middleware(['api_v2_request_id', 'api_v2_idempotency']);
+
+        Route::post('/api/v2/_test/idempotent-invalid-response/{kind}', function (string $kind) {
+            $this->executions++;
+
+            $json = match ($kind) {
+                'malformed' => '{"broken":',
+                'depth' => str_repeat('[', 513).'0'.str_repeat(']', 513),
+            };
+
+            return JsonResponse::fromJsonString($json, 202, ['Content-Type' => 'application/json']);
+        })
+            ->defaults('api_operation_id', 'backend.test.invalid-response')
+            ->middleware(['api_v2_request_id', 'api_v2_idempotency']);
+
+        Route::post('/api/v2/_test/idempotent-model-website/{subject}', function (string $subject) {
+            $this->executions++;
+
+            return app(ApiResponseFactory::class)->success([
+                'execution' => $this->executions,
+                'subject' => $subject,
+            ], 'created', 201);
+        })
+            ->defaults('api_operation_id', 'backend.test.model-website')
+            ->middleware([
+                'api_v2_request_id',
+                'api_v2_test_website_context',
+                'api_v2_idempotency',
+            ]);
     }
 
     /**
@@ -128,6 +176,8 @@ class IdempotencyMiddlewareTest extends TestCase
      */
     protected function tearDown(): void
     {
+        TestWebsiteContextMiddleware::$website = null;
+
         foreach ($this->uploadStreams as $stream) {
             if (is_resource($stream)) {
                 fclose($stream);
@@ -228,6 +278,78 @@ class IdempotencyMiddlewareTest extends TestCase
             ->assertHeader('Idempotency-Replayed', 'true')
             ->assertHeader('Content-Type', 'application/json')
             ->assertJsonPath('data.execution', 1);
+        $this->assertSame($first->getContent(), $replayed->getContent());
+        $this->assertSame(1, $this->executions);
+    }
+
+    /**
+     * Verify replay keeps the first finalized request ID when the retry sends a different ID.
+     *
+     * Trusting an ordinary handler response header would also allow it to bypass request-ID finalization.
+     *
+     * @return void
+     */
+    public function test_replay_preserves_the_first_finalized_response_across_different_request_ids(): void
+    {
+        $firstRequestId = '123e4567-e89b-42d3-a456-426614174010';
+        $retryRequestId = '123e4567-e89b-42d3-a456-426614174011';
+        $key = 'finalized-response-key-01';
+        $payload = ['title' => 'One'];
+
+        $first = $this->withHeader('X-Request-ID', $firstRequestId)->postMutation(
+            '/api/v2/_test/idempotent-spoofed-request-id/alpha',
+            $payload,
+            $key
+        );
+
+        $first
+            ->assertCreated()
+            ->assertHeader('X-Request-ID', $firstRequestId)
+            ->assertHeader('Content-Type', 'application/json')
+            ->assertJsonPath('meta.request_id', $firstRequestId);
+        $this->assertNull($first->headers->get('Idempotency-Replayed'));
+
+        $replayed = $this->withHeader('X-Request-ID', $retryRequestId)->postMutation(
+            '/api/v2/_test/idempotent-spoofed-request-id/alpha',
+            $payload,
+            $key
+        );
+
+        $replayed
+            ->assertCreated()
+            ->assertHeader('X-Request-ID', $firstRequestId)
+            ->assertHeader('Content-Type', 'application/json')
+            ->assertHeader('Idempotency-Replayed', 'true')
+            ->assertJsonPath('meta.request_id', $firstRequestId);
+        $this->assertSame($first->getContent(), $replayed->getContent());
+        $this->assertSame(1, $this->executions);
+    }
+
+    /**
+     * Verify generated request IDs also replay the first response identity exactly.
+     *
+     * @return void
+     */
+    public function test_replay_preserves_the_first_automatically_generated_request_id(): void
+    {
+        $key = 'generated-request-id-key-01';
+        $payload = ['title' => 'One'];
+
+        $first = $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key);
+        $firstRequestId = (string) $first->headers->get('X-Request-ID');
+
+        $first->assertCreated();
+        $this->assertNotSame('', $firstRequestId);
+        $this->assertSame($firstRequestId, $first->json('meta.request_id'));
+        $this->assertNull($first->headers->get('Idempotency-Replayed'));
+
+        $replayed = $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key);
+
+        $replayed
+            ->assertCreated()
+            ->assertHeader('X-Request-ID', $firstRequestId)
+            ->assertHeader('Idempotency-Replayed', 'true')
+            ->assertJsonPath('meta.request_id', $firstRequestId);
         $this->assertSame($first->getContent(), $replayed->getContent());
         $this->assertSame(1, $this->executions);
     }
@@ -560,6 +682,48 @@ class IdempotencyMiddlewareTest extends TestCase
     }
 
     /**
+     * Verify website scope uses the stable model primary key rather than a mutable route key.
+     *
+     * @return void
+     */
+    public function test_website_scope_survives_route_key_changes_and_isolates_primary_keys(): void
+    {
+        $primary = new MutableRouteKeyWebsite();
+        $primary->setAttribute('id', 101);
+        $primary->mutableRouteKey = 'route-key-alpha';
+        TestWebsiteContextMiddleware::$website = $primary;
+
+        $uri = '/api/v2/_test/idempotent-model-website/alpha';
+        $key = 'stable-website-key-01';
+        $payload = ['title' => 'One'];
+
+        $first = $this->postMutation($uri, $payload, $key);
+        $first
+            ->assertCreated()
+            ->assertJsonPath('data.execution', 1);
+        $this->assertNull($first->headers->get('Idempotency-Replayed'));
+
+        $primary->mutableRouteKey = 'route-key-beta';
+        $replayed = $this->postMutation($uri, $payload, $key);
+        $replayed
+            ->assertCreated()
+            ->assertHeader('Idempotency-Replayed', 'true')
+            ->assertJsonPath('data.execution', 1);
+
+        $secondary = new MutableRouteKeyWebsite();
+        $secondary->setAttribute('id', 202);
+        $secondary->mutableRouteKey = 'route-key-beta';
+        TestWebsiteContextMiddleware::$website = $secondary;
+
+        $isolated = $this->postMutation($uri, $payload, $key);
+        $isolated
+            ->assertCreated()
+            ->assertJsonPath('data.execution', 2);
+        $this->assertNull($isolated->headers->get('Idempotency-Replayed'));
+        $this->assertSame(2, $this->executions);
+    }
+
+    /**
      * Verify an unavailable atomic lock returns the stable in-progress conflict.
      *
      * @return void
@@ -650,7 +814,7 @@ class IdempotencyMiddlewareTest extends TestCase
     public function test_replay_preserves_exact_json_wire_types_and_content_type(): void
     {
         $requestId = '123e4567-e89b-42d3-a456-426614174004';
-        $this->withHeader('X-Request-ID', $requestId);
+        $retryRequestId = '123e4567-e89b-42d3-a456-426614174005';
 
         $cases = [
             'object' => ['{"meta":{"request_id":"'.$requestId.'"}}', 'application/json'],
@@ -666,18 +830,60 @@ class IdempotencyMiddlewareTest extends TestCase
             $uri = "/api/v2/_test/idempotent-wire/{$shape}";
             $key = "wire-type-{$shape}-key";
 
-            $first = $this->postMutation($uri, ['title' => 'One'], $key);
-            $replayed = $this->postMutation($uri, ['title' => 'One'], $key);
+            $first = $this->withHeader('X-Request-ID', $requestId)
+                ->postMutation($uri, ['title' => 'One'], $key);
+            $replayed = $this->withHeader('X-Request-ID', $retryRequestId)
+                ->postMutation($uri, ['title' => 'One'], $key);
 
             $first
                 ->assertStatus(202)
+                ->assertHeader('X-Request-ID', $requestId)
                 ->assertHeader('Content-Type', $expectedContentType);
             $replayed
                 ->assertStatus(202)
+                ->assertHeader('X-Request-ID', $requestId)
                 ->assertHeader('Content-Type', $expectedContentType)
                 ->assertHeader('Idempotency-Replayed', 'true');
             $this->assertSame($expectedBody, $first->getContent());
             $this->assertSame($first->getContent(), $replayed->getContent());
+        }
+
+        $this->assertSame(4, $this->executions);
+    }
+
+    /**
+     * Verify malformed and over-depth JSON responses are never persisted for replay.
+     *
+     * Skipping strict final-body validation would return and cache both invalid payloads.
+     *
+     * @return void
+     */
+    public function test_invalid_final_json_body_is_not_recorded_and_releases_the_lock(): void
+    {
+        foreach (['malformed', 'depth'] as $kind) {
+            $store = new InspectingIdempotencyStore();
+            app()->instance(IdempotencyStore::class, $store);
+            $uri = "/api/v2/_test/idempotent-invalid-response/{$kind}";
+            $key = "invalid-response-{$kind}-key";
+
+            $first = $this->postMutation($uri, ['title' => 'One'], $key);
+
+            $first
+                ->assertServerError()
+                ->assertJsonPath('meta.error_code', 'server.unexpected_error');
+            $this->assertEnvelope($first);
+            $this->assertTrue($store->released);
+            $this->assertNull($store->record);
+
+            $store->released = false;
+            $retry = $this->postMutation($uri, ['title' => 'One'], $key);
+
+            $retry
+                ->assertServerError()
+                ->assertJsonPath('meta.error_code', 'server.unexpected_error');
+            $this->assertEnvelope($retry);
+            $this->assertTrue($store->released);
+            $this->assertNull($store->record);
         }
 
         $this->assertSame(4, $this->executions);
@@ -802,6 +1008,84 @@ class IdempotencyMiddlewareTest extends TestCase
     }
 
     /**
+     * Verify production rejects a failover store even when its first backend supports locks.
+     *
+     * Accepting the wrapper could split the record and lock across different fallback stores.
+     *
+     * @return void
+     */
+    public function test_production_rejects_an_array_first_failover_cache_store(): void
+    {
+        $cacheDirectory = sys_get_temp_dir().'/wncms-idempotency-'.bin2hex(random_bytes(8));
+        $this->cacheDirectories[] = $cacheDirectory;
+        config([
+            'cache.stores.idempotency_file' => [
+                'driver' => 'file',
+                'path' => $cacheDirectory,
+                'lock_path' => $cacheDirectory,
+            ],
+            'cache.stores.idempotency_failover' => [
+                'driver' => 'failover',
+                'stores' => ['array', 'idempotency_file'],
+            ],
+            'wncms-api-v2.idempotency.store' => 'idempotency_failover',
+        ]);
+        app('cache')->forgetDriver('idempotency_file');
+        app('cache')->forgetDriver('idempotency_failover');
+        app()->forgetInstance(IdempotencyStore::class);
+        $this->app->detectEnvironment(static fn (): string => 'production');
+
+        try {
+            $response = $this->postMutation(
+                '/api/v2/_test/idempotent/alpha',
+                ['title' => 'One'],
+                'failover-store-key-01'
+            );
+        } finally {
+            $this->app->detectEnvironment(static fn (): string => 'testing');
+        }
+
+        $response
+            ->assertServerError()
+            ->assertJsonPath('meta.error_code', 'server.unexpected_error');
+        $this->assertEnvelope($response);
+        $this->assertSame(0, $this->executions);
+    }
+
+    /**
+     * Verify a safe atomic file store remains usable outside production.
+     *
+     * @return void
+     */
+    public function test_non_production_accepts_a_safe_atomic_file_cache_store(): void
+    {
+        $cacheDirectory = sys_get_temp_dir().'/wncms-idempotency-'.bin2hex(random_bytes(8));
+        $this->cacheDirectories[] = $cacheDirectory;
+        config([
+            'cache.stores.idempotency_file' => [
+                'driver' => 'file',
+                'path' => $cacheDirectory,
+                'lock_path' => $cacheDirectory,
+            ],
+            'wncms-api-v2.idempotency.store' => 'idempotency_file',
+        ]);
+        app('cache')->forgetDriver('idempotency_file');
+        app()->forgetInstance(IdempotencyStore::class);
+
+        $key = 'non-production-file-key-01';
+        $payload = ['title' => 'One'];
+        $first = $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key);
+        $replayed = $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key);
+
+        $first->assertCreated();
+        $replayed
+            ->assertCreated()
+            ->assertHeader('Idempotency-Replayed', 'true')
+            ->assertJsonPath('data.execution', 1);
+        $this->assertSame(1, $this->executions);
+    }
+
+    /**
      * Verify a null idempotency config uses a safe Laravel default store in production.
      *
      * @return void
@@ -875,7 +1159,10 @@ class IdempotencyMiddlewareTest extends TestCase
         $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/', (string) $store->record['fingerprint']);
         $this->assertSame(201, $store->record['status']);
         $this->assertSame($response->getContent(), $store->record['body']);
-        $this->assertSame(['Content-Type' => 'application/json'], $store->record['headers']);
+        $this->assertSame([
+            'Content-Type' => 'application/json',
+            'X-Request-ID' => '123e4567-e89b-42d3-a456-426614174000',
+        ], $store->record['headers']);
         $this->assertStringNotContainsString('must-not-be-stored', json_encode($store->record, JSON_THROW_ON_ERROR));
     }
 
@@ -1046,6 +1333,45 @@ class IdempotencyMiddlewareTest extends TestCase
             $response->headers->get('X-Request-ID'),
             $response->json('meta.request_id')
         );
+    }
+}
+
+class MutableRouteKeyWebsite extends Model
+{
+    public string $mutableRouteKey = '';
+
+    /**
+     * Return the mutable route identity used to prove scope stability.
+     *
+     * @return string
+     */
+    public function getRouteKey(): string
+    {
+        return $this->mutableRouteKey;
+    }
+}
+
+class TestWebsiteContextMiddleware
+{
+    public static ?Model $website = null;
+
+    /**
+     * Attach the controlled resolved website model to the request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function handle(Request $request, Closure $next): \Symfony\Component\HttpFoundation\Response
+    {
+        if (! self::$website instanceof Model) {
+            throw new \RuntimeException('Test website context is unavailable');
+        }
+
+        $request->attributes->set('wncms_api_v2_website', self::$website);
+
+        return $next($request);
     }
 }
 

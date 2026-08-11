@@ -4,6 +4,7 @@ namespace Wncms\Api\V2;
 
 use BackedEnum;
 use Closure;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,10 +25,12 @@ class IdempotencyService
      *
      * @param  \Wncms\Api\V2\Contracts\IdempotencyStore  $store
      * @param  \Wncms\Api\V2\ApiResponseFactory  $responses
+     * @param  \Wncms\Api\V2\ApiV2ResponseFinalizer  $finalizer
      */
     public function __construct(
         protected IdempotencyStore $store,
-        protected ApiResponseFactory $responses
+        protected ApiResponseFactory $responses,
+        protected ApiV2ResponseFinalizer $finalizer
     ) {
     }
 
@@ -97,7 +100,7 @@ class IdempotencyService
 
         $existing = $this->store->get($scope);
         if ($existing !== null) {
-            return $this->resolveExisting($existing, $fingerprint);
+            return $this->resolveExisting($request, $existing, $fingerprint);
         }
 
         $lock = $this->store->lock(
@@ -116,7 +119,7 @@ class IdempotencyService
         try {
             $existing = $this->store->get($scope);
             if ($existing !== null) {
-                return $this->resolveExisting($existing, $fingerprint);
+                return $this->resolveExisting($request, $existing, $fingerprint);
             }
 
             $response = $next($request);
@@ -132,12 +135,16 @@ class IdempotencyService
                 return $response;
             }
 
+            $response = $this->finalizer->finalize($request, $response);
+            $body = $this->validatedResponseBody($response);
+
             $this->store->put($scope, [
                 'fingerprint' => $fingerprint,
                 'status' => $response->getStatusCode(),
-                'body' => $response->getContent(),
+                'body' => $body,
                 'headers' => [
                     'Content-Type' => (string) $response->headers->get('Content-Type', 'application/json'),
+                    'X-Request-ID' => (string) $response->headers->get('X-Request-ID', ''),
                 ],
             ], (int) config('wncms-api-v2.idempotency.ttl_seconds', 86400));
 
@@ -145,6 +152,28 @@ class IdempotencyService
         } finally {
             $lock->release();
         }
+    }
+
+    /**
+     * Validate and return the final raw JSON response body for replay storage.
+     *
+     * @param  \Symfony\Component\HttpFoundation\Response  $response
+     *
+     * @return string
+     *
+     * @throws \JsonException
+     * @throws \UnexpectedValueException
+     */
+    protected function validatedResponseBody(Response $response): string
+    {
+        $body = $response->getContent();
+        if (! is_string($body)) {
+            throw new \UnexpectedValueException('Idempotent API response body is invalid');
+        }
+
+        json_decode($body, false, 512, JSON_THROW_ON_ERROR);
+
+        return $body;
     }
 
     /**
@@ -193,7 +222,7 @@ class IdempotencyService
     }
 
     /**
-     * Resolve the trusted website route key or an explicit no-context sentinel.
+     * Resolve the trusted website primary key or an explicit no-context sentinel.
      *
      * Website middleware stores the resolved model on the request, so this value never derives from Host.
      *
@@ -204,16 +233,20 @@ class IdempotencyService
     protected function websiteIdentity(Request $request): string
     {
         $website = $request->attributes->get(self::WEBSITE_CONTEXT_ATTRIBUTE);
-        if (! $website instanceof UrlRoutable) {
+        if ($website === null) {
             return 'website:none';
         }
 
-        $routeKey = $website->getRouteKey();
-        if ($routeKey === null || $routeKey === '') {
-            throw new \UnexpectedValueException('Resolved website has no route key');
+        if (! $website instanceof Model) {
+            throw new \UnexpectedValueException('Resolved website context is not a model');
         }
 
-        return 'website:'.(string) $routeKey;
+        $primaryKey = $website->getKey();
+        if ($primaryKey === null || $primaryKey === '') {
+            throw new \UnexpectedValueException('Resolved website has no primary key');
+        }
+
+        return 'website:'.(string) $primaryKey;
     }
 
     /**
@@ -428,12 +461,13 @@ class IdempotencyService
     /**
      * Replay a completed response or reject a mismatched request fingerprint.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @param  array  $record
      * @param  string  $fingerprint
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    protected function resolveExisting(array $record, string $fingerprint): JsonResponse
+    protected function resolveExisting(Request $request, array $record, string $fingerprint): JsonResponse
     {
         $storedFingerprint = (string) ($record['fingerprint'] ?? '');
         if ($storedFingerprint === '' || ! hash_equals($storedFingerprint, $fingerprint)) {
@@ -451,10 +485,18 @@ class IdempotencyService
 
         json_decode($body, false, 512, JSON_THROW_ON_ERROR);
 
-        return JsonResponse::fromJsonString(
+        $headers = is_array($record['headers'] ?? null) ? $record['headers'] : [];
+        $response = JsonResponse::fromJsonString(
             $body,
             (int) ($record['status'] ?? Response::HTTP_OK),
-            is_array($record['headers'] ?? null) ? $record['headers'] : []
+            $headers
         )->header('Idempotency-Replayed', 'true');
+
+        $this->finalizer->markTrustedReplay(
+            $response,
+            (string) ($headers['X-Request-ID'] ?? '')
+        );
+
+        return $response;
     }
 }

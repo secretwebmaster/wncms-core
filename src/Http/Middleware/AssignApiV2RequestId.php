@@ -5,9 +5,9 @@ namespace Wncms\Http\Middleware;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiResponseFactory;
+use Wncms\Api\V2\ApiV2ResponseFinalizer;
 
 class AssignApiV2RequestId
 {
@@ -15,9 +15,12 @@ class AssignApiV2RequestId
      * Create the API v2 request ID middleware.
      *
      * @param  \Wncms\Api\V2\ApiResponseFactory  $responses
+     * @param  \Wncms\Api\V2\ApiV2ResponseFinalizer  $finalizer
      */
-    public function __construct(protected ApiResponseFactory $responses)
-    {
+    public function __construct(
+        protected ApiResponseFactory $responses,
+        protected ApiV2ResponseFinalizer $finalizer
+    ) {
     }
 
     /**
@@ -32,12 +35,7 @@ class AssignApiV2RequestId
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $requestId = trim((string) $request->headers->get('X-Request-ID', ''));
-        if (! Str::isUuid($requestId)) {
-            $requestId = (string) Str::uuid();
-        }
-
-        $request->attributes->set('wncms_api_v2_request_id', $requestId);
+        $this->finalizer->assignRequestId($request);
 
         try {
             $response = $next($request);
@@ -49,21 +47,6 @@ class AssignApiV2RequestId
             $response = $this->responses->fromReportedThrowable($response->exception);
         }
 
-        $response->headers->set('X-Request-ID', $requestId);
-
-        if ($response instanceof JsonResponse) {
-            $payload = $response->getData();
-            if (is_object($payload)) {
-                $meta = is_object($payload->meta ?? null) ? $payload->meta : (object) [];
-                $meta->request_id = $requestId;
-                if (($payload->status ?? null) === 'fail' && ! isset($meta->error_code)) {
-                    $meta->error_code = $this->responses->errorCodeForStatus($response->getStatusCode());
-                }
-                $payload->meta = $meta;
-                $response->setData($payload);
-            }
-        }
-
-        return $response;
+        return $this->finalizer->finalize($request, $response);
     }
 }

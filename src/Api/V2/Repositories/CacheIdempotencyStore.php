@@ -3,6 +3,7 @@
 namespace Wncms\Api\V2\Repositories;
 
 use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\FailoverStore;
 use Illuminate\Cache\NullStore;
 use Illuminate\Contracts\Cache\Factory;
 use Illuminate\Contracts\Cache\LockProvider;
@@ -108,7 +109,11 @@ class CacheIdempotencyStore implements IdempotencyStore
             throw new \InvalidArgumentException('The API v2 idempotency cache store must support atomic locks');
         }
 
-        if ($this->requireSharedStore && ($store instanceof ArrayStore || $store instanceof NullStore)) {
+        if ($this->requireSharedStore && (
+            $store instanceof ArrayStore
+            || $store instanceof FailoverStore
+            || $store instanceof NullStore
+        )) {
             throw new \InvalidArgumentException(
                 'The API v2 idempotency cache store must be shared across production processes'
             );
