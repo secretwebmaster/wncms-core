@@ -2,32 +2,45 @@
 
 namespace Wncms\Http\Controllers\Api\V2\Backend;
 
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
+use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Http\Controllers\Api\V1\ApiController;
 
 class ApiV2Controller extends ApiController
 {
+    /**
+     * Build a successful API v2 response.
+     *
+     * @param  mixed  $data
+     * @param  string  $message
+     * @param  int  $code
+     * @param  array  $meta
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     protected function ok(
         mixed $data = null,
         string $message = 'success',
         int $code = Response::HTTP_OK,
         array $meta = []
     ): JsonResponse {
-        return response()->json([
-            'code' => $code,
-            'status' => 'success',
-            'message' => $message,
-            'data' => $data,
-            'meta' => $meta,
-            'errors' => [],
-        ], $code);
+        return $this->responseFactory()->success($data, $message, $code, $meta);
     }
 
+    /**
+     * Build a failed API v2 response while preserving the legacy method signature.
+     *
+     * @param  string  $message
+     * @param  int  $code
+     * @param  array  $errors
+     * @param  mixed  $data
+     * @param  array  $meta
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     protected function error(
         string $message = 'fail',
         int $code = Response::HTTP_BAD_REQUEST,
@@ -35,32 +48,36 @@ class ApiV2Controller extends ApiController
         mixed $data = null,
         array $meta = []
     ): JsonResponse {
-        return response()->json([
-            'code' => $code,
-            'status' => 'fail',
-            'message' => $message,
-            'data' => $data,
-            'meta' => $meta,
-            'errors' => $errors,
-        ], $code);
+        return $this->responseFactory()->failure(
+            $this->responseFactory()->errorCodeForStatus($code),
+            $message,
+            $code,
+            $errors,
+            $data,
+            $meta
+        );
     }
 
+    /**
+     * Convert a throwable into a stable API v2 failure response.
+     *
+     * @param  \Throwable  $e
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     protected function fromThrowable(\Throwable $e): JsonResponse
     {
-        if ($e instanceof ValidationException) {
-            return $this->error(
-                __('validation.failed'),
-                Response::HTTP_UNPROCESSABLE_ENTITY,
-                $e->errors()
-            );
-        }
+        return $this->responseFactory()->fromThrowable($e);
+    }
 
-        if ($e instanceof AuthorizationException) {
-            return $this->error(__('auth.unauthorized'), Response::HTTP_FORBIDDEN);
-        }
-
-        report($e);
-        return $this->error($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+    /**
+     * Resolve the shared API v2 response factory.
+     *
+     * @return \Wncms\Api\V2\ApiResponseFactory
+     */
+    protected function responseFactory(): ApiResponseFactory
+    {
+        return app(ApiResponseFactory::class);
     }
 
     protected function resolveModelClass(mixed $modelKey): ?string

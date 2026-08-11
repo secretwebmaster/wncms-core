@@ -70,6 +70,7 @@ class WncmsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('has_website', \Wncms\Http\Middleware\HasWebsite::class);
         $router->aliasMiddleware('full_page_cache', \Wncms\Http\Middleware\FullPageCache::class);
         $router->aliasMiddleware('frontend_auth', \Wncms\Http\Middleware\FrontendAuth::class);
+        $router->aliasMiddleware('api_v2_request_id', \Wncms\Http\Middleware\AssignApiV2RequestId::class);
         $router->aliasMiddleware('api_v2_whitelist', \Wncms\Http\Middleware\ApiV2Whitelist::class);
         $router->aliasMiddleware('api_v2_has_website', \Wncms\Http\Middleware\ApiV2HasWebsite::class);
         $router->aliasMiddleware('api_v2_token_auth', \Wncms\Http\Middleware\ApiV2TokenAuth::class);

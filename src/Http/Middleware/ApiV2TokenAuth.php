@@ -6,9 +6,27 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
+use Wncms\Api\V2\ApiResponseFactory;
 
 class ApiV2TokenAuth
 {
+    /**
+     * Create the API v2 token authentication middleware.
+     *
+     * @param  \Wncms\Api\V2\ApiResponseFactory  $responses
+     */
+    public function __construct(protected ApiResponseFactory $responses)
+    {
+    }
+
+    /**
+     * Authenticate an API v2 request using the session or a personal access token.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function handle(Request $request, Closure $next): Response
     {
         if (auth()->check()) {
@@ -21,7 +39,7 @@ class ApiV2TokenAuth
         }
 
         if ($bearer === '') {
-            return $this->unauthorized('Missing bearer token');
+            return $this->unauthorized('authentication.missing_token', 'Missing bearer token');
         }
 
         [$tokenId, $plainTextToken] = $this->parseToken($bearer);
@@ -34,7 +52,7 @@ class ApiV2TokenAuth
 
         $tokenRecord = $query->first();
         if (!$tokenRecord) {
-            return $this->unauthorized('Invalid bearer token');
+            return $this->unauthorized('authentication.invalid_token', 'Invalid bearer token');
         }
 
         $userModel = wncms()->getModelClass('user');
@@ -44,7 +62,7 @@ class ApiV2TokenAuth
             ->first();
 
         if (!$user) {
-            return $this->unauthorized('Token user not found');
+            return $this->unauthorized('authentication.invalid_token', 'Token user not found');
         }
 
         auth()->setUser($user);
@@ -63,16 +81,20 @@ class ApiV2TokenAuth
         return [null, $token];
     }
 
-    protected function unauthorized(string $message): Response
+    /**
+     * Build a token authentication failure response.
+     *
+     * @param  string  $errorCode
+     * @param  string  $message
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function unauthorized(string $errorCode, string $message): Response
     {
-        return response()->json([
-            'code' => Response::HTTP_UNAUTHORIZED,
-            'status' => 'fail',
-            'message' => $message,
-            'data' => null,
-            'meta' => [],
-            'errors' => [],
-        ], Response::HTTP_UNAUTHORIZED);
+        return $this->responses->failure(
+            $errorCode,
+            $message,
+            Response::HTTP_UNAUTHORIZED
+        );
     }
 }
-

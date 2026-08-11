@@ -8,7 +8,7 @@ use Wncms\Http\Controllers\Api\V2\Backend\ResourceController;
 
 Route::prefix('v2/backend')
     ->name('api.v2.backend.')
-    ->middleware(['api', 'api_v2_whitelist'])
+    ->middleware(['api', 'api_v2_request_id', 'api_v2_whitelist'])
     ->group(function () {
         Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login');
 

@@ -5,20 +5,35 @@ namespace Wncms\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Wncms\Api\V2\ApiResponseFactory;
 
 class ApiV2Whitelist
 {
+    /**
+     * Create the API v2 whitelist middleware.
+     *
+     * @param  \Wncms\Api\V2\ApiResponseFactory  $responses
+     */
+    public function __construct(protected ApiResponseFactory $responses)
+    {
+    }
+
+    /**
+     * Enforce the API feature switch and configured request whitelist.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function handle(Request $request, Closure $next): Response
     {
         if (!gss('enable_api_access')) {
-            return response()->json([
-                'code' => Response::HTTP_FORBIDDEN,
-                'status' => 'fail',
-                'message' => "API feature 'enable_api_access' is disabled",
-                'data' => null,
-                'meta' => [],
-                'errors' => [],
-            ], Response::HTTP_FORBIDDEN);
+            return $this->responses->failure(
+                'authorization.denied',
+                "API feature 'enable_api_access' is disabled",
+                Response::HTTP_FORBIDDEN
+            );
         }
 
         $entries = $this->getWhitelistEntries();
@@ -33,14 +48,11 @@ class ApiV2Whitelist
             return $next($request);
         }
 
-        return response()->json([
-            'code' => Response::HTTP_FORBIDDEN,
-            'status' => 'fail',
-            'message' => 'Request IP or domain is not in the API whitelist',
-            'data' => null,
-            'meta' => [],
-            'errors' => [],
-        ], Response::HTTP_FORBIDDEN);
+        return $this->responses->failure(
+            'authorization.denied',
+            'Request IP or domain is not in the API whitelist',
+            Response::HTTP_FORBIDDEN
+        );
     }
 
     protected function getWhitelistEntries(): array
@@ -97,4 +109,3 @@ class ApiV2Whitelist
         return false;
     }
 }
-
