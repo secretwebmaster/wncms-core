@@ -25,6 +25,7 @@ diff.txt
 !/documentations/plans/v7-composer-security-remediation-design.md
 !/documentations/plans/v7-composer-security-remediation-implementation-plan.md
 !/documentations/plans/v7-global-mutation-audit-toggle-design.md
+!/documentations/plans/v7-global-mutation-audit-toggle-implementation-plan.md
 /documentations/commands/
 
 # Local test artifacts
