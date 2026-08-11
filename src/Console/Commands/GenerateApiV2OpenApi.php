@@ -72,7 +72,7 @@ class GenerateApiV2OpenApi extends Command
             return self::FAILURE;
         }
 
-        if ($bytes === false) {
+        if ($bytes !== strlen($contents)) {
             $this->error("Unable to write OpenAPI snapshot to {$path}.");
 
             return self::FAILURE;

@@ -132,6 +132,41 @@ class GenerateApiV2OpenApiCommandTest extends TestCase
     }
 
     /**
+     * Verify a partial filesystem write cannot be reported as success.
+     *
+     * @return void
+     */
+    public function test_write_fails_when_the_filesystem_returns_a_short_byte_count(): void
+    {
+        $filesystem = File::getFacadeRoot();
+        File::swap(new class extends Filesystem
+        {
+            /**
+             * Simulate a short filesystem write without throwing.
+             *
+             * @param  string  $path
+             * @param  string  $contents
+             * @param  bool  $lock
+             *
+             * @return int
+             */
+            public function put($path, $contents, $lock = false)
+            {
+                return strlen($contents) - 1;
+            }
+        });
+
+        try {
+            $this->artisan('wncms:api-v2-openapi', ['--write' => $this->temporaryDirectory.'/openapi-v2.json'])
+                ->expectsOutputToContain('Unable to write OpenAPI snapshot')
+                ->doesntExpectOutputToContain('OpenAPI document written to')
+                ->assertExitCode(1);
+        } finally {
+            File::swap($filesystem);
+        }
+    }
+
+    /**
      * Verify a filesystem exception cannot escape or be reported as success.
      *
      * @return void
