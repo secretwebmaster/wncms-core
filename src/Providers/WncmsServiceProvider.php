@@ -17,10 +17,12 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\ApiV2ResponseFinalizer;
+use Wncms\Api\V2\Contracts\AtomicOperationRepository;
 use Wncms\Api\V2\Contracts\IdempotencyStore;
 use Wncms\Api\V2\Contracts\OperationRepository;
 use Wncms\Api\V2\IdempotencyService;
 use Wncms\Api\V2\OperationService;
+use Wncms\Api\V2\OperationValidator;
 use Wncms\Api\V2\ReplayResponseTrust;
 use Wncms\Api\V2\Repositories\CacheIdempotencyStore;
 use Wncms\Api\V2\Repositories\CacheOperationRepository;
@@ -251,18 +253,25 @@ class WncmsServiceProvider extends ServiceProvider
             );
         });
 
-        $this->app->singleton(OperationRepository::class, function ($app) {
+        $this->app->singleton(OperationValidator::class);
+
+        $this->app->singleton(AtomicOperationRepository::class, function ($app) {
             return new CacheOperationRepository(
                 $app->make(CacheFactory::class),
                 config('wncms-api-v2.operations.store'),
-                $app->environment('production')
+                $app->environment('production'),
+                config('wncms-api-v2.operations.allowed_shared_store_classes'),
+                (int) config('wncms-api-v2.operations.lock_seconds', 10),
+                $app->make(OperationValidator::class)
             );
         });
+        $this->app->alias(AtomicOperationRepository::class, OperationRepository::class);
 
         $this->app->bind(OperationService::class, function ($app) {
             return new OperationService(
-                $app->make(OperationRepository::class),
-                (int) config('wncms-api-v2.operations.ttl_seconds', 86400)
+                $app->make(AtomicOperationRepository::class),
+                (int) config('wncms-api-v2.operations.ttl_seconds', 86400),
+                $app->make(OperationValidator::class)
             );
         });
 

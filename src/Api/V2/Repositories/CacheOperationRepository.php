@@ -4,21 +4,45 @@ namespace Wncms\Api\V2\Repositories;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\DatabaseStore;
+use Illuminate\Cache\DynamoDbStore;
 use Illuminate\Cache\FailoverStore;
+use Illuminate\Cache\FileStore;
+use Illuminate\Cache\MemcachedStore;
 use Illuminate\Cache\NullStore;
+use Illuminate\Cache\RedisStore;
 use Illuminate\Contracts\Cache\Factory;
+use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Contracts\Cache\Repository;
-use Wncms\Api\V2\Contracts\OperationRepository;
+use Wncms\Api\V2\Contracts\AtomicOperationRepository;
 use Wncms\Api\V2\Data\AsyncOperation;
 use Wncms\Api\V2\Enums\AsyncOperationStatus;
+use Wncms\Api\V2\OperationValidator;
 
-class CacheOperationRepository implements OperationRepository
+class CacheOperationRepository implements AtomicOperationRepository
 {
     protected const RECORD_PREFIX = 'wncms:api-v2:operation:';
 
-    protected const RECORD_VERSION = 1;
+    protected const LOCK_PREFIX = 'wncms:api-v2:operation-lock:';
+
+    protected const RECORD_VERSION = 2;
+
+    protected const DEFAULT_SHARED_STORE_CLASSES = [
+        RedisStore::class,
+        MemcachedStore::class,
+        DatabaseStore::class,
+        DynamoDbStore::class,
+        FileStore::class,
+    ];
 
     protected ?Repository $repository = null;
+
+    /**
+     * @var \WeakMap<\Wncms\Api\V2\Data\AsyncOperation, string>
+     */
+    protected \WeakMap $observedRevisions;
+
+    protected OperationValidator $validator;
 
     /**
      * Create the cache-backed operation repository.
@@ -26,12 +50,26 @@ class CacheOperationRepository implements OperationRepository
      * @param  \Illuminate\Contracts\Cache\Factory  $cache
      * @param  mixed  $storeName
      * @param  bool  $requireSharedStore
+     * @param  mixed  $allowedSharedStoreClasses
+     * @param  int  $lockSeconds
+     * @param  \Wncms\Api\V2\OperationValidator|null  $validator
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         protected Factory $cache,
         protected mixed $storeName = null,
-        protected bool $requireSharedStore = false
+        protected bool $requireSharedStore = false,
+        protected mixed $allowedSharedStoreClasses = null,
+        protected int $lockSeconds = 10,
+        ?OperationValidator $validator = null
     ) {
+        if ($this->lockSeconds <= 0) {
+            throw new \InvalidArgumentException('Operation lock lifetime must be greater than zero');
+        }
+
+        $this->validator = $validator ?? new OperationValidator();
+        $this->observedRevisions = new \WeakMap();
     }
 
     /**
@@ -51,13 +89,90 @@ class CacheOperationRepository implements OperationRepository
             throw new \InvalidArgumentException('Operation cache TTL must be greater than zero');
         }
 
+        $this->validator->validate($operation);
+        $revision = $this->newRevision();
         if ($this->repository()->put(
             $this->recordKey($operation->id),
-            $this->serializeOperation($operation),
+            $this->serializeOperation($operation, $revision),
             $ttlSeconds
         ) !== true) {
             throw new \RuntimeException('Unable to persist the API v2 operation record');
         }
+
+        $this->observedRevisions[$operation] = $revision;
+    }
+
+    /**
+     * Atomically replace an operation when its observed persisted revision remains current.
+     *
+     * The comparison and replacement execute under a per-operation lock supplied by the same
+     * resolved cache backend used for ordinary reads and writes.
+     *
+     * @param  \Wncms\Api\V2\Data\AsyncOperation  $expected
+     * @param  \Wncms\Api\V2\Data\AsyncOperation  $replacement
+     * @param  int  $ttlSeconds
+     *
+     * @return bool
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
+     */
+    public function compareAndSwap(
+        AsyncOperation $expected,
+        AsyncOperation $replacement,
+        int $ttlSeconds
+    ): bool {
+        if ($ttlSeconds <= 0) {
+            throw new \InvalidArgumentException('Operation cache TTL must be greater than zero');
+        }
+
+        $this->validator->validate($expected);
+        $this->validator->validate($replacement);
+
+        if (! hash_equals($expected->id, $replacement->id)) {
+            throw new \InvalidArgumentException('Atomic operation replacement must preserve the operation ID');
+        }
+
+        $expectedRevision = $this->observedRevisions[$expected] ?? null;
+        if (! is_string($expectedRevision)) {
+            return false;
+        }
+
+        $repository = $this->repository();
+        $store = $repository->getStore();
+        if (! $store instanceof LockProvider) {
+            throw new \InvalidArgumentException('The API v2 operation cache store must support atomic locks');
+        }
+
+        $lock = $store->lock($this->lockKey($expected->id), $this->lockSeconds);
+        $swapped = $lock->get(function () use (
+            $repository,
+            $expected,
+            $expectedRevision,
+            $replacement,
+            $ttlSeconds
+        ): bool {
+            $record = $repository->get($this->recordKey($expected->id));
+            $stored = $this->decodeRecord($expected->id, $record);
+            if ($stored === null || ! hash_equals($expectedRevision, $stored['revision'])) {
+                return false;
+            }
+
+            $replacementRevision = $this->newRevision();
+            if ($repository->put(
+                $this->recordKey($replacement->id),
+                $this->serializeOperation($replacement, $replacementRevision),
+                $ttlSeconds
+            ) !== true) {
+                throw new \RuntimeException('Unable to persist the API v2 operation record');
+            }
+
+            $this->observedRevisions[$replacement] = $replacementRevision;
+
+            return true;
+        });
+
+        return $swapped === true;
     }
 
     /**
@@ -69,29 +184,24 @@ class CacheOperationRepository implements OperationRepository
      *
      * @return \Wncms\Api\V2\Data\AsyncOperation|null
      *
-     * @throws \UnexpectedValueException
      */
     public function find(string $id): ?AsyncOperation
     {
         $record = $this->repository()->get($this->recordKey($id));
-        if ($record === null) {
+        $stored = $this->decodeRecord($id, $record);
+        if ($stored === null) {
             return null;
         }
 
-        if (! is_array($record)) {
-            throw new \UnexpectedValueException('Stored API v2 operation record is invalid');
-        }
-
-        $operation = $this->hydrateOperation($record);
-        if (! hash_equals($id, $operation->id)) {
-            throw new \UnexpectedValueException('Stored API v2 operation identifier is invalid');
-        }
+        $operation = $stored['operation'];
 
         if ($this->isExpired($operation)) {
             $this->forget($id);
 
             return null;
         }
+
+        $this->observedRevisions[$operation] = $stored['revision'];
 
         return $operation;
     }
@@ -133,14 +243,24 @@ class CacheOperationRepository implements OperationRepository
         $repository = $this->cache->store($storeName);
         $store = $repository->getStore();
 
-        if ($this->requireSharedStore && (
-            $store instanceof ArrayStore
-            || $store instanceof FailoverStore
-            || $store instanceof NullStore
-        )) {
+        if (! $store instanceof LockProvider) {
             throw new \InvalidArgumentException(
-                'The API v2 operation cache store must be shared across production processes'
+                'The API v2 operation cache store must support atomic locks'
             );
+        }
+
+        if ($this->requireSharedStore) {
+            $storeClass = $store::class;
+            if (
+                $store instanceof ArrayStore
+                || $store instanceof NullStore
+                || $store instanceof FailoverStore
+                || ! in_array($storeClass, $this->sharedStoreClasses(), true)
+            ) {
+                throw new \InvalidArgumentException(
+                    'The API v2 operation cache store must be an explicitly trusted shared store'
+                );
+            }
         }
 
         $this->repository = $repository;
@@ -149,16 +269,52 @@ class CacheOperationRepository implements OperationRepository
     }
 
     /**
+     * Resolve the exact cache-store classes trusted for production operation state.
+     *
+     * @return array<int, class-string>
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected function sharedStoreClasses(): array
+    {
+        $classes = $this->allowedSharedStoreClasses;
+        if ($classes === null) {
+            $classes = array_values(array_filter(
+                self::DEFAULT_SHARED_STORE_CLASSES,
+                static fn (string $class): bool => class_exists($class)
+            ));
+        }
+
+        if (! is_array($classes) || ! array_is_list($classes)) {
+            throw new \InvalidArgumentException(
+                'wncms-api-v2.operations.allowed_shared_store_classes must be a list of exact class names'
+            );
+        }
+
+        foreach ($classes as $class) {
+            if (! is_string($class) || trim($class) === '') {
+                throw new \InvalidArgumentException(
+                    'wncms-api-v2.operations.allowed_shared_store_classes must contain exact class names'
+                );
+            }
+        }
+
+        return array_values(array_unique($classes));
+    }
+
+    /**
      * Serialize an operation without coercing mixed result or error values.
      *
      * @param  \Wncms\Api\V2\Data\AsyncOperation  $operation
+     * @param  string  $revision
      *
      * @return array<string, mixed>
      */
-    protected function serializeOperation(AsyncOperation $operation): array
+    protected function serializeOperation(AsyncOperation $operation, string $revision): array
     {
         return [
             'version' => self::RECORD_VERSION,
+            'revision' => $revision,
             'id' => $operation->id,
             'type' => $operation->type,
             'status' => $operation->status->value,
@@ -179,14 +335,15 @@ class CacheOperationRepository implements OperationRepository
      *
      * @param  array<string, mixed>  $record
      *
-     * @return \Wncms\Api\V2\Data\AsyncOperation
+     * @return array{operation: \Wncms\Api\V2\Data\AsyncOperation, revision: string}
      *
      * @throws \UnexpectedValueException
      */
-    protected function hydrateOperation(array $record): AsyncOperation
+    protected function hydrateOperation(array $record): array
     {
         $required = [
             'version',
+            'revision',
             'id',
             'type',
             'status',
@@ -212,6 +369,8 @@ class CacheOperationRepository implements OperationRepository
             : null;
         if (
             $record['version'] !== self::RECORD_VERSION
+            || ! is_string($record['revision'])
+            || preg_match('/^[a-f0-9]{32}$/', $record['revision']) !== 1
             || ! is_string($record['id'])
             || ! is_string($record['type'])
             || ! $status instanceof AsyncOperationStatus
@@ -227,11 +386,7 @@ class CacheOperationRepository implements OperationRepository
             throw new \UnexpectedValueException('Stored API v2 operation record has invalid types');
         }
 
-        $this->parseUtcTimestamp($record['created_at']);
-        $this->parseUtcTimestamp($record['updated_at']);
-        $this->parseUtcTimestamp($record['expires_at']);
-
-        return new AsyncOperation(
+        $operation = new AsyncOperation(
             id: $record['id'],
             type: $record['type'],
             status: $status,
@@ -245,6 +400,45 @@ class CacheOperationRepository implements OperationRepository
             updatedAt: $record['updated_at'],
             expiresAt: $record['expires_at'],
         );
+
+        $this->validator->validate($operation);
+
+        return [
+            'operation' => $operation,
+            'revision' => $record['revision'],
+        ];
+    }
+
+    /**
+     * Decode a stored operation record and evict corrupt values safely.
+     *
+     * @param  string  $id
+     * @param  mixed  $record
+     *
+     * @return array{operation: \Wncms\Api\V2\Data\AsyncOperation, revision: string}|null
+     */
+    protected function decodeRecord(string $id, mixed $record): ?array
+    {
+        if ($record === null) {
+            return null;
+        }
+
+        try {
+            if (! is_array($record)) {
+                throw new \UnexpectedValueException('Stored API v2 operation record is invalid');
+            }
+
+            $stored = $this->hydrateOperation($record);
+            if (! hash_equals($id, $stored['operation']->id)) {
+                throw new \UnexpectedValueException('Stored API v2 operation identifier is invalid');
+            }
+
+            return $stored;
+        } catch (\Throwable) {
+            $this->repository()->forget($this->recordKey($id));
+
+            return null;
+        }
     }
 
     /**
@@ -256,39 +450,8 @@ class CacheOperationRepository implements OperationRepository
      */
     protected function isExpired(AsyncOperation $operation): bool
     {
-        return $this->parseUtcTimestamp($operation->expiresAt)
+        return $this->validator->parseUtcTimestamp($operation->expiresAt)
             ->lessThanOrEqualTo(CarbonImmutable::now('UTC'));
-    }
-
-    /**
-     * Parse the canonical second-precision UTC timestamp format.
-     *
-     * @param  string  $timestamp
-     *
-     * @return \Carbon\CarbonImmutable
-     *
-     * @throws \UnexpectedValueException
-     */
-    protected function parseUtcTimestamp(string $timestamp): CarbonImmutable
-    {
-        if (! preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/', $timestamp)) {
-            throw new \UnexpectedValueException('Stored API v2 operation timestamp is invalid');
-        }
-
-        try {
-            $parsed = CarbonImmutable::createFromFormat('Y-m-d\TH:i:s\Z', $timestamp, 'UTC');
-        } catch (\Throwable $exception) {
-            throw new \UnexpectedValueException(
-                'Stored API v2 operation timestamp is invalid',
-                previous: $exception
-            );
-        }
-
-        if (! $parsed instanceof CarbonImmutable || $parsed->format('Y-m-d\TH:i:s\Z') !== $timestamp) {
-            throw new \UnexpectedValueException('Stored API v2 operation timestamp is invalid');
-        }
-
-        return $parsed;
     }
 
     /**
@@ -301,5 +464,29 @@ class CacheOperationRepository implements OperationRepository
     protected function recordKey(string $id): string
     {
         return self::RECORD_PREFIX.hash('sha256', $id);
+    }
+
+    /**
+     * Build the per-operation lock key without exposing the operation identifier.
+     *
+     * @param  string  $id
+     *
+     * @return string
+     */
+    protected function lockKey(string $id): string
+    {
+        return self::LOCK_PREFIX.hash('sha256', $id);
+    }
+
+    /**
+     * Generate an opaque persisted revision that changes for every successful write.
+     *
+     * @return string
+     *
+     * @throws \Exception
+     */
+    protected function newRevision(): string
+    {
+        return bin2hex(random_bytes(16));
     }
 }

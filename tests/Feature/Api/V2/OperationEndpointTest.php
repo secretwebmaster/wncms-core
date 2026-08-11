@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Wncms\Api\V2\Contracts\AtomicOperationRepository;
 use Wncms\Api\V2\Contracts\OperationRepository;
 use Wncms\Api\V2\Enums\AsyncOperationStatus;
 use Wncms\Api\V2\OperationService;
@@ -37,6 +38,7 @@ class OperationEndpointTest extends TestCase
             'wncms-api-v2.operations.store' => 'array',
             'wncms-api-v2.operations.ttl_seconds' => 86400,
         ]);
+        app()->forgetInstance(AtomicOperationRepository::class);
         app()->forgetInstance(OperationRepository::class);
         app()->forgetInstance(OperationService::class);
         uss('enable_api_access', 1);

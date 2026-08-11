@@ -5,28 +5,36 @@ namespace Wncms\Api\V2;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Wncms\Api\V2\Contracts\OperationRepository;
+use Wncms\Api\V2\Contracts\AtomicOperationRepository;
 use Wncms\Api\V2\Data\AsyncOperation;
 use Wncms\Api\V2\Enums\AsyncOperationStatus;
 use Wncms\Api\V2\Exceptions\ApiConflictException;
 
 final class OperationService
 {
+    protected const TRANSITION_ATTEMPTS = 3;
+
+    private readonly OperationValidator $validator;
+
     /**
      * Create the asynchronous operation state service.
      *
-     * @param  \Wncms\Api\V2\Contracts\OperationRepository  $operations
+     * @param  \Wncms\Api\V2\Contracts\AtomicOperationRepository  $operations
      * @param  int  $ttlSeconds
+     * @param  \Wncms\Api\V2\OperationValidator|null  $validator
      *
      * @throws \InvalidArgumentException
      */
     public function __construct(
-        private readonly OperationRepository $operations,
-        private readonly int $ttlSeconds = 86400
+        private readonly AtomicOperationRepository $operations,
+        private readonly int $ttlSeconds = 86400,
+        ?OperationValidator $validator = null
     ) {
         if ($this->ttlSeconds <= 0) {
             throw new \InvalidArgumentException('Operation TTL must be greater than zero');
         }
+
+        $this->validator = $validator ?? new OperationValidator();
     }
 
     /**
@@ -64,6 +72,7 @@ final class OperationService
             expiresAt: $this->formatTimestamp($now->addSeconds($this->ttlSeconds)),
         );
 
+        $this->validator->validate($operation);
         $this->operations->save($operation, $this->ttlSeconds);
 
         return $operation;
@@ -81,23 +90,24 @@ final class OperationService
      */
     public function start(string $id): AsyncOperation
     {
-        $operation = $this->findOrFail($id);
-        $this->assertStatus($operation, [AsyncOperationStatus::Queued], 'Operation cannot be started');
+        return $this->transition($id, function (AsyncOperation $operation): AsyncOperation {
+            $this->assertStatus($operation, [AsyncOperationStatus::Queued], 'Operation cannot be started');
 
-        return $this->persist(new AsyncOperation(
-            id: $operation->id,
-            type: $operation->type,
-            status: AsyncOperationStatus::Running,
-            progress: $operation->progress,
-            cancellable: $operation->cancellable,
-            actorId: $operation->actorId,
-            websiteIds: $operation->websiteIds,
-            result: $operation->result,
-            error: $operation->error,
-            createdAt: $operation->createdAt,
-            updatedAt: $this->nowTimestamp(),
-            expiresAt: $operation->expiresAt,
-        ));
+            return new AsyncOperation(
+                id: $operation->id,
+                type: $operation->type,
+                status: AsyncOperationStatus::Running,
+                progress: $operation->progress,
+                cancellable: $operation->cancellable,
+                actorId: $operation->actorId,
+                websiteIds: $operation->websiteIds,
+                result: $operation->result,
+                error: $operation->error,
+                createdAt: $operation->createdAt,
+                updatedAt: $this->nowTimestamp(),
+                expiresAt: $operation->expiresAt,
+            );
+        });
     }
 
     /**
@@ -113,26 +123,32 @@ final class OperationService
      */
     public function progress(string $id, int $progress): AsyncOperation
     {
-        $operation = $this->findOrFail($id);
-        $this->assertStatus($operation, [AsyncOperationStatus::Running], 'Operation progress cannot be updated');
         if ($progress < 0 || $progress > 100) {
             throw new ApiConflictException('Operation progress must be between 0 and 100');
         }
 
-        return $this->persist(new AsyncOperation(
-            id: $operation->id,
-            type: $operation->type,
-            status: $operation->status,
-            progress: $progress,
-            cancellable: $operation->cancellable,
-            actorId: $operation->actorId,
-            websiteIds: $operation->websiteIds,
-            result: $operation->result,
-            error: $operation->error,
-            createdAt: $operation->createdAt,
-            updatedAt: $this->nowTimestamp(),
-            expiresAt: $operation->expiresAt,
-        ));
+        return $this->transition($id, function (AsyncOperation $operation) use ($progress): AsyncOperation {
+            $this->assertStatus(
+                $operation,
+                [AsyncOperationStatus::Running],
+                'Operation progress cannot be updated'
+            );
+
+            return new AsyncOperation(
+                id: $operation->id,
+                type: $operation->type,
+                status: $operation->status,
+                progress: $progress,
+                cancellable: $operation->cancellable,
+                actorId: $operation->actorId,
+                websiteIds: $operation->websiteIds,
+                result: $operation->result,
+                error: $operation->error,
+                createdAt: $operation->createdAt,
+                updatedAt: $this->nowTimestamp(),
+                expiresAt: $operation->expiresAt,
+            );
+        });
     }
 
     /**
@@ -148,23 +164,24 @@ final class OperationService
      */
     public function succeed(string $id, mixed $result = null): AsyncOperation
     {
-        $operation = $this->findOrFail($id);
-        $this->assertStatus($operation, [AsyncOperationStatus::Running], 'Operation cannot succeed');
+        return $this->transition($id, function (AsyncOperation $operation) use ($result): AsyncOperation {
+            $this->assertStatus($operation, [AsyncOperationStatus::Running], 'Operation cannot succeed');
 
-        return $this->persist(new AsyncOperation(
-            id: $operation->id,
-            type: $operation->type,
-            status: AsyncOperationStatus::Succeeded,
-            progress: 100,
-            cancellable: false,
-            actorId: $operation->actorId,
-            websiteIds: $operation->websiteIds,
-            result: $result,
-            error: null,
-            createdAt: $operation->createdAt,
-            updatedAt: $this->nowTimestamp(),
-            expiresAt: $operation->expiresAt,
-        ));
+            return new AsyncOperation(
+                id: $operation->id,
+                type: $operation->type,
+                status: AsyncOperationStatus::Succeeded,
+                progress: 100,
+                cancellable: false,
+                actorId: $operation->actorId,
+                websiteIds: $operation->websiteIds,
+                result: $result,
+                error: null,
+                createdAt: $operation->createdAt,
+                updatedAt: $this->nowTimestamp(),
+                expiresAt: $operation->expiresAt,
+            );
+        });
     }
 
     /**
@@ -180,23 +197,24 @@ final class OperationService
      */
     public function fail(string $id, array $error): AsyncOperation
     {
-        $operation = $this->findOrFail($id);
-        $this->assertStatus($operation, [AsyncOperationStatus::Running], 'Operation cannot fail');
+        return $this->transition($id, function (AsyncOperation $operation) use ($error): AsyncOperation {
+            $this->assertStatus($operation, [AsyncOperationStatus::Running], 'Operation cannot fail');
 
-        return $this->persist(new AsyncOperation(
-            id: $operation->id,
-            type: $operation->type,
-            status: AsyncOperationStatus::Failed,
-            progress: $operation->progress,
-            cancellable: false,
-            actorId: $operation->actorId,
-            websiteIds: $operation->websiteIds,
-            result: null,
-            error: $error,
-            createdAt: $operation->createdAt,
-            updatedAt: $this->nowTimestamp(),
-            expiresAt: $operation->expiresAt,
-        ));
+            return new AsyncOperation(
+                id: $operation->id,
+                type: $operation->type,
+                status: AsyncOperationStatus::Failed,
+                progress: $operation->progress,
+                cancellable: false,
+                actorId: $operation->actorId,
+                websiteIds: $operation->websiteIds,
+                result: null,
+                error: $error,
+                createdAt: $operation->createdAt,
+                updatedAt: $this->nowTimestamp(),
+                expiresAt: $operation->expiresAt,
+            );
+        });
     }
 
     /**
@@ -213,34 +231,35 @@ final class OperationService
      */
     public function cancel(string $id): AsyncOperation
     {
-        $operation = $this->findOrFail($id);
-        if ($operation->status === AsyncOperationStatus::Cancelled) {
-            return $operation;
-        }
+        return $this->transition($id, function (AsyncOperation $operation): AsyncOperation {
+            if ($operation->status === AsyncOperationStatus::Cancelled) {
+                return $operation;
+            }
 
-        $this->assertStatus(
-            $operation,
-            [AsyncOperationStatus::Queued, AsyncOperationStatus::Running],
-            'Operation cannot be cancelled'
-        );
-        if (! $operation->cancellable) {
-            throw new ApiConflictException('Operation does not support cancellation');
-        }
+            $this->assertStatus(
+                $operation,
+                [AsyncOperationStatus::Queued, AsyncOperationStatus::Running],
+                'Operation cannot be cancelled'
+            );
+            if (! $operation->cancellable) {
+                throw new ApiConflictException('Operation does not support cancellation');
+            }
 
-        return $this->persist(new AsyncOperation(
-            id: $operation->id,
-            type: $operation->type,
-            status: AsyncOperationStatus::Cancelled,
-            progress: $operation->progress,
-            cancellable: false,
-            actorId: $operation->actorId,
-            websiteIds: $operation->websiteIds,
-            result: null,
-            error: null,
-            createdAt: $operation->createdAt,
-            updatedAt: $this->nowTimestamp(),
-            expiresAt: $operation->expiresAt,
-        ));
+            return new AsyncOperation(
+                id: $operation->id,
+                type: $operation->type,
+                status: AsyncOperationStatus::Cancelled,
+                progress: $operation->progress,
+                cancellable: false,
+                actorId: $operation->actorId,
+                websiteIds: $operation->websiteIds,
+                result: null,
+                error: null,
+                createdAt: $operation->createdAt,
+                updatedAt: $this->nowTimestamp(),
+                expiresAt: $operation->expiresAt,
+            );
+        });
     }
 
     /**
@@ -260,6 +279,7 @@ final class OperationService
             return null;
         }
 
+        $this->validator->validate($operation);
         if ($this->isExpired($operation)) {
             $this->operations->forget($id);
 
@@ -281,7 +301,14 @@ final class OperationService
     private function findOrFail(string $id): AsyncOperation
     {
         $operation = $this->operations->find($id);
-        if (! $operation instanceof AsyncOperation || $this->isExpired($operation)) {
+        if (! $operation instanceof AsyncOperation) {
+            $this->operations->forget($id);
+
+            throw new NotFoundHttpException('Operation not found');
+        }
+
+        $this->validator->validate($operation);
+        if ($this->isExpired($operation)) {
             $this->operations->forget($id);
 
             throw new NotFoundHttpException('Operation not found');
@@ -291,17 +318,50 @@ final class OperationService
     }
 
     /**
-     * Persist a transitioned operation without extending its immutable expiry.
+     * Apply a state transition with bounded compare-and-swap retries.
      *
-     * @param  \Wncms\Api\V2\Data\AsyncOperation  $operation
+     * Every retry re-reads and revalidates current state so a competing terminal transition
+     * cannot be revived by a stale worker value.
+     *
+     * @param  string  $id
+     * @param  callable(\Wncms\Api\V2\Data\AsyncOperation): \Wncms\Api\V2\Data\AsyncOperation  $transition
      *
      * @return \Wncms\Api\V2\Data\AsyncOperation
      *
      * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     * @throws \Wncms\Api\V2\Exceptions\ApiConflictException
      */
-    private function persist(AsyncOperation $operation): AsyncOperation
+    private function transition(string $id, callable $transition): AsyncOperation
     {
-        $ttlSeconds = $this->parseTimestamp($operation->expiresAt)->getTimestamp()
+        for ($attempt = 0; $attempt < self::TRANSITION_ATTEMPTS; $attempt++) {
+            $current = $this->findOrFail($id);
+            $replacement = $transition($current);
+            if ($replacement === $current) {
+                return $current;
+            }
+
+            $this->validator->validate($replacement);
+            $ttlSeconds = $this->remainingTtl($replacement);
+            if ($this->operations->compareAndSwap($current, $replacement, $ttlSeconds)) {
+                return $replacement;
+            }
+        }
+
+        throw new ApiConflictException('Operation was modified concurrently');
+    }
+
+    /**
+     * Calculate remaining cache lifetime without extending immutable operation expiry.
+     *
+     * @param  \Wncms\Api\V2\Data\AsyncOperation  $operation
+     *
+     * @return int
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     */
+    private function remainingTtl(AsyncOperation $operation): int
+    {
+        $ttlSeconds = $this->validator->parseUtcTimestamp($operation->expiresAt)->getTimestamp()
             - CarbonImmutable::now('UTC')->getTimestamp();
         if ($ttlSeconds <= 0) {
             $this->operations->forget($operation->id);
@@ -309,9 +369,7 @@ final class OperationService
             throw new NotFoundHttpException('Operation not found');
         }
 
-        $this->operations->save($operation, $ttlSeconds);
-
-        return $operation;
+        return $ttlSeconds;
     }
 
     /**
@@ -339,7 +397,7 @@ final class OperationService
      */
     private function isExpired(AsyncOperation $operation): bool
     {
-        return $this->parseTimestamp($operation->expiresAt)
+        return $this->validator->parseUtcTimestamp($operation->expiresAt)
             ->lessThanOrEqualTo(CarbonImmutable::now('UTC'));
     }
 
@@ -363,26 +421,5 @@ final class OperationService
     private function formatTimestamp(CarbonImmutable $timestamp): string
     {
         return $timestamp->toIso8601ZuluString();
-    }
-
-    /**
-     * Parse a canonical operation timestamp.
-     *
-     * @param  string  $timestamp
-     *
-     * @return \Carbon\CarbonImmutable
-     *
-     * @throws \UnexpectedValueException
-     */
-    private function parseTimestamp(string $timestamp): CarbonImmutable
-    {
-        try {
-            return CarbonImmutable::parse($timestamp)->utc();
-        } catch (\Throwable $exception) {
-            throw new \UnexpectedValueException(
-                'Operation expiration timestamp is invalid',
-                previous: $exception
-            );
-        }
     }
 }

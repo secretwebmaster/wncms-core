@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Mockery;
 use Ramsey\Uuid\Uuid;
+use Wncms\Api\V2\Contracts\AtomicOperationRepository;
 use Wncms\Api\V2\Contracts\OperationRepository;
 use Wncms\Api\V2\Data\AsyncOperation;
 use Wncms\Api\V2\Enums\AsyncOperationStatus;
@@ -307,7 +308,7 @@ class OperationServiceTest extends TestCase
             'boolean' => true,
             'null' => null,
             'string' => 'done',
-            'enum' => AsyncOperationStatus::Running,
+            'status' => 'running',
             'nested' => ['ids' => [3, '4']],
         ];
         $operation = new AsyncOperation(
@@ -418,6 +419,7 @@ class OperationServiceTest extends TestCase
             'wncms-api-v2.operations.store' => 'array',
             'wncms-api-v2.operations.ttl_seconds' => 86400,
         ]);
+        app()->forgetInstance(AtomicOperationRepository::class);
         app()->forgetInstance(OperationRepository::class);
         app()->forgetInstance(OperationService::class);
 
@@ -430,7 +432,7 @@ class OperationServiceTest extends TestCase
     }
 }
 
-final class InMemoryOperationRepository implements OperationRepository
+final class InMemoryOperationRepository implements AtomicOperationRepository
 {
     /**
      * @var array<string, \Wncms\Api\V2\Data\AsyncOperation>
@@ -478,5 +480,28 @@ final class InMemoryOperationRepository implements OperationRepository
     public function forget(string $id): void
     {
         unset($this->operations[$id]);
+    }
+
+    /**
+     * Replace the expected in-memory operation when it remains current.
+     *
+     * @param  \Wncms\Api\V2\Data\AsyncOperation  $expected
+     * @param  \Wncms\Api\V2\Data\AsyncOperation  $replacement
+     * @param  int  $ttlSeconds
+     *
+     * @return bool
+     */
+    public function compareAndSwap(
+        AsyncOperation $expected,
+        AsyncOperation $replacement,
+        int $ttlSeconds
+    ): bool {
+        if (($this->operations[$expected->id] ?? null) !== $expected) {
+            return false;
+        }
+
+        $this->save($replacement, $ttlSeconds);
+
+        return true;
     }
 }
