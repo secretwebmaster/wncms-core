@@ -14,6 +14,8 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Str;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Api\V2\Contracts\IdempotencyStore;
+use Wncms\Api\V2\Repositories\CacheIdempotencyStore;
 
 class WncmsServiceProvider extends ServiceProvider
 {
@@ -74,6 +76,7 @@ class WncmsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('api_v2_whitelist', \Wncms\Http\Middleware\ApiV2Whitelist::class);
         $router->aliasMiddleware('api_v2_has_website', \Wncms\Http\Middleware\ApiV2HasWebsite::class);
         $router->aliasMiddleware('api_v2_token_auth', \Wncms\Http\Middleware\ApiV2TokenAuth::class);
+        $router->aliasMiddleware('api_v2_idempotency', \Wncms\Http\Middleware\EnforceApiV2Idempotency::class);
 
         // Exclude paths from CSRF check
         $this->app->resolving(PreventRequestForgery::class, function ($csrf) {
@@ -214,6 +217,8 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function registerApiV2ContractServices(): void
     {
+        $this->app->singleton(IdempotencyStore::class, CacheIdempotencyStore::class);
+
         $this->app->singleton(ApiContractRegistry::class, function ($app) {
             $registry = new ApiContractRegistry;
 
