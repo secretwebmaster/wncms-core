@@ -16,12 +16,12 @@ return [
         'store' => env('WNCMS_API_V2_OPERATION_STORE'),
         'ttl_seconds' => 86400,
         'lock_seconds' => 10,
+        // FileStore requires exact opt-in and a shared volume used by every API and queue worker.
+        // DynamoDB is always rejected because Laravel operation reads are eventually consistent.
         'allowed_shared_store_classes' => [
             \Illuminate\Cache\RedisStore::class,
             \Illuminate\Cache\MemcachedStore::class,
             \Illuminate\Cache\DatabaseStore::class,
-            \Illuminate\Cache\DynamoDbStore::class,
-            \Illuminate\Cache\FileStore::class,
         ],
     ],
     'providers' => [

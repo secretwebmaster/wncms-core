@@ -168,28 +168,184 @@ class OperationAtomicityTest extends TestCase
     }
 
     /**
+     * Verify corrupt cleanup returns a valid revision installed before the cleanup lock is acquired.
+     *
+     * @return void
+     */
+    public function test_corrupt_cleanup_preserves_and_returns_a_valid_replacement_revision(): void
+    {
+        $store = new InterleavingCleanupOperationArrayStore();
+        $repository = $this->cacheRepository($store, 'cleanup-race');
+        $key = $this->recordKey();
+        $newer = $this->operation(AsyncOperationStatus::Running, [
+            'progress' => 64,
+            'updatedAt' => '2026-08-12T08:01:00Z',
+        ]);
+        $repository->save($newer, 86400);
+        $validRecord = $store->get($key);
+        $store->put($key, ['corrupt' => true], 86400);
+        $store->beforeNextLock = static function () use ($store, $key, $validRecord): void {
+            $store->put($key, $validRecord, 86400);
+        };
+
+        $found = $repository->find(self::OPERATION_ID);
+
+        $this->assertEquals($newer, $found);
+        $this->assertSame($validRecord, $store->get($key));
+    }
+
+    /**
+     * Verify expired cleanup returns a valid revision installed before the cleanup lock is acquired.
+     *
+     * @return void
+     */
+    public function test_expired_cleanup_preserves_and_returns_a_valid_replacement_revision(): void
+    {
+        $store = new InterleavingCleanupOperationArrayStore();
+        $repository = $this->cacheRepository($store, 'expiry-race');
+        $key = $this->recordKey();
+        $newer = $this->operation(AsyncOperationStatus::Running, [
+            'progress' => 64,
+            'updatedAt' => '2026-08-12T08:01:00Z',
+        ]);
+        $repository->save($newer, 86400);
+        $validRecord = $store->get($key);
+        $repository->save($this->operation(AsyncOperationStatus::Queued, [
+            'createdAt' => '2026-08-11T08:00:00Z',
+            'updatedAt' => '2026-08-11T08:00:00Z',
+            'expiresAt' => '2026-08-12T07:59:59Z',
+        ]), 86400);
+        $store->beforeNextLock = static function () use ($store, $key, $validRecord): void {
+            $store->put($key, $validRecord, 86400);
+        };
+
+        $found = $repository->find(self::OPERATION_ID);
+
+        $this->assertEquals($newer, $found);
+        $this->assertSame($validRecord, $store->get($key));
+    }
+
+    /**
+     * Verify cleanup leaves the suspect record untouched when the backend lock is contended.
+     *
+     * @return void
+     */
+    public function test_corrupt_cleanup_does_not_delete_without_acquiring_the_backend_lock(): void
+    {
+        $store = new ContendedOperationArrayStore();
+        $repository = $this->cacheRepository($store, 'cleanup-contended');
+        $key = $this->recordKey();
+        $corrupt = ['corrupt' => true];
+        $store->put($key, $corrupt, 86400);
+        $store->contendLocks = true;
+
+        $this->assertNull($repository->find(self::OPERATION_ID));
+
+        $store->contendLocks = false;
+        $this->assertSame($corrupt, $store->get($key));
+    }
+
+    /**
+     * Verify cleanup propagates lock backend exceptions without deleting the suspect record.
+     *
+     * @return void
+     */
+    public function test_corrupt_cleanup_does_not_delete_when_lock_creation_throws(): void
+    {
+        $store = new ContendedOperationArrayStore();
+        $repository = $this->cacheRepository($store, 'cleanup-exception');
+        $key = $this->recordKey();
+        $corrupt = ['corrupt' => true];
+        $store->put($key, $corrupt, 86400);
+        $store->throwOnLock = true;
+
+        try {
+            $repository->find(self::OPERATION_ID);
+            $this->fail('A cleanup lock backend exception must be propagated.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Cleanup lock backend failed', $exception->getMessage());
+            $this->assertSame($corrupt, $store->get($key));
+        }
+    }
+
+    /**
+     * Build a cache repository around the supplied real lock-capable store.
+     *
+     * @param  \Illuminate\Cache\ArrayStore  $store
+     * @param  string  $name
+     *
+     * @return \Wncms\Api\V2\Repositories\CacheOperationRepository
+     */
+    private function cacheRepository(ArrayStore $store, string $name): CacheOperationRepository
+    {
+        $cacheRepository = new IlluminateCacheRepository($store);
+        $cache = Mockery::mock(CacheFactory::class);
+        $cache->shouldReceive('store')->once()->with($name)->andReturn($cacheRepository);
+
+        return new CacheOperationRepository($cache, $name);
+    }
+
+    /**
+     * Build the opaque cache record key for the fixed operation identifier.
+     *
+     * @return string
+     */
+    private function recordKey(): string
+    {
+        return 'wncms:api-v2:operation:'.hash('sha256', self::OPERATION_ID);
+    }
+
+    /**
      * Build a valid operation at the requested state without changing second-precision timestamps.
      *
      * @param  \Wncms\Api\V2\Enums\AsyncOperationStatus  $status
+     * @param  array<string, mixed>  $overrides
      *
      * @return \Wncms\Api\V2\Data\AsyncOperation
      */
-    private function operation(AsyncOperationStatus $status): AsyncOperation
+    private function operation(AsyncOperationStatus $status, array $overrides = []): AsyncOperation
     {
-        return new AsyncOperation(
-            id: self::OPERATION_ID,
-            type: 'plugins.upgrade',
-            status: $status,
-            progress: $status === AsyncOperationStatus::Running ? 10 : 0,
-            cancellable: true,
-            actorId: 42,
-            websiteIds: [1, '2'],
-            result: null,
-            error: null,
-            createdAt: '2026-08-12T08:00:00Z',
-            updatedAt: '2026-08-12T08:00:00Z',
-            expiresAt: '2026-08-13T08:00:00Z',
-        );
+        $fields = array_merge([
+            'id' => self::OPERATION_ID,
+            'type' => 'plugins.upgrade',
+            'status' => $status,
+            'progress' => $status === AsyncOperationStatus::Running ? 10 : 0,
+            'cancellable' => true,
+            'actorId' => 42,
+            'websiteIds' => [1, '2'],
+            'result' => null,
+            'error' => null,
+            'createdAt' => '2026-08-12T08:00:00Z',
+            'updatedAt' => '2026-08-12T08:00:00Z',
+            'expiresAt' => '2026-08-13T08:00:00Z',
+        ], $overrides);
+
+        return new AsyncOperation(...$fields);
+    }
+}
+
+final class InterleavingCleanupOperationArrayStore extends ArrayStore
+{
+    public ?\Closure $beforeNextLock = null;
+
+    /**
+     * Replace state immediately before the repository acquires its cleanup lock.
+     *
+     * @param  string  $name
+     * @param  int  $seconds
+     * @param  string|null  $owner
+     *
+     * @return \Illuminate\Contracts\Cache\Lock
+     */
+    public function lock($name, $seconds = 0, $owner = null)
+    {
+        $interleave = $this->beforeNextLock;
+        $this->beforeNextLock = null;
+        if ($interleave instanceof \Closure) {
+            $interleave();
+        }
+
+        return parent::lock($name, $seconds, $owner);
     }
 }
 
@@ -312,6 +468,8 @@ final class ContendedOperationArrayStore extends ArrayStore
 {
     public bool $contendLocks = false;
 
+    public bool $throwOnLock = false;
+
     /**
      * Return a deliberately contended lock when requested by the test.
      *
@@ -323,6 +481,10 @@ final class ContendedOperationArrayStore extends ArrayStore
      */
     public function lock($name, $seconds = 0, $owner = null)
     {
+        if ($this->throwOnLock) {
+            throw new \RuntimeException('Cleanup lock backend failed');
+        }
+
         if ($this->contendLocks) {
             return new ContendedOperationLock();
         }

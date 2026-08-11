@@ -14,6 +14,7 @@ use Illuminate\Cache\Repository as IlluminateCacheRepository;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Contracts\Cache\Store;
+use Illuminate\Filesystem\Filesystem;
 use Mockery;
 use Wncms\Api\V2\Data\AsyncOperation;
 use Wncms\Api\V2\Enums\AsyncOperationStatus;
@@ -83,9 +84,52 @@ class OperationStorePolicyTest extends TestCase
             RedisStore::class,
             MemcachedStore::class,
             DatabaseStore::class,
-            DynamoDbStore::class,
-            FileStore::class,
         ], config('wncms-api-v2.operations.allowed_shared_store_classes'));
+    }
+
+    /**
+     * Verify DynamoDB remains prohibited even when its exact runtime class is explicitly configured.
+     *
+     * @return void
+     */
+    public function test_production_rejects_dynamodb_even_when_explicitly_allowlisted(): void
+    {
+        $store = Mockery::mock(DynamoDbStore::class);
+        $store->shouldReceive('get')->andReturn(null);
+        $cache = $this->cacheFactory(new IlluminateCacheRepository($store));
+        $repository = new CacheOperationRepository($cache, 'dynamodb', true, [$store::class]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $repository->find(self::OPERATION_ID);
+    }
+
+    /**
+     * Verify FileStore is rejected by default because shared-volume semantics are deployment-specific.
+     *
+     * @return void
+     */
+    public function test_production_rejects_file_store_without_exact_configuration(): void
+    {
+        $store = new FileStore(new Filesystem(), sys_get_temp_dir().'/wncms-operation-store-policy');
+        $cache = $this->cacheFactory(new IlluminateCacheRepository($store));
+        $repository = new CacheOperationRepository($cache, 'file', true);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $repository->find(self::OPERATION_ID);
+    }
+
+    /**
+     * Verify FileStore can be opted in exactly when operators guarantee one shared filesystem.
+     *
+     * @return void
+     */
+    public function test_production_accepts_exact_file_store_opt_in(): void
+    {
+        $store = new FileStore(new Filesystem(), sys_get_temp_dir().'/wncms-operation-store-policy');
+        $cache = $this->cacheFactory(new IlluminateCacheRepository($store));
+        $repository = new CacheOperationRepository($cache, 'file', true, [FileStore::class]);
+
+        $this->assertNull($repository->find(self::OPERATION_ID));
     }
 
     /**

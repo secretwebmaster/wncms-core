@@ -281,8 +281,6 @@ final class OperationService
 
         $this->validator->validate($operation);
         if ($this->isExpired($operation)) {
-            $this->operations->forget($id);
-
             return null;
         }
 
@@ -302,15 +300,11 @@ final class OperationService
     {
         $operation = $this->operations->find($id);
         if (! $operation instanceof AsyncOperation) {
-            $this->operations->forget($id);
-
             throw new NotFoundHttpException('Operation not found');
         }
 
         $this->validator->validate($operation);
         if ($this->isExpired($operation)) {
-            $this->operations->forget($id);
-
             throw new NotFoundHttpException('Operation not found');
         }
 
@@ -364,8 +358,6 @@ final class OperationService
         $ttlSeconds = $this->validator->parseUtcTimestamp($operation->expiresAt)->getTimestamp()
             - CarbonImmutable::now('UTC')->getTimestamp();
         if ($ttlSeconds <= 0) {
-            $this->operations->forget($operation->id);
-
             throw new NotFoundHttpException('Operation not found');
         }
 

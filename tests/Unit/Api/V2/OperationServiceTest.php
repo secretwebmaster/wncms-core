@@ -275,11 +275,11 @@ class OperationServiceTest extends TestCase
     }
 
     /**
-     * Verify actor ownership and DTO expiration are both enforced without disclosing records.
+     * Verify actor ownership and DTO expiration are enforced without blind repository cleanup.
      *
      * @return void
      */
-    public function test_find_for_actor_hides_other_actors_and_forgets_expired_operations(): void
+    public function test_find_for_actor_hides_other_actors_and_does_not_blindly_forget_expired_operations(): void
     {
         $repository = new InMemoryOperationRepository();
         $service = new OperationService($repository, 86400);
@@ -291,7 +291,26 @@ class OperationServiceTest extends TestCase
         CarbonImmutable::setTestNow('2026-08-13 08:00:01 UTC');
 
         $this->assertNull($service->findForActor($operation->id, 99));
-        $this->assertNull($repository->find($operation->id));
+        $this->assertSame(0, $repository->forgetCount);
+        $this->assertSame($operation, $repository->find($operation->id));
+    }
+
+    /**
+     * Verify a missing transition never issues an unconditional repository delete.
+     *
+     * @return void
+     */
+    public function test_missing_transition_does_not_blindly_forget_the_operation_identifier(): void
+    {
+        $repository = new InMemoryOperationRepository();
+        $service = new OperationService($repository, 86400);
+
+        try {
+            $service->start(self::OPERATION_ID);
+            $this->fail('A missing operation must remain not found.');
+        } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+            $this->assertSame(0, $repository->forgetCount);
+        }
     }
 
     /**
@@ -343,6 +362,7 @@ class OperationServiceTest extends TestCase
     public function test_cache_repository_hides_and_removes_logically_expired_records(): void
     {
         $repository = new CacheOperationRepository(app(CacheFactory::class), 'array');
+        $key = 'wncms:api-v2:operation:'.hash('sha256', self::OPERATION_ID);
         $operation = new AsyncOperation(
             id: self::OPERATION_ID,
             type: 'imports.posts',
@@ -361,6 +381,7 @@ class OperationServiceTest extends TestCase
         $repository->save($operation, 60);
 
         $this->assertNull($repository->find(self::OPERATION_ID));
+        $this->assertNull(cache()->store('array')->get($key));
     }
 
     /**
@@ -441,6 +462,8 @@ final class InMemoryOperationRepository implements AtomicOperationRepository
 
     public int $saveCount = 0;
 
+    public int $forgetCount = 0;
+
     public ?int $lastTtlSeconds = null;
 
     /**
@@ -479,6 +502,7 @@ final class InMemoryOperationRepository implements AtomicOperationRepository
      */
     public function forget(string $id): void
     {
+        $this->forgetCount++;
         unset($this->operations[$id]);
     }
 

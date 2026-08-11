@@ -7,7 +7,6 @@ use Illuminate\Cache\ArrayStore;
 use Illuminate\Cache\DatabaseStore;
 use Illuminate\Cache\DynamoDbStore;
 use Illuminate\Cache\FailoverStore;
-use Illuminate\Cache\FileStore;
 use Illuminate\Cache\MemcachedStore;
 use Illuminate\Cache\NullStore;
 use Illuminate\Cache\RedisStore;
@@ -31,8 +30,6 @@ class CacheOperationRepository implements AtomicOperationRepository
         RedisStore::class,
         MemcachedStore::class,
         DatabaseStore::class,
-        DynamoDbStore::class,
-        FileStore::class,
     ];
 
     protected ?Repository $repository = null;
@@ -187,23 +184,18 @@ class CacheOperationRepository implements AtomicOperationRepository
      */
     public function find(string $id): ?AsyncOperation
     {
-        $record = $this->repository()->get($this->recordKey($id));
+        $repository = $this->repository();
+        $record = $repository->get($this->recordKey($id));
+        if ($record === null) {
+            return null;
+        }
+
         $stored = $this->decodeRecord($id, $record);
-        if ($stored === null) {
-            return null;
+        if ($stored !== null && ! $this->isExpired($stored['operation'])) {
+            return $this->trackStoredOperation($stored);
         }
 
-        $operation = $stored['operation'];
-
-        if ($this->isExpired($operation)) {
-            $this->forget($id);
-
-            return null;
-        }
-
-        $this->observedRevisions[$operation] = $stored['revision'];
-
-        return $operation;
+        return $this->cleanupInvalidOrExpiredRecord($id, $repository);
     }
 
     /**
@@ -255,6 +247,7 @@ class CacheOperationRepository implements AtomicOperationRepository
                 $store instanceof ArrayStore
                 || $store instanceof NullStore
                 || $store instanceof FailoverStore
+                || $store instanceof DynamoDbStore
                 || ! in_array($storeClass, $this->sharedStoreClasses(), true)
             ) {
                 throw new \InvalidArgumentException(
@@ -410,7 +403,7 @@ class CacheOperationRepository implements AtomicOperationRepository
     }
 
     /**
-     * Decode a stored operation record and evict corrupt values safely.
+     * Decode a stored operation record without mutating cache state.
      *
      * @param  string  $id
      * @param  mixed  $record
@@ -435,10 +428,62 @@ class CacheOperationRepository implements AtomicOperationRepository
 
             return $stored;
         } catch (\Throwable) {
-            $this->repository()->forget($this->recordKey($id));
-
             return null;
         }
+    }
+
+    /**
+     * Recheck a suspect record under its per-operation lock before deleting it.
+     *
+     * A valid replacement installed after the first read is returned and never removed. FileStore
+     * may be configured explicitly only when every API and queue worker uses the same shared volume.
+     *
+     * @param  string  $id
+     * @param  \Illuminate\Contracts\Cache\Repository  $repository
+     *
+     * @return \Wncms\Api\V2\Data\AsyncOperation|null
+     */
+    protected function cleanupInvalidOrExpiredRecord(string $id, Repository $repository): ?AsyncOperation
+    {
+        $store = $repository->getStore();
+        if (! $store instanceof LockProvider) {
+            throw new \InvalidArgumentException('The API v2 operation cache store must support atomic locks');
+        }
+
+        $resolved = $store->lock($this->lockKey($id), $this->lockSeconds)->get(
+            function () use ($id, $repository): ?AsyncOperation {
+                $record = $repository->get($this->recordKey($id));
+                if ($record === null) {
+                    return null;
+                }
+
+                $stored = $this->decodeRecord($id, $record);
+                if ($stored !== null && ! $this->isExpired($stored['operation'])) {
+                    return $this->trackStoredOperation($stored);
+                }
+
+                $repository->forget($this->recordKey($id));
+
+                return null;
+            }
+        );
+
+        return $resolved instanceof AsyncOperation ? $resolved : null;
+    }
+
+    /**
+     * Associate a hydrated immutable operation with its observed persisted revision.
+     *
+     * @param  array{operation: \Wncms\Api\V2\Data\AsyncOperation, revision: string}  $stored
+     *
+     * @return \Wncms\Api\V2\Data\AsyncOperation
+     */
+    protected function trackStoredOperation(array $stored): AsyncOperation
+    {
+        $operation = $stored['operation'];
+        $this->observedRevisions[$operation] = $stored['revision'];
+
+        return $operation;
     }
 
     /**
