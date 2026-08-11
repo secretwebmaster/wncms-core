@@ -3,6 +3,7 @@
 namespace Wncms\Tests\Unit\Api\V2;
 
 use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\Data\ApiDomainContract;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Api\V2\Data\ApiSchema;
@@ -88,15 +89,41 @@ class OpenApiDocumentBuilderTest extends TestCase
         );
         $this->assertSame(
             '#/components/schemas/SuccessEnvelope',
-            $backend['responses']['200']['content']['application/json']['schema']['allOf'][0]['$ref']
+            $backend['responses']['2XX']['content']['application/json']['schema']['allOf'][0]['$ref']
         );
         $this->assertSame(
             ['type' => 'object', 'properties' => ['id' => ['type' => 'integer']]],
-            json_decode(json_encode($backend['responses']['200']['content']['application/json']['schema']['allOf'][1]['properties']['data'], JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR)
+            json_decode(json_encode($backend['responses']['2XX']['content']['application/json']['schema']['allOf'][1]['properties']['data'], JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR)
         );
         $this->assertSame(
             '#/components/schemas/ErrorEnvelope',
             $backend['responses']['default']['content']['application/json']['schema']['$ref']
+        );
+    }
+
+    /**
+     * Verify every existing successful HTTP status resolves to the success envelope.
+     *
+     * @return void
+     */
+    public function test_it_does_not_classify_created_or_accepted_responses_as_errors(): void
+    {
+        $responses = (new OpenApiDocumentBuilder($this->registry()))
+            ->build()['paths']['/api/v2/backend/posts/{id}']['patch']['responses'];
+
+        foreach ([200, 201, 202] as $status) {
+            $response = $this->responseForStatus($responses, $status);
+
+            $this->assertSame(
+                '#/components/schemas/SuccessEnvelope',
+                $response['content']['application/json']['schema']['allOf'][0]['$ref'],
+                "HTTP {$status} should resolve to the success envelope."
+            );
+        }
+
+        $this->assertSame(
+            '#/components/schemas/ErrorEnvelope',
+            $responses['default']['content']['application/json']['schema']['$ref']
         );
     }
 
@@ -133,8 +160,45 @@ class OpenApiDocumentBuilderTest extends TestCase
 
         $wire = json_decode(json_encode($document, JSON_THROW_ON_ERROR));
         $this->assertIsObject(
-            $wire->paths->{'/api/v2/frontend/posts'}->post->responses->{'200'}->content->{'application/json'}->schema->allOf[1]->properties->data->properties
+            $wire->paths->{'/api/v2/frontend/posts'}->post->responses->{'2XX'}->content->{'application/json'}->schema->allOf[1]->properties->data->properties
         );
+    }
+
+    /**
+     * Verify error schemas preserve every array value supported by the response factory.
+     *
+     * @return void
+     */
+    public function test_error_envelope_supports_general_object_and_list_error_values(): void
+    {
+        $objectErrors = [
+            'id' => 17,
+            'website_ids' => [2, 3],
+            'context' => ['field' => 'title', 'reason' => null],
+            'retryable' => false,
+        ];
+        $listErrors = ['invalid', 42, ['nested' => true]];
+        $responses = app(ApiResponseFactory::class);
+
+        $this->assertSame(
+            $objectErrors,
+            $responses->failure('validation.failed', 'failed', 422, $objectErrors)->getData(true)['errors']
+        );
+        $this->assertSame(
+            $listErrors,
+            $responses->failure('validation.failed', 'failed', 422, $listErrors)->getData(true)['errors']
+        );
+
+        $document = (new OpenApiDocumentBuilder($this->registry()))->build();
+        $schema = json_decode(
+            json_encode($document['components']['schemas']['ErrorEnvelope']['properties']['errors'], JSON_THROW_ON_ERROR),
+            flags: JSON_THROW_ON_ERROR
+        );
+
+        $this->assertSame('object', $schema->oneOf[0]->type);
+        $this->assertSame([], get_object_vars($schema->oneOf[0]->additionalProperties));
+        $this->assertSame('array', $schema->oneOf[1]->type);
+        $this->assertSame([], get_object_vars($schema->oneOf[1]->items));
     }
 
     /**
@@ -224,5 +288,28 @@ class OpenApiDocumentBuilderTest extends TestCase
         ));
 
         return $registry;
+    }
+
+    /**
+     * Resolve an OpenAPI response using exact, range, then default precedence.
+     *
+     * @param  array<string, array<string, mixed>>  $responses
+     * @param  int  $status
+     *
+     * @return array<string, mixed>
+     */
+    protected function responseForStatus(array $responses, int $status): array
+    {
+        $exact = (string) $status;
+        if (isset($responses[$exact])) {
+            return $responses[$exact];
+        }
+
+        $range = substr($exact, 0, 1).'XX';
+        if (isset($responses[$range])) {
+            return $responses[$range];
+        }
+
+        return $responses['default'];
     }
 }

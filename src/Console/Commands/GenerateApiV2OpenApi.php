@@ -4,6 +4,7 @@ namespace Wncms\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Throwable;
 use Wncms\Api\V2\OpenApiDocumentBuilder;
 
 class GenerateApiV2OpenApi extends Command
@@ -56,8 +57,27 @@ class GenerateApiV2OpenApi extends Command
      */
     private function writeSnapshot(string $path, string $contents): int
     {
-        File::ensureDirectoryExists(dirname($path));
-        File::put($path, $contents);
+        try {
+            if (File::isDirectory($path)) {
+                $this->error("Unable to write OpenAPI snapshot to {$path}: target is a directory.");
+
+                return self::FAILURE;
+            }
+
+            File::ensureDirectoryExists(dirname($path));
+            $bytes = File::put($path, $contents);
+        } catch (Throwable $exception) {
+            $this->error("Unable to write OpenAPI snapshot to {$path}: {$exception->getMessage()}");
+
+            return self::FAILURE;
+        }
+
+        if ($bytes === false) {
+            $this->error("Unable to write OpenAPI snapshot to {$path}.");
+
+            return self::FAILURE;
+        }
+
         $this->info("OpenAPI document written to {$path}.");
 
         return self::SUCCESS;
@@ -73,13 +93,27 @@ class GenerateApiV2OpenApi extends Command
      */
     private function checkSnapshot(string $path, string $contents): int
     {
-        if (! File::exists($path)) {
-            $this->error("OpenAPI snapshot not found at {$path}.");
+        try {
+            if (! File::exists($path)) {
+                $this->error("OpenAPI snapshot not found at {$path}.");
+
+                return self::FAILURE;
+            }
+
+            if (! File::isFile($path)) {
+                $this->error("Unable to check OpenAPI snapshot at {$path}: target is not a file.");
+
+                return self::FAILURE;
+            }
+
+            $actual = File::get($path);
+        } catch (Throwable $exception) {
+            $this->error("Unable to check OpenAPI snapshot at {$path}: {$exception->getMessage()}");
 
             return self::FAILURE;
         }
 
-        if (File::get($path) !== $contents) {
+        if ($actual !== $contents) {
             $this->error("OpenAPI snapshot differs from the generated document at {$path}.");
 
             return self::FAILURE;

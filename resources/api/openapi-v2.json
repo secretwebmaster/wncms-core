@@ -20,7 +20,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -78,7 +78,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -138,7 +138,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -208,7 +208,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -266,7 +266,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -334,7 +334,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -404,7 +404,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -474,7 +474,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -544,7 +544,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -622,7 +622,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -682,7 +682,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -752,7 +752,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -802,7 +802,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -860,7 +860,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -920,7 +920,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -990,7 +990,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1048,7 +1048,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1116,7 +1116,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1166,7 +1166,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1226,7 +1226,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1276,7 +1276,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1346,7 +1346,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1396,7 +1396,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1454,7 +1454,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1514,7 +1514,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1584,7 +1584,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1642,7 +1642,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1710,7 +1710,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1780,7 +1780,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1850,7 +1850,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1910,7 +1910,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -1960,7 +1960,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "domain",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2018,7 +2018,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2078,7 +2078,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2138,7 +2138,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2208,7 +2208,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2266,7 +2266,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2334,7 +2334,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2384,7 +2384,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2442,7 +2442,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2502,7 +2502,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2562,7 +2562,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2622,7 +2622,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2682,7 +2682,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2752,7 +2752,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2810,7 +2810,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2878,7 +2878,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2938,7 +2938,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -2998,7 +2998,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3058,7 +3058,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3108,7 +3108,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3168,7 +3168,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3238,7 +3238,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3308,7 +3308,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3358,7 +3358,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3416,7 +3416,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3476,7 +3476,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3536,7 +3536,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3596,7 +3596,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3656,7 +3656,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3726,7 +3726,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3784,7 +3784,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3852,7 +3852,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3912,7 +3912,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -3982,7 +3982,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4032,7 +4032,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4090,7 +4090,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4150,7 +4150,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4220,7 +4220,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4278,7 +4278,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4346,7 +4346,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4396,7 +4396,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4454,7 +4454,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4514,7 +4514,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4574,7 +4574,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4634,7 +4634,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4704,7 +4704,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4762,7 +4762,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4830,7 +4830,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4880,7 +4880,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -4950,7 +4950,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5020,7 +5020,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5090,7 +5090,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5160,7 +5160,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5230,7 +5230,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5290,7 +5290,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5340,7 +5340,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5398,7 +5398,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5458,7 +5458,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5518,7 +5518,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5578,7 +5578,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5638,7 +5638,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5688,7 +5688,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5758,7 +5758,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5828,7 +5828,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5886,7 +5886,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -5954,7 +5954,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6024,7 +6024,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6084,7 +6084,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6144,7 +6144,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6214,7 +6214,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6264,7 +6264,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6322,7 +6322,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6392,7 +6392,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6450,7 +6450,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6518,7 +6518,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6568,7 +6568,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6626,7 +6626,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6686,7 +6686,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6756,7 +6756,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6814,7 +6814,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6882,7 +6882,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6942,7 +6942,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -6992,7 +6992,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7052,7 +7052,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7112,7 +7112,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7172,7 +7172,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7222,7 +7222,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7280,7 +7280,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7330,7 +7330,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7390,7 +7390,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7450,7 +7450,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7510,7 +7510,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7570,7 +7570,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7630,7 +7630,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7680,7 +7680,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7740,7 +7740,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7810,7 +7810,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7868,7 +7868,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -7936,7 +7936,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8006,7 +8006,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8056,7 +8056,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8126,7 +8126,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8186,7 +8186,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8246,7 +8246,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8306,7 +8306,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8366,7 +8366,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8426,7 +8426,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8476,7 +8476,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8534,7 +8534,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8594,7 +8594,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8654,7 +8654,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8714,7 +8714,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8774,7 +8774,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8834,7 +8834,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8894,7 +8894,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -8954,7 +8954,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9024,7 +9024,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9082,7 +9082,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9150,7 +9150,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9220,7 +9220,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9290,7 +9290,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9340,7 +9340,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9398,7 +9398,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9468,7 +9468,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9526,7 +9526,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9594,7 +9594,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9664,7 +9664,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9734,7 +9734,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9804,7 +9804,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9850,7 +9850,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "domain",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -9896,7 +9896,7 @@
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "domain",
                 "responses": {
-                    "200": {
+                    "2XX": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
@@ -10022,16 +10022,11 @@
                         "oneOf": [
                             {
                                 "type": "object",
-                                "additionalProperties": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
-                                }
+                                "additionalProperties": {}
                             },
                             {
                                 "type": "array",
-                                "maxItems": 0
+                                "items": {}
                             }
                         ]
                     }

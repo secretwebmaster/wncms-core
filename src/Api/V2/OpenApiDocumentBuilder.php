@@ -92,7 +92,7 @@ final class OpenApiDocumentBuilder
         }
 
         $data['responses'] = [
-            '200' => [
+            '2XX' => [
                 'description' => 'Successful response',
                 'content' => [
                     'application/json' => [
@@ -206,14 +206,11 @@ final class OpenApiDocumentBuilder
                             'oneOf' => [
                                 [
                                     'type' => 'object',
-                                    'additionalProperties' => [
-                                        'type' => 'array',
-                                        'items' => ['type' => 'string'],
-                                    ],
+                                    'additionalProperties' => (object) [],
                                 ],
                                 [
                                     'type' => 'array',
-                                    'maxItems' => 0,
+                                    'items' => (object) [],
                                 ],
                             ],
                         ],

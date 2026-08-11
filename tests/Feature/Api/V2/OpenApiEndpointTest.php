@@ -58,6 +58,35 @@ class OpenApiEndpointTest extends TestCase
     }
 
     /**
+     * Verify package providers register only canonical API paths without aliases or duplicates.
+     *
+     * @return void
+     */
+    public function test_it_registers_each_canonical_contract_and_existing_api_route_once(): void
+    {
+        $routes = collect(Route::getRoutes()->getRoutes());
+
+        $expected = [
+            'api.v2.openapi' => 'api/v2/openapi.json',
+            'api.v2.capabilities' => 'api/v2/capabilities',
+            'api.v2.backend.links.index' => 'api/v2/backend/links',
+            'api.v1.posts.index' => 'api/v1/posts',
+        ];
+
+        foreach ($expected as $name => $uri) {
+            $namedRoutes = $routes->filter(static fn ($route): bool => $route->getName() === $name);
+
+            $this->assertCount(1, $namedRoutes, "Route {$name} should be registered exactly once.");
+            $this->assertSame($uri, $namedRoutes->first()->uri());
+        }
+
+        $this->assertCount(
+            0,
+            $routes->filter(static fn ($route): bool => $route->uri() === 'v2/openapi.json')
+        );
+    }
+
+    /**
      * Verify the public endpoint remains protected by the API whitelist feature gate.
      *
      * @return void

@@ -2,7 +2,9 @@
 
 namespace Wncms\Tests\Unit\Api\V2;
 
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
+use RuntimeException;
 use Wncms\Api\V2\OpenApiDocumentBuilder;
 use Wncms\Tests\TestCase;
 
@@ -75,6 +77,106 @@ class GenerateApiV2OpenApiCommandTest extends TestCase
         File::append($path, "\n");
 
         $this->artisan('wncms:api-v2-openapi', ['--check' => $path])
+            ->assertExitCode(1);
+    }
+
+    /**
+     * Verify the command rejects missing or conflicting operation modes.
+     *
+     * @return void
+     */
+    public function test_it_requires_exactly_one_write_or_check_option(): void
+    {
+        $path = $this->temporaryDirectory.'/openapi-v2.json';
+
+        $this->artisan('wncms:api-v2-openapi')
+            ->expectsOutput('Provide exactly one of --write or --check.')
+            ->assertExitCode(1);
+        $this->artisan('wncms:api-v2-openapi', ['--write' => $path, '--check' => $path])
+            ->expectsOutput('Provide exactly one of --write or --check.')
+            ->assertExitCode(1);
+    }
+
+    /**
+     * Verify a false filesystem write result cannot be reported as success.
+     *
+     * @return void
+     */
+    public function test_write_fails_when_the_filesystem_returns_false(): void
+    {
+        $filesystem = File::getFacadeRoot();
+        File::swap(new class extends Filesystem
+        {
+            /**
+             * Simulate a filesystem write failure without throwing.
+             *
+             * @param  string  $path
+             * @param  string  $contents
+             * @param  bool  $lock
+             *
+             * @return false
+             */
+            public function put($path, $contents, $lock = false)
+            {
+                return false;
+            }
+        });
+
+        try {
+            $this->artisan('wncms:api-v2-openapi', ['--write' => $this->temporaryDirectory.'/openapi-v2.json'])
+                ->expectsOutputToContain('Unable to write OpenAPI snapshot')
+                ->assertExitCode(1);
+        } finally {
+            File::swap($filesystem);
+        }
+    }
+
+    /**
+     * Verify a filesystem exception cannot escape or be reported as success.
+     *
+     * @return void
+     */
+    public function test_write_fails_when_the_filesystem_throws(): void
+    {
+        $filesystem = File::getFacadeRoot();
+        File::swap(new class extends Filesystem
+        {
+            /**
+             * Simulate a filesystem write exception.
+             *
+             * @param  string  $path
+             * @param  string  $contents
+             * @param  bool  $lock
+             *
+             * @return never
+             */
+            public function put($path, $contents, $lock = false)
+            {
+                throw new RuntimeException('Simulated filesystem failure.');
+            }
+        });
+
+        try {
+            $this->artisan('wncms:api-v2-openapi', ['--write' => $this->temporaryDirectory.'/openapi-v2.json'])
+                ->expectsOutputToContain('Unable to write OpenAPI snapshot')
+                ->assertExitCode(1);
+        } finally {
+            File::swap($filesystem);
+        }
+    }
+
+    /**
+     * Verify directory paths fail cleanly in both command modes.
+     *
+     * @return void
+     */
+    public function test_directory_targets_fail_cleanly(): void
+    {
+        $this->artisan('wncms:api-v2-openapi', ['--write' => $this->temporaryDirectory])
+            ->expectsOutputToContain('Unable to write OpenAPI snapshot')
+            ->assertExitCode(1);
+        $this->artisan('wncms:api-v2-openapi', ['--check' => $this->temporaryDirectory])
+            ->expectsOutputToContain('Unable to check OpenAPI snapshot')
             ->assertExitCode(1);
     }
 }

@@ -83,7 +83,7 @@ class WncmsServiceProvider extends ServiceProvider
 
         // Core resources
         $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
-        $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
+        // API routes are grouped and loaded once by RouteServiceProvider.
         $this->loadMcpRoutes();
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'wncms');
         $this->loadTranslationsFrom(__DIR__ . '/../../lang', 'wncms');
