@@ -7,6 +7,7 @@ return [
         'version' => '2.0.0',
     ],
     'idempotency' => [
+        'store' => env('WNCMS_API_V2_IDEMPOTENCY_STORE'),
         'header' => 'Idempotency-Key',
         'ttl_seconds' => 86400,
         'lock_seconds' => 15,

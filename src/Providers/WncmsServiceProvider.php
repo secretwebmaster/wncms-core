@@ -3,6 +3,7 @@
 namespace Wncms\Providers;
 
 use Exception;
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Wncms\Exceptions\WncmsExceptionHandler;
@@ -217,7 +218,13 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function registerApiV2ContractServices(): void
     {
-        $this->app->singleton(IdempotencyStore::class, CacheIdempotencyStore::class);
+        $this->app->singleton(IdempotencyStore::class, function ($app) {
+            return new CacheIdempotencyStore(
+                $app->make(CacheFactory::class),
+                config('wncms-api-v2.idempotency.store'),
+                $app->environment('production')
+            );
+        });
 
         $this->app->singleton(ApiContractRegistry::class, function ($app) {
             $registry = new ApiContractRegistry;

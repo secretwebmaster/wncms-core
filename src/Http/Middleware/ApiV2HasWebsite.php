@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiResponseFactory;
+use Wncms\Api\V2\IdempotencyService;
 
 class ApiV2HasWebsite
 {
@@ -34,13 +35,16 @@ class ApiV2HasWebsite
             return $next($request);
         }
 
-        if (!wncms()->website()->get()) {
+        $website = wncms()->website()->get();
+        if (! $website) {
             return $this->responses->failure(
                 'website.context_missing',
                 'Website context is not available',
                 Response::HTTP_CONFLICT
             );
         }
+
+        $request->attributes->set(IdempotencyService::WEBSITE_CONTEXT_ATTRIBUTE, $website);
 
         return $next($request);
     }

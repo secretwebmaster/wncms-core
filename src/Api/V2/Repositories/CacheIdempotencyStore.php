@@ -2,7 +2,11 @@
 
 namespace Wncms\Api\V2\Repositories;
 
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\NullStore;
 use Illuminate\Contracts\Cache\Factory;
+use Illuminate\Contracts\Cache\LockProvider;
+use Illuminate\Contracts\Cache\Repository;
 use Wncms\Api\V2\Contracts\IdempotencyStore;
 
 class CacheIdempotencyStore implements IdempotencyStore
@@ -11,13 +15,22 @@ class CacheIdempotencyStore implements IdempotencyStore
 
     protected const LOCK_PREFIX = 'wncms:api-v2:idempotency:lock:';
 
+    protected ?Repository $repository = null;
+
+    protected ?LockProvider $lockProvider = null;
+
     /**
      * Create the cache-backed idempotency store.
      *
      * @param  \Illuminate\Contracts\Cache\Factory  $cache
+     * @param  mixed  $storeName
+     * @param  bool  $requireSharedStore
      */
-    public function __construct(protected Factory $cache)
-    {
+    public function __construct(
+        protected Factory $cache,
+        protected mixed $storeName = null,
+        protected bool $requireSharedStore = false
+    ) {
     }
 
     /**
@@ -29,7 +42,7 @@ class CacheIdempotencyStore implements IdempotencyStore
      */
     public function get(string $scope): ?array
     {
-        $record = $this->cache->store()->get($this->recordKey($scope));
+        $record = $this->repository()->get($this->recordKey($scope));
 
         return is_array($record) ? $record : null;
     }
@@ -45,7 +58,9 @@ class CacheIdempotencyStore implements IdempotencyStore
      */
     public function put(string $scope, array $record, int $ttlSeconds): void
     {
-        $this->cache->store()->put($this->recordKey($scope), $record, $ttlSeconds);
+        if ($this->repository()->put($this->recordKey($scope), $record, $ttlSeconds) !== true) {
+            throw new \RuntimeException('Unable to persist the API v2 idempotency record');
+        }
     }
 
     /**
@@ -58,7 +73,51 @@ class CacheIdempotencyStore implements IdempotencyStore
      */
     public function lock(string $scope, int $seconds): \Illuminate\Contracts\Cache\Lock
     {
-        return $this->cache->store()->lock($this->lockKey($scope), $seconds);
+        $this->repository();
+        if (! $this->lockProvider instanceof LockProvider) {
+            throw new \RuntimeException('The API v2 idempotency lock provider is unavailable');
+        }
+
+        return $this->lockProvider->lock($this->lockKey($scope), $seconds);
+    }
+
+    /**
+     * Resolve and validate the configured cache repository on first use.
+     *
+     * Lazy resolution keeps configuration failures inside request middleware error normalization.
+     *
+     * @return \Illuminate\Contracts\Cache\Repository
+     */
+    protected function repository(): Repository
+    {
+        if ($this->repository instanceof Repository) {
+            return $this->repository;
+        }
+
+        if ($this->storeName !== null && (! is_string($this->storeName) || trim($this->storeName) === '')) {
+            throw new \InvalidArgumentException(
+                'wncms-api-v2.idempotency.store must be a cache store name or null'
+            );
+        }
+
+        $storeName = $this->storeName === null ? null : trim($this->storeName);
+        $repository = $this->cache->store($storeName);
+        $store = $repository->getStore();
+
+        if (! $store instanceof LockProvider) {
+            throw new \InvalidArgumentException('The API v2 idempotency cache store must support atomic locks');
+        }
+
+        if ($this->requireSharedStore && ($store instanceof ArrayStore || $store instanceof NullStore)) {
+            throw new \InvalidArgumentException(
+                'The API v2 idempotency cache store must be shared across production processes'
+            );
+        }
+
+        $this->repository = $repository;
+        $this->lockProvider = $store;
+
+        return $this->repository;
     }
 
     /**

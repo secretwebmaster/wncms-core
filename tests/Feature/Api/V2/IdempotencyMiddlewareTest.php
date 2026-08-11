@@ -3,15 +3,19 @@
 namespace Wncms\Tests\Feature\Api\V2;
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
 use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\Contracts\IdempotencyStore;
 use Wncms\Models\User;
+use Wncms\Models\Website;
 use Wncms\Tests\TestCase;
 
 class IdempotencyMiddlewareTest extends TestCase
@@ -19,6 +23,16 @@ class IdempotencyMiddlewareTest extends TestCase
     use DatabaseTransactions;
 
     protected int $executions = 0;
+
+    /**
+     * @var array<int, resource>
+     */
+    protected array $uploadStreams = [];
+
+    /**
+     * @var array<int, string>
+     */
+    protected array $cacheDirectories = [];
 
     /**
      * Register isolated mutation routes for each idempotency test.
@@ -32,6 +46,7 @@ class IdempotencyMiddlewareTest extends TestCase
         auth()->forgetGuards();
         Cache::flush();
         Cache::flushLocks();
+        config(['wncms-api-v2.idempotency.store' => 'array']);
         $this->actingAs(User::firstOrFail());
 
         Route::post('/api/v2/_test/idempotent/{subject}', function (Request $request, string $subject) {
@@ -39,6 +54,14 @@ class IdempotencyMiddlewareTest extends TestCase
 
             if ($request->boolean('throw')) {
                 throw new \RuntimeException('idempotency handler failure');
+            }
+
+            if ($request->boolean('fail_once') && $this->executions === 1) {
+                return app(ApiResponseFactory::class)->failure(
+                    'server.temporary_failure',
+                    'temporary failure',
+                    500
+                );
             }
 
             return app(ApiResponseFactory::class)->success([
@@ -70,6 +93,52 @@ class IdempotencyMiddlewareTest extends TestCase
         })
             ->defaults('api_operation_id', 'backend.test.token')
             ->middleware(['api_v2_request_id', 'api_v2_token_auth', 'api_v2_idempotency']);
+
+        Route::post('/api/v2/_test/idempotent-website/{subject}', function (string $subject) {
+            $this->executions++;
+
+            return app(ApiResponseFactory::class)->success([
+                'execution' => $this->executions,
+                'subject' => $subject,
+            ], 'created', 201);
+        })
+            ->defaults('api_operation_id', 'backend.test.create')
+            ->middleware(['api_v2_request_id', 'api_v2_has_website', 'api_v2_idempotency']);
+
+        Route::post('/api/v2/_test/idempotent-wire/{shape}', function (string $shape) {
+            $this->executions++;
+
+            [$json, $contentType] = match ($shape) {
+                'object' => ['{}', 'application/json'],
+                'list' => ['[]', 'application/json'],
+                'numeric-object' => ['{"0":"zero","1":"one"}', 'application/json'],
+                'scalar' => ['"scalar-root"', 'application/problem+json'],
+            };
+
+            return JsonResponse::fromJsonString($json, 202, ['Content-Type' => $contentType]);
+        })
+            ->defaults('api_operation_id', 'backend.test.wire')
+            ->middleware(['api_v2_request_id', 'api_v2_idempotency']);
+    }
+
+    /**
+     * Close temporary upload streams created by the test fixtures.
+     *
+     * @return void
+     */
+    protected function tearDown(): void
+    {
+        foreach ($this->uploadStreams as $stream) {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }
+
+        foreach ($this->cacheDirectories as $directory) {
+            File::deleteDirectory($directory);
+        }
+
+        parent::tearDown();
     }
 
     /**
@@ -200,6 +269,121 @@ class IdempotencyMiddlewareTest extends TestCase
     }
 
     /**
+     * Verify JSON objects, lists, numeric-key objects, and scalar roots retain their wire shapes.
+     *
+     * Associative decoding would collapse each object/list pair into the same PHP array.
+     *
+     * @return void
+     */
+    public function test_json_wire_shapes_remain_distinct_in_request_fingerprints(): void
+    {
+        $this->postRawJsonMutation('/api/v2/_test/idempotent/alpha', '{}', 'json-shape-empty-01')
+            ->assertCreated();
+        $this->postRawJsonMutation('/api/v2/_test/idempotent/alpha', '[]', 'json-shape-empty-01')
+            ->assertConflict()
+            ->assertJsonPath('meta.error_code', 'idempotency.key_conflict');
+
+        $this->postRawJsonMutation(
+            '/api/v2/_test/idempotent/alpha',
+            '{"0":"first","1":"second"}',
+            'json-shape-numeric-01'
+        )->assertCreated();
+        $this->postRawJsonMutation(
+            '/api/v2/_test/idempotent/alpha',
+            '["first","second"]',
+            'json-shape-numeric-01'
+        )
+            ->assertConflict()
+            ->assertJsonPath('meta.error_code', 'idempotency.key_conflict');
+
+        $firstScalar = $this->postRawJsonMutation(
+            '/api/v2/_test/idempotent/alpha',
+            '"scalar-root"',
+            'json-shape-scalar-01'
+        );
+        $replayedScalar = $this->postRawJsonMutation(
+            '/api/v2/_test/idempotent/alpha',
+            '"scalar-root"',
+            'json-shape-scalar-01'
+        );
+
+        $firstScalar->assertCreated();
+        $replayedScalar
+            ->assertCreated()
+            ->assertHeader('Idempotency-Replayed', 'true');
+        $this->assertSame($firstScalar->getContent(), $replayedScalar->getContent());
+        $this->assertSame(3, $this->executions);
+    }
+
+    /**
+     * Verify malformed JSON fails before executing the mutation.
+     *
+     * @return void
+     */
+    public function test_malformed_json_returns_a_stable_idempotency_failure(): void
+    {
+        $response = $this->postRawJsonMutation(
+            '/api/v2/_test/idempotent/alpha',
+            '{"broken":',
+            'malformed-json-key-01'
+        );
+
+        $response
+            ->assertBadRequest()
+            ->assertJsonPath('meta.error_code', 'idempotency.payload_invalid');
+        $this->assertEnvelope($response);
+        $this->assertSame(0, $this->executions);
+    }
+
+    /**
+     * Verify multipart file paths and metadata contribute to a deterministic fingerprint.
+     *
+     * Ignoring any uploaded file would replay instead of conflicting for these mutations.
+     *
+     * @return void
+     */
+    public function test_multipart_files_are_fingerprinted_by_path_name_size_mime_and_content(): void
+    {
+        $uri = '/api/v2/_test/idempotent/alpha';
+        $baseline = fn (): UploadedFile => $this->uploadedFile('clip.txt', 'alpha', 'text/plain');
+        $preview = fn (): UploadedFile => $this->uploadedFile('preview.txt', 'preview', 'text/plain');
+        $this->withHeader('X-Request-ID', '123e4567-e89b-42d3-a456-426614174002');
+
+        $first = $this->postUploadMutation($uri, [
+            'attachment' => $baseline(),
+            'preview' => $preview(),
+        ], 'upload-stable-key-01');
+        $replayed = $this->postUploadMutation($uri, [
+            'preview' => $preview(),
+            'attachment' => $baseline(),
+        ], 'upload-stable-key-01');
+
+        $first->assertCreated();
+        $replayed
+            ->assertCreated()
+            ->assertHeader('Idempotency-Replayed', 'true');
+        $this->assertSame($first->getContent(), $replayed->getContent());
+
+        $variants = [
+            'upload-path-key-0001' => ['other_attachment' => $baseline()],
+            'upload-name-key-0001' => ['attachment' => $this->uploadedFile('other.txt', 'alpha', 'text/plain')],
+            'upload-size-key-0001' => ['attachment' => $this->uploadedFile('clip.txt', 'alpha-longer', 'text/plain')],
+            'upload-mime-key-0001' => ['attachment' => $this->uploadedFile('clip.txt', 'alpha', 'application/octet-stream')],
+            'upload-hash-key-0001' => ['attachment' => $this->uploadedFile('clip.txt', 'bravo', 'text/plain')],
+        ];
+
+        foreach ($variants as $key => $variant) {
+            $this->postUploadMutation($uri, ['attachment' => $baseline()], $key)->assertCreated();
+
+            $this->postUploadMutation($uri, $variant, $key)
+                ->assertConflict()
+                ->assertJsonPath('meta.error_code', 'idempotency.key_conflict');
+        }
+
+        $this->assertSame(6, $this->executions);
+    }
+
+    /**
      * Verify a reused key with different input returns a stable conflict envelope.
      *
      * @return void
@@ -314,13 +498,75 @@ class IdempotencyMiddlewareTest extends TestCase
     }
 
     /**
+     * Verify trusted website identity isolates scopes without trusting the raw Host value.
+     *
+     * Omitting the resolved website ID would replay across the sentinel and secondary website.
+     * Using Host directly would fail to replay the alias request for the same website object.
+     *
+     * @return void
+     */
+    public function test_resolved_website_identity_and_no_context_sentinel_isolate_scopes(): void
+    {
+        $user = User::firstOrFail();
+        $primary = Website::firstOrFail();
+        $primary->update(['domain' => 'primary-idempotency.test']);
+        $primary->domain_aliases()->create(['domain' => 'alias-idempotency.test']);
+
+        $secondary = Website::create([
+            'user_id' => $user->id,
+            'domain' => 'secondary-idempotency.test',
+            'site_name' => 'Secondary Idempotency Website',
+            'theme' => 'default',
+        ]);
+        $user->websites()->syncWithoutDetaching([$primary->id, $secondary->id]);
+        wncms()->cache()->flush(['websites']);
+
+        $key = 'website-scope-key-01';
+        $payload = ['title' => 'One'];
+
+        $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key)
+            ->assertCreated()
+            ->assertJsonPath('data.execution', 1);
+
+        $primaryResponse = $this->postMutation(
+            'http://primary-idempotency.test/api/v2/_test/idempotent-website/alpha',
+            $payload,
+            $key
+        );
+        $primaryResponse
+            ->assertCreated()
+            ->assertJsonPath('data.execution', 2);
+        $this->assertNull($primaryResponse->headers->get('Idempotency-Replayed'));
+
+        $this->postMutation(
+            'http://alias-idempotency.test/api/v2/_test/idempotent-website/alpha',
+            $payload,
+            $key
+        )
+            ->assertCreated()
+            ->assertHeader('Idempotency-Replayed', 'true')
+            ->assertJsonPath('data.execution', 2);
+
+        $secondaryResponse = $this->postMutation(
+            'http://secondary-idempotency.test/api/v2/_test/idempotent-website/alpha',
+            $payload,
+            $key
+        );
+        $secondaryResponse
+            ->assertCreated()
+            ->assertJsonPath('data.execution', 3);
+        $this->assertNull($secondaryResponse->headers->get('Idempotency-Replayed'));
+        $this->assertSame(3, $this->executions);
+    }
+
+    /**
      * Verify an unavailable atomic lock returns the stable in-progress conflict.
      *
      * @return void
      */
     public function test_concurrent_lock_failure_returns_an_in_progress_conflict(): void
     {
-        $store = new InspectingIdempotencyStore;
+        $store = new InspectingIdempotencyStore();
         $store->lockAvailable = false;
         app()->instance(IdempotencyStore::class, $store);
 
@@ -345,7 +591,7 @@ class IdempotencyMiddlewareTest extends TestCase
      */
     public function test_lock_is_released_when_the_handler_throws(): void
     {
-        $store = new InspectingIdempotencyStore;
+        $store = new InspectingIdempotencyStore();
         app()->instance(IdempotencyStore::class, $store);
 
         $response = $this->postMutation(
@@ -362,13 +608,253 @@ class IdempotencyMiddlewareTest extends TestCase
     }
 
     /**
+     * Verify server-error responses remain retryable and are never replayed.
+     *
+     * Caching the first response would make the second request replay the temporary 500.
+     *
+     * @return void
+     */
+    public function test_server_error_response_is_not_recorded_and_can_be_retried(): void
+    {
+        $key = 'retry-server-error-01';
+        $payload = ['fail_once' => true];
+
+        $first = $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key);
+
+        $first
+            ->assertServerError()
+            ->assertJsonPath('meta.error_code', 'server.temporary_failure');
+        $this->assertNull($first->headers->get('Idempotency-Replayed'));
+
+        $second = $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key);
+
+        $second
+            ->assertCreated()
+            ->assertJsonPath('data.execution', 2);
+        $this->assertNull($second->headers->get('Idempotency-Replayed'));
+
+        $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key)
+            ->assertCreated()
+            ->assertHeader('Idempotency-Replayed', 'true')
+            ->assertJsonPath('data.execution', 2);
+        $this->assertSame(2, $this->executions);
+    }
+
+    /**
+     * Verify replay preserves JSON root types, body bytes, status, and content type.
+     *
+     * Associative response decoding would turn empty and numeric-key objects or scalars into arrays.
+     *
+     * @return void
+     */
+    public function test_replay_preserves_exact_json_wire_types_and_content_type(): void
+    {
+        $requestId = '123e4567-e89b-42d3-a456-426614174004';
+        $this->withHeader('X-Request-ID', $requestId);
+
+        $cases = [
+            'object' => ['{"meta":{"request_id":"'.$requestId.'"}}', 'application/json'],
+            'list' => ['[]', 'application/json'],
+            'numeric-object' => [
+                '{"0":"zero","1":"one","meta":{"request_id":"'.$requestId.'"}}',
+                'application/json',
+            ],
+            'scalar' => ['"scalar-root"', 'application/problem+json'],
+        ];
+
+        foreach ($cases as $shape => [$expectedBody, $expectedContentType]) {
+            $uri = "/api/v2/_test/idempotent-wire/{$shape}";
+            $key = "wire-type-{$shape}-key";
+
+            $first = $this->postMutation($uri, ['title' => 'One'], $key);
+            $replayed = $this->postMutation($uri, ['title' => 'One'], $key);
+
+            $first
+                ->assertStatus(202)
+                ->assertHeader('Content-Type', $expectedContentType);
+            $replayed
+                ->assertStatus(202)
+                ->assertHeader('Content-Type', $expectedContentType)
+                ->assertHeader('Idempotency-Replayed', 'true');
+            $this->assertSame($expectedBody, $first->getContent());
+            $this->assertSame($first->getContent(), $replayed->getContent());
+        }
+
+        $this->assertSame(4, $this->executions);
+    }
+
+    /**
+     * Verify a cache backend that reports a failed write cannot return an unprotected success.
+     *
+     * Ignoring the false write result would return 201 and execute the same mutation again later.
+     *
+     * @return void
+     */
+    public function test_cache_record_write_failure_fails_closed_and_remains_retryable(): void
+    {
+        config([
+            'cache.stores.idempotency_null' => ['driver' => 'null'],
+            'wncms-api-v2.idempotency.store' => 'idempotency_null',
+        ]);
+        app('cache')->forgetDriver('idempotency_null');
+        app()->forgetInstance(IdempotencyStore::class);
+
+        $key = 'failed-cache-write-01';
+        $payload = ['title' => 'One'];
+
+        $first = $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key);
+        $first
+            ->assertServerError()
+            ->assertJsonPath('meta.error_code', 'server.unexpected_error');
+        $this->assertEnvelope($first);
+        $this->assertNull($first->headers->get('Idempotency-Replayed'));
+
+        $second = $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key);
+        $second
+            ->assertServerError()
+            ->assertJsonPath('meta.error_code', 'server.unexpected_error');
+        $this->assertSame(2, $this->executions);
+    }
+
+    /**
+     * Verify store exceptions use the standard envelope, release the lock, and permit a retry.
+     *
+     * @return void
+     */
+    public function test_cache_record_write_exception_releases_the_lock_and_remains_retryable(): void
+    {
+        $store = new InspectingIdempotencyStore();
+        $store->putThrows = true;
+        app()->instance(IdempotencyStore::class, $store);
+
+        $key = 'throwing-cache-write-01';
+        $payload = ['title' => 'One'];
+        $failed = $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key);
+
+        $failed
+            ->assertServerError()
+            ->assertJsonPath('meta.error_code', 'server.unexpected_error');
+        $this->assertEnvelope($failed);
+        $this->assertTrue($store->released);
+        $this->assertNull($store->record);
+
+        $store->putThrows = false;
+        $retry = $this->postMutation('/api/v2/_test/idempotent/alpha', $payload, $key);
+
+        $retry
+            ->assertCreated()
+            ->assertJsonPath('data.execution', 2);
+        $this->assertNull($retry->headers->get('Idempotency-Replayed'));
+        $this->assertSame(2, $this->executions);
+    }
+
+    /**
+     * Verify production rejects ephemeral or non-locking resolved cache backends.
+     *
+     * A null idempotency store config intentionally resolves Laravel's default store; it is
+     * distinct from a named cache store whose driver is NullStore.
+     *
+     * @return void
+     */
+    public function test_production_rejects_unsafe_resolved_cache_backends_before_execution(): void
+    {
+        config([
+            'cache.stores.idempotency_null' => ['driver' => 'null'],
+            'cache.stores.idempotency_storage' => [
+                'driver' => 'storage',
+                'disk' => 'local',
+                'path' => 'idempotency-tests',
+            ],
+        ]);
+        $this->app->detectEnvironment(static fn (): string => 'production');
+
+        try {
+            $unsafeConfigurations = [
+                'default-array' => [null, 'array'],
+                'named-null-driver' => ['idempotency_null', 'array'],
+                'non-locking-storage-driver' => ['idempotency_storage', 'array'],
+                'invalid-config-value' => [['array'], 'array'],
+            ];
+
+            foreach ($unsafeConfigurations as $case => [$idempotencyStore, $defaultStore]) {
+                config([
+                    'cache.default' => $defaultStore,
+                    'wncms-api-v2.idempotency.store' => $idempotencyStore,
+                ]);
+                app()->forgetInstance(IdempotencyStore::class);
+
+                $response = $this->postMutation(
+                    '/api/v2/_test/idempotent/alpha',
+                    ['case' => $case],
+                    "unsafe-store-{$case}"
+                );
+
+                $response
+                    ->assertServerError()
+                    ->assertJsonPath('meta.error_code', 'server.unexpected_error');
+                $this->assertEnvelope($response);
+            }
+        } finally {
+            $this->app->detectEnvironment(static fn (): string => 'testing');
+        }
+
+        $this->assertSame(0, $this->executions);
+    }
+
+    /**
+     * Verify a null idempotency config uses a safe Laravel default store in production.
+     *
+     * @return void
+     */
+    public function test_production_accepts_a_shared_locking_default_cache_store(): void
+    {
+        $cacheDirectory = sys_get_temp_dir().'/wncms-idempotency-'.bin2hex(random_bytes(8));
+        $this->cacheDirectories[] = $cacheDirectory;
+        config([
+            'cache.default' => 'idempotency_file',
+            'cache.stores.idempotency_file' => [
+                'driver' => 'file',
+                'path' => $cacheDirectory,
+                'lock_path' => $cacheDirectory,
+            ],
+            'wncms-api-v2.idempotency.store' => null,
+        ]);
+        app('cache')->forgetDriver('idempotency_file');
+        app()->forgetInstance(IdempotencyStore::class);
+        $this->app->detectEnvironment(static fn (): string => 'production');
+
+        try {
+            $key = 'shared-default-store-01';
+            $first = $this->postMutation(
+                '/api/v2/_test/idempotent/alpha',
+                ['title' => 'One'],
+                $key
+            );
+            $replayed = $this->postMutation(
+                '/api/v2/_test/idempotent/alpha',
+                ['title' => 'One'],
+                $key
+            );
+        } finally {
+            $this->app->detectEnvironment(static fn (): string => 'testing');
+        }
+
+        $first->assertCreated();
+        $replayed
+            ->assertCreated()
+            ->assertHeader('Idempotency-Replayed', 'true')
+            ->assertJsonPath('data.execution', 1);
+        $this->assertSame(1, $this->executions);
+    }
+
+    /**
      * Verify only the stable response record is stored with configured durations.
      *
      * @return void
      */
     public function test_completed_response_record_and_durations_match_the_contract(): void
     {
-        $store = new InspectingIdempotencyStore;
+        $store = new InspectingIdempotencyStore();
         app()->instance(IdempotencyStore::class, $store);
 
         $response = $this->withHeader('X-Request-ID', '123e4567-e89b-42d3-a456-426614174000')
@@ -388,7 +874,7 @@ class IdempotencyMiddlewareTest extends TestCase
         );
         $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/', (string) $store->record['fingerprint']);
         $this->assertSame(201, $store->record['status']);
-        $this->assertSame($response->json(), $store->record['body']);
+        $this->assertSame($response->getContent(), $store->record['body']);
         $this->assertSame(['Content-Type' => 'application/json'], $store->record['headers']);
         $this->assertStringNotContainsString('must-not-be-stored', json_encode($store->record, JSON_THROW_ON_ERROR));
     }
@@ -462,6 +948,63 @@ class IdempotencyMiddlewareTest extends TestCase
     }
 
     /**
+     * Send one raw JSON mutation without changing its root wire type.
+     *
+     * @param  string  $uri
+     * @param  string  $json
+     * @param  string  $key
+     *
+     * @return \Illuminate\Testing\TestResponse
+     */
+    protected function postRawJsonMutation(string $uri, string $json, string $key): TestResponse
+    {
+        return $this->call('POST', $uri, [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_ACCEPT' => 'application/json',
+            'HTTP_IDEMPOTENCY_KEY' => $key,
+            'HTTP_X_REQUEST_ID' => '123e4567-e89b-42d3-a456-426614174003',
+        ], $json);
+    }
+
+    /**
+     * Send one multipart mutation with uploaded files.
+     *
+     * @param  string  $uri
+     * @param  array<string, mixed>  $payload
+     * @param  string  $key
+     *
+     * @return \Illuminate\Testing\TestResponse
+     */
+    protected function postUploadMutation(string $uri, array $payload, string $key): TestResponse
+    {
+        return $this->withHeader('Idempotency-Key', $key)
+            ->post($uri, $payload, ['Accept' => 'application/json']);
+    }
+
+    /**
+     * Create one stable multipart upload fixture.
+     *
+     * @param  string  $name
+     * @param  string  $content
+     * @param  string  $mimeType
+     *
+     * @return \Illuminate\Http\UploadedFile
+     */
+    protected function uploadedFile(string $name, string $content, string $mimeType): UploadedFile
+    {
+        $stream = tmpfile();
+        if ($stream === false) {
+            throw new \RuntimeException('Unable to create an upload fixture');
+        }
+
+        fwrite($stream, $content);
+        $this->uploadStreams[] = $stream;
+        $path = stream_get_meta_data($stream)['uri'];
+
+        return new UploadedFile($path, $name, $mimeType, UPLOAD_ERR_OK, true);
+    }
+
+    /**
      * Create a personal access token fixture for an existing user.
      *
      * @param  \Wncms\Models\User  $user
@@ -512,6 +1055,8 @@ class InspectingIdempotencyStore implements IdempotencyStore
 
     public bool $released = false;
 
+    public bool $putThrows = false;
+
     public ?string $scope = null;
 
     public int $lockSeconds = 0;
@@ -545,6 +1090,10 @@ class InspectingIdempotencyStore implements IdempotencyStore
      */
     public function put(string $scope, array $record, int $ttlSeconds): void
     {
+        if ($this->putThrows) {
+            throw new \RuntimeException('idempotency store write failure');
+        }
+
         $this->scope = $scope;
         $this->record = $record;
         $this->ttlSeconds = $ttlSeconds;
