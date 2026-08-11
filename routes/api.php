@@ -64,6 +64,10 @@ if (file_exists(__DIR__ . '/api/v2/frontend.php')) {
     include __DIR__ . '/api/v2/frontend.php';
 }
 
+if (file_exists(__DIR__ . '/api/v2/contracts.php')) {
+    include __DIR__ . '/api/v2/contracts.php';
+}
+
 if (file_exists(__DIR__ . '/api/v2/backend.php')) {
     include __DIR__ . '/api/v2/backend.php';
 }
