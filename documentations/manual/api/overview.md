@@ -22,6 +22,24 @@ WNCMS also provides **v2** route groups for the new admin stack:
 - `/api/v2/frontend/*` for frontend-facing v2 endpoints
 - `/api/v2/translations` for namespace/group translation payloads (for example `namespace=wncms&group=word`)
 
+## API v2 Contract Kernel
+
+API v2 now exposes one registry-backed contract for clients that need to build
+an independent admin application:
+
+- [API v2 Contracts](./contracts.md) documents authentication, middleware, the
+  six-key envelope, query options, and `If-Match` revisions.
+- [Runtime Capabilities](./capabilities.md) documents
+  `GET /api/v2/capabilities` and actor-specific permission/website filtering.
+- [OpenAPI 3.1](./openapi.md) documents `GET /api/v2/openapi.json` and the five
+  `x-wncms-*` operation extensions.
+- [Asynchronous Operations](./operations.md) documents operation state, TTL,
+  cancellation, and idempotent replay.
+
+Legacy v2 operations remain discoverable, but operations classified as
+`legacy_resource`, `legacy_controller`, or `legacy_bridge` do not satisfy final
+v7 domain parity.
+
 ## Links Backend API v2 Reference
 
 `/api/v2/backend/links` is the guarded API v2 reference resource. It provides

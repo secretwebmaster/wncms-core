@@ -12,6 +12,7 @@
 - Auth layouts now fall back to system metadata when no active website is available, preventing login and registration pages from failing during early application boot.
 - Raised production dependency safety floors to prevent installation of vulnerable phpseclib, Media Library, and CommonMark releases.
 - Added a default-disabled global mutation audit setting and transactionally audited all Link backend UI writes when enabled, while CLI/API responses preserve stable disabled audit metadata.
+- Added the API v2 Contract Kernel with a typed registry, permission-aware runtime capabilities, OpenAPI 3.1, stable errors and request IDs, idempotency and revision primitives, and a cache-backed asynchronous operation contract.
 
 ## v6.3.9-alpha1 2026-06-16
 

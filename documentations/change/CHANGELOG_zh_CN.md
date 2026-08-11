@@ -12,6 +12,7 @@
 - 当没有可用的当前网站时，认证页面会改用系统元数据，避免登录与注册页面在应用程序启动初期发生错误。
 - 提高 production 依赖套件的安全版本下限，避免安装存在漏洞的 phpseclib、Media Library 与 CommonMark 版本。
 - 新增默认停用的全局变更审计设置；启用后会以事务方式审计所有 Link 后台 UI 写入，CLI/API 在停用时仍保留稳定的审计 metadata。
+- 新增 API v2 Contract Kernel，包含 typed registry、按权限过滤的 runtime capabilities、OpenAPI 3.1、稳定错误码与 request ID、idempotency/revision primitives，以及 cache-backed 异步 operation 契约。
 
 ## v6.3.9-alpha1 2026-06-16
 

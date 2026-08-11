@@ -1,7 +1,7 @@
 # WNCMS v7 AI-First Coverage Matrix
 
-Date: 2026-07-28
-Status: Active
+Date: 2026-08-12
+Status: Partial
 Related roadmap: [v7 AI-first roadmap](./v7-ai-first-roadmap.md)
 
 ## Purpose
@@ -32,13 +32,33 @@ The first MCP slice is implemented for Links: an opt-in local server exposes `wn
 ## Executive Findings
 
 - Backend UI coverage is strong for classic admin CRUD domains.
-- Backend API v2 already provides a broad foundation through config-driven resources and bridge actions.
+- The API v2 Contract Kernel is complete: one typed registry now drives runtime capabilities, OpenAPI 3.1, stable envelopes/request IDs, query/schema/revision primitives, idempotency, asynchronous operations, and route/registry/OpenAPI consistency checks.
+- Overall API v2 parity remains `Partial` because most domain operations are still classified as `legacy_resource`, `legacy_controller`, or `legacy_bridge` rather than formal `domain` contracts.
 - CLI coverage is mostly installer, scaffolding, update, plugin, theme, setting, website, and diagnostics oriented. Domain CRUD CLI coverage is largely missing.
 - MCP coverage is complete for read-only Links list/inspect; other domains and all MCP mutations remain absent or need design.
 - Tests are concentrated around posts, comments, menu source behavior, link hooks, plugin lifecycle, API auth settings, and a small API v2 authorization path. Most backend API v2 resources do not yet have direct contract tests.
 - Documentation has good developer coverage for commands, managers, hooks, themes, plugins, and selected v1 API endpoints. API v2 resource/action coverage and many admin domains still need explicit docs.
 - Permissions exist broadly through route middleware, API v2 config, and `RolesSeeder`. Audit logging is not consistently implemented for UI, CLI, API, or future MCP mutations.
 - Multisite support exists through `HasMultisite`, `model_has_websites`, `user_website`, `has_website`, and API v2 website-context middleware, but v7 should standardize how every automation surface accepts and enforces website scope.
+
+## Contract Kernel Status
+
+The Contract Kernel foundation is completed and verified in the package test
+runtime. `ApiContractRegistry` is the single source used by
+`GET /api/v2/capabilities`, `GET /api/v2/openapi.json`, and contract validation.
+Every configured API v2 resource/action is represented and classified.
+
+Legacy implementations remain discoverable so current clients can operate, but
+`legacy_resource`, `legacy_controller`, and `legacy_bridge` never satisfy final
+v7 domain parity. The overall program therefore remains `Partial`. The next
+sequence is Authentication/Security, followed by migrating Links as the first
+reference domain entirely onto the formal contract.
+
+Release blocker: new installations include `operation_cancel` in
+`RolesSeeder`, but existing installations must keep cancellation unavailable
+until an approved v7 upgrade flow seeds the permission and explicitly assigns
+it to intended roles/users. Until then it is hidden from capabilities and a
+direct cancel request returns `403`; no fail-open behavior is allowed.
 
 ## Coverage Matrix
 
@@ -62,7 +82,7 @@ The first MCP slice is implemented for Links: an opt-in local server exposes `wn
 | Channels | Complete - CRUD and bulk delete. | Missing | Partial - v2 `channels` resource exists. | Missing | Missing - no dedicated channel tests found. | Missing - no dedicated operator/API docs found. | Partial - `can:channel_*` exists; no audit or explicit multisite automation contract. |
 | Clicks | Partial - backend index, summary, delete, bulk delete; frontend record route/job exists. | Missing | Partial - v2 `clicks` index/destroy/bulk_delete plus summary action; no create/update API by design. | Missing | Missing - no dedicated click tests found. | Missing - no dedicated operator/API docs found. | Partial - `can:click_*` exists; click recording has cooldown setting; audit and retention policy need design. |
 | Parameters | Complete - CRUD and bulk delete. | Missing | Partial - v2 `parameters` resource exists. | Missing | Missing - no dedicated parameter tests found. | Missing - no dedicated operator/API docs found. | Partial - `can:parameter_*` exists; no audit or explicit multisite automation contract. |
-| API v2 backend resources | Not applicable - this is an API foundation rather than a Blade domain. | Partial - `wncms:check-backend-api-v2-parity` checks backend route names against v2 equivalents and now reports configured v7 coverage with `--coverage` / `--json`. | Partial - broad resources/actions are configured; plan still lists remaining business route mapping, validation, and docs hardening. | Needs design - Links now has a direct service-backed local read slice, but broader API-to-MCP schema reuse and mutation policy are not designed. | Partial - model authorization and complete Links API/MCP contract tests exist; most resources/actions lack contract tests. | Partial - API overview, maintainer planning notes, Links API/MCP references, and v2 route plans exist; public resource/action reference docs remain incomplete. | Partial - token auth, whitelist, website-context middleware, and per-action permissions exist; broader CLI/MCP parity and mutation governance remain incomplete. |
+| API v2 backend resources | Not applicable - this is an API foundation rather than a Blade domain. | Complete for the Contract Kernel - `wncms:check-backend-api-v2-parity --contract --json` validates route/registry/OpenAPI consistency and `wncms:api-v2-openapi --check` detects snapshot drift. | Partial overall - the Contract Kernel, capabilities, OpenAPI, stable errors/request IDs, query/schema/revision primitives, idempotency, and operation contract are complete, while most business operations remain discoverable legacy classifications that do not count as final parity. | Needs design - Links now has a direct service-backed local read slice, but broader API-to-MCP schema reuse and mutation policy are not designed. | Complete for the Contract Kernel and Links reference; most legacy-classified domains still need direct formal contract tests during migration. | Complete for the Contract Kernel and Links reference in three locales; domain-by-domain formal API references remain part of migration. | Partial - token auth, whitelist, website semantics, contract permissions, and fail-closed cancellation discovery exist; Authentication/Security hardening and existing-install `operation_cancel` upgrade seeding/assignment remain required. |
 
 ## Recommended Reference Domain
 
@@ -193,10 +213,16 @@ These domains should require stronger confirmation, audit, environment gating, a
 
 ## Concrete Next Tasks
 
-1. Design guarded API v2 Link bulk delete only if a safe contract is approved.
-2. Keep mutation MCP out of scope until actor, permission, confirmation, audit, and transport policy is approved.
-3. Extend the read-only local MCP pattern to another approved discovery domain.
-4. Repeat the guarded Links CLI/API pattern for Tags and Menus, then Posts and Pages.
+1. Complete the Authentication/Security stage on top of the Contract Kernel,
+   including the approved existing-install flow for seeding and assigning
+   `operation_cancel` without a fail-open fallback.
+2. Migrate Links as the first reference domain from discoverable legacy
+   classifications to complete formal `domain` contracts.
+3. Use the completed Links migration pattern for Tags and Menus, then Posts and
+   Pages, while keeping overall status `Partial` until required domains no
+   longer depend on Bridge or other legacy classifications.
+4. Keep mutation MCP out of scope until actor, permission, confirmation, audit,
+   and transport policy is approved.
 
 ## Open Questions
 

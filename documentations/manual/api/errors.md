@@ -2,6 +2,47 @@
 
 Complete guide to WNCMS API error codes and how to handle them.
 
+## API v2 Error Contract
+
+Every enveloped API v2 failure has the same six top-level keys and carries a
+stable code in `meta.error_code`. `meta.request_id` always matches the
+`X-Request-ID` response header and should be recorded in client logs.
+
+```json
+{
+  "code": 409,
+  "status": "fail",
+  "message": "The resource has changed since it was loaded.",
+  "data": null,
+  "meta": {
+    "request_id": "123e4567-e89b-42d3-a456-426614174000",
+    "error_code": "request.conflict"
+  },
+  "errors": []
+}
+```
+
+| Error code | HTTP | Meaning |
+| --- | --- | --- |
+| `authentication.missing_token` | `401` | No authenticated session or bearer token |
+| `authentication.invalid_token` | `401` | Token is invalid or its user is unavailable |
+| `authorization.denied` | `403` | API gate, whitelist, ability, or permission denied the request |
+| `resource.not_found` | `404` | Resource is absent or intentionally hidden from this actor |
+| `website.context_missing` | `409` | A website-scoped operation has no current website |
+| `request.conflict` | `409` | Stale revision, illegal state transition, or concurrent change |
+| `validation.failed` | `422` | Field or query validation failed; details are in `errors` |
+| `idempotency.key_missing` | `400` | Required `Idempotency-Key` is absent |
+| `idempotency.key_invalid` | `400` | Key is outside the `8..255` byte range |
+| `idempotency.payload_invalid` | `400` | Request input cannot be fingerprinted safely |
+| `idempotency.key_conflict` | `409` | The same key was used with different input |
+| `idempotency.in_progress` | `409` | The same scoped mutation is currently executing |
+| `idempotency.operation_missing` | `500` | An idempotent route lacks its registered operation identity |
+| `server.unexpected_error` | `5xx` | Unexpected server failure; details are hidden outside debug mode |
+
+Idempotent exact replays preserve the first response body and request ID and
+add `Idempotency-Replayed: true`. HTTP `5xx` responses are not cached and may
+be retried with the same key. See [Asynchronous Operations](./operations.md).
+
 ## HTTP Status Codes
 
 | Code | Status                | Description                                     |

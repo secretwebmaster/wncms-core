@@ -1,0 +1,100 @@
+# Runtime Capabilities
+
+`GET /api/v2/capabilities` 会报告目前安装的 WNCMS 系统可向当前 actor
+提供哪些 operation。Client 应使用此端点做 runtime feature discovery，
+不要假设所有已设定或已写入文件的 operation 都可使用。
+
+## 请求
+
+端点要求 `enable_api_access`、API whitelist gate，以及已验证 session 或
+personal access bearer token。外部 client 应传入
+`/api/v2/backend/auth/login` 返回的 token。
+
+```bash
+curl "https://your-domain.com/api/v2/capabilities" \
+  -H "Authorization: Bearer 1|your-plain-text-token" \
+  -H "Accept: application/json"
+```
+
+此端点本身不要求当前 website，因为 client 需要靠 capabilities 诊断
+website context 缺失。
+
+## Permission 与 Website 过滤
+
+Permission 过滤采用 fail-closed：
+
+- 没有 permission 的 operation 对已验证 actor 可见。
+- 有 permission 的 operation 若 `user->can(...)` 拒绝，会从回应中完全省略。
+- 已授权且 website-scoped 的 operation 在没有当前 website 时仍然可见，
+  但会标记 `available: false` 与
+  `disabled_reasons: ["website.context_missing"]`。
+- 存在 website context 时，该 operation 会是 `available: true` 且
+  `disabled_reasons` 为空 list。
+
+即使 permission 过滤后没有 operation，domain 仍会保留；空的 `operations`
+map 会序列化为 JSON object，而不是 array。
+
+## 回应结构
+
+标准六 key API v2 envelope 会在 `data.schema_version` 提供 schema 版本，
+并以 `data.domains` object 按 domain key 分组。每个可见 operation 包含：
+
+- `method`、`path`、`permission`、`ability`
+- `website_scoped`、`risk`、`implementation`、`idempotent`
+- `filters`、`sorts`、`includes`、`fields`
+- `available`、`disabled_reasons`
+- `request_schema`、`response_schema`
+
+```json
+{
+  "code": 200,
+  "status": "success",
+  "message": "success",
+  "data": {
+    "schema_version": "2.0.0",
+    "domains": {
+      "links": {
+        "key": "links",
+        "label": "Links",
+        "operations": {
+          "backend.links.index": {
+            "method": "GET",
+            "path": "/api/v2/backend/links",
+            "permission": "link_index",
+            "ability": null,
+            "website_scoped": true,
+            "risk": "read",
+            "implementation": "domain",
+            "idempotent": false,
+            "filters": [],
+            "sorts": [],
+            "includes": [],
+            "fields": [],
+            "available": true,
+            "disabled_reasons": [],
+            "request_schema": {},
+            "response_schema": {}
+          }
+        }
+      }
+    }
+  },
+  "meta": {
+    "request_id": "123e4567-e89b-42d3-a456-426614174000"
+  },
+  "errors": []
+}
+```
+
+这些 schema 与 JSON Schema 2020-12 相容，也可能是 boolean schema。
+透过已设定 contract provider 注册的扩充会动态出现在同一回应中。
+
+## Parity 判读
+
+制作完整 admin client 时请检查 `implementation`。标记为
+`legacy_resource`、`legacy_controller`、`legacy_bridge` 的 operation 虽然可用
+且可探索，但仍属于 migration inventory，不计入最终 v7 domain parity。
+只有完成正式 `domain` 契约才能关闭该 parity 缺口。
+
+Cancellation capability 只有在 actor 具有 `operation_cancel` 时才会显示。
+既有安装的升级要求请参阅[异步 Operations](./operations.md)。

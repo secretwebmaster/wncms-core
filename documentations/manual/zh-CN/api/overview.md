@@ -22,6 +22,23 @@ WNCMS 也提供 **v2** 路由群组给新版管理后台：
 - `/api/v2/frontend/*`：前台侧 v2 端点
 - `/api/v2/translations`：按 namespace/group 读取翻译字典（例如 `namespace=wncms&group=word`）
 
+## API v2 Contract Kernel
+
+API v2 现在为需要建立独立 admin application 的 client 提供一套由 registry
+驱动的契约：
+
+- [API v2 契约](./contracts.md)说明身份验证、middleware、六 key envelope、
+  query option 与 `If-Match` revision。
+- [Runtime Capabilities](./capabilities.md)说明
+  `GET /api/v2/capabilities` 与 actor 专属的 permission/website 过滤。
+- [OpenAPI 3.1](./openapi.md)说明 `GET /api/v2/openapi.json` 与五个
+  `x-wncms-*` operation extension。
+- [异步 Operations](./operations.md)说明 operation state、TTL、cancellation
+  与 idempotent replay。
+
+Legacy v2 operation 会继续供 client 探索，但分类为 `legacy_resource`、
+`legacy_controller`、`legacy_bridge` 的 operation 不满足最终 v7 domain parity。
+
 ## Links Backend API v2 参考资源
 
 `/api/v2/backend/links` 是受保护的 API v2 参考资源，提供网站范围内的列表、

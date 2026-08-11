@@ -2,6 +2,47 @@
 
 WNCMS API 錯誤代碼的完整指南以及如何處理它們。
 
+## API v2 錯誤契約
+
+所有使用 envelope 的 API v2 失敗回應都具有相同六個頂層 key，並在
+`meta.error_code` 提供穩定錯誤碼。`meta.request_id` 永遠與回應 header
+`X-Request-ID` 相同，client 應把它寫入 log。
+
+```json
+{
+  "code": 409,
+  "status": "fail",
+  "message": "The resource has changed since it was loaded.",
+  "data": null,
+  "meta": {
+    "request_id": "123e4567-e89b-42d3-a456-426614174000",
+    "error_code": "request.conflict"
+  },
+  "errors": []
+}
+```
+
+| 錯誤碼 | HTTP | 含義 |
+| --- | --- | --- |
+| `authentication.missing_token` | `401` | 沒有已驗證 session 或 bearer token |
+| `authentication.invalid_token` | `401` | Token 無效或 token user 不存在 |
+| `authorization.denied` | `403` | API gate、whitelist、ability 或 permission 拒絕請求 |
+| `resource.not_found` | `404` | Resource 不存在或刻意對該 actor 隱藏 |
+| `website.context_missing` | `409` | Website-scoped operation 沒有目前 website |
+| `request.conflict` | `409` | Stale revision、無效狀態轉換或並行變更 |
+| `validation.failed` | `422` | Field 或 query 驗證失敗；細節位於 `errors` |
+| `idempotency.key_missing` | `400` | 缺少必要的 `Idempotency-Key` |
+| `idempotency.key_invalid` | `400` | Key 不在 `8..255` bytes 範圍內 |
+| `idempotency.payload_invalid` | `400` | 無法安全產生 request input fingerprint |
+| `idempotency.key_conflict` | `409` | 相同 key 搭配不同輸入使用 |
+| `idempotency.in_progress` | `409` | 相同 scope 的 mutation 正在執行 |
+| `idempotency.operation_missing` | `500` | Idempotent route 缺少已註冊 operation identity |
+| `server.unexpected_error` | `5xx` | 非預期 server failure；非 debug 模式會隱藏細節 |
+
+Idempotent exact replay 會保留第一次 response body 與 request ID，並加入
+`Idempotency-Replayed: true`。HTTP `5xx` 不會被 cache，可使用相同 key 重試。
+另請參閱[非同步 Operations](./operations.md)。
+
 ## HTTP 狀態碼
 
 | 代碼 | 狀態                  | 說明                       |
