@@ -3,7 +3,9 @@
 namespace Wncms\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Wncms\Services\Automation\BackendMutationAuditService;
 
 class LinkController extends BackendController
 {
@@ -121,33 +123,55 @@ class LinkController extends BackendController
 
         Event::dispatch('wncms.backend.links.store.attributes.before', [$request, &$attributes]);
 
-        $link = $this->modelClass::create($attributes);
-        $this->syncBackendMutationWebsites($link);
+        $link = $this->auditedMutation(function () use ($attributes, $request) {
+            $link = $this->modelClass::create($attributes);
+            $this->syncBackendMutationWebsites($link);
 
-        //thumbnail
-        if (!empty($request->link_thumbnail_remove)) {
-            $link->clearMediaCollection('link_thumbnail');
-        }
+            //thumbnail
+            if (!empty($request->link_thumbnail_remove)) {
+                $link->clearMediaCollection('link_thumbnail');
+            }
 
-        if (!empty($request->link_thumbnail)) {
-            $link->addMediaFromRequest('link_thumbnail')->toMediaCollection('link_thumbnail');
-        }
+            if (!empty($request->link_thumbnail)) {
+                $link->addMediaFromRequest('link_thumbnail')->toMediaCollection('link_thumbnail');
+            }
 
-        // icon
-        if (!empty($request->link_icon_remove)) {
-            $link->clearMediaCollection('link_icon');
-        }
+            // icon
+            if (!empty($request->link_icon_remove)) {
+                $link->clearMediaCollection('link_icon');
+            }
 
-        if (!empty($request->link_icon)) {
-            $link->addMediaFromRequest('link_icon')->toMediaCollection('link_icon');
-        }
+            if (!empty($request->link_icon)) {
+                $link->addMediaFromRequest('link_icon')->toMediaCollection('link_icon');
+            }
 
-        //tags
-        $link->syncTagsFromTagify($request->link_categories, 'link_category');
-        $link->syncTagsFromTagify($request->link_tags, 'link_tag');
+            //tags
+            $link->syncTagsFromTagify($request->link_categories, 'link_category');
+            $link->syncTagsFromTagify($request->link_tags, 'link_tag');
+
+            Event::dispatch('wncms.backend.links.store.after', [$link, $request]);
+
+            if ($this->mutationAuditService()->enabled()) {
+                $link->refresh();
+                $after = $this->linkAuditState($link);
+                $this->mutationAuditService()->write(
+                    $link,
+                    'links',
+                    'create',
+                    'link_create',
+                    [],
+                    $after,
+                    (array) ($after['relationships']['website_ids'] ?? []),
+                    (array) ($after['relationships'] ?? []),
+                    null,
+                    'Link created.'
+                );
+            }
+
+            return $link;
+        });
 
         $this->flush(['links']);
-        Event::dispatch('wncms.backend.links.store.after', [$link, $request]);
 
         return redirect()->route('links.edit', [
             'id' => $link->id,
@@ -211,38 +235,107 @@ class LinkController extends BackendController
 
         Event::dispatch('wncms.backend.links.update.attributes.before', [$link, $request, &$attributes]);
 
-        $link->update($attributes);
-        $this->syncBackendMutationWebsites($link);
+        $this->auditedMutation(function () use ($attributes, $link, $request): void {
+            $auditEnabled = $this->mutationAuditService()->enabled();
+            $before = $auditEnabled ? $this->linkAuditState($link) : [];
 
-        // thumbnail
-        if (!empty($request->link_thumbnail_remove)) {
-            $link->clearMediaCollection('link_thumbnail');
-        }
+            $link->update($attributes);
+            $this->syncBackendMutationWebsites($link);
 
-        if (!empty($request->link_thumbnail)) {
-            $link->addMediaFromRequest('link_thumbnail')->toMediaCollection('link_thumbnail');
-        }
+            // thumbnail
+            if (!empty($request->link_thumbnail_remove)) {
+                $link->clearMediaCollection('link_thumbnail');
+            }
 
-        // icon
-        if (!empty($request->link_icon_remove)) {
-            $link->clearMediaCollection('link_icon');
-        }
+            if (!empty($request->link_thumbnail)) {
+                $link->addMediaFromRequest('link_thumbnail')->toMediaCollection('link_thumbnail');
+            }
 
-        if (!empty($request->link_icon)) {
-            $link->addMediaFromRequest('link_icon')->toMediaCollection('link_icon');
-        }
+            // icon
+            if (!empty($request->link_icon_remove)) {
+                $link->clearMediaCollection('link_icon');
+            }
 
-        // tags
-        if (method_exists($link, 'syncTagsFromTagify')) {
-            $link->syncTagsFromTagify($request->link_categories, 'link_category');
-            $link->syncTagsFromTagify($request->link_tags, 'link_tag');
-        }
+            if (!empty($request->link_icon)) {
+                $link->addMediaFromRequest('link_icon')->toMediaCollection('link_icon');
+            }
+
+            // tags
+            if (method_exists($link, 'syncTagsFromTagify')) {
+                $link->syncTagsFromTagify($request->link_categories, 'link_category');
+                $link->syncTagsFromTagify($request->link_tags, 'link_tag');
+            }
+
+            Event::dispatch('wncms.backend.links.update.after', [$link, $request]);
+
+            if ($auditEnabled) {
+                $link->refresh();
+                $after = $this->linkAuditState($link);
+                if ($before !== $after) {
+                    $this->mutationAuditService()->write(
+                        $link,
+                        'links',
+                        'update',
+                        'link_edit',
+                        $before,
+                        $after,
+                        (array) ($after['relationships']['website_ids'] ?? []),
+                        [
+                            'before' => (array) ($before['relationships'] ?? []),
+                            'after' => (array) ($after['relationships'] ?? []),
+                        ],
+                        null,
+                        'Link updated.'
+                    );
+                }
+            }
+        });
 
         $this->flush(['links']);
-        Event::dispatch('wncms.backend.links.update.after', [$link, $request]);
 
         return redirect()->route('links.edit', ['id' => $link->id])
             ->withMessage(__('wncms::word.successfully_updated'));
+    }
+
+    /**
+     * Delete one Link and audit its pre-delete state when enabled.
+     *
+     * @param  int|string  $id
+     * @return mixed
+     */
+    public function destroy($id)
+    {
+        if (!$this->mutationAuditService()->enabled()) {
+            return parent::destroy($id);
+        }
+
+        $link = $this->modelClass::find($id);
+        if (!$link) {
+            return back()->withMessage(__('wncms::word.model_not_found', [
+                'model_name' => __('wncms::word.' . $this->singular),
+            ]));
+        }
+
+        $this->auditedMutation(function () use ($link): void {
+            $before = $this->linkAuditState($link);
+            $link->delete();
+            $this->mutationAuditService()->write(
+                $link,
+                'links',
+                'delete',
+                'link_delete',
+                $before,
+                [],
+                (array) ($before['relationships']['website_ids'] ?? []),
+                (array) ($before['relationships'] ?? []),
+                null,
+                'Link deleted.'
+            );
+        });
+
+        $this->flush(['links']);
+
+        return back()->withMessage(__('wncms::word.successfully_deleted'));
     }
 
     /**
@@ -380,5 +473,60 @@ class LinkController extends BackendController
                 'restoreBtn' => true,
             ]);
         }
+    }
+
+    /**
+     * Resolve the backend mutation audit adapter.
+     *
+     * @return \Wncms\Services\Automation\BackendMutationAuditService
+     */
+    protected function mutationAuditService(): BackendMutationAuditService
+    {
+        return app(BackendMutationAuditService::class);
+    }
+
+    /**
+     * Capture deterministic Link attributes and relationship state.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $link
+     * @return array
+     */
+    protected function linkAuditState($link): array
+    {
+        $websiteIds = $link->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+        $linkCategories = $link->tagsWithType('link_category')->pluck('name')->sort()->values()->all();
+        $linkTags = $link->tagsWithType('link_tag')->pluck('name')->sort()->values()->all();
+        $media = [];
+        foreach (['link_thumbnail', 'link_icon'] as $collection) {
+            $media[$collection] = $link->media()
+                ->where('collection_name', $collection)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->sort()
+                ->values()
+                ->all();
+        }
+
+        return $this->mutationAuditService()->snapshot($link, [
+            'website_ids' => $websiteIds,
+            'link_categories' => $linkCategories,
+            'link_tags' => $linkTags,
+            'media' => $media,
+        ]);
+    }
+
+    /**
+     * Execute a mutation directly when disabled or transactionally when audited.
+     *
+     * @param  callable  $callback
+     * @return mixed
+     */
+    protected function auditedMutation(callable $callback): mixed
+    {
+        if (!$this->mutationAuditService()->enabled()) {
+            return $callback();
+        }
+
+        return DB::transaction($callback);
     }
 }

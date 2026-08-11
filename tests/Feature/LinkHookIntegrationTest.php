@@ -31,6 +31,7 @@ class LinkHookIntegrationTest extends TestCase
         parent::setUp();
 
         $this->withoutMiddleware();
+        config(['wncms.mutation_audit.enabled' => false]);
         config(['media-library.media_model' => \Spatie\MediaLibrary\MediaCollections\Models\Media::class]);
         View::addLocation(__DIR__ . '/../Fixtures/views');
         View::share('errors', new ViewErrorBag);
