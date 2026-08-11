@@ -472,6 +472,142 @@ class ApiContractValidatorTest extends TestCase
     }
 
     /**
+     * Verify an invalid legacy read identifier is an error and never leaks into parity output.
+     *
+     * @return void
+     */
+    public function test_it_rejects_and_sanitizes_an_invalid_legacy_read_operation_identifier(): void
+    {
+        $invalidId = "backend.posts.index.\xB1";
+        $safeId = '<value-hex:6261636b656e642e706f7374732e696e6465782eb1>';
+        $operation = $this->operation(
+            id: $invalidId,
+            method: 'GET',
+            path: '/api/v2/backend/posts',
+            routeName: 'api.v2.backend.posts.index',
+            implementation: 'legacy_controller',
+        );
+
+        $result = (new ApiContractValidator(
+            $this->registry([$operation]),
+            $this->routes([['GET', 'api/v2/backend/posts', 'api.v2.backend.posts.index']]),
+            $this->openApi([[$invalidId, 'GET', '/api/v2/backend/posts']]),
+        ))->validate();
+
+        $this->assertSame([
+            [
+                'field' => 'openapi.operation_id',
+                'value' => $safeId,
+            ],
+            [
+                'field' => 'operation.id',
+                'operation_id' => $safeId,
+                'value' => $safeId,
+            ],
+            [
+                'field' => 'operation.registry_key',
+                'operation_id' => $safeId,
+                'value' => $safeId,
+            ],
+        ], $result['errors']['contract.identity_invalid']);
+        $this->assertSame([$safeId], $result['v7_parity_ineligible_operation_ids']);
+        $this->assertFalse($result['v7_parity_eligible']);
+
+        $encoded = json_encode($result, JSON_THROW_ON_ERROR);
+        $this->assertStringNotContainsString($invalidId, $encoded);
+    }
+
+    /**
+     * Verify domain, path, and route identities are validated before reporting.
+     *
+     * @return void
+     */
+    public function test_it_rejects_every_invalid_contract_identity_without_leaking_source_bytes(): void
+    {
+        $invalidDomain = "posts.\xB2";
+        $invalidPath = "/api/v2/backend/posts/\xB3";
+        $invalidRouteName = "api.v2.backend.posts.show.\xB4";
+        $registry = new ApiContractRegistry();
+        $registry->registerDomain(new ApiDomainContract($invalidDomain, 'Posts'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'backend.posts.safe',
+            domain: $invalidDomain,
+            surface: 'backend',
+            method: 'GET',
+            path: $invalidPath,
+            routeName: $invalidRouteName,
+            permission: null,
+            ability: null,
+            websiteScoped: true,
+            risk: 'read',
+            implementation: 'legacy_controller',
+            request: ApiSchema::object(),
+            response: ApiSchema::object(),
+        ));
+
+        $result = (new ApiContractValidator(
+            $registry,
+            $this->routes([]),
+            $this->openApi([]),
+        ))->validate();
+
+        $this->assertSame([
+            'domain.key',
+            'domain.registry_key',
+            'operation.domain',
+            'operation.path',
+            'operation.route_name',
+        ], array_column($result['errors']['contract.identity_invalid'], 'field'));
+
+        $encoded = json_encode($result, JSON_THROW_ON_ERROR);
+        $this->assertStringNotContainsString($invalidDomain, $encoded);
+        $this->assertStringNotContainsString($invalidPath, $encoded);
+        $this->assertStringNotContainsString($invalidRouteName, $encoded);
+    }
+
+    /**
+     * Verify mixed runtime identity errors remain JSON-safe and stably sorted.
+     *
+     * @return void
+     */
+    public function test_it_normalizes_and_sorts_mixed_runtime_identity_errors(): void
+    {
+        $invalidRoutePath = "/api/v2/runtime/\xB5";
+        $invalidRouteName = "api.v2.runtime.\xB6";
+        $invalidOpenApiPath = "/api/v2/openapi/\xB7";
+        $invalidOperationId = "backend.runtime.\xB8";
+        $registry = $this->registry([]);
+        $definitions = [
+            ['GET', ltrim($invalidRoutePath, '/'), $invalidRouteName],
+            ['POST', 'api/v2/runtime/valid', 'api.v2.runtime.valid'],
+        ];
+
+        $first = (new ApiContractValidator(
+            $registry,
+            $this->routes($definitions),
+            $this->openApi([[$invalidOperationId, 'GET', $invalidOpenApiPath]]),
+        ))->validate();
+        $second = (new ApiContractValidator(
+            $registry,
+            $this->routes(array_reverse($definitions)),
+            $this->openApi([[$invalidOperationId, 'GET', $invalidOpenApiPath]]),
+        ))->validate();
+
+        $this->assertSame($first, $second);
+        $this->assertSame([
+            'openapi.operation_id',
+            'openapi.path',
+            'route.name',
+            'route.path',
+        ], array_column($first['errors']['contract.identity_invalid'], 'field'));
+
+        $encoded = json_encode($first, JSON_THROW_ON_ERROR);
+        foreach ([$invalidRoutePath, $invalidRouteName, $invalidOpenApiPath, $invalidOperationId] as $invalid) {
+            $this->assertStringNotContainsString($invalid, $encoded);
+        }
+    }
+
+    /**
      * Verify every 2020-12 schema-bearing keyword accepts nested boolean schemas.
      *
      * @return void
@@ -490,6 +626,7 @@ class ApiContractValidatorTest extends TestCase
             'not' => false,
             'items' => true,
             'contains' => false,
+            'contentSchema' => true,
             'if' => true,
             'then' => false,
             'else' => true,
@@ -511,6 +648,31 @@ class ApiContractValidatorTest extends TestCase
             $this->registry([$operation]),
             $this->routes([['GET', 'api/v2/backend/posts/{id}', 'api.v2.backend.posts.show']]),
             $this->openApi([['backend.posts.show', 'GET', '/api/v2/backend/posts/{id}']]),
+        ))->validate();
+
+        $this->assertSame([], $result['errors']);
+    }
+
+    /**
+     * Verify root boolean schemas are valid through the public schema API.
+     *
+     * @return void
+     */
+    public function test_it_accepts_root_boolean_schemas_from_public_factories(): void
+    {
+        $operation = $this->operation(
+            id: 'backend.posts.update',
+            method: 'POST',
+            path: '/api/v2/backend/posts',
+            routeName: 'api.v2.backend.posts.update',
+            request: ApiSchema::allowAll(),
+            response: ApiSchema::denyAll(),
+        );
+
+        $result = (new ApiContractValidator(
+            $this->registry([$operation]),
+            $this->routes([['POST', 'api/v2/backend/posts', 'api.v2.backend.posts.update']]),
+            $this->openApi([['backend.posts.update', 'POST', '/api/v2/backend/posts']]),
         ))->validate();
 
         $this->assertSame([], $result['errors']);
@@ -633,6 +795,7 @@ class ApiContractValidatorTest extends TestCase
             'not' => 'invalid',
             'items' => 1,
             'contains' => null,
+            'contentSchema' => 'invalid',
             'if' => 'invalid',
             'then' => 1.5,
             'else' => 'invalid',
@@ -645,6 +808,7 @@ class ApiContractValidatorTest extends TestCase
         $this->assertSame([
             '$.additionalProperties',
             '$.contains',
+            '$.contentSchema',
             '$.else',
             '$.if',
             '$.items',
@@ -657,6 +821,31 @@ class ApiContractValidatorTest extends TestCase
         foreach ($errors as $error) {
             $this->assertSame('A JSON Schema node must be an object or boolean.', $error['reason']);
         }
+    }
+
+    /**
+     * Verify contentSchema recursively validates nested schema structure.
+     *
+     * @return void
+     */
+    public function test_it_recursively_rejects_a_malformed_content_schema(): void
+    {
+        $errors = $this->schemaErrors([
+            'contentSchema' => [
+                'properties' => [
+                    'payload' => ['type' => 'mystery'],
+                ],
+            ],
+        ]);
+
+        $this->assertSame([
+            [
+                'direction' => 'response',
+                'location' => '$.contentSchema.properties.payload.type',
+                'operation_id' => 'backend.posts.show',
+                'reason' => "Unsupported JSON Schema type 'mystery'.",
+            ],
+        ], $errors);
     }
 
     /**

@@ -14,7 +14,7 @@ class ApiContractRegistryTest extends TestCase
 {
     public function test_it_returns_domains_and_operations_in_stable_identifier_order(): void
     {
-        $registry = new ApiContractRegistry;
+        $registry = new ApiContractRegistry();
         $registry->registerDomain(new ApiDomainContract('posts', 'Posts'));
         $registry->registerDomain(new ApiDomainContract('links', 'Links'));
         $registry->registerOperation($this->operation('backend.posts.index', 'posts'));
@@ -28,7 +28,7 @@ class ApiContractRegistryTest extends TestCase
 
     public function test_it_rejects_duplicate_domain_identifiers(): void
     {
-        $registry = new ApiContractRegistry;
+        $registry = new ApiContractRegistry();
         $registry->registerDomain(new ApiDomainContract('links', 'Links'));
 
         $this->expectException(ApiContractException::class);
@@ -37,7 +37,7 @@ class ApiContractRegistryTest extends TestCase
 
     public function test_it_rejects_operations_for_unregistered_domains(): void
     {
-        $registry = new ApiContractRegistry;
+        $registry = new ApiContractRegistry();
 
         $this->expectException(ApiContractException::class);
         $registry->registerOperation($this->operation('backend.links.index', 'links'));
@@ -45,7 +45,7 @@ class ApiContractRegistryTest extends TestCase
 
     public function test_it_rejects_duplicate_operation_identifiers(): void
     {
-        $registry = new ApiContractRegistry;
+        $registry = new ApiContractRegistry();
         $registry->registerDomain(new ApiDomainContract('links', 'Links'));
         $registry->registerOperation($this->operation('backend.links.index', 'links'));
 
@@ -55,7 +55,7 @@ class ApiContractRegistryTest extends TestCase
 
     public function test_it_exports_an_immutable_array_snapshot(): void
     {
-        $registry = new ApiContractRegistry;
+        $registry = new ApiContractRegistry();
         $registry->registerDomain(new ApiDomainContract('links', 'Links'));
         $registry->registerOperation($this->operation('backend.links.index', 'links'));
 
@@ -121,6 +121,56 @@ class ApiContractRegistryTest extends TestCase
         );
     }
 
+    /**
+     * Verify root boolean schemas and boolean array items retain wire semantics.
+     *
+     * @return void
+     */
+    public function test_it_exports_root_boolean_schema_factories_without_changing_boolean_type_schema(): void
+    {
+        $this->assertTrue(ApiSchema::allowAll()->toArray());
+        $this->assertFalse(ApiSchema::denyAll()->toArray());
+        $this->assertSame('true', json_encode(ApiSchema::allowAll(), JSON_THROW_ON_ERROR));
+        $this->assertSame('false', json_encode(ApiSchema::denyAll(), JSON_THROW_ON_ERROR));
+        $this->assertSame([
+            'type' => 'array',
+            'items' => false,
+        ], ApiSchema::arrayOf(ApiSchema::denyAll())->toArray());
+        $this->assertSame(['type' => 'boolean'], ApiSchema::boolean()->toArray());
+    }
+
+    /**
+     * Verify registry JSON preserves root boolean request and response schemas.
+     *
+     * @return void
+     */
+    public function test_registry_json_wire_preserves_root_boolean_schemas(): void
+    {
+        $registry = new ApiContractRegistry();
+        $registry->registerDomain(new ApiDomainContract('links', 'Links'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'backend.links.boolean_schema',
+            domain: 'links',
+            surface: 'backend',
+            method: 'POST',
+            path: '/api/v2/backend/links/boolean-schema',
+            routeName: 'api.v2.backend.links.boolean_schema',
+            permission: 'link_create',
+            ability: null,
+            websiteScoped: true,
+            risk: 'write',
+            implementation: 'domain',
+            request: ApiSchema::allowAll(),
+            response: ApiSchema::denyAll(),
+        ));
+
+        $wire = json_decode(json_encode($registry->toArray(), JSON_THROW_ON_ERROR));
+        $operation = $wire->operations->{'backend.links.boolean_schema'};
+
+        $this->assertTrue($operation->request_schema);
+        $this->assertFalse($operation->response_schema);
+    }
+
     public function test_it_exports_empty_optional_operation_values_by_default(): void
     {
         $operation = new ApiOperationContract(
@@ -153,7 +203,7 @@ class ApiContractRegistryTest extends TestCase
         string $risk,
         string $implementation,
     ): void {
-        $registry = new ApiContractRegistry;
+        $registry = new ApiContractRegistry();
         $registry->registerDomain(new ApiDomainContract('links', 'Links'));
         $registry->registerOperation($this->operation(
             id: "{$surface}.links.{$implementation}",

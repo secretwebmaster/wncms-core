@@ -6,13 +6,14 @@ use Illuminate\Routing\Route;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Component\Console\Tester\CommandTester;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\ApiContractValidator;
 use Wncms\Api\V2\Contracts\ApiContractProvider;
 use Wncms\Api\V2\Data\ApiDomainContract;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Api\V2\Data\ApiSchema;
-use Wncms\Api\V2\Exceptions\ApiContractException;
+use Wncms\Console\Commands\CheckBackendApiV2Parity;
 use Wncms\Tests\TestCase;
 
 class CheckBackendApiV2ParityCommandTest extends TestCase
@@ -116,7 +117,6 @@ class CheckBackendApiV2ParityCommandTest extends TestCase
         $expectedErrors = [
             'contract.bootstrap_failed' => [
                 [
-                    'exception_class' => ApiContractException::class,
                     'reason' => 'API v2 contract dependencies could not be constructed.',
                 ],
             ],
@@ -130,6 +130,150 @@ class CheckBackendApiV2ParityCommandTest extends TestCase
         $this->assertSame([], $decoded['data']['warnings']);
         $this->assertSame($expectedErrors, $decoded['data']['errors']);
         $this->assertSame($expectedErrors, $decoded['errors']);
+    }
+
+    /**
+     * Verify bootstrap failures never expose exception identity or unsafe bytes.
+     *
+     * @return void
+     */
+    public function test_contract_bootstrap_failure_payload_is_fully_static_and_json_safe(): void
+    {
+        $provider = new class () implements ApiContractProvider {
+            /**
+             * Throw an unsafe anonymous exception during provider bootstrap.
+             *
+             * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
+             * @return void
+             */
+            public function register(ApiContractRegistry $registry): void
+            {
+                throw new class ("unsafe-message-\xB1\x31") extends \RuntimeException {
+                };
+            }
+        };
+
+        config(['wncms-api-v2.providers' => [$provider::class]]);
+        app()->instance($provider::class, $provider);
+        app()->forgetInstance(ApiContractRegistry::class);
+
+        $exitCode = Artisan::call('wncms:check-backend-api-v2-parity', [
+            '--contract' => true,
+            '--json' => true,
+        ]);
+        $output = trim(Artisan::output());
+        $decoded = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+
+        $expectedErrors = [
+            'contract.bootstrap_failed' => [
+                [
+                    'reason' => 'API v2 contract dependencies could not be constructed.',
+                ],
+            ],
+        ];
+
+        $this->assertSame(1, $exitCode);
+        $this->assertSame('fail', $decoded['status']);
+        $this->assertSame('api-v2-contract', $decoded['meta']['mode']);
+        $this->assertSame($expectedErrors, $decoded['data']['errors']);
+        $this->assertSame($expectedErrors, $decoded['errors']);
+        $this->assertStringNotContainsString('exception_class', $output);
+        $this->assertStringNotContainsString('unsafe-message', $output);
+        $this->assertStringNotContainsString(__FILE__, $output);
+        $this->assertStringNotContainsString("\xB1\x31", $output);
+    }
+
+    /**
+     * Verify invalid legacy identities produce a safe failing command report.
+     *
+     * @return void
+     */
+    public function test_contract_mode_reports_invalid_legacy_identity_as_safe_json(): void
+    {
+        $invalidId = "backend.posts.index.\xB1";
+        $safeId = '<value-hex:6261636b656e642e706f7374732e696e6465782eb1>';
+        $registry = new ApiContractRegistry();
+        $registry->registerDomain(new ApiDomainContract('posts', 'Posts'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: $invalidId,
+            domain: 'posts',
+            surface: 'backend',
+            method: 'GET',
+            path: '/api/v2/backend/posts',
+            routeName: 'api.v2.backend.posts.index',
+            permission: null,
+            ability: null,
+            websiteScoped: true,
+            risk: 'read',
+            implementation: 'legacy_controller',
+            request: ApiSchema::object(),
+            response: ApiSchema::object(),
+        ));
+        $routes = new RouteCollection();
+        $route = new Route(['GET', 'HEAD'], 'api/v2/backend/posts', static fn (): null => null);
+        $route->name('api.v2.backend.posts.index');
+        $routes->add($route);
+        app()->instance(ApiContractValidator::class, new ApiContractValidator(
+            $registry,
+            $routes,
+            [
+                'openapi' => '3.1.0',
+                'paths' => [
+                    '/api/v2/backend/posts' => [
+                        'get' => ['operationId' => $invalidId],
+                    ],
+                ],
+            ],
+        ));
+
+        $exitCode = Artisan::call('wncms:check-backend-api-v2-parity', [
+            '--contract' => true,
+            '--json' => true,
+        ]);
+        $output = trim(Artisan::output());
+        $decoded = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertSame('fail', $decoded['status']);
+        $this->assertArrayHasKey('contract.identity_invalid', $decoded['data']['errors']);
+        $this->assertSame([$safeId], $decoded['data']['v7_parity_ineligible_operation_ids']);
+        $this->assertSame($decoded['data']['errors'], $decoded['errors']);
+        $this->assertStringNotContainsString($invalidId, $output);
+    }
+
+    /**
+     * Verify an unexpected encoding failure emits fixed JSON and exits one.
+     *
+     * @return void
+     */
+    public function test_contract_mode_falls_back_to_fixed_json_when_encoding_fails(): void
+    {
+        $command = new InvalidJsonContractParityCommand();
+        $command->setLaravel(app());
+        $tester = new CommandTester($command);
+
+        $exitCode = $tester->execute([
+            '--contract' => true,
+            '--json' => true,
+        ]);
+        $output = trim($tester->getDisplay());
+        $decoded = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+
+        $expectedErrors = [
+            'contract.output_encoding_failed' => [
+                [
+                    'reason' => 'Command result could not be encoded as JSON.',
+                ],
+            ],
+        ];
+
+        $this->assertSame(1, $exitCode);
+        $this->assertSame('fail', $decoded['status']);
+        $this->assertSame('api-v2-contract', $decoded['meta']['mode']);
+        $this->assertSame($expectedErrors, $decoded['data']['errors']);
+        $this->assertSame([], $decoded['data']['warnings']);
+        $this->assertSame($expectedErrors, $decoded['errors']);
+        $this->assertStringNotContainsString("\xB1\x31", $output);
     }
 
     /**
@@ -318,5 +462,29 @@ final class CollidingOpenApiContractProvider implements ApiContractProvider
             '/api/v2/backend/posts/{id}',
             'api.v2.backend.posts.inspect',
         ));
+    }
+}
+
+final class InvalidJsonContractParityCommand extends CheckBackendApiV2Parity
+{
+    /**
+     * Emit a deliberately non-JSON-safe contract result.
+     *
+     * @return int
+     */
+    protected function handleContractMode(): int
+    {
+        $this->outputResult([
+            'code' => 200,
+            'status' => 'success',
+            'message' => 'Unsafe fixture.',
+            'data' => [
+                'unsafe' => "\xB1\x31",
+            ],
+            'meta' => $this->resultMeta('api-v2-contract'),
+            'errors' => [],
+        ], false);
+
+        return self::SUCCESS;
     }
 }

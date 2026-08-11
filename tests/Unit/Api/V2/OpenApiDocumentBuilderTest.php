@@ -102,6 +102,44 @@ class OpenApiDocumentBuilderTest extends TestCase
     }
 
     /**
+     * Verify OpenAPI JSON preserves root boolean operation schemas.
+     *
+     * @return void
+     */
+    public function test_openapi_wire_preserves_root_boolean_operation_schemas(): void
+    {
+        $registry = new ApiContractRegistry();
+        $registry->registerDomain(new ApiDomainContract('posts', 'Posts'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'backend.posts.boolean_schema',
+            domain: 'posts',
+            surface: 'backend',
+            method: 'POST',
+            path: '/api/v2/backend/posts/boolean-schema',
+            routeName: 'api.v2.backend.posts.boolean_schema',
+            permission: 'post_create',
+            ability: null,
+            websiteScoped: true,
+            risk: 'write',
+            implementation: 'domain',
+            request: ApiSchema::allowAll(),
+            response: ApiSchema::denyAll(),
+        ));
+
+        $wire = json_decode(json_encode(
+            (new OpenApiDocumentBuilder($registry))->build(),
+            JSON_THROW_ON_ERROR
+        ));
+        $operation = $wire->paths->{'/api/v2/backend/posts/boolean-schema'}->post;
+
+        $this->assertTrue($operation->requestBody->content->{'application/json'}->schema);
+        $this->assertFalse(
+            $operation->responses->{'2XX'}->content->{'application/json'}
+                ->schema->allOf[1]->properties->data
+        );
+    }
+
+    /**
      * Verify every existing successful HTTP status resolves to the success envelope.
      *
      * @return void
@@ -238,7 +276,7 @@ class OpenApiDocumentBuilderTest extends TestCase
      */
     protected function registry(): ApiContractRegistry
     {
-        $registry = new ApiContractRegistry;
+        $registry = new ApiContractRegistry();
         $registry->registerDomain(new ApiDomainContract('posts', 'Posts'));
 
         $registry->registerOperation(new ApiOperationContract(

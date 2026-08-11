@@ -10,6 +10,8 @@ use Wncms\Api\V2\ApiContractValidator;
 
 class CheckBackendApiV2Parity extends Command
 {
+    protected bool $jsonEncodingFailed = false;
+
     protected $signature = 'wncms:check-backend-api-v2-parity
         {--coverage : Report configured v7 AI-first domain coverage}
         {--contract : Validate API v2 registry, runtime routes, and OpenAPI consistency}
@@ -24,15 +26,17 @@ class CheckBackendApiV2Parity extends Command
      */
     public function handle(): int
     {
+        $this->jsonEncodingFailed = false;
+
         if ((bool) $this->option('contract')) {
-            return $this->handleContractMode();
+            $exitCode = $this->handleContractMode();
+        } elseif ((bool) $this->option('coverage')) {
+            $exitCode = $this->handleCoverageReport();
+        } else {
+            $exitCode = $this->handleBackendApiV2Parity();
         }
 
-        if ((bool) $this->option('coverage')) {
-            return $this->handleCoverageReport();
-        }
-
-        return $this->handleBackendApiV2Parity();
+        return $this->jsonEncodingFailed ? self::FAILURE : $exitCode;
     }
 
     /**
@@ -48,26 +52,24 @@ class CheckBackendApiV2Parity extends Command
     {
         try {
             return $this->handleContractValidation(app(ApiContractValidator::class));
-        } catch (\Throwable $exception) {
-            return $this->handleContractBootstrapFailure($exception);
+        } catch (\Throwable) {
+            return $this->handleContractBootstrapFailure();
         }
     }
 
     /**
      * Report a contract dependency construction failure.
      *
-     * Exception messages are intentionally omitted because provider supplied
-     * values are not guaranteed to be JSON-safe or stable automation fields.
+     * Exception identities and messages are intentionally omitted because
+     * provider supplied values are not safe or stable automation fields.
      *
-     * @param  \Throwable  $exception
      * @return int
      */
-    protected function handleContractBootstrapFailure(\Throwable $exception): int
+    protected function handleContractBootstrapFailure(): int
     {
         $errors = [
             'contract.bootstrap_failed' => [
                 [
-                    'exception_class' => $exception::class,
                     'reason' => 'API v2 contract dependencies could not be constructed.',
                 ],
             ],
@@ -565,7 +567,21 @@ class CheckBackendApiV2Parity extends Command
     protected function outputResult(array $result, bool $isError, ?callable $humanRenderer = null): void
     {
         if ((bool) $this->option('json')) {
-            $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            try {
+                $encoded = json_encode(
+                    $result,
+                    JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+                );
+            } catch (\JsonException) {
+                $this->jsonEncodingFailed = true;
+                $this->line($this->fixedJsonEncodingFailure(
+                    ($result['meta']['mode'] ?? null) === 'api-v2-contract'
+                ));
+
+                return;
+            }
+
+            $this->line($encoded);
             return;
         }
 
@@ -586,6 +602,50 @@ class CheckBackendApiV2Parity extends Command
         if (isset($result['data']['checked_count'])) {
             $this->line('Checked route count: ' . $result['data']['checked_count']);
         }
+    }
+
+    /**
+     * Build a fixed JSON failure payload from static safe values.
+     *
+     * @param  bool  $contractMode
+     * @return string
+     *
+     * @throws \JsonException
+     */
+    protected function fixedJsonEncodingFailure(bool $contractMode): string
+    {
+        $errors = [
+            'contract.output_encoding_failed' => [
+                [
+                    'reason' => 'Command result could not be encoded as JSON.',
+                ],
+            ],
+        ];
+        $data = $contractMode
+            ? [
+                'operation_count' => 0,
+                'v7_parity_eligible' => false,
+                'v7_parity_ineligible_operation_ids' => [],
+                'errors' => $errors,
+                'warnings' => [],
+            ]
+            : [
+                'errors' => $errors,
+                'warnings' => [],
+            ];
+
+        return json_encode([
+            'code' => 500,
+            'status' => 'fail',
+            'message' => 'Command result could not be encoded as JSON.',
+            'data' => $data,
+            'meta' => [
+                'surface' => 'cli',
+                'command' => 'wncms:check-backend-api-v2-parity',
+                'mode' => $contractMode ? 'api-v2-contract' : 'command-output',
+            ],
+            'errors' => $errors,
+        ], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
     }
 
     /**

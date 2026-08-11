@@ -91,13 +91,13 @@ final class ApiContractValidator
 
         ksort($ineligible);
 
-        return [
+        return $this->normalizeMap([
             'operation_count' => count($operations),
             'v7_parity_eligible' => $errors === [] && $ineligible === [],
             'v7_parity_ineligible_operation_ids' => array_values($ineligible),
             'errors' => $errors,
             'warnings' => $warnings,
-        ];
+        ]);
     }
 
     /**
@@ -113,7 +113,10 @@ final class ApiContractValidator
         $methodPathBindings = [];
         $routeNameBindings = [];
 
+        $this->validateDomainIdentities($domains);
+
         foreach ($operations as $registryKey => $operation) {
+            $this->validateOperationIdentities($registryKey, $operation);
             $operationIds[$operation->id][] = (string) $registryKey;
 
             if ((string) $registryKey !== $operation->id) {
@@ -198,6 +201,90 @@ final class ApiContractValidator
                 'bindings' => array_values($binding['bindings']),
                 'operation_ids' => $operationIds,
                 'route_name' => $binding['route_name'],
+            ]);
+        }
+    }
+
+    /**
+     * Validate every domain identity that may appear in a contract report.
+     *
+     * @param  array<string, \Wncms\Api\V2\Data\ApiDomainContract>  $domains
+     * @return void
+     */
+    private function validateDomainIdentities(array $domains): void
+    {
+        foreach ($domains as $registryKey => $domain) {
+            $identities = [
+                'domain.registry_key' => (string) $registryKey,
+                'domain.key' => $domain->key,
+                'domain.label' => $domain->label,
+            ];
+            $safeDomainKey = $this->safeString($domain->key);
+
+            foreach ($identities as $field => $value) {
+                if ($this->isValidUtf8($value)) {
+                    continue;
+                }
+
+                $this->error('contract.identity_invalid', [
+                    'domain_key' => $safeDomainKey,
+                    'field' => $field,
+                    'value' => $this->safeString($value),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Validate every operation identity that may appear in a contract report.
+     *
+     * Invalid byte sequences are replaced with deterministic markers before
+     * being added to an issue so sorting never receives unsafe report values.
+     *
+     * @param  int|string  $registryKey
+     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
+     * @return void
+     */
+    private function validateOperationIdentities(int|string $registryKey, ApiOperationContract $operation): void
+    {
+        $identities = [
+            'operation.registry_key' => (string) $registryKey,
+            'operation.id' => $operation->id,
+            'operation.domain' => $operation->domain,
+            'operation.surface' => $operation->surface,
+            'operation.method' => $operation->method,
+            'operation.path' => $operation->path,
+            'operation.route_name' => $operation->routeName,
+            'operation.risk' => $operation->risk,
+            'operation.implementation' => $operation->implementation,
+        ];
+
+        if ($operation->permission !== null) {
+            $identities['operation.permission'] = $operation->permission;
+        }
+
+        if ($operation->ability !== null) {
+            $identities['operation.ability'] = $operation->ability;
+        }
+
+        foreach (['filters', 'sorts', 'includes', 'fields'] as $collection) {
+            foreach ($operation->{$collection} as $index => $value) {
+                if (is_string($value)) {
+                    $identities["operation.{$collection}[{$index}]"] = $value;
+                }
+            }
+        }
+
+        $safeOperationId = $this->safeString($operation->id);
+        foreach ($identities as $field => $value) {
+            if ($this->isValidUtf8($value)) {
+                continue;
+            }
+
+            $this->error('contract.identity_invalid', [
+                'field' => $field,
+                'operation_id' => $safeOperationId,
+                'value' => $this->safeString($value),
             ]);
         }
     }
@@ -512,6 +599,7 @@ final class ApiContractValidator
             'not',
             'items',
             'contains',
+            'contentSchema',
             'if',
             'then',
             'else',
@@ -809,11 +897,19 @@ final class ApiContractValidator
             }
             sort($methods);
 
+            $path = $this->normalizePath($route->uri());
+            $routeName = $route->getName();
+            $this->validateReportIdentity('route.path', $path);
+            if ($routeName !== null) {
+                $this->validateReportIdentity('route.name', $routeName);
+            }
+
             foreach ($methods as $method) {
+                $this->validateReportIdentity('route.method', $method);
                 $entries[] = [
                     'method' => $method,
-                    'path' => $this->normalizePath($route->uri()),
-                    'route_name' => $route->getName(),
+                    'path' => $path,
+                    'route_name' => $routeName,
                 ];
             }
         }
@@ -911,6 +1007,10 @@ final class ApiContractValidator
         }
 
         foreach ($paths as $path => $pathItem) {
+            if (is_string($path)) {
+                $this->validateReportIdentity('openapi.path', $path);
+            }
+
             if (! is_string($path) || ! is_array($pathItem)) {
                 $this->error('openapi.path_item_invalid', [
                     'path' => is_string($path) ? $path : '',
@@ -920,6 +1020,10 @@ final class ApiContractValidator
             }
 
             foreach ($pathItem as $method => $operation) {
+                if (is_string($method)) {
+                    $this->validateReportIdentity('openapi.method', $method);
+                }
+
                 if (! is_string($method) || ! in_array(strtolower($method), self::HTTP_METHODS, true)) {
                     continue;
                 }
@@ -942,6 +1046,8 @@ final class ApiContractValidator
 
                     continue;
                 }
+
+                $this->validateReportIdentity('openapi.operation_id', $operationId);
 
                 $operations[$operationId][] = [
                     'method' => strtoupper($method),
@@ -1031,6 +1137,25 @@ final class ApiContractValidator
         return $this->isValidUtf8($value)
             ? $value
             : '<value-hex:'.bin2hex($value).'>';
+    }
+
+    /**
+     * Add an identity validation error using only safe display values.
+     *
+     * @param  string  $field
+     * @param  string  $value
+     * @return void
+     */
+    private function validateReportIdentity(string $field, string $value): void
+    {
+        if ($this->isValidUtf8($value)) {
+            return;
+        }
+
+        $this->error('contract.identity_invalid', [
+            'field' => $field,
+            'value' => $this->safeString($value),
+        ]);
     }
 
     /**

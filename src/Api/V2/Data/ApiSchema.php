@@ -7,17 +7,17 @@ final class ApiSchema implements \JsonSerializable
     /**
      * Create a schema value.
      *
-     * @param  array<string, mixed>  $schema
+     * @param  array<string, mixed>|bool  $schema
      * @return void
      */
-    private function __construct(private readonly array $schema)
+    private function __construct(private readonly array|bool $schema)
     {
     }
 
     /**
      * Create an object schema.
      *
-     * @param  array<string, array<string, mixed>>  $properties
+     * @param  array<string, array<string, mixed>|bool>  $properties
      * @param  array<int, string>  $required
      * @return \Wncms\Api\V2\Data\ApiSchema
      */
@@ -38,7 +38,7 @@ final class ApiSchema implements \JsonSerializable
     /**
      * Create an array schema.
      *
-     * @param  self  $items
+     * @param  \Wncms\Api\V2\Data\ApiSchema  $items
      * @return \Wncms\Api\V2\Data\ApiSchema
      */
     public static function arrayOf(self $items): self
@@ -87,11 +87,31 @@ final class ApiSchema implements \JsonSerializable
     }
 
     /**
+     * Create a root schema that allows every JSON value.
+     *
+     * @return \Wncms\Api\V2\Data\ApiSchema
+     */
+    public static function allowAll(): self
+    {
+        return new self(true);
+    }
+
+    /**
+     * Create a root schema that denies every JSON value.
+     *
+     * @return \Wncms\Api\V2\Data\ApiSchema
+     */
+    public static function denyAll(): self
+    {
+        return new self(false);
+    }
+
+    /**
      * Export the JSON Schema value.
      *
-     * @return array<string, mixed>
+     * @return array<string, mixed>|bool
      */
-    public function toArray(): array
+    public function toArray(): array|bool
     {
         return $this->schema;
     }
@@ -99,11 +119,13 @@ final class ApiSchema implements \JsonSerializable
     /**
      * Export the JSON Schema value with stable object map types.
      *
-     * @return array<string, mixed>
+     * @return array<string, mixed>|bool
      */
-    public function jsonSerialize(): array
+    public function jsonSerialize(): array|bool
     {
-        return self::normalizeForJson($this->schema);
+        return is_array($this->schema)
+            ? self::normalizeForJson($this->schema)
+            : $this->schema;
     }
 
     /**

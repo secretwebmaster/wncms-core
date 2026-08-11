@@ -213,6 +213,28 @@ class CapabilitiesEndpointTest extends TestCase
     }
 
     /**
+     * Verify capability JSON preserves root boolean operation schemas.
+     *
+     * @return void
+     */
+    public function test_capabilities_wire_preserves_root_boolean_operation_schemas(): void
+    {
+        $website = Website::firstOrFail();
+        [, $token] = $this->tokenUser([], $website);
+
+        config(['wncms-api-v2.providers' => [CapabilitiesEndpointTestProvider::class]]);
+        app()->forgetInstance(ApiContractRegistry::class);
+
+        $response = $this->withToken($token)->getJson('/api/v2/capabilities');
+
+        $response->assertOk();
+        $operation = $response->json('data.domains.boolean_demo.operations')['plugin.boolean.inspect'];
+        $this->assertTrue($operation['request_schema']);
+        $this->assertFalse($operation['response_schema']);
+        $this->assertAutomationEnvelope($response);
+    }
+
+    /**
      * Create a token user with selected permissions and website access.
      *
      * @param  array<int, string>  $permissions
@@ -310,6 +332,23 @@ class CapabilitiesEndpointTestProvider implements ApiContractProvider
             implementation: 'domain',
             request: ApiSchema::object(),
             response: ApiSchema::object(),
+        ));
+
+        $registry->registerDomain(new ApiDomainContract('boolean_demo', 'Boolean Demo'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'plugin.boolean.inspect',
+            domain: 'boolean_demo',
+            surface: 'plugin',
+            method: 'POST',
+            path: '/api/v2/boolean-demo',
+            routeName: 'api.v2.boolean_demo.inspect',
+            permission: null,
+            ability: null,
+            websiteScoped: false,
+            risk: 'write',
+            implementation: 'domain',
+            request: ApiSchema::allowAll(),
+            response: ApiSchema::denyAll(),
         ));
     }
 }
