@@ -15,8 +15,11 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Str;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\ApiV2ResponseFinalizer;
 use Wncms\Api\V2\Contracts\IdempotencyStore;
+use Wncms\Api\V2\IdempotencyService;
+use Wncms\Api\V2\ReplayResponseTrust;
 use Wncms\Api\V2\Repositories\CacheIdempotencyStore;
 
 class WncmsServiceProvider extends ServiceProvider
@@ -219,13 +222,29 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function registerApiV2ContractServices(): void
     {
-        $this->app->singleton(ApiV2ResponseFinalizer::class);
+        $replayResponseTrust = ReplayResponseTrust::create();
+
+        $this->app->singleton(ApiV2ResponseFinalizer::class, function ($app) use ($replayResponseTrust) {
+            return new ApiV2ResponseFinalizer(
+                $app->make(ApiResponseFactory::class),
+                $replayResponseTrust
+            );
+        });
 
         $this->app->singleton(IdempotencyStore::class, function ($app) {
             return new CacheIdempotencyStore(
                 $app->make(CacheFactory::class),
                 config('wncms-api-v2.idempotency.store'),
                 $app->environment('production')
+            );
+        });
+
+        $this->app->bind(IdempotencyService::class, function ($app) use ($replayResponseTrust) {
+            return new IdempotencyService(
+                $app->make(IdempotencyStore::class),
+                $app->make(ApiResponseFactory::class),
+                $app->make(ApiV2ResponseFinalizer::class),
+                $replayResponseTrust
             );
         });
 

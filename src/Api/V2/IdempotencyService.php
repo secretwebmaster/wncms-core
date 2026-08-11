@@ -26,11 +26,13 @@ class IdempotencyService
      * @param  \Wncms\Api\V2\Contracts\IdempotencyStore  $store
      * @param  \Wncms\Api\V2\ApiResponseFactory  $responses
      * @param  \Wncms\Api\V2\ApiV2ResponseFinalizer  $finalizer
+     * @param  \Wncms\Api\V2\ReplayResponseTrust  $replayTrust
      */
     public function __construct(
         protected IdempotencyStore $store,
         protected ApiResponseFactory $responses,
-        protected ApiV2ResponseFinalizer $finalizer
+        protected ApiV2ResponseFinalizer $finalizer,
+        private ReplayResponseTrust $replayTrust
     ) {
     }
 
@@ -41,10 +43,11 @@ class IdempotencyService
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
+     * @param  string  $requestId
      *
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string $requestId): Response
     {
         $key = $this->idempotencyKey($request);
         if ($key === '') {
@@ -100,7 +103,7 @@ class IdempotencyService
 
         $existing = $this->store->get($scope);
         if ($existing !== null) {
-            return $this->resolveExisting($request, $existing, $fingerprint);
+            return $this->resolveExisting($existing, $fingerprint);
         }
 
         $lock = $this->store->lock(
@@ -119,7 +122,7 @@ class IdempotencyService
         try {
             $existing = $this->store->get($scope);
             if ($existing !== null) {
-                return $this->resolveExisting($request, $existing, $fingerprint);
+                return $this->resolveExisting($existing, $fingerprint);
             }
 
             $response = $next($request);
@@ -135,7 +138,7 @@ class IdempotencyService
                 return $response;
             }
 
-            $response = $this->finalizer->finalize($request, $response);
+            $response = $this->finalizer->finalize($response, $requestId);
             $body = $this->validatedResponseBody($response);
 
             $this->store->put($scope, [
@@ -461,13 +464,12 @@ class IdempotencyService
     /**
      * Replay a completed response or reject a mismatched request fingerprint.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  array  $record
      * @param  string  $fingerprint
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    protected function resolveExisting(Request $request, array $record, string $fingerprint): JsonResponse
+    protected function resolveExisting(array $record, string $fingerprint): JsonResponse
     {
         $storedFingerprint = (string) ($record['fingerprint'] ?? '');
         if ($storedFingerprint === '' || ! hash_equals($storedFingerprint, $fingerprint)) {
@@ -492,7 +494,7 @@ class IdempotencyService
             $headers
         )->header('Idempotency-Replayed', 'true');
 
-        $this->finalizer->markTrustedReplay(
+        $this->replayTrust->trust(
             $response,
             (string) ($headers['X-Request-ID'] ?? '')
         );

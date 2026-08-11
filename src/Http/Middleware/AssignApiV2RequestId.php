@@ -35,7 +35,7 @@ class AssignApiV2RequestId
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $this->finalizer->assignRequestId($request);
+        $requestId = $this->finalizer->assignRequestId($request);
 
         try {
             $response = $next($request);
@@ -47,6 +47,6 @@ class AssignApiV2RequestId
             $response = $this->responses->fromReportedThrowable($response->exception);
         }
 
-        return $this->finalizer->finalize($request, $response);
+        return $this->finalizer->finalize($response, $requestId);
     }
 }

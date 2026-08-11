@@ -9,19 +9,18 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ApiV2ResponseFinalizer
 {
-    /**
-     * @var \WeakMap<\Symfony\Component\HttpFoundation\Response, string>
-     */
-    protected \WeakMap $trustedReplayRequestIds;
+    public const REQUEST_ID_ATTRIBUTE = 'wncms_api_v2_request_id';
 
     /**
      * Create the API v2 response finalizer.
      *
      * @param  \Wncms\Api\V2\ApiResponseFactory  $responses
+     * @param  \Wncms\Api\V2\ReplayResponseTrust  $replayTrust
      */
-    public function __construct(protected ApiResponseFactory $responses)
-    {
-        $this->trustedReplayRequestIds = new \WeakMap();
+    public function __construct(
+        protected ApiResponseFactory $responses,
+        private ReplayResponseTrust $replayTrust
+    ) {
     }
 
     /**
@@ -38,47 +37,29 @@ class ApiV2ResponseFinalizer
             $requestId = (string) Str::uuid();
         }
 
-        $request->attributes->set('wncms_api_v2_request_id', $requestId);
+        $request->attributes->set(self::REQUEST_ID_ATTRIBUTE, $requestId);
 
         return $requestId;
     }
 
     /**
-     * Mark an internally reconstructed replay response with its original request ID.
+     * Finalize response request-ID metadata with trusted replay preservation.
      *
-     * Header values alone never create this trust marker.
+     * Ordinary handler headers are overwritten with the pre-handler request ID. A reconstructed
+     * replay response consumes its private original identity exactly once.
      *
      * @param  \Symfony\Component\HttpFoundation\Response  $response
      * @param  string  $requestId
      *
-     * @return void
-     */
-    public function markTrustedReplay(Response $response, string $requestId): void
-    {
-        if (! Str::isUuid($requestId)) {
-            throw new \UnexpectedValueException('Stored idempotency request ID is invalid');
-        }
-
-        $this->trustedReplayRequestIds[$response] = $requestId;
-    }
-
-    /**
-     * Finalize response request-ID metadata with trusted replay preservation.
-     *
-     * Ordinary handler headers are overwritten. Only internally marked replay responses retain
-     * the original response identity instead of the current retry request identity.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Symfony\Component\HttpFoundation\Response  $response
-     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function finalize(Request $request, Response $response): Response
+    public function finalize(Response $response, string $requestId): Response
     {
-        $requestId = $this->trustedReplayRequestIds[$response]
-            ?? $this->requestId($request);
+        $requestId = $this->replayTrust->consume($response) ?? $requestId;
+        if (! Str::isUuid($requestId)) {
+            throw new \UnexpectedValueException('API v2 request ID is invalid');
+        }
 
-        $request->attributes->set('wncms_api_v2_request_id', $requestId);
         $response->headers->set('X-Request-ID', $requestId);
 
         if ($response instanceof JsonResponse) {
@@ -95,22 +76,5 @@ class ApiV2ResponseFinalizer
         }
 
         return $response;
-    }
-
-    /**
-     * Resolve the request ID already assigned to the request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     *
-     * @return string
-     */
-    protected function requestId(Request $request): string
-    {
-        $requestId = $request->attributes->get('wncms_api_v2_request_id');
-        if (! is_string($requestId) || ! Str::isUuid($requestId)) {
-            return $this->assignRequestId($request);
-        }
-
-        return $requestId;
     }
 }

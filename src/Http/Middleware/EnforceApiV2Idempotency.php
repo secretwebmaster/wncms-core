@@ -4,7 +4,9 @@ namespace Wncms\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
+use Wncms\Api\V2\ApiV2ResponseFinalizer;
 use Wncms\Api\V2\IdempotencyService;
 
 class EnforceApiV2Idempotency
@@ -28,6 +30,11 @@ class EnforceApiV2Idempotency
      */
     public function handle(Request $request, Closure $next): Response
     {
-        return $this->idempotency->handle($request, $next);
+        $requestId = $request->attributes->get(ApiV2ResponseFinalizer::REQUEST_ID_ATTRIBUTE);
+        if (! is_string($requestId) || ! Str::isUuid($requestId)) {
+            throw new \UnexpectedValueException('API v2 request ID is unavailable');
+        }
+
+        return $this->idempotency->handle($request, $next, $requestId);
     }
 }

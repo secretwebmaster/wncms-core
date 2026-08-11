@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiResponseFactory;
+use Wncms\Api\V2\ApiV2ResponseFinalizer;
 use Wncms\Api\V2\Contracts\IdempotencyStore;
 use Wncms\Models\User;
 use Wncms\Models\Website;
@@ -53,6 +55,10 @@ class IdempotencyMiddlewareTest extends TestCase
         $this->app['router']->aliasMiddleware(
             'api_v2_test_website_context',
             TestWebsiteContextMiddleware::class
+        );
+        $this->app['router']->aliasMiddleware(
+            'api_v2_test_retain_response',
+            TestRetainApiV2ResponseMiddleware::class
         );
 
         Route::post('/api/v2/_test/idempotent/{subject}', function (Request $request, string $subject) {
@@ -167,6 +173,64 @@ class IdempotencyMiddlewareTest extends TestCase
                 'api_v2_test_website_context',
                 'api_v2_idempotency',
             ]);
+
+        Route::get('/api/v2/_test/request-id-forgery', function () {
+            $forgedRequestId = '123e4567-e89b-42d3-a456-426614174099';
+            $response = app(ApiResponseFactory::class)->success([], 'forgery attempt');
+            $response->headers->set('X-Request-ID', $forgedRequestId);
+
+            $finalizer = app(ApiV2ResponseFinalizer::class);
+            if (is_callable([$finalizer, 'markTrustedReplay'])) {
+                $finalizer->markTrustedReplay($response, $forgedRequestId);
+            }
+
+            return $response;
+        })->middleware(['api_v2_request_id']);
+
+        Route::get('/api/v2/_test/request-id-attribute-mutation', function (Request $request) {
+            $request->attributes->set(
+                'wncms_api_v2_request_id',
+                '123e4567-e89b-42d3-a456-426614174098'
+            );
+
+            return app(ApiResponseFactory::class)->success([], 'attribute mutation');
+        })->middleware(['api_v2_request_id']);
+
+        Route::post('/api/v2/_test/idempotent-request-id-attribute-mutation', function (Request $request) {
+            $this->executions++;
+            $request->attributes->set(
+                'wncms_api_v2_request_id',
+                '123e4567-e89b-42d3-a456-426614174097'
+            );
+
+            return app(ApiResponseFactory::class)->success([
+                'execution' => $this->executions,
+            ], 'attribute mutation', 201);
+        })
+            ->defaults('api_operation_id', 'backend.test.request-id-attribute-mutation')
+            ->middleware(['api_v2_request_id', 'api_v2_idempotency']);
+
+        Route::post('/api/v2/_test/idempotent-retained-response', function () {
+            $this->executions++;
+
+            return app(ApiResponseFactory::class)->success([
+                'execution' => $this->executions,
+            ], 'retained response', 201);
+        })
+            ->defaults('api_operation_id', 'backend.test.retained-response')
+            ->middleware([
+                'api_v2_request_id',
+                'api_v2_test_retain_response',
+                'api_v2_idempotency',
+            ]);
+
+        Route::get('/api/v2/_test/reuse-retained-response', function () {
+            if (! TestRetainApiV2ResponseMiddleware::$response instanceof Response) {
+                throw new \RuntimeException('Retained response is unavailable');
+            }
+
+            return TestRetainApiV2ResponseMiddleware::$response;
+        })->middleware(['api_v2_request_id']);
     }
 
     /**
@@ -177,6 +241,7 @@ class IdempotencyMiddlewareTest extends TestCase
     protected function tearDown(): void
     {
         TestWebsiteContextMiddleware::$website = null;
+        TestRetainApiV2ResponseMiddleware::$response = null;
 
         foreach ($this->uploadStreams as $stream) {
             if (is_resource($stream)) {
@@ -351,6 +416,136 @@ class IdempotencyMiddlewareTest extends TestCase
             ->assertHeader('Idempotency-Replayed', 'true')
             ->assertJsonPath('meta.request_id', $firstRequestId);
         $this->assertSame($first->getContent(), $replayed->getContent());
+        $this->assertSame(1, $this->executions);
+    }
+
+    /**
+     * Verify handlers cannot forge replay trust through headers or the finalizer API.
+     *
+     * A public replay marker would let the handler replace the request identity selected by middleware.
+     *
+     * @return void
+     */
+    public function test_handler_cannot_forge_replay_trust_through_headers_or_public_finalizer_api(): void
+    {
+        $requestId = '123e4567-e89b-42d3-a456-426614174020';
+        $forgedRequestId = '123e4567-e89b-42d3-a456-426614174099';
+
+        $response = $this->withHeader('X-Request-ID', $requestId)
+            ->getJson('/api/v2/_test/request-id-forgery');
+
+        $response
+            ->assertOk()
+            ->assertHeader('X-Request-ID', $requestId)
+            ->assertJsonPath('meta.request_id', $requestId);
+        $this->assertStringNotContainsString($forgedRequestId, (string) $response->getContent());
+        $this->assertFalse(is_callable([
+            app(ApiV2ResponseFinalizer::class),
+            'markTrustedReplay',
+        ]));
+    }
+
+    /**
+     * Verify ordinary response finalization uses the request ID captured before the handler.
+     *
+     * Rereading the request attribute after downstream execution would accept the handler mutation.
+     *
+     * @return void
+     */
+    public function test_downstream_attribute_mutation_cannot_replace_an_ordinary_response_request_id(): void
+    {
+        $requestId = '123e4567-e89b-42d3-a456-426614174021';
+
+        $response = $this->withHeader('X-Request-ID', $requestId)
+            ->getJson('/api/v2/_test/request-id-attribute-mutation');
+
+        $response
+            ->assertOk()
+            ->assertHeader('X-Request-ID', $requestId)
+            ->assertJsonPath('meta.request_id', $requestId);
+    }
+
+    /**
+     * Verify idempotency stores the request ID captured before the mutation handler.
+     *
+     * Trusting the downstream attribute would persist its forged ID in the first record and every replay.
+     *
+     * @return void
+     */
+    public function test_downstream_attribute_mutation_cannot_replace_the_cached_response_request_id(): void
+    {
+        $firstRequestId = '123e4567-e89b-42d3-a456-426614174022';
+        $retryRequestId = '123e4567-e89b-42d3-a456-426614174023';
+        $key = 'captured-request-id-key-01';
+        $payload = ['title' => 'One'];
+
+        $first = $this->withHeader('X-Request-ID', $firstRequestId)->postMutation(
+            '/api/v2/_test/idempotent-request-id-attribute-mutation',
+            $payload,
+            $key
+        );
+        $replayed = $this->withHeader('X-Request-ID', $retryRequestId)->postMutation(
+            '/api/v2/_test/idempotent-request-id-attribute-mutation',
+            $payload,
+            $key
+        );
+
+        $first
+            ->assertCreated()
+            ->assertHeader('X-Request-ID', $firstRequestId)
+            ->assertJsonPath('meta.request_id', $firstRequestId);
+        $replayed
+            ->assertCreated()
+            ->assertHeader('X-Request-ID', $firstRequestId)
+            ->assertHeader('Idempotency-Replayed', 'true')
+            ->assertJsonPath('meta.request_id', $firstRequestId);
+        $this->assertSame($first->getContent(), $replayed->getContent());
+        $this->assertSame(1, $this->executions);
+    }
+
+    /**
+     * Verify replay trust is consumed by one outer finalization only.
+     *
+     * Retaining and returning the replay Response on a later request must use that later request's identity.
+     *
+     * @return void
+     */
+    public function test_replay_response_trust_is_one_shot_when_the_response_object_is_reused(): void
+    {
+        $firstRequestId = '123e4567-e89b-42d3-a456-426614174024';
+        $retryRequestId = '123e4567-e89b-42d3-a456-426614174025';
+        $laterRequestId = '123e4567-e89b-42d3-a456-426614174026';
+        $key = 'retained-response-key-01';
+        $payload = ['title' => 'One'];
+
+        $first = $this->withHeader('X-Request-ID', $firstRequestId)->postMutation(
+            '/api/v2/_test/idempotent-retained-response',
+            $payload,
+            $key
+        );
+        $replayed = $this->withHeader('X-Request-ID', $retryRequestId)->postMutation(
+            '/api/v2/_test/idempotent-retained-response',
+            $payload,
+            $key
+        );
+
+        $first
+            ->assertCreated()
+            ->assertHeader('X-Request-ID', $firstRequestId);
+        $replayed
+            ->assertCreated()
+            ->assertHeader('X-Request-ID', $firstRequestId)
+            ->assertHeader('Idempotency-Replayed', 'true')
+            ->assertJsonPath('meta.request_id', $firstRequestId);
+        $this->assertInstanceOf(Response::class, TestRetainApiV2ResponseMiddleware::$response);
+
+        $reused = $this->withHeader('X-Request-ID', $laterRequestId)
+            ->getJson('/api/v2/_test/reuse-retained-response');
+
+        $reused
+            ->assertCreated()
+            ->assertHeader('X-Request-ID', $laterRequestId)
+            ->assertJsonPath('meta.request_id', $laterRequestId);
         $this->assertSame(1, $this->executions);
     }
 
@@ -1372,6 +1567,27 @@ class TestWebsiteContextMiddleware
         $request->attributes->set('wncms_api_v2_website', self::$website);
 
         return $next($request);
+    }
+}
+
+class TestRetainApiV2ResponseMiddleware
+{
+    public static ?Response $response = null;
+
+    /**
+     * Retain the exact downstream response object for a later test request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        $response = $next($request);
+        self::$response = $response;
+
+        return $response;
     }
 }
 
