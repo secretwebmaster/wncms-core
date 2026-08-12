@@ -91,7 +91,9 @@ class ApiEnvelopeContractTest extends TestCase
         $first = $this->withHeader('X-Request-ID', '123e4567-e89b-42d3-a456-426614174090')
             ->getJson('/api/v2/_contract-throttle')
             ->assertOk();
-        $first->assertHeader('X-RateLimit-Limit', '1');
+        $first
+            ->assertHeader('X-RateLimit-Limit', '1')
+            ->assertHeader('X-RateLimit-Remaining', '0');
 
         $requestId = '123e4567-e89b-42d3-a456-426614174091';
         $response = $this->withHeader('X-Request-ID', $requestId)
@@ -100,8 +102,31 @@ class ApiEnvelopeContractTest extends TestCase
         $response
             ->assertStatus(429)
             ->assertHeader('X-Request-ID', $requestId)
+            ->assertHeader('X-RateLimit-Limit', '1')
+            ->assertHeader('X-RateLimit-Remaining', '0')
+            ->assertHeader('Content-Type', 'application/json')
             ->assertJsonPath('meta.error_code', 'rate_limit.exceeded')
             ->assertJsonPath('meta.request_id', $requestId);
+        $this->assertGreaterThan(0, (int) $response->headers->get('Retry-After'));
+        $this->assertLessThanOrEqual(60, (int) $response->headers->get('Retry-After'));
+        $this->assertEnvelope($response);
+    }
+
+    /**
+     * Verify safe HTTP exception headers survive without replacing the JSON media type.
+     *
+     * @return void
+     */
+    public function test_http_exception_headers_preserve_safe_values_without_overriding_json_content_type(): void
+    {
+        $response = $this->getJson('/api/v2/_contract-test/headers');
+
+        $response
+            ->assertStatus(429)
+            ->assertHeader('Retry-After', '15')
+            ->assertHeader('X-RateLimit-Limit', '3')
+            ->assertHeader('Content-Type', 'application/json')
+            ->assertJsonPath('meta.error_code', 'rate_limit.exceeded');
         $this->assertEnvelope($response);
     }
 
@@ -347,6 +372,12 @@ class ApiEnvelopeContractTestController extends ApiV2Controller
             'authorization' => new AuthorizationException('denied'),
             'not-found' => new NotFoundHttpException('missing'),
             'conflict' => new ConflictHttpException('stale request'),
+            'headers' => new HttpException(429, 'slow down', null, [
+                'Retry-After' => '15',
+                'X-RateLimit-Limit' => '3',
+                'Content-Type' => 'text/plain',
+                'X-Request-ID' => 'forged-request-id',
+            ]),
             'http-unexpected' => new HttpException(500, 'sensitive HTTP exception detail'),
             default => new \RuntimeException('sensitive exception detail'),
         };

@@ -14,7 +14,7 @@ and contract-parity validation from the same `ApiContractRegistry`.
 | `POST` | `/api/v2/backend/operations/{id}/cancel` | Authentication, `operation_cancel`, and `Idempotency-Key` | Cancel an owned cancellable operation |
 
 All four endpoints require the global `enable_api_access` setting. They run
-through `api`, `api_v2_request_id`, and `api_v2_whitelist` in that order before
+through `api_v2_request_id`, `api`, and `api_v2_whitelist` in that order before
 endpoint-specific authentication. An active whitelist accepts an exact request
 IP or exact `Origin`/`Referer` host.
 

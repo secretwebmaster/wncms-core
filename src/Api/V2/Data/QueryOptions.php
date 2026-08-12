@@ -7,9 +7,15 @@ final class QueryOptions
     /**
      * Create normalized list query options.
      *
+     * @param  int  $page
+     * @param  int  $perPage
+     * @param  string|null  $keyword
      * @param  array<string, mixed>  $filters
+     * @param  string|null  $sort
+     * @param  string  $direction
      * @param  array<int, string>  $includes
      * @param  array<int, string>  $fields
+     *
      * @return void
      */
     public function __construct(

@@ -9,6 +9,8 @@ class ApiConflictException extends HttpException
     /**
      * Create an API optimistic-concurrency conflict exception.
      *
+     * @param  string  $message
+     *
      * @return void
      */
     public function __construct(string $message = 'The resource has changed since it was loaded.')

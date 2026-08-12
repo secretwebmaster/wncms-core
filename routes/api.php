@@ -59,11 +59,6 @@ Route::middleware('api')->group(function () {
             Route::match(['GET', 'POST'], '{id}', 'show')->name('show');
         });
     });
-
-    // Custom user-defined API routes retain the Laravel API middleware contract.
-    if (file_exists(base_path('routes/custom_api.php'))) {
-        include base_path('routes/custom_api.php');
-    }
 });
 
 Route::middleware('api_v2_request_id')->group(function () {
@@ -77,5 +72,12 @@ Route::middleware('api_v2_request_id')->group(function () {
 
     if (file_exists(__DIR__.'/api/v2/backend.php')) {
         include __DIR__.'/api/v2/backend.php';
+    }
+});
+
+Route::middleware('api')->group(function () {
+    // Custom user-defined API routes load last and retain the Laravel API middleware contract.
+    if (file_exists(base_path('routes/custom_api.php'))) {
+        include base_path('routes/custom_api.php');
     }
 });

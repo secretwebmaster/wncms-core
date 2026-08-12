@@ -63,13 +63,13 @@ class ApiContractRegistryTest extends TestCase
         $export = $registry->toArray();
         $export['domains']['links']['label'] = 'Changed';
         $export['operations']['backend.links.index']['filters'][] = 'changed';
-        $export['operations']['backend.links.index']['request_schema']['properties']['name']['type'] = 'integer';
+        $export['operations']['backend.links.index']['request_schema']['properties']->name['type'] = 'integer';
 
         $freshExport = $registry->toArray();
 
         $this->assertSame('Links', $freshExport['domains']['links']['label']);
         $this->assertSame(['status'], $freshExport['operations']['backend.links.index']['filters']);
-        $this->assertSame('string', $freshExport['operations']['backend.links.index']['request_schema']['properties']['name']['type']);
+        $this->assertSame('string', $freshExport['operations']['backend.links.index']['request_schema']['properties']->name['type']);
     }
 
     public function test_it_exports_schema_factories_as_json_schema_arrays(): void
@@ -244,6 +244,51 @@ class ApiContractRegistryTest extends TestCase
 
         $this->assertTrue($operation->request_schema);
         $this->assertFalse($operation->response_schema);
+    }
+
+    /**
+     * Verify registry array exports use schema wire values before JSON encoding.
+     *
+     * @return void
+     */
+    public function test_registry_array_export_uses_recursive_schema_wire_values(): void
+    {
+        $registry = new ApiContractRegistry();
+        $registry->registerDomain(new ApiDomainContract('schemas', 'Schemas'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'frontend.schemas.inspect',
+            domain: 'schemas',
+            surface: 'frontend',
+            method: 'GET',
+            path: '/api/v2/schemas',
+            routeName: 'api.v2.schemas.inspect',
+            permission: null,
+            ability: null,
+            websiteScoped: false,
+            risk: 'read',
+            implementation: 'domain',
+            request: $this->schema([
+                'properties' => [
+                    'free' => [],
+                    'choices' => ['oneOf' => [[], true]],
+                ],
+            ]),
+            response: $this->schema([]),
+        ));
+
+        $operation = $registry->toArray()['operations']['frontend.schemas.inspect'];
+
+        $this->assertIsObject($operation['request_schema']['properties']);
+        $this->assertIsObject($operation['request_schema']['properties']->free);
+        $this->assertIsArray($operation['request_schema']['properties']->choices['oneOf']);
+        $this->assertIsObject($operation['request_schema']['properties']->choices['oneOf'][0]);
+        $this->assertTrue($operation['request_schema']['properties']->choices['oneOf'][1]);
+        $this->assertIsObject($operation['response_schema']);
+        $this->assertSame(
+            '{"properties":{"free":{},"choices":{"oneOf":[{},true]}}}',
+            json_encode($operation['request_schema'], JSON_THROW_ON_ERROR)
+        );
+        $this->assertSame('{}', json_encode($operation['response_schema'], JSON_THROW_ON_ERROR));
     }
 
     public function test_it_exports_empty_optional_operation_values_by_default(): void

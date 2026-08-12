@@ -15,6 +15,15 @@ use Wncms\Services\Automation\AutomationResult;
 
 class ApiResponseFactory
 {
+    private const SAFE_HTTP_EXCEPTION_HEADERS = [
+        'allow',
+        'retry-after',
+        'www-authenticate',
+        'x-ratelimit-limit',
+        'x-ratelimit-remaining',
+        'x-ratelimit-reset',
+    ];
+
     /**
      * Build a successful API v2 response envelope.
      *
@@ -148,18 +157,18 @@ class ApiResponseFactory
                     report($exception);
                 }
 
-                return $this->failure(
+                return $this->withHttpExceptionHeaders($this->failure(
                     'server.unexpected_error',
                     config('app.debug') && $message !== '' ? $message : 'Unexpected server error',
                     $status
-                );
+                ), $exception);
             }
 
-            return $this->failure(
+            return $this->withHttpExceptionHeaders($this->failure(
                 $this->errorCodeForStatus($status),
                 $message !== '' ? $message : (Response::$statusTexts[$status] ?? 'Request failed'),
                 $status
-            );
+            ), $exception);
         }
 
         if ($reportUnexpected) {
@@ -193,6 +202,32 @@ class ApiResponseFactory
                 ? 'server.unexpected_error'
                 : 'validation.failed',
         };
+    }
+
+    /**
+     * Copy safe HTTP exception headers onto an enveloped JSON response.
+     *
+     * Entity headers and request identity are intentionally excluded so the response stays JSON
+     * and the outer request-ID middleware remains authoritative.
+     *
+     * @param  \Illuminate\Http\JsonResponse  $response
+     * @param  \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface  $exception
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function withHttpExceptionHeaders(
+        JsonResponse $response,
+        HttpExceptionInterface $exception
+    ): JsonResponse {
+        foreach ($exception->getHeaders() as $name => $value) {
+            if (! in_array(strtolower((string) $name), self::SAFE_HTTP_EXCEPTION_HEADERS, true)) {
+                continue;
+            }
+
+            $response->headers->set((string) $name, $value);
+        }
+
+        return $response;
     }
 
     /**

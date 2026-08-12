@@ -13,8 +13,8 @@ Runtime capabilities、OpenAPI 文件與契約 parity 驗證都由同一個
 | `GET` | `/api/v2/backend/operations/{id}` | 已驗證 session 或 personal access bearer token | 讀取自己擁有的非同步 operation |
 | `POST` | `/api/v2/backend/operations/{id}/cancel` | 身份驗證、`operation_cancel` 與 `Idempotency-Key` | 取消自己擁有且可取消的 operation |
 
-四個端點都要求全域 `enable_api_access` 設定，並依序經過 `api`、
-`api_v2_request_id`、`api_v2_whitelist`，之後才執行端點專屬身份驗證。
+四個端點都要求全域 `enable_api_access` 設定，並依序經過 `api_v2_request_id`、
+`api`、`api_v2_whitelist`，之後才執行端點專屬身份驗證。
 啟用 whitelist 時，請求 IP 或 `Origin`/`Referer` host 必須精確符合。
 
 ## 穩定回應 Envelope
