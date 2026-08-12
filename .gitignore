@@ -29,6 +29,7 @@ diff.txt
 !/documentations/plans/v7-api-first-full-parity-design.md
 !/documentations/plans/v7-contract-kernel-implementation-plan.md
 !/documentations/plans/v7-authentication-security-design.md
+!/documentations/plans/v7-authentication-security-implementation-plan.md
 /documentations/commands/
 
 # Local test artifacts
