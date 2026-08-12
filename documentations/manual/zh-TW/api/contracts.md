@@ -50,6 +50,12 @@ route name、permission、ability、website scope、risk、implementation 分類
 request/response JSON Schema、允許的 filters、sorts、includes、fields，
 以及是否要求 idempotency。
 
+`surface` 嚴格限定為 `frontend` 或 `backend`，用於定義 transport 與身份驗證
+邊界，不是 operation ID namespace。因此穩定的 domain ID 可保留在不同 transport
+分類中（例如 `system.translations` 位於 `frontend` surface）。Query metadata
+必須是唯一、非空、有效 UTF-8 的 ASCII identifier list，並可使用
+`author.name` 這類 dotted segment。
+
 Implementation 分類具有 parity 含義：
 
 - `domain`：可計入最終 v7 parity 的正式 domain 實作。
@@ -64,7 +70,7 @@ Legacy 分類會繼續公開供 API client 探索及使用目前系統，但
 
 正式 list operation 可宣告 `filter`、`sort`、`include`、`fields` allowlist。
 通用 resolver 也接受 `page`、`per_page`、`keyword`、`direction`。
-`page` 與 `per_page` 必須為正整數，`per_page` 上限為 `100`，`direction`
+`page` 與 `per_page` 必須為 PHP native integer 範圍內的正整數，`per_page` 上限為 `100`，`direction`
 只能是 `asc` 或 `desc`。未宣告的 filter、sort、include、field 會以
 `validation.failed` 失敗。
 

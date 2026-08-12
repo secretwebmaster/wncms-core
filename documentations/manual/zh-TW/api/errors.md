@@ -32,11 +32,12 @@ WNCMS API 錯誤代碼的完整指南以及如何處理它們。
 | `request.conflict` | `409` | Stale revision、無效狀態轉換或並行變更 |
 | `validation.failed` | `422` | Field 或 query 驗證失敗；細節位於 `errors` |
 | `idempotency.key_missing` | `400` | 缺少必要的 `Idempotency-Key` |
-| `idempotency.key_invalid` | `400` | Key 不在 `8..255` bytes 範圍內 |
+| `idempotency.key_invalid` | `400` | Key 不是有效 UTF-8，或不在 `8..255` bytes 範圍內 |
 | `idempotency.payload_invalid` | `400` | 無法安全產生 request input fingerprint |
 | `idempotency.key_conflict` | `409` | 相同 key 搭配不同輸入使用 |
 | `idempotency.in_progress` | `409` | 相同 scope 的 mutation 正在執行 |
 | `idempotency.operation_missing` | `500` | Idempotent route 缺少已註冊 operation identity |
+| `rate_limit.exceeded` | `429` | 超過已設定的 Laravel API rate limit |
 | `server.unexpected_error` | `5xx` | 非預期 server failure；非 debug 模式會隱藏細節 |
 
 Idempotent exact replay 會保留第一次 response body 與 request ID，並加入
@@ -52,6 +53,8 @@ Idempotent exact replay 會保留第一次 response body 與 request ID，並加
 | 401  | Unauthorized          | 需要身份驗證或身份驗證失敗 |
 | 403  | Forbidden             | API 存取已停用或權限不足   |
 | 404  | Not Found             | 資源未找到                 |
+| 409  | Conflict              | 狀態、revision 或 idempotency 衝突 |
+| 429  | Too Many Requests     | 超過已設定的 API rate limit |
 | 422  | Unprocessable Entity  | 驗證失敗                   |
 | 500  | Internal Server Error | 發生伺服器端錯誤           |
 

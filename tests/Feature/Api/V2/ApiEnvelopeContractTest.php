@@ -3,13 +3,18 @@
 namespace Wncms\Tests\Feature\Api\V2;
 
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Http\Controllers\Api\V2\Backend\ApiV2Controller;
 use Wncms\Models\User;
 use Wncms\Models\Website;
@@ -33,6 +38,9 @@ class ApiEnvelopeContractTest extends TestCase
         uss('api_access_whitelist', '');
 
         Route::get('/api/v2/_contract-test/{type}', [ApiEnvelopeContractTestController::class, 'respond']);
+        Route::get('/api/v2/_contract-throttle', function (ApiResponseFactory $responses) {
+            return $responses->success(['scope' => 'throttle'], 'ok');
+        })->middleware(['api_v2_request_id', ThrottleRequests::class.':api']);
     }
 
     /**
@@ -69,6 +77,31 @@ class ApiEnvelopeContractTest extends TestCase
         $response->assertOk();
         $this->assertNotSame('not-a-uuid', $requestId);
         $this->assertTrue(Str::isUuid($requestId));
+        $this->assertEnvelope($response);
+    }
+
+    /**
+     * Verify the Laravel API limiter is finalized by the outer request-ID middleware.
+     */
+    public function test_rate_limit_failure_uses_the_standard_request_id_envelope(): void
+    {
+        $limiterKey = 'api-v2-envelope-'.Str::uuid();
+        RateLimiter::for('api', static fn (Request $request): Limit => Limit::perMinute(1)->by($limiterKey));
+
+        $first = $this->withHeader('X-Request-ID', '123e4567-e89b-42d3-a456-426614174090')
+            ->getJson('/api/v2/_contract-throttle')
+            ->assertOk();
+        $first->assertHeader('X-RateLimit-Limit', '1');
+
+        $requestId = '123e4567-e89b-42d3-a456-426614174091';
+        $response = $this->withHeader('X-Request-ID', $requestId)
+            ->getJson('/api/v2/_contract-throttle');
+
+        $response
+            ->assertStatus(429)
+            ->assertHeader('X-Request-ID', $requestId)
+            ->assertJsonPath('meta.error_code', 'rate_limit.exceeded')
+            ->assertJsonPath('meta.request_id', $requestId);
         $this->assertEnvelope($response);
     }
 
@@ -145,6 +178,48 @@ class ApiEnvelopeContractTest extends TestCase
             ->assertJsonPath('meta.error_code', 'validation.failed')
             ->assertJsonStructure(['errors' => ['email', 'password']]);
         $this->assertEnvelope($response);
+    }
+
+    /**
+     * Verify API failure messages have explicit translations in every shipped locale.
+     */
+    public function test_api_failure_translation_keys_are_localized_in_every_default_locale(): void
+    {
+        $expected = [
+            'en' => [
+                'wncms::validation.failed' => 'The given data was invalid.',
+                'wncms::auth.unauthenticated' => 'Authentication is required.',
+                'wncms::auth.unauthorized' => 'You are not authorized to perform this action.',
+            ],
+            'zh_CN' => [
+                'wncms::validation.failed' => '提交的数据无效。',
+                'wncms::auth.unauthenticated' => '需要登录认证。',
+                'wncms::auth.unauthorized' => '您无权执行此操作。',
+            ],
+            'zh_TW' => [
+                'wncms::validation.failed' => '提交的資料無效。',
+                'wncms::auth.unauthenticated' => '需要登入驗證。',
+                'wncms::auth.unauthorized' => '您無權執行此操作。',
+            ],
+            'ja' => [
+                'wncms::validation.failed' => '送信されたデータは無効です。',
+                'wncms::auth.unauthenticated' => '認証が必要です。',
+                'wncms::auth.unauthorized' => 'この操作を実行する権限がありません。',
+            ],
+        ];
+        $originalLocale = app()->getLocale();
+
+        try {
+            foreach ($expected as $locale => $messages) {
+                app()->setLocale($locale);
+
+                foreach ($messages as $key => $message) {
+                    $this->assertSame($message, __($key), "{$locale}:{$key}");
+                }
+            }
+        } finally {
+            app()->setLocale($originalLocale);
+        }
     }
 
     /**

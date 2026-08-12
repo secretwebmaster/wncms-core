@@ -103,7 +103,10 @@ For detailed information, see [Authentication](./authentication.md).
 
 ## Rate Limiting
 
-Currently, there are no enforced rate limits on the API. However, we recommend implementing your own rate limiting on the client side to prevent excessive requests.
+API v2 runs inside Laravel's `api` middleware group. When a server-side limiter
+is configured, throttled requests return the standard six-key envelope with
+HTTP `429` and `meta.error_code: "rate_limit.exceeded"`. Clients should honor
+the response's retry and rate-limit headers.
 
 ## Response Format
 

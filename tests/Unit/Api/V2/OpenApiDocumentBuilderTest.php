@@ -102,6 +102,34 @@ class OpenApiDocumentBuilderTest extends TestCase
     }
 
     /**
+     * Verify an invalid surface can never be misclassified as a public operation.
+     */
+    public function test_invalid_surface_security_fails_closed_to_bearer_authentication(): void
+    {
+        $registry = new ApiContractRegistry;
+        $registry->registerDomain(new ApiDomainContract('plugins', 'Plugins'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'plugin.plugins.inspect',
+            domain: 'plugins',
+            surface: 'plugin',
+            method: 'GET',
+            path: '/api/v2/plugin/plugins',
+            routeName: 'api.v2.plugin.plugins.inspect',
+            permission: null,
+            ability: null,
+            websiteScoped: false,
+            risk: 'read',
+            implementation: 'domain',
+            request: ApiSchema::object(),
+            response: ApiSchema::object(),
+        ));
+
+        $operation = (new OpenApiDocumentBuilder($registry))->build()['paths']['/api/v2/plugin/plugins']['get'];
+
+        $this->assertSame([['bearerAuth' => []]], $operation['security']);
+    }
+
+    /**
      * Verify OpenAPI JSON preserves root boolean operation schemas.
      *
      * @return void
@@ -200,6 +228,53 @@ class OpenApiDocumentBuilderTest extends TestCase
         $this->assertIsObject(
             $wire->paths->{'/api/v2/frontend/posts'}->post->responses->{'2XX'}->content->{'application/json'}->schema->allOf[1]->properties->data->properties
         );
+    }
+
+    /**
+     * Verify OpenAPI emits nested empty schemas as objects without changing schema lists.
+     */
+    public function test_openapi_wire_preserves_recursive_empty_schemas_and_schema_lists(): void
+    {
+        $registry = new ApiContractRegistry;
+        $registry->registerDomain(new ApiDomainContract('schemas', 'Schemas'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'frontend.schemas.store',
+            domain: 'schemas',
+            surface: 'frontend',
+            method: 'POST',
+            path: '/api/v2/frontend/schemas',
+            routeName: 'api.v2.frontend.schemas.store',
+            permission: null,
+            ability: null,
+            websiteScoped: false,
+            risk: 'write',
+            implementation: 'domain',
+            request: ApiSchema::object([
+                'free' => [],
+                'nested' => [
+                    'patternProperties' => [],
+                    'oneOf' => [[], false],
+                ],
+            ]),
+            response: ApiSchema::object(['free' => []]),
+        ));
+
+        $wire = json_decode(json_encode(
+            (new OpenApiDocumentBuilder($registry))->build(),
+            JSON_THROW_ON_ERROR
+        ));
+        $operation = $wire->paths->{'/api/v2/frontend/schemas'}->post;
+        $request = $operation->requestBody->content->{'application/json'}->schema;
+        $response = $operation->responses->{'2XX'}->content->{'application/json'}
+            ->schema->allOf[1]->properties->data;
+
+        $this->assertIsObject($request->properties);
+        $this->assertIsObject($request->properties->free);
+        $this->assertIsObject($request->properties->nested->patternProperties);
+        $this->assertIsArray($request->properties->nested->oneOf);
+        $this->assertIsObject($request->properties->nested->oneOf[0]);
+        $this->assertFalse($request->properties->nested->oneOf[1]);
+        $this->assertIsObject($response->properties->free);
     }
 
     /**

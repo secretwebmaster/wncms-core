@@ -16,5 +16,7 @@ return [
     'failed' => '帐号或密码不正确',
     'password' => '帐号或密码不正确',
     'throttle' => '登录尝试次数过多。请在 :seconds 后重试。',
+    'unauthenticated' => '需要登录认证。',
+    'unauthorized' => '您无权执行此操作。',
 
 ];

@@ -3,6 +3,7 @@
 namespace Wncms\Tests\Unit\Api\V2;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionClass;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\Data\ApiDomainContract;
 use Wncms\Api\V2\Data\ApiOperationContract;
@@ -122,6 +123,80 @@ class ApiContractRegistryTest extends TestCase
     }
 
     /**
+     * Verify schema-valued maps and schemas use objects while schema lists remain arrays.
+     */
+    public function test_json_schema_wire_preserves_empty_schema_maps_and_list_keywords_recursively(): void
+    {
+        $schema = $this->schema([
+            '$defs' => ['empty' => []],
+            'properties' => [
+                'free' => [],
+                'nested' => ['properties' => []],
+            ],
+            'patternProperties' => [],
+            'dependentSchemas' => [],
+            'items' => [],
+            'not' => [],
+            'contains' => [],
+            'if' => [],
+            'then' => [],
+            'else' => [],
+            'propertyNames' => [],
+            'additionalProperties' => [],
+            'unevaluatedProperties' => [],
+            'unevaluatedItems' => [],
+            'contentSchema' => [],
+            'allOf' => [[], true],
+            'anyOf' => [],
+            'oneOf' => [false, []],
+            'prefixItems' => [],
+            'required' => [],
+            'enum' => [],
+            'default' => [],
+            'examples' => [],
+        ]);
+        $wire = json_decode(json_encode($schema, JSON_THROW_ON_ERROR));
+
+        $this->assertIsObject($wire->{'$defs'});
+        $this->assertIsObject($wire->{'$defs'}->empty);
+        $this->assertIsObject($wire->properties);
+        $this->assertIsObject($wire->properties->free);
+        $this->assertIsObject($wire->properties->nested->properties);
+        $this->assertIsObject($wire->patternProperties);
+        $this->assertIsObject($wire->dependentSchemas);
+
+        foreach ([
+            'items',
+            'not',
+            'contains',
+            'if',
+            'then',
+            'else',
+            'propertyNames',
+            'additionalProperties',
+            'unevaluatedProperties',
+            'unevaluatedItems',
+            'contentSchema',
+        ] as $keyword) {
+            $this->assertIsObject($wire->{$keyword}, $keyword);
+        }
+
+        foreach (['allOf', 'anyOf', 'oneOf', 'prefixItems'] as $keyword) {
+            $this->assertIsArray($wire->{$keyword}, $keyword);
+        }
+        $this->assertIsObject($wire->allOf[0]);
+        $this->assertTrue($wire->allOf[1]);
+        $this->assertFalse($wire->oneOf[0]);
+        $this->assertIsObject($wire->oneOf[1]);
+
+        foreach (['required', 'enum', 'default', 'examples'] as $keyword) {
+            $this->assertIsArray($wire->{$keyword}, $keyword);
+        }
+        $this->assertSame($schema->toArray(), $this->schema($schema->toArray())->toArray());
+        $this->assertSame('{}', json_encode($this->schema([]), JSON_THROW_ON_ERROR));
+    }
+
+    /**
      * Verify root boolean schemas and boolean array items retain wire semantics.
      *
      * @return void
@@ -230,7 +305,7 @@ class ApiContractRegistryTest extends TestCase
         return [
             'frontend read domain' => ['frontend', 'GET', 'read', 'domain'],
             'backend write legacy resource' => ['backend', 'POST', 'write', 'legacy_resource'],
-            'system destructive legacy controller' => ['system', 'DELETE', 'destructive', 'legacy_controller'],
+            'frontend destructive legacy controller' => ['frontend', 'DELETE', 'destructive', 'legacy_controller'],
             'backend write legacy bridge' => ['backend', 'PATCH', 'write', 'legacy_bridge'],
         ];
     }
@@ -273,5 +348,19 @@ class ApiContractRegistryTest extends TestCase
             includes: ['tags', 'websites'],
             fields: ['id', 'name', 'url', 'status'],
         );
+    }
+
+    /**
+     * Build a schema with an exact raw JSON Schema value.
+     *
+     * @param  array<string, mixed>  $schema
+     */
+    private function schema(array $schema): ApiSchema
+    {
+        $reflection = new ReflectionClass(ApiSchema::class);
+        $instance = $reflection->newInstanceWithoutConstructor();
+        $reflection->getProperty('schema')->setValue($instance, $schema);
+
+        return $instance;
     }
 }

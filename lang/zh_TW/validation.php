@@ -9,6 +9,7 @@ return [
     */
 
     'required' => ':attribute 為必填欄位。',
+    'failed' => '提交的資料無效。',
     'unique' => ':attribute 已被使用。',
     'numeric' => ':attribute 必須是數字。',
     'min' => [

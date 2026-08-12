@@ -7,6 +7,11 @@ use Wncms\Api\V2\Data\ApiOperationContract;
 
 final class ApiContractValidator
 {
+    private const ALLOWED_SURFACES = [
+        'frontend',
+        'backend',
+    ];
+
     private const ALLOWED_IMPLEMENTATIONS = [
         'domain',
         'legacy_resource',
@@ -290,22 +295,17 @@ final class ApiContractValidator
     }
 
     /**
-     * Validate that an operation identifier is owned by its declared surface and domain.
+     * Validate backend operation identifiers against their declared domain.
+     *
+     * Surface identifies the transport and authentication boundary, not an
+     * operation-ID namespace. This permits stable domain IDs such as
+     * system.translations and plugin-provided IDs on the frontend surface.
      *
      * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
      * @return void
      */
     private function validateDomainOwnership(ApiOperationContract $operation): void
     {
-        $surfacePrefix = $operation->surface.'.';
-        if (! str_starts_with($operation->id, $surfacePrefix)) {
-            $this->error('contract.surface_mismatch', [
-                'expected_prefix' => $surfacePrefix,
-                'operation_id' => $operation->id,
-                'surface' => $operation->surface,
-            ]);
-        }
-
         if ($operation->surface !== 'backend') {
             return;
         }
@@ -329,6 +329,16 @@ final class ApiContractValidator
      */
     private function validateOperationMetadata(ApiOperationContract $operation): void
     {
+        if (! in_array($operation->surface, self::ALLOWED_SURFACES, true)) {
+            $this->error('contract.surface_invalid', [
+                'allowed' => self::ALLOWED_SURFACES,
+                'operation_id' => $this->safeString($operation->id),
+                'value' => $this->safeString($operation->surface),
+            ]);
+        }
+
+        $this->validateMetadataLists($operation);
+
         if (! in_array($operation->risk, self::ALLOWED_RISKS, true)) {
             $this->error('contract.risk_invalid', [
                 'allowed' => self::ALLOWED_RISKS,
@@ -375,6 +385,86 @@ final class ApiContractValidator
         if (in_array($operation->implementation, self::ALLOWED_IMPLEMENTATIONS, true)) {
             $this->warning('contract.legacy_permission_missing', $details);
         }
+    }
+
+    /**
+     * Validate query metadata as unique lists of dotted ASCII identifiers.
+     *
+     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
+     * @return void
+     */
+    private function validateMetadataLists(ApiOperationContract $operation): void
+    {
+        foreach (['filters', 'sorts', 'includes', 'fields'] as $collection) {
+            $values = $operation->{$collection};
+            if (! array_is_list($values)) {
+                $this->metadataError($operation, $collection, 'Metadata must be a list.');
+
+                continue;
+            }
+
+            $seen = [];
+            foreach ($values as $index => $value) {
+                if (! is_string($value)) {
+                    $this->metadataError($operation, $collection, 'Metadata values must be strings.', $index);
+
+                    continue;
+                }
+
+                if (trim($value) === '') {
+                    $this->metadataError($operation, $collection, 'Metadata values must not be empty.', $index);
+
+                    continue;
+                }
+
+                if (! $this->isValidUtf8($value)) {
+                    $this->metadataError($operation, $collection, 'Metadata values must be valid UTF-8.', $index);
+
+                    continue;
+                }
+
+                if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$/D', $value) !== 1) {
+                    $this->metadataError($operation, $collection, 'Metadata values must use dotted identifier syntax.', $index);
+
+                    continue;
+                }
+
+                if (isset($seen[$value])) {
+                    $this->metadataError($operation, $collection, 'Metadata values must be unique.', $index);
+
+                    continue;
+                }
+
+                $seen[$value] = true;
+            }
+        }
+    }
+
+    /**
+     * Append a JSON-safe metadata validation error.
+     *
+     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
+     * @param  string  $collection
+     * @param  string  $reason
+     * @param  int|null  $index
+     * @return void
+     */
+    private function metadataError(
+        ApiOperationContract $operation,
+        string $collection,
+        string $reason,
+        ?int $index = null
+    ): void {
+        $details = [
+            'collection' => $collection,
+            'operation_id' => $this->safeString($operation->id),
+            'reason' => $reason,
+        ];
+        if ($index !== null) {
+            $details['index'] = $index;
+        }
+
+        $this->error('contract.metadata_invalid', $details);
     }
 
     /**

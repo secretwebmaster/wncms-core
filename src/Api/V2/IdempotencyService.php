@@ -58,10 +58,10 @@ class IdempotencyService
             );
         }
 
-        if (strlen($key) < 8 || strlen($key) > 255) {
+        if (preg_match('//u', $key) !== 1 || strlen($key) < 8 || strlen($key) > 255) {
             return $this->responses->failure(
                 'idempotency.key_invalid',
-                'Idempotency key must contain between 8 and 255 bytes',
+                'Idempotency key must be valid UTF-8 and contain between 8 and 255 bytes',
                 Response::HTTP_BAD_REQUEST
             );
         }

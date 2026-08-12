@@ -14,6 +14,11 @@ class QueryOptionsResolver
      *
      * Resolves only parameters explicitly declared by the operation contract.
      *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $contract
+     *
+     * @return \Wncms\Api\V2\Data\QueryOptions
+     *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function resolve(Request $request, ApiOperationContract $contract): QueryOptions
@@ -45,12 +50,32 @@ class QueryOptionsResolver
      *
      * Rejects non-integer and non-positive input before applying pagination limits.
      *
+     * @param  mixed  $value
+     * @param  string  $field
+     *
+     * @return int
+     *
      * @throws \Illuminate\Validation\ValidationException
      */
     private function positiveInteger(mixed $value, string $field): int
     {
         if (! is_int($value) && (! is_string($value) || ! ctype_digit($value))) {
             $this->invalid($field, 'The '.$field.' field must be a positive integer.');
+        }
+
+        if (is_string($value)) {
+            $normalized = ltrim($value, '0');
+            if ($normalized === '') {
+                $this->invalid($field, 'The '.$field.' field must be at least 1.');
+            }
+
+            $maximum = (string) PHP_INT_MAX;
+            if (
+                strlen($normalized) > strlen($maximum)
+                || (strlen($normalized) === strlen($maximum) && strcmp($normalized, $maximum) > 0)
+            ) {
+                $this->invalid($field, 'The '.$field.' field exceeds the supported integer range.');
+            }
         }
 
         $integer = (int) $value;
@@ -65,6 +90,11 @@ class QueryOptionsResolver
      * Normalize an optional string query parameter.
      *
      * Trims empty strings to null so omitted and blank query parameters are equivalent.
+     *
+     * @param  mixed  $value
+     * @param  string  $field
+     *
+     * @return string|null
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -85,6 +115,9 @@ class QueryOptionsResolver
 
     /**
      * Normalize declared filter values.
+     *
+     * @param  mixed  $value
+     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $contract
      *
      * @return array<string, mixed>
      *
@@ -110,6 +143,11 @@ class QueryOptionsResolver
      *
      * Requires a provided sort to be listed in the operation contract.
      *
+     * @param  mixed  $value
+     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $contract
+     *
+     * @return string|null
+     *
      * @throws \Illuminate\Validation\ValidationException
      */
     private function sort(mixed $value, ApiOperationContract $contract): ?string
@@ -128,6 +166,10 @@ class QueryOptionsResolver
      *
      * Converts the direction to lowercase before validating its supported values.
      *
+     * @param  mixed  $value
+     *
+     * @return string
+     *
      * @throws \Illuminate\Validation\ValidationException
      */
     private function direction(mixed $value): string
@@ -145,7 +187,10 @@ class QueryOptionsResolver
     /**
      * Normalize a comma-separated list and enforce its contract allowlist.
      *
+     * @param  mixed  $value
+     * @param  string  $field
      * @param  array<int, string>  $allowed
+     *
      * @return array<int, string>
      *
      * @throws \Illuminate\Validation\ValidationException
@@ -172,6 +217,11 @@ class QueryOptionsResolver
      * Throw a field-specific validation exception.
      *
      * Keeps query validation errors compatible with Laravel's standard error envelope.
+     *
+     * @param  string  $field
+     * @param  string  $message
+     *
+     * @return never
      *
      * @throws \Illuminate\Validation\ValidationException
      */

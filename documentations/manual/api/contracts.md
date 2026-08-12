@@ -52,6 +52,13 @@ path, route name, permission, ability, website scope, risk, implementation
 classification, request/response JSON Schemas, allowed filters, sorts,
 includes, fields, and whether idempotency is required.
 
+`surface` is strictly `frontend` or `backend` and defines the transport and
+authentication boundary; it is not an operation-ID namespace. Stable domain
+IDs therefore remain valid across transport classification (for example,
+`system.translations` is on the `frontend` surface). Query metadata is a
+unique list of non-empty, valid UTF-8 ASCII identifiers and may use dotted
+segments such as `author.name`.
+
 Implementation classifications have parity meaning:
 
 - `domain`: a formal domain implementation eligible for final v7 parity.
@@ -67,7 +74,7 @@ installed system, but `legacy_resource`, `legacy_controller`, and
 
 Formal list operations may declare allowlists for `filter`, `sort`, `include`,
 and `fields`. The common resolver also accepts `page`, `per_page`, `keyword`,
-and `direction`. `page` and `per_page` must be positive integers,
+and `direction`. `page` and `per_page` must be positive integers within PHP's native integer range,
 `per_page` is capped at `100`, and `direction` is `asc` or `desc`. Undeclared
 filters, sorts, includes, and fields fail with `validation.failed`.
 

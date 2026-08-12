@@ -338,6 +338,126 @@ class ApiContractValidatorTest extends TestCase
     }
 
     /**
+     * Verify only frontend and backend are accepted as formal REST surfaces.
+     *
+     * @return void
+     */
+    public function test_it_rejects_an_undeclared_operation_surface(): void
+    {
+        $operation = $this->operation(
+            id: 'plugin.posts.index',
+            method: 'GET',
+            path: '/api/v2/plugin/posts',
+            routeName: 'api.v2.plugin.posts.index',
+            surface: 'plugin',
+        );
+
+        $result = (new ApiContractValidator(
+            $this->registry([$operation]),
+            $this->routes([['GET', 'api/v2/plugin/posts', 'api.v2.plugin.posts.index']]),
+            $this->openApi([['plugin.posts.index', 'GET', '/api/v2/plugin/posts']]),
+        ))->validate();
+
+        $this->assertSame([
+            [
+                'allowed' => ['frontend', 'backend'],
+                'operation_id' => 'plugin.posts.index',
+                'value' => 'plugin',
+            ],
+        ], $result['errors']['contract.surface_invalid']);
+    }
+
+    /**
+     * Verify dotted ASCII identifiers remain available for future nested query metadata.
+     *
+     * @return void
+     */
+    public function test_it_accepts_list_shaped_unique_dotted_metadata_identifiers(): void
+    {
+        $operation = $this->operation(
+            id: 'backend.posts.index',
+            method: 'GET',
+            path: '/api/v2/backend/posts',
+            routeName: 'api.v2.backend.posts.index',
+            filters: ['status', 'author_id', 'author.name', '_internal', 'field2'],
+            sorts: ['created_at'],
+            includes: ['author.profile'],
+            fields: ['id', 'title'],
+        );
+
+        $result = (new ApiContractValidator(
+            $this->registry([$operation]),
+            $this->routes([['GET', 'api/v2/backend/posts', 'api.v2.backend.posts.index']]),
+            $this->openApi([['backend.posts.index', 'GET', '/api/v2/backend/posts']]),
+        ))->validate();
+
+        $this->assertSame([], $result['errors']);
+    }
+
+    /**
+     * Verify malformed metadata lists fail deterministically without unsafe report values.
+     *
+     * @return void
+     */
+    public function test_it_rejects_every_malformed_metadata_list_safely(): void
+    {
+        $stream = fopen('php://memory', 'rb');
+        $invalidUtf8 = "bad\xB1";
+        $cases = [
+            'object-shaped array' => [['status' => 'published'], 'Metadata must be a list.'],
+            'nested array' => [[['status']], 'Metadata values must be strings.'],
+            'object value' => [[(object) ['name' => 'status']], 'Metadata values must be strings.'],
+            'resource value' => [[$stream], 'Metadata values must be strings.'],
+            'duplicate value' => [['status', 'status'], 'Metadata values must be unique.'],
+            'empty value' => [['   '], 'Metadata values must not be empty.'],
+            'invalid UTF-8' => [[$invalidUtf8], 'Metadata values must be valid UTF-8.'],
+            'punctuation' => [['status!'], 'Metadata values must use dotted identifier syntax.'],
+        ];
+
+        try {
+            foreach (['filters', 'sorts', 'includes', 'fields'] as $collection) {
+                foreach ($cases as $case => [$values, $reason]) {
+                    $metadata = [
+                        'filters' => [],
+                        'sorts' => [],
+                        'includes' => [],
+                        'fields' => [],
+                    ];
+                    $metadata[$collection] = $values;
+                    $operation = $this->operation(
+                        id: 'backend.posts.index',
+                        method: 'GET',
+                        path: '/api/v2/backend/posts',
+                        routeName: 'api.v2.backend.posts.index',
+                        filters: $metadata['filters'],
+                        sorts: $metadata['sorts'],
+                        includes: $metadata['includes'],
+                        fields: $metadata['fields'],
+                    );
+                    $result = (new ApiContractValidator(
+                        $this->registry([$operation]),
+                        $this->routes([['GET', 'api/v2/backend/posts', 'api.v2.backend.posts.index']]),
+                        $this->openApi([['backend.posts.index', 'GET', '/api/v2/backend/posts']]),
+                    ))->validate();
+                    $message = "{$collection}: {$case}";
+
+                    $this->assertSame(
+                        $reason,
+                        $result['errors']['contract.metadata_invalid'][0]['reason'] ?? null,
+                        $message
+                    );
+                    $encoded = json_encode($result, JSON_THROW_ON_ERROR);
+                    $this->assertStringNotContainsString($invalidUtf8, $encoded, $message);
+                }
+            }
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }
+    }
+
+    /**
      * Verify malformed schemas and non-canonical path parameters fail recursively.
      *
      * @return void
@@ -1000,6 +1120,11 @@ class ApiContractValidatorTest extends TestCase
      * @param  string  $implementation
      * @param  \Wncms\Api\V2\Data\ApiSchema|null  $request
      * @param  \Wncms\Api\V2\Data\ApiSchema|null  $response
+     * @param  string  $surface
+     * @param  array<int|string, mixed>  $filters
+     * @param  array<int|string, mixed>  $sorts
+     * @param  array<int|string, mixed>  $includes
+     * @param  array<int|string, mixed>  $fields
      * @return \Wncms\Api\V2\Data\ApiOperationContract
      */
     private function operation(
@@ -1011,11 +1136,16 @@ class ApiContractValidatorTest extends TestCase
         string $implementation = 'domain',
         ?ApiSchema $request = null,
         ?ApiSchema $response = null,
+        string $surface = 'backend',
+        array $filters = [],
+        array $sorts = [],
+        array $includes = [],
+        array $fields = [],
     ): ApiOperationContract {
         return new ApiOperationContract(
             id: $id,
             domain: 'posts',
-            surface: 'backend',
+            surface: $surface,
             method: $method,
             path: $path,
             routeName: $routeName,
@@ -1026,6 +1156,10 @@ class ApiContractValidatorTest extends TestCase
             implementation: $implementation,
             request: $request ?? ApiSchema::object(),
             response: $response ?? ApiSchema::object(),
+            filters: $filters,
+            sorts: $sorts,
+            includes: $includes,
+            fields: $fields,
         );
     }
 

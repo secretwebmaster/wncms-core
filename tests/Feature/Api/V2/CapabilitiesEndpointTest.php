@@ -235,6 +235,33 @@ class CapabilitiesEndpointTest extends TestCase
     }
 
     /**
+     * Verify capability schemas retain recursive empty-schema object semantics on the wire.
+     */
+    public function test_capabilities_wire_preserves_recursive_empty_schemas_and_schema_lists(): void
+    {
+        $website = Website::firstOrFail();
+        [, $token] = $this->tokenUser([], $website);
+
+        config(['wncms-api-v2.providers' => [CapabilitiesEndpointTestProvider::class]]);
+        app()->forgetInstance(ApiContractRegistry::class);
+
+        $response = $this->withToken($token)->getJson('/api/v2/capabilities');
+
+        $response->assertOk();
+        $wire = json_decode((string) $response->getContent());
+        $schema = $wire->data->domains->schema_demo->operations
+            ->{'plugin.schema.inspect'}->request_schema;
+
+        $this->assertIsObject($schema->properties);
+        $this->assertIsObject($schema->properties->free);
+        $this->assertIsObject($schema->properties->nested->properties);
+        $this->assertIsArray($schema->properties->nested->allOf);
+        $this->assertIsObject($schema->properties->nested->allOf[0]);
+        $this->assertTrue($schema->properties->nested->allOf[1]);
+        $this->assertAutomationEnvelope($response);
+    }
+
+    /**
      * Create a token user with selected permissions and website access.
      *
      * @param  array<int, string>  $permissions
@@ -300,7 +327,7 @@ class CapabilitiesEndpointTestProvider implements ApiContractProvider
         $registry->registerOperation(new ApiOperationContract(
             id: 'plugin.demo.inspect',
             domain: 'plugin_demo',
-            surface: 'plugin',
+            surface: 'frontend',
             method: 'GET',
             path: '/api/v2/plugin-demo',
             routeName: 'api.v2.plugin_demo.inspect',
@@ -321,7 +348,7 @@ class CapabilitiesEndpointTestProvider implements ApiContractProvider
         $registry->registerOperation(new ApiOperationContract(
             id: 'plugin.filtered.inspect',
             domain: 'filtered_demo',
-            surface: 'plugin',
+            surface: 'frontend',
             method: 'GET',
             path: '/api/v2/filtered-demo',
             routeName: 'api.v2.filtered_demo.inspect',
@@ -338,7 +365,7 @@ class CapabilitiesEndpointTestProvider implements ApiContractProvider
         $registry->registerOperation(new ApiOperationContract(
             id: 'plugin.boolean.inspect',
             domain: 'boolean_demo',
-            surface: 'plugin',
+            surface: 'frontend',
             method: 'POST',
             path: '/api/v2/boolean-demo',
             routeName: 'api.v2.boolean_demo.inspect',
@@ -349,6 +376,29 @@ class CapabilitiesEndpointTestProvider implements ApiContractProvider
             implementation: 'domain',
             request: ApiSchema::allowAll(),
             response: ApiSchema::denyAll(),
+        ));
+
+        $registry->registerDomain(new ApiDomainContract('schema_demo', 'Schema Demo'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'plugin.schema.inspect',
+            domain: 'schema_demo',
+            surface: 'frontend',
+            method: 'GET',
+            path: '/api/v2/schema-demo',
+            routeName: 'api.v2.schema_demo.inspect',
+            permission: null,
+            ability: null,
+            websiteScoped: false,
+            risk: 'read',
+            implementation: 'domain',
+            request: ApiSchema::object([
+                'free' => [],
+                'nested' => [
+                    'properties' => [],
+                    'allOf' => [[], true],
+                ],
+            ]),
+            response: ApiSchema::object(),
         ));
     }
 }

@@ -11,6 +11,13 @@ return [
         'header' => 'Idempotency-Key',
         'ttl_seconds' => 86400,
         'lock_seconds' => 15,
+        // FileStore requires exact opt-in and a shared volume used by every API process.
+        // DynamoDB is always rejected because its eventually consistent reads can replay mutations.
+        'allowed_shared_store_classes' => [
+            \Illuminate\Cache\RedisStore::class,
+            \Illuminate\Cache\MemcachedStore::class,
+            \Illuminate\Cache\DatabaseStore::class,
+        ],
     ],
     'operations' => [
         'store' => env('WNCMS_API_V2_OPERATION_STORE'),

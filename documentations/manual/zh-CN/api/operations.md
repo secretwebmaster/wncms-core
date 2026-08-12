@@ -70,8 +70,8 @@ FileStore 加入 allowlist。所有 process 必须使用相同的已设定 store
 
 ## Idempotency
 
-Cancellation 要求已设定的 `Idempotency-Key` header，key 长度必须是 `8` 到
-`255` bytes。Cache scope 包含 actor、token/session、operation、受信任 website
+Cancellation 要求已设定的 `Idempotency-Key` header，key 必须是有效 UTF-8，
+长度为 `8` 到 `255` bytes。Cache scope 包含 actor、token/session、operation、受信任 website
 context 与 key；request fingerprint 包含 method、route parameter、query、body，
 以及 upload metadata/content hash。
 
@@ -81,9 +81,13 @@ context 与 key；request fingerprint 包含 method、route parameter、query、
 `idempotency.key_conflict`；并发的相同 mutation 返回
 `idempotency.in_progress`。HTTP `5xx` 不会被 cache。
 
-Idempotency store 必须支援 atomic lock；production 环境还必须由所有 process
-共享。请使用 `WNCMS_API_V2_IDEMPOTENCY_STORE` 设定，默认 TTL 由
-`wncms-api-v2.idempotency.ttl_seconds` 控制。
+Idempotency store 必须支援 atomic lock。Production 预设精确允许 Laravel
+Redis、Memcached、Database store；array、null、failover、DynamoDB 会被拒绝。
+FileStore 与未知的 lock-capable store 必须按精确 class 加入 allowlist；FileStore
+只适用于所有 API process 共用同一个 volume 的部署。请使用
+`WNCMS_API_V2_IDEMPOTENCY_STORE` 设定 store、
+`wncms-api-v2.idempotency.allowed_shared_store_classes` 设定精确 class list，
+默认 TTL 由 `wncms-api-v2.idempotency.ttl_seconds` 控制。
 
 ## Resource Revisions
 

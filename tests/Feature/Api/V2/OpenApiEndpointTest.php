@@ -87,6 +87,29 @@ class OpenApiEndpointTest extends TestCase
     }
 
     /**
+     * Verify API v2 request IDs wrap Laravel's API middleware without changing API v1.
+     */
+    public function test_v2_request_id_wraps_one_api_group_while_v1_keeps_original_middleware(): void
+    {
+        $v2 = Route::getRoutes()->getByName('api.v2.openapi')?->gatherMiddleware();
+        $v1 = Route::getRoutes()->getByName('api.v1.posts.index')?->gatherMiddleware();
+
+        $this->assertIsArray($v2);
+        $this->assertIsArray($v1);
+        $this->assertSame(1, count(array_keys($v2, 'api', true)));
+        $this->assertLessThan(
+            array_search('api', $v2, true),
+            array_search('api_v2_request_id', $v2, true)
+        );
+        $this->assertLessThan(
+            array_search('api_v2_whitelist', $v2, true),
+            array_search('api', $v2, true)
+        );
+        $this->assertSame(['api'], $v1);
+        $this->assertNotContains('api_v2_request_id', $v1);
+    }
+
+    /**
      * Verify the public endpoint remains protected by the API whitelist feature gate.
      *
      * @return void

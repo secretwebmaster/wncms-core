@@ -109,7 +109,7 @@ class ApiResponseFactory
         if ($exception instanceof ValidationException) {
             return $this->failure(
                 'validation.failed',
-                __('validation.failed'),
+                __('wncms::validation.failed'),
                 Response::HTTP_UNPROCESSABLE_ENTITY,
                 $exception->errors()
             );
@@ -118,7 +118,7 @@ class ApiResponseFactory
         if ($exception instanceof AuthenticationException) {
             return $this->failure(
                 'authentication.invalid_token',
-                __('auth.unauthenticated'),
+                __('wncms::auth.unauthenticated'),
                 Response::HTTP_UNAUTHORIZED
             );
         }
@@ -126,7 +126,7 @@ class ApiResponseFactory
         if ($exception instanceof AuthorizationException) {
             return $this->failure(
                 'authorization.denied',
-                __('auth.unauthorized'),
+                __('wncms::auth.unauthorized'),
                 Response::HTTP_FORBIDDEN
             );
         }
@@ -187,6 +187,7 @@ class ApiResponseFactory
             Response::HTTP_FORBIDDEN => 'authorization.denied',
             Response::HTTP_NOT_FOUND => 'resource.not_found',
             Response::HTTP_CONFLICT => 'request.conflict',
+            Response::HTTP_TOO_MANY_REQUESTS => 'rate_limit.exceeded',
             Response::HTTP_UNPROCESSABLE_ENTITY => 'validation.failed',
             default => $status >= Response::HTTP_INTERNAL_SERVER_ERROR
                 ? 'server.unexpected_error'

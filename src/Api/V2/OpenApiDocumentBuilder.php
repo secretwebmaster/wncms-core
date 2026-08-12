@@ -66,9 +66,9 @@ final class OpenApiDocumentBuilder
     {
         $data = [
             'operationId' => $operation->id,
-            'security' => $operation->surface === 'backend'
-                ? [['bearerAuth' => []]]
-                : [],
+            'security' => $operation->surface === 'frontend'
+                ? []
+                : [['bearerAuth' => []]],
             'x-wncms-permission' => $operation->permission,
             'x-wncms-ability' => $operation->ability,
             'x-wncms-website-scoped' => $operation->websiteScoped,

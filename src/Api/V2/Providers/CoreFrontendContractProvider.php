@@ -40,7 +40,7 @@ class CoreFrontendContractProvider implements ApiContractProvider
         $registry->registerOperation(new ApiOperationContract(
             id: 'system.translations',
             domain: 'system',
-            surface: 'system',
+            surface: 'frontend',
             method: 'GET',
             path: '/api/v2/translations',
             routeName: 'api.v2.translations',

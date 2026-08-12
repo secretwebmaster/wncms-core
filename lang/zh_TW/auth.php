@@ -16,5 +16,7 @@ return [
     'failed' => '帳號或密碼不正確',
     'password' => '帳號或密碼不正確',
     'throttle' => '登錄嘗試次數過多。請在 :seconds 秒後重試。',
+    'unauthenticated' => '需要登入驗證。',
+    'unauthorized' => '您無權執行此操作。',
 
 ];

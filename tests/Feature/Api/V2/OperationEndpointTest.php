@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 use Wncms\Api\V2\Contracts\AtomicOperationRepository;
@@ -119,6 +121,62 @@ class OperationEndpointTest extends TestCase
             ->assertUnauthorized()
             ->assertJsonPath('meta.error_code', 'authentication.missing_token');
         $this->assertEnvelope($response);
+    }
+
+    /**
+     * Verify operation ownership rejects non-canonical authenticated identifiers.
+     */
+    #[DataProvider('invalidActorIdentifierProvider')]
+    public function test_operation_lookup_rejects_noncanonical_actor_identifiers(mixed $actorId): void
+    {
+        $user = Mockery::mock(User::class)->makePartial();
+        $user->shouldReceive('getAuthIdentifier')->andReturn($actorId);
+
+        $response = $this->actingAs($user)
+            ->getJson('/api/v2/backend/operations/missing');
+
+        $response
+            ->assertUnauthorized()
+            ->assertJsonPath('meta.error_code', 'authentication.invalid_token');
+        $this->assertEnvelope($response);
+    }
+
+    /**
+     * Verify a canonical decimal-string actor ID resolves to its native operation owner.
+     */
+    public function test_operation_lookup_accepts_a_canonical_decimal_string_actor_identifier(): void
+    {
+        $operation = app(OperationService::class)->queue('plugins.inspect', 42, [], false);
+        $user = Mockery::mock(User::class)->makePartial();
+        $user->shouldReceive('getAuthIdentifier')->andReturn('42');
+
+        $response = $this->actingAs($user)
+            ->getJson("/api/v2/backend/operations/{$operation->id}");
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.actor_id', 42);
+        $this->assertEnvelope($response);
+    }
+
+    /**
+     * Provide actor IDs that PHP's broad numeric coercion must not accept.
+     *
+     * @return array<string, array{mixed}>
+     */
+    public static function invalidActorIdentifierProvider(): array
+    {
+        return [
+            'zero integer' => [0],
+            'negative integer' => [-1],
+            'float' => [1.0],
+            'zero string' => ['0'],
+            'leading zero' => ['01'],
+            'explicit plus' => ['+1'],
+            'scientific notation' => ['1e3'],
+            'decimal notation' => ['1.9'],
+            'overflow' => [(string) PHP_INT_MAX.'0'],
+        ];
     }
 
     /**

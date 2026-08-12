@@ -101,7 +101,10 @@ WNCMS API 支援多种身份验证方法：
 
 ## 速率限制
 
-目前 API 没有强制的速率限制。但我们建议在客户端实作您自己的速率限制，以防止过多的请求。
+API v2 位于 Laravel `api` middleware group 内。Server 设定 limiter 后，超过
+限制的请求会返回标准六 key envelope、HTTP `429`，以及
+`meta.error_code: "rate_limit.exceeded"`。Client 应遵守回应中的 retry 与
+rate-limit header。
 
 ## 回应格式
 

@@ -242,7 +242,8 @@ class WncmsServiceProvider extends ServiceProvider
             return new CacheIdempotencyStore(
                 $app->make(CacheFactory::class),
                 config('wncms-api-v2.idempotency.store'),
-                $app->environment('production')
+                $app->environment('production'),
+                config('wncms-api-v2.idempotency.allowed_shared_store_classes')
             );
         });
 

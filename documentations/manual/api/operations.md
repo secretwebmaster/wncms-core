@@ -76,7 +76,7 @@ Configure the store and TTL with `WNCMS_API_V2_OPERATION_STORE` and
 ## Idempotency
 
 Cancellation requires the configured `Idempotency-Key` header. Keys must be
-between `8` and `255` bytes. The cache scope includes actor, token/session,
+valid UTF-8 between `8` and `255` bytes. The cache scope includes actor, token/session,
 operation, trusted website context, and key; the request fingerprint includes
 method, route parameters, query, body, and upload metadata/content hashes.
 
@@ -87,10 +87,14 @@ content type, and original `X-Request-ID`, plus
 `409` `idempotency.key_conflict`; a concurrent identical mutation returns
 `idempotency.in_progress`. HTTP `5xx` responses are not cached.
 
-The idempotency store must support atomic locks and, in production, must be
-shared across all processes. Configure it with
-`WNCMS_API_V2_IDEMPOTENCY_STORE`; the default TTL is controlled by
-`wncms-api-v2.idempotency.ttl_seconds`.
+The idempotency store must support atomic locks. In production, the exact
+trusted defaults are Laravel Redis, Memcached, and Database stores. Array,
+null, failover, and DynamoDB stores are rejected. FileStore and unknown
+lock-capable stores require exact class allowlisting; FileStore is safe only
+when every API process shares the same volume. Configure the store with
+`WNCMS_API_V2_IDEMPOTENCY_STORE`, the exact class list with
+`wncms-api-v2.idempotency.allowed_shared_store_classes`, and the default TTL
+with `wncms-api-v2.idempotency.ttl_seconds`.
 
 ## Resource Revisions
 

@@ -3,8 +3,12 @@
 namespace Wncms\Api\V2\Repositories;
 
 use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\DatabaseStore;
+use Illuminate\Cache\DynamoDbStore;
 use Illuminate\Cache\FailoverStore;
+use Illuminate\Cache\MemcachedStore;
 use Illuminate\Cache\NullStore;
+use Illuminate\Cache\RedisStore;
 use Illuminate\Contracts\Cache\Factory;
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Contracts\Cache\Repository;
@@ -16,6 +20,12 @@ class CacheIdempotencyStore implements IdempotencyStore
 
     protected const LOCK_PREFIX = 'wncms:api-v2:idempotency:lock:';
 
+    protected const DEFAULT_SHARED_STORE_CLASSES = [
+        RedisStore::class,
+        MemcachedStore::class,
+        DatabaseStore::class,
+    ];
+
     protected ?Repository $repository = null;
 
     protected ?LockProvider $lockProvider = null;
@@ -26,11 +36,16 @@ class CacheIdempotencyStore implements IdempotencyStore
      * @param  \Illuminate\Contracts\Cache\Factory  $cache
      * @param  mixed  $storeName
      * @param  bool  $requireSharedStore
+     * @param  mixed  $allowedSharedStoreClasses
+     * @return void
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         protected Factory $cache,
         protected mixed $storeName = null,
-        protected bool $requireSharedStore = false
+        protected bool $requireSharedStore = false,
+        protected mixed $allowedSharedStoreClasses = null
     ) {
     }
 
@@ -109,20 +124,59 @@ class CacheIdempotencyStore implements IdempotencyStore
             throw new \InvalidArgumentException('The API v2 idempotency cache store must support atomic locks');
         }
 
-        if ($this->requireSharedStore && (
-            $store instanceof ArrayStore
-            || $store instanceof FailoverStore
-            || $store instanceof NullStore
-        )) {
-            throw new \InvalidArgumentException(
-                'The API v2 idempotency cache store must be shared across production processes'
-            );
+        if ($this->requireSharedStore) {
+            $storeClass = $store::class;
+            if (
+                $store instanceof ArrayStore
+                || $store instanceof NullStore
+                || $store instanceof FailoverStore
+                || $store instanceof DynamoDbStore
+                || ! in_array($storeClass, $this->sharedStoreClasses(), true)
+            ) {
+                throw new \InvalidArgumentException(
+                    'The API v2 idempotency cache store must be an explicitly trusted shared store'
+                );
+            }
         }
 
         $this->repository = $repository;
         $this->lockProvider = $store;
 
         return $this->repository;
+    }
+
+    /**
+     * Resolve the exact cache-store classes trusted for production idempotency state.
+     *
+     * @return array<int, class-string>
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected function sharedStoreClasses(): array
+    {
+        $classes = $this->allowedSharedStoreClasses;
+        if ($classes === null) {
+            $classes = array_values(array_filter(
+                self::DEFAULT_SHARED_STORE_CLASSES,
+                static fn (string $class): bool => class_exists($class)
+            ));
+        }
+
+        if (! is_array($classes) || ! array_is_list($classes)) {
+            throw new \InvalidArgumentException(
+                'wncms-api-v2.idempotency.allowed_shared_store_classes must be a list of exact class names'
+            );
+        }
+
+        foreach ($classes as $class) {
+            if (! is_string($class) || trim($class) === '') {
+                throw new \InvalidArgumentException(
+                    'wncms-api-v2.idempotency.allowed_shared_store_classes must contain exact class names'
+                );
+            }
+        }
+
+        return array_values(array_unique($classes));
     }
 
     /**

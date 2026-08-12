@@ -76,7 +76,24 @@ class OperationController extends ApiV2Controller
     protected function actorId(Request $request): int
     {
         $actorId = $request->user()?->getAuthIdentifier();
-        if (! is_numeric($actorId) || (int) $actorId <= 0) {
+
+        if (is_int($actorId)) {
+            if ($actorId <= 0) {
+                throw new AuthenticationException('Authenticated actor is required');
+            }
+
+            return $actorId;
+        }
+
+        if (! is_string($actorId) || preg_match('/^[1-9][0-9]*$/D', $actorId) !== 1) {
+            throw new AuthenticationException('Authenticated actor is required');
+        }
+
+        $maximum = (string) PHP_INT_MAX;
+        if (
+            strlen($actorId) > strlen($maximum)
+            || (strlen($actorId) === strlen($maximum) && strcmp($actorId, $maximum) > 0)
+        ) {
             throw new AuthenticationException('Authenticated actor is required');
         }
 

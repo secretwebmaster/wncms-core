@@ -11,6 +11,10 @@ class ConcurrencyGuard
 {
     /**
      * Create a stable optimistic-concurrency revision for an Eloquent model.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     *
+     * @return string
      */
     public function revision(Model $model): string
     {
@@ -26,6 +30,11 @@ class ConcurrencyGuard
      *
      * Missing or non-matching revisions prevent stale mutations.
      *
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  string|null  $ifMatch
+     *
+     * @return void
+     *
      * @throws \Wncms\Api\V2\Exceptions\ApiConflictException
      */
     public function assertMatches(Model $model, ?string $ifMatch): void
@@ -39,6 +48,10 @@ class ConcurrencyGuard
 
     /**
      * Build the ETag response header value for a model revision.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     *
+     * @return string
      */
     public function responseEtag(Model $model): string
     {
@@ -47,6 +60,10 @@ class ConcurrencyGuard
 
     /**
      * Serialize the model's update time as a UTC ISO-8601 instant.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     *
+     * @return string|null
      */
     private function updatedAt(Model $model): ?string
     {
@@ -64,6 +81,10 @@ class ConcurrencyGuard
 
     /**
      * Strip HTTP weak and quoted ETag syntax from an If-Match value.
+     *
+     * @param  string|null  $ifMatch
+     *
+     * @return string|null
      */
     private function normalizeEtag(?string $ifMatch): ?string
     {

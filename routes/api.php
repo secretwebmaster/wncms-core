@@ -8,71 +8,74 @@ use Wncms\Http\Controllers\Api\V1\TagController;
 use Wncms\Http\Controllers\Api\V1\UpdateController;
 use Wncms\Http\Controllers\Api\V1\WebsiteController;
 
+Route::middleware('api')->group(function () {
+    Route::prefix('v1')->name('api.v1.')->group(function () {
 
-Route::prefix('v1')->name('api.v1.')->group(function () {
+        // Menus
+        Route::prefix('menus')->name('menus.')->controller(MenuController::class)->group(function () {
+            Route::match(['GET', 'POST'], '/', 'index')->name('index');
+            Route::post('store', 'store')->name('store');
+            Route::post('sync', 'sync')->name('sync');
+            Route::match(['GET', 'POST'], '{id}', 'show')->name('show');
+        });
 
-    // Menus
-    Route::prefix('menus')->name('menus.')->controller(MenuController::class)->group(function () {
-        Route::match(['GET', 'POST'], '/', 'index')->name('index');
-        Route::post('store', 'store')->name('store');
-        Route::post('sync', 'sync')->name('sync');
-        Route::match(['GET', 'POST'], '{id}', 'show')->name('show');
+        // Pages
+        Route::prefix('pages')->name('pages.')->controller(PageController::class)->group(function () {
+            Route::post('/', 'index')->name('index');
+            Route::post('store', 'store')->name('store');
+            Route::post('{id}', 'show')->name('show');
+        });
+
+        // Posts
+        Route::prefix('posts')->name('posts.')->controller(PostController::class)->group(function () {
+            Route::match(['GET', 'POST'], '/', 'index')->name('index');
+            Route::post('store', 'store')->name('store');
+            Route::post('update/{slug}', 'update')->name('update');
+            Route::post('delete/{slug}', 'delete')->name('delete');
+            Route::match(['GET', 'POST'], '{slug}', 'show')->name('show');
+        });
+
+        // Tags
+        Route::prefix('tags')->name('tags.')->controller(TagController::class)->group(function () {
+            Route::post('/', 'index')->name('index');
+            Route::post('exist', 'exist')->name('exist');
+            Route::post('store', 'store')->name('store');
+        });
+
+        // Update
+        Route::prefix('update')->name('update.')->controller(UpdateController::class)->group(function () {
+            Route::post('/', 'update')->name('run');
+            Route::post('progress', 'progress')->name('progress');
+        });
+
+        // Websites
+        Route::prefix('websites')->name('websites.')->controller(WebsiteController::class)->group(function () {
+            Route::match(['GET', 'POST'], '/', 'index')->name('index');
+            Route::post('store', 'store')->name('store');
+            Route::post('update/{id}', 'update')->name('update');
+            Route::post('delete/{id}', 'delete')->name('delete');
+            Route::post('add-domain', 'addDomain')->name('add_domain');
+            Route::post('remove-domain', 'removeDomain')->name('remove_domain');
+            Route::match(['GET', 'POST'], '{id}', 'show')->name('show');
+        });
     });
 
-    // Pages
-    Route::prefix('pages')->name('pages.')->controller(PageController::class)->group(function () {
-        Route::post('/', 'index')->name('index');
-        Route::post('store', 'store')->name('store');
-        Route::post('{id}', 'show')->name('show');
-    });
-
-    // Posts
-    Route::prefix('posts')->name('posts.')->controller(PostController::class)->group(function () {
-        Route::match(['GET', 'POST'], '/', 'index')->name('index');
-        Route::post('store', 'store')->name('store');
-        Route::post('update/{slug}', 'update')->name('update');
-        Route::post('delete/{slug}', 'delete')->name('delete');
-        Route::match(['GET', 'POST'], '{slug}', 'show')->name('show');
-    });
-
-    // Tags
-    Route::prefix('tags')->name('tags.')->controller(TagController::class)->group(function () {
-        Route::post('/', 'index')->name('index');
-        Route::post('exist', 'exist')->name('exist');
-        Route::post('store', 'store')->name('store');
-    });
-
-    // Update
-    Route::prefix('update')->name('update.')->controller(UpdateController::class)->group(function () {
-        Route::post('/', 'update')->name('run');
-        Route::post('progress', 'progress')->name('progress');
-    });
-
-    // Websites
-    Route::prefix('websites')->name('websites.')->controller(WebsiteController::class)->group(function () {
-        Route::match(['GET', 'POST'], '/', 'index')->name('index');
-        Route::post('store', 'store')->name('store');
-        Route::post('update/{id}', 'update')->name('update');
-        Route::post('delete/{id}', 'delete')->name('delete');
-        Route::post('add-domain', 'addDomain')->name('add_domain');
-        Route::post('remove-domain', 'removeDomain')->name('remove_domain');
-        Route::match(['GET', 'POST'], '{id}', 'show')->name('show');
-    });
+    // Custom user-defined API routes retain the Laravel API middleware contract.
+    if (file_exists(base_path('routes/custom_api.php'))) {
+        include base_path('routes/custom_api.php');
+    }
 });
 
-if (file_exists(__DIR__ . '/api/v2/frontend.php')) {
-    include __DIR__ . '/api/v2/frontend.php';
-}
+Route::middleware('api_v2_request_id')->group(function () {
+    if (file_exists(__DIR__.'/api/v2/frontend.php')) {
+        include __DIR__.'/api/v2/frontend.php';
+    }
 
-if (file_exists(__DIR__ . '/api/v2/contracts.php')) {
-    include __DIR__ . '/api/v2/contracts.php';
-}
+    if (file_exists(__DIR__.'/api/v2/contracts.php')) {
+        include __DIR__.'/api/v2/contracts.php';
+    }
 
-if (file_exists(__DIR__ . '/api/v2/backend.php')) {
-    include __DIR__ . '/api/v2/backend.php';
-}
-
-// Custom user-defined API routes
-if (file_exists(base_path('routes/custom_api.php'))) {
-    include base_path('routes/custom_api.php');
-}
+    if (file_exists(__DIR__.'/api/v2/backend.php')) {
+        include __DIR__.'/api/v2/backend.php';
+    }
+});

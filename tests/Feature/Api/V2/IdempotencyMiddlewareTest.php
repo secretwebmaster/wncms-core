@@ -3,6 +3,7 @@
 namespace Wncms\Tests\Feature\Api\V2;
 
 use Closure;
+use Illuminate\Cache\FileStore;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\JsonResponse;
@@ -298,6 +299,26 @@ class IdempotencyMiddlewareTest extends TestCase
             ->assertBadRequest()
             ->assertJsonPath('meta.error_code', 'idempotency.key_invalid');
         $this->assertEnvelope($long);
+        $this->assertSame(0, $this->executions);
+    }
+
+    /**
+     * Verify invalid UTF-8 keys fail before hashing, storage, or handler execution.
+     *
+     * @return void
+     */
+    public function test_invalid_utf8_key_is_rejected_before_execution(): void
+    {
+        $response = $this->postMutation(
+            '/api/v2/_test/idempotent/alpha',
+            ['title' => 'One'],
+            "valid-key-\xB1"
+        );
+
+        $response
+            ->assertBadRequest()
+            ->assertJsonPath('meta.error_code', 'idempotency.key_invalid');
+        $this->assertEnvelope($response);
         $this->assertSame(0, $this->executions);
     }
 
@@ -1281,7 +1302,7 @@ class IdempotencyMiddlewareTest extends TestCase
     }
 
     /**
-     * Verify a null idempotency config uses a safe Laravel default store in production.
+     * Verify a null idempotency config can use an explicitly trusted Laravel default store.
      *
      * @return void
      */
@@ -1297,6 +1318,7 @@ class IdempotencyMiddlewareTest extends TestCase
                 'lock_path' => $cacheDirectory,
             ],
             'wncms-api-v2.idempotency.store' => null,
+            'wncms-api-v2.idempotency.allowed_shared_store_classes' => [FileStore::class],
         ]);
         app('cache')->forgetDriver('idempotency_file');
         app()->forgetInstance(IdempotencyStore::class);

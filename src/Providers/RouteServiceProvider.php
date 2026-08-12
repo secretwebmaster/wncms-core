@@ -40,7 +40,6 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->routes(function () {
             Route::prefix('api')
-                ->middleware('api')
                 ->group(__DIR__ . '/../../routes/api.php');
 
             Route::middleware('web')

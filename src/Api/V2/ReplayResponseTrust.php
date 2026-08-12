@@ -28,7 +28,7 @@ final class ReplayResponseTrust
     /**
      * Create an isolated capability instance.
      *
-     * @return self
+     * @return \Wncms\Api\V2\ReplayResponseTrust
      */
     public static function create(): self
     {

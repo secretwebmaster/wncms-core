@@ -26,5 +26,9 @@ class ApiContractServiceProviderTest extends TestCase
         $this->assertSame('legacy_bridge', $registry->operation('backend.links.bulk_update')?->implementation);
         $this->assertSame('domain', $registry->operation('backend.links.index')?->implementation);
         $this->assertSame('legacy_controller', $registry->operation('backend.posts.index')?->implementation);
+
+        foreach ($registry->operations() as $operation) {
+            $this->assertContains($operation->surface, ['frontend', 'backend']);
+        }
     }
 }

@@ -59,6 +59,48 @@ class QueryOptionsResolverTest extends TestCase
         $this->assertEquals(new QueryOptions, $options);
     }
 
+    /**
+     * Verify pagination inputs cannot wrap or coerce outside positive native integers.
+     */
+    #[DataProvider('invalidPositiveIntegerProvider')]
+    public function test_it_rejects_invalid_or_overflowing_positive_integer_options(
+        string $field,
+        mixed $value
+    ): void {
+        try {
+            (new QueryOptionsResolver)->resolve(
+                Request::create('/api/v2/backend/posts', 'GET', [$field => $value]),
+                $this->contract(),
+            );
+            $this->fail("{$field} should reject invalid positive integer input.");
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey($field, $exception->errors());
+        }
+    }
+
+    /**
+     * Provide invalid pagination values, including decimal strings beyond PHP_INT_MAX.
+     *
+     * @return array<string, array{string, mixed}>
+     */
+    public static function invalidPositiveIntegerProvider(): array
+    {
+        $overflow = (string) PHP_INT_MAX.'0';
+
+        return [
+            'page zero' => ['page', '0'],
+            'page negative' => ['page', '-1'],
+            'page decimal' => ['page', '1.5'],
+            'page array' => ['page', ['1']],
+            'page overflow' => ['page', $overflow],
+            'per-page zero' => ['per_page', 0],
+            'per-page negative' => ['per_page', -1],
+            'per-page decimal' => ['per_page', '20.5'],
+            'per-page array' => ['per_page', ['20']],
+            'per-page overflow' => ['per_page', $overflow],
+        ];
+    }
+
     #[DataProvider('undeclaredOptionProvider')]
     public function test_it_rejects_undeclared_query_options(array $query): void
     {

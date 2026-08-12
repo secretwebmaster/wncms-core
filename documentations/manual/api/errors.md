@@ -32,11 +32,12 @@ stable code in `meta.error_code`. `meta.request_id` always matches the
 | `request.conflict` | `409` | Stale revision, illegal state transition, or concurrent change |
 | `validation.failed` | `422` | Field or query validation failed; details are in `errors` |
 | `idempotency.key_missing` | `400` | Required `Idempotency-Key` is absent |
-| `idempotency.key_invalid` | `400` | Key is outside the `8..255` byte range |
+| `idempotency.key_invalid` | `400` | Key is not valid UTF-8 or is outside the `8..255` byte range |
 | `idempotency.payload_invalid` | `400` | Request input cannot be fingerprinted safely |
 | `idempotency.key_conflict` | `409` | The same key was used with different input |
 | `idempotency.in_progress` | `409` | The same scoped mutation is currently executing |
 | `idempotency.operation_missing` | `500` | An idempotent route lacks its registered operation identity |
+| `rate_limit.exceeded` | `429` | The configured Laravel API rate limit was exceeded |
 | `server.unexpected_error` | `5xx` | Unexpected server failure; details are hidden outside debug mode |
 
 Idempotent exact replays preserve the first response body and request ID and
@@ -52,6 +53,8 @@ be retried with the same key. See [Asynchronous Operations](./operations.md).
 | 401  | Unauthorized          | Authentication required or failed               |
 | 403  | Forbidden             | API access disabled or insufficient permissions |
 | 404  | Not Found             | Resource not found                              |
+| 409  | Conflict              | State, revision, or idempotency conflict        |
+| 429  | Too Many Requests     | Configured API rate limit exceeded              |
 | 422  | Unprocessable Entity  | Validation failed                               |
 | 500  | Internal Server Error | Server-side error occurred                      |
 
