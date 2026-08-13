@@ -164,10 +164,10 @@ final class TargetOperationAuthorizer
         $freshActor->setRelation('roles', $roleRows);
 
         $wildcardClass = config('permission.wildcard_permission', \Spatie\Permission\WildcardPermission::class);
-        $wildcard = app($wildcardClass, ['record' => $freshActor]);
-        if (! $wildcard instanceof Wildcard) {
+        if (! is_string($wildcardClass) || ! class_exists($wildcardClass) || ! is_subclass_of($wildcardClass, Wildcard::class)) {
             throw new \RuntimeException('Configured wildcard permission resolver is invalid.');
         }
+        $wildcard = new $wildcardClass($freshActor);
 
         return $wildcard->implies($permission, $guardName, $wildcard->getIndex());
     }

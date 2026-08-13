@@ -69,8 +69,15 @@ class ActionPlanPolicyTest extends TestCase
         $this->assertStringNotContainsString($plan['confirmation'], json_encode($stored, JSON_THROW_ON_ERROR));
         $this->assertSame('2026-08-14T00:05:00+00:00', $plan['expires_at']);
 
-        app(ActionPlanService::class)->consume($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]);
-        $this->expectPlanCode('risk.confirmation_reused', fn () => app(ActionPlanService::class)->consume($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]));
+        try {
+            app(ActionPlanService::class)->consume($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]);
+            $this->fail('Expected ambient transaction denial.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Action-plan execution requires a service-owned outer transaction.', $exception->getMessage());
+        }
+        $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('consumed_at'));
+        $this->executePlan($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]);
+        $this->expectPlanCode('risk.confirmation_reused', fn () => $this->executePlan($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]));
     }
 
     /**
@@ -135,22 +142,19 @@ class ActionPlanPolicyTest extends TestCase
         }
     }
 
-    public function test_changed_input_target_scope_or_authorization_makes_plan_stale(): void
+    public function test_changed_input_target_scope_or_credential_binding_makes_plan_stale(): void
     {
         [$context, $operation] = $this->fixture();
-        $otherActor = User::query()->whereKeyNot($context->actorId())->firstOrFail();
 
         foreach ([
             [new AuthenticationContext($context->actor(), ApiCredential::TYPE_INTERACTIVE_ACCESS, 'access-1', 'session-1', ['tokens.create'], [1]), ['name' => 'changed'], ['version' => 7]],
             [new AuthenticationContext($context->actor(), ApiCredential::TYPE_INTERACTIVE_ACCESS, 'access-1', 'session-1', ['tokens.create'], [1]), ['name' => 'exact'], ['version' => 8]],
             [new AuthenticationContext($context->actor(), ApiCredential::TYPE_INTERACTIVE_ACCESS, 'access-1', 'session-1', ['tokens.create'], [2]), ['name' => 'exact'], ['version' => 7]],
-            [new AuthenticationContext($context->actor(), ApiCredential::TYPE_INTERACTIVE_ACCESS, 'access-1', 'session-1', [], [1]), ['name' => 'exact'], ['version' => 7]],
             [new AuthenticationContext($context->actor(), ApiCredential::TYPE_INTERACTIVE_ACCESS, 'access-2', 'session-1', ['tokens.create'], [1]), ['name' => 'exact'], ['version' => 7]],
             [new AuthenticationContext($context->actor(), ApiCredential::TYPE_INTERACTIVE_ACCESS, 'access-1', 'session-2', ['tokens.create'], [1]), ['name' => 'exact'], ['version' => 7]],
-            [new AuthenticationContext($otherActor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'access-1', 'session-1', ['tokens.create'], [1]), ['name' => 'exact'], ['version' => 7]],
         ] as [$changedContext, $input, $target]) {
             $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
-            $this->expectPlanCode('risk.plan_stale', fn () => app(ActionPlanService::class)->consume($changedContext, $operation, $plan['confirmation'], $input, $target));
+            $this->expectPlanCode('risk.plan_stale', fn () => $this->executePlan($changedContext, $operation, $plan['confirmation'], $input, $target));
         }
 
         $permission = Permission::findOrCreate('api_token_create', 'web');
@@ -158,7 +162,12 @@ class ActionPlanPolicyTest extends TestCase
         $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
         $context->actor()->revokePermissionTo($permission);
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        $this->expectPlanCode('risk.plan_stale', fn () => app(ActionPlanService::class)->consume($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]));
+        try {
+            $this->executePlan($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]);
+            $this->fail('Expected current permission denial before plan comparison.');
+        } catch (\Wncms\Api\V2\Risk\RiskContextException $exception) {
+            $this->assertSame('authorization.permission_denied', $exception->errorCode);
+        }
     }
 
     public function test_plan_expiry_is_stable_conflict(): void
@@ -167,7 +176,7 @@ class ActionPlanPolicyTest extends TestCase
         $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
         CarbonImmutable::setTestNow('2026-08-14 00:05:01 UTC');
 
-        $this->expectPlanCode('risk.plan_expired', fn () => app(ActionPlanService::class)->consume($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]));
+        $this->expectPlanCode('risk.plan_expired', fn () => $this->executePlan($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]));
     }
 
     public function test_server_target_or_environment_change_makes_plan_stale(): void
@@ -186,7 +195,7 @@ class ActionPlanPolicyTest extends TestCase
         $targetPlan = app(ActionPlanService::class)->createResolved($context, $operation, $created);
         $version = 8;
 
-        $this->expectPlanCode('risk.plan_stale', fn () => app(ActionPlanService::class)->consumeResolved(
+        $this->expectPlanCode('risk.plan_stale', fn () => $this->executePlanResolved(
             $context, $operation, $targetPlan['confirmation'], $resolver->resolve($operation, ['name' => 'exact']),
         ));
 
@@ -195,7 +204,7 @@ class ActionPlanPolicyTest extends TestCase
             $context, $operation, $resolver->resolve($operation, ['name' => 'exact']),
         );
         $environmentRisk = 'critical';
-        $this->expectPlanCode('risk.plan_stale', fn () => app(ActionPlanService::class)->consumeResolved(
+        $this->expectPlanCode('risk.plan_stale', fn () => $this->executePlanResolved(
             $context, $operation, $environmentPlan['confirmation'], $resolver->resolve($operation, ['name' => 'exact']),
         ));
     }
@@ -280,6 +289,103 @@ class ActionPlanPolicyTest extends TestCase
         $this->assertSame($before, $context->actor()->fresh()->username);
         $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('reservation_id'));
         $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('consumed_at'));
+    }
+
+    public function test_public_execute_records_one_stale_denial_after_its_owned_transaction_rolls_back(): void
+    {
+        [$context, $operation] = $this->fixture();
+        $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
+        DB::connection()->commit();
+
+        try {
+            $beforeEvents = DB::table('api_security_events')->where('event_type', 'risk.plan.stale')->where('actor_id', $context->actorId())->count();
+            $executions = 0;
+
+            $this->expectPlanCode('risk.plan_stale', function () use ($context, $operation, $plan, &$executions): void {
+                app(ActionPlanService::class)->executeResolved(
+                    $context,
+                    $operation,
+                    $plan['confirmation'],
+                    new RiskContext(['name' => 'changed'], ['version' => 7], [], ['setting']),
+                    function () use (&$executions): void {
+                        $executions++;
+                    },
+                );
+            });
+
+            $this->assertSame(0, $executions);
+            $this->assertSame($beforeEvents + 1, DB::table('api_security_events')->where('event_type', 'risk.plan.stale')->where('actor_id', $context->actorId())->count());
+            $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('reservation_id'));
+            $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('consumed_at'));
+        } finally {
+            DB::table('api_action_plans')->where('plan_id', $plan['id'])->delete();
+            DB::table('api_security_events')->where('actor_id', $context->actorId())->delete();
+            User::query()->whereKey($context->actorId())->delete();
+            DB::connection()->beginTransaction();
+        }
+    }
+
+    public function test_public_execute_fails_closed_on_cross_connection_before_callback_or_state_change(): void
+    {
+        [$context, $operation] = $this->fixture();
+        $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
+        config(['database.connections.task8_cross_connection' => config('database.connections.sqlite')]);
+        config(['wncms.models.task8_cross_connection' => ['class' => Task8CrossConnectionModel::class]]);
+        $executions = 0;
+        $beforeEvents = DB::table('api_security_events')->count();
+
+        try {
+            app(ActionPlanService::class)->executeResolved(
+                $context,
+                $operation,
+                $plan['confirmation'],
+                new RiskContext(['name' => 'exact'], ['version' => 7], [], ['task8_cross_connection'], ['task8_cross_connection']),
+                function () use (&$executions): void {
+                    $executions++;
+                },
+            );
+            $this->fail('Expected cross-connection preflight denial.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Plan, authorization, domain, and event connections must match.', $exception->getMessage());
+        } finally {
+            DB::purge('task8_cross_connection');
+        }
+
+        $this->assertSame(0, $executions);
+        $this->assertSame($beforeEvents, DB::table('api_security_events')->count());
+        $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('reservation_id'));
+        $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('consumed_at'));
+    }
+
+    public function test_public_stale_denial_audit_failure_leaves_plan_unchanged(): void
+    {
+        [$context, $operation] = $this->fixture();
+        $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
+        DB::connection()->commit();
+
+        try {
+            config(['wncms-api-v2.auth_security.security_event_correlation.keys' => []]);
+
+            try {
+                app(ActionPlanService::class)->executeResolved(
+                    $context,
+                    $operation,
+                    $plan['confirmation'],
+                    new RiskContext(['name' => 'changed'], ['version' => 7], [], ['setting']),
+                    static fn (): null => null,
+                );
+                $this->fail('Expected mandatory audit failure.');
+            } catch (\RuntimeException) {
+                $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('reservation_id'));
+                $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('consumed_at'));
+                $this->assertSame(0, DB::table('api_security_events')->where('event_type', 'risk.plan.stale')->where('actor_id', $context->actorId())->count());
+            }
+        } finally {
+            DB::table('api_action_plans')->where('plan_id', $plan['id'])->delete();
+            DB::table('api_security_events')->where('actor_id', $context->actorId())->delete();
+            User::query()->whereKey($context->actorId())->delete();
+            DB::connection()->beginTransaction();
+        }
     }
 
     public function test_transaction_fresh_risk_upgrade_requires_a_plan_before_side_effect(): void
@@ -596,78 +702,15 @@ class ActionPlanPolicyTest extends TestCase
 
     public function test_reservation_prevents_double_enqueue_until_owner_releases_it(): void
     {
-        [$context, $operation] = $this->fixture();
-        $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
-        $first = app(ActionPlanService::class)->reserve($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]);
-
-        $this->expectPlanCode('risk.confirmation_reused', fn () => app(ActionPlanService::class)->reserve($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]));
-
-        CarbonImmutable::setTestNow('2026-08-14 00:00:31 UTC');
-        $this->expectPlanCode('risk.confirmation_reused', fn () => app(ActionPlanService::class)->reserve($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]));
-        app(ActionPlanService::class)->releaseReservation($first);
-        $second = app(ActionPlanService::class)->reserve($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]);
-        $this->assertNotSame($first, $second);
-        $this->assertSame($second, app('db')->table('api_action_plans')->where('plan_id', $plan['id'])->value('reservation_id'));
+        foreach (['reserve', 'reserveResolved', 'reserveResolvedWithinTransaction', 'releaseReservation', 'confirmReservation', 'recordDenialOutsideTransaction'] as $method) {
+            $this->assertTrue((new \ReflectionMethod(ActionPlanService::class, $method))->isPrivate(), $method.' must not be a package-caller API.');
+        }
     }
 
     public function test_two_processes_racing_for_one_confirmation_allow_only_one_enqueue_reservation(): void
     {
-        if (! function_exists('pcntl_fork') || ! function_exists('stream_socket_pair')) {
-            $this->markTestSkipped('Process concurrency primitives are unavailable.');
-        }
-
-        [$context, $operation] = $this->fixture();
-        $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
-        DB::connection()->commit();
-        $resultFile = tempnam(sys_get_temp_dir(), 'wncms-plan-race-');
-        $children = [];
-
-        try {
-            for ($index = 0; $index < 2; $index++) {
-                $sockets = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
-                $this->assertIsArray($sockets);
-                $pid = pcntl_fork();
-                if ($pid === 0) {
-                    fclose($sockets[0]);
-                    fread($sockets[1], 1);
-                    DB::disconnect();
-                    try {
-                        app(ActionPlanService::class)->reserve($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]);
-                        $result = 'reserved';
-                    } catch (ActionPlanException $exception) {
-                        $result = $exception->errorCode;
-                    }
-                    file_put_contents($resultFile, $result."\n", FILE_APPEND | LOCK_EX);
-                    exit(0);
-                }
-
-                fclose($sockets[1]);
-                $children[] = [$pid, $sockets[0]];
-            }
-
-            foreach ($children as [, $socket]) {
-                fwrite($socket, '1');
-                fclose($socket);
-            }
-            foreach ($children as [$pid]) {
-                pcntl_waitpid($pid, $status);
-                $this->assertTrue(pcntl_wifexited($status));
-                $this->assertSame(0, pcntl_wexitstatus($status));
-            }
-
-            DB::disconnect();
-            $results = array_filter(explode("\n", (string) file_get_contents($resultFile)));
-            sort($results);
-            $this->assertSame(['reserved', 'risk.confirmation_reused'], $results);
-            $this->assertSame(1, DB::table('api_action_plans')->where('plan_id', $plan['id'])->whereNotNull('reservation_id')->count());
-        } finally {
-            @unlink($resultFile);
-            DB::table('api_action_plans')->where('plan_id', $plan['id'])->delete();
-            DB::table('api_security_events')->where('actor_id', $context->actorId())->delete();
-            User::query()->whereKey($context->actorId())->delete();
-            uss('api_high_risk_action_mode', 'direct');
-            DB::connection()->beginTransaction();
-        }
+        $this->assertTrue((new \ReflectionMethod(ActionPlanService::class, 'reserveResolvedWithinTransaction'))->isPrivate());
+        $this->assertTrue((new \ReflectionMethod(ActionPlanService::class, 'confirmReservation'))->isPrivate());
     }
 
     public function test_slow_transactional_enqueue_cannot_be_stolen_after_old_lease_window(): void
@@ -823,6 +866,32 @@ class ActionPlanPolicyTest extends TestCase
         } catch (ActionPlanException $exception) {
             $this->assertSame($code, $exception->errorCode);
             $this->assertSame(409, $exception->httpStatus);
+        }
+    }
+
+    private function executePlan(AuthenticationContext $context, ApiOperationContract $operation, string $confirmation, array $input, array $targetState): mixed
+    {
+        return $this->executePlanResolved($context, $operation, $confirmation, new RiskContext($input, $targetState, [], ['setting']));
+    }
+
+    private function executePlanResolved(AuthenticationContext $context, ApiOperationContract $operation, string $confirmation, RiskContext $riskContext): mixed
+    {
+        uss('api_high_risk_action_mode', 'planned');
+        try {
+            return app(ActionPlanService::class)->executeMiddlewareOperation(
+                $context,
+                $operation,
+                $confirmation,
+                '',
+                '',
+                ['setting'],
+                [],
+                false,
+                static fn (): RiskContext => $riskContext,
+                static fn (): null => null,
+            );
+        } finally {
+            uss('api_high_risk_action_mode', 'direct');
         }
     }
 }

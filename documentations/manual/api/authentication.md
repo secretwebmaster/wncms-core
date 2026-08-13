@@ -233,6 +233,10 @@ The public `ActionPlanService` creation methods enforce this boundary as well;
 direct package callers cannot bypass authorization or mandatory audit. Bulk
 operations require every requested target to exist at direct execution and plan
 creation; disappearance after a valid plan returns `risk.plan_stale`.
+The public `consume` contract must be called without a caller-owned database
+transaction; it fails closed before reading or changing security state when an
+outer transaction already exists. HTTP execution uses the internal middleware
+executor, which owns the complete domain, plan, proof, and event boundary.
 
 When Spatie wildcard permissions are enabled, the locked authorization snapshot
 applies the configured wildcard implementation to freshly loaded direct and role
@@ -245,6 +249,9 @@ or one-item `website_ids` value. Supplying several distinct websites returns
 `422 validation.failed`; WNCMS never silently chooses the first value. Plan
 creation, direct execution, and the resource controller use this same model
 website mode and canonical binding.
+When every selector is omitted for a single-website PATCH, the existing binding
+must also contain exactly one website; zero or multiple existing memberships
+return `422 validation.failed`.
 
 Execution recomputes effective risk from the transaction-fresh target and
 environment snapshot before any side effect, then reapplies plan eligibility,

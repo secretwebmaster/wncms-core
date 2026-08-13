@@ -929,6 +929,58 @@ class ProductionRiskOperationTest extends TestCase
         $this->assertSame($beforePlans + 1, DB::table('api_action_plans')->count());
     }
 
+    public function test_single_mode_omitted_patch_requires_one_existing_binding_in_direct_resolution(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'single']);
+        $actor = User::query()->firstOrFail();
+        $first = Website::query()->firstOrFail();
+        $second = Website::create([
+            'user_id' => $actor->id,
+            'domain' => 'single-direct-'.uniqid().'.test',
+            'site_name' => 'Single Direct Other',
+            'theme' => 'default',
+        ]);
+        $actor->websites()->syncWithoutDetaching([$first->id, $second->id]);
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+
+        foreach ([[], [$first->id, $second->id]] as $websiteIds) {
+            $channel = Channel::create(['name' => 'Single direct', 'slug' => 'single-direct-'.uniqid()]);
+            $channel->websites()->sync($websiteIds);
+            [$request] = $this->plannedChannelRequest($channel, [$first->id, $second->id], ['name' => 'After']);
+
+            try {
+                app(OperationRiskContextResolver::class)->resolveRequest($request, $operation, ['id' => $channel->id]);
+                $this->fail('Expected invalid omitted single-site binding.');
+            } catch (RiskContextException $exception) {
+                $this->assertSame('validation.failed', $exception->errorCode);
+                $this->assertSame(422, $exception->httpStatus);
+            }
+        }
+    }
+
+    public function test_single_mode_omitted_patch_is_identical_for_planning_and_preserves_one_binding(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'single']);
+        $actor = User::query()->firstOrFail();
+        $website = Website::query()->firstOrFail();
+        $actor->websites()->syncWithoutDetaching([$website->id]);
+        $actor->givePermissionTo(Permission::findOrCreate('channel_edit', 'web'));
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'plan-single-omitted', 'plan-session', ['channels.write'], [$website->id]);
+
+        $invalid = Channel::create(['name' => 'Single invalid plan', 'slug' => 'single-invalid-plan-'.uniqid()]);
+        $response = app(ActionPlanController::class)->store($this->actionPlanRequest($context, $operation->id, ['name' => 'After'], ['id' => $invalid->id]));
+        $this->assertSame(422, $response->getStatusCode());
+        $this->assertSame('validation.failed', $response->getData(true)['meta']['error_code']);
+
+        $valid = Channel::create(['name' => 'Single valid plan', 'slug' => 'single-valid-plan-'.uniqid()]);
+        $valid->websites()->sync([$website->id]);
+        $response = app(ActionPlanController::class)->store($this->actionPlanRequest($context, $operation->id, ['name' => 'After'], ['id' => $valid->id]));
+        $this->assertSame(201, $response->getStatusCode(), (string) $response->getContent());
+        $this->assertSame([$website->id], $valid->fresh()->websites()->pluck('websites.id')->map(static fn ($id): int => (int) $id)->all());
+    }
+
     /**
      * Verify mandatory audit failure rolls back plan storage without returning a secret.
      */

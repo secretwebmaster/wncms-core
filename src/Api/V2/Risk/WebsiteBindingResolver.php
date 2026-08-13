@@ -23,9 +23,16 @@ final class WebsiteBindingResolver
             return new WebsiteBinding([], $supplied, false);
         }
 
+        $mode = method_exists($modelClass, 'getWebsiteMode') ? $modelClass::getWebsiteMode() : 'global';
+
         if (! $supplied) {
             if ($action === 'update' && $existing !== null && method_exists($existing, 'websites')) {
-                return new WebsiteBinding($this->existingIds($existing), false, false);
+                $existingIds = $this->existingIds($existing);
+                if ($mode === 'single' && count($existingIds) !== 1) {
+                    throw new RiskContextException('validation.failed', 422);
+                }
+
+                return new WebsiteBinding($existingIds, false, false);
             }
 
             throw new RiskContextException('validation.failed', 422);
@@ -49,7 +56,6 @@ final class WebsiteBindingResolver
         if ($canonical === []) {
             throw new RiskContextException('validation.failed', 422);
         }
-        $mode = method_exists($modelClass, 'getWebsiteMode') ? $modelClass::getWebsiteMode() : 'global';
         if ($mode === 'single' && count($canonical) !== 1) {
             throw new RiskContextException('validation.failed', 422);
         }

@@ -2,8 +2,10 @@
 
 namespace Wncms\Tests\Feature\Api\V2;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Contracts\Wildcard;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -100,6 +102,37 @@ class TargetOperationAuthorizerTest extends TestCase
         $this->expectPermissionDenied(fn () => app(TargetOperationAuthorizer::class)->authorize($context, $this->operation('channel.edit')));
     }
 
+    public function test_custom_wildcard_constructor_uses_the_contract_model_argument(): void
+    {
+        config([
+            'permission.enable_wildcard_permission' => true,
+            'permission.wildcard_permission' => Task8CustomWildcard::class,
+        ]);
+        $actor = User::factory()->create();
+        $actor->givePermissionTo(Permission::findOrCreate('channel.*', 'web'));
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'authority-custom-wildcard', 'authority-session', ['channels.write'], []);
+
+        app(TargetOperationAuthorizer::class)->authorize($context, $this->operation('channel.edit'));
+
+        $this->assertSame($actor->getKey(), Task8CustomWildcard::$actorId);
+    }
+
+    public function test_invalid_custom_wildcard_class_fails_closed(): void
+    {
+        config([
+            'permission.enable_wildcard_permission' => true,
+            'permission.wildcard_permission' => Task8InvalidWildcard::class,
+        ]);
+        $actor = User::factory()->create();
+        $actor->givePermissionTo(Permission::findOrCreate('channel.*', 'web'));
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'authority-invalid-wildcard', 'authority-session', ['channels.write'], []);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Configured wildcard permission resolver is invalid.');
+
+        app(TargetOperationAuthorizer::class)->authorize($context, $this->operation('channel.edit'));
+    }
+
     private function operation(string $permission = 'channel_edit'): ApiOperationContract
     {
         return new ApiOperationContract(
@@ -121,4 +154,29 @@ class TargetOperationAuthorizerTest extends TestCase
             $this->assertSame(403, $exception->httpStatus);
         }
     }
+}
+
+class Task8CustomWildcard implements Wildcard
+{
+    public static int|string|null $actorId = null;
+
+    public function __construct(Model $model)
+    {
+        self::$actorId = $model->getKey();
+    }
+
+    public function getIndex(): array
+    {
+        return ['web' => []];
+    }
+
+    public function implies(string $permission, string $guardName, array $index): bool
+    {
+        return $permission === 'channel.edit' && $guardName === 'web';
+    }
+}
+
+class Task8InvalidWildcard
+{
+    public function __construct(Model $model) {}
 }

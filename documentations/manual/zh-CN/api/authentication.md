@@ -206,10 +206,14 @@ direct/role permission snapshot 会在 target 或 website resolution 前检查�
 公开的 `ActionPlanService` 创建方法同样强制此边界，direct package caller 无法绕过授权或
 mandatory audit。Bulk operation 在 direct execution 与 plan 创建时要求所有 requested target
 存在；有效 plan 建立后 target 消失则返回 `risk.plan_stale`。
+公开 `consume` contract 必须在 caller 没有开启 database transaction 时调用；若已有 outer
+transaction，会在读取或修改任何 security state 前 fail closed。HTTP execution 使用内部
+middleware executor，由它拥有完整的 domain、plan、proof 与 event boundary。
 
 启用 Spatie 通配符权限时，锁定的授权快照会对刚从数据库读取的直接与角色授权套用已配置的通配符实现，不会使用权限注册器的陈旧缓存，并保留 guard 与 team 范围语义。关闭通配符支持时，精确权限行为维持不变。
 
 单站模型只接受一个规范化的 `website_id`、`website_key`，或只含一项的 `website_ids`。提供多个不同网站会返回 `422 validation.failed`；WNCMS 不会静默选取第一个值。计划创建、直接执行与资源控制器使用同一模型网站模式和规范绑定。
+单站 PATCH 省略所有 selector 时，现有 binding 也必须正好包含一个网站；现有 membership 为零或多笔时返回 `422 validation.failed`。
 
 执行会在任何副作用前，以事务内重新读取的目标与环境快照重算有效风险，再重新套用计划资格、凭证、step-up 与高风险模式规则。因此 normal→high 的即时升级在没有确认码时返回 `428 risk.plan_required`，操作不具计划资格时返回 `503 risk.policy_unavailable`，而已提供计划与新风险或环境绑定不符时返回 `409 risk.plan_stale`。直接模式仍会执行其凭证限制。
 

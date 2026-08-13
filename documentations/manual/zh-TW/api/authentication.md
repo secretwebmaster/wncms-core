@@ -206,10 +206,14 @@ direct/role permission snapshot 會在 target 或 website resolution 前檢查�
 公開的 `ActionPlanService` 建立方法同樣強制此邊界，direct package caller 無法繞過授權或
 mandatory audit。Bulk operation 在 direct execution 與 plan 建立時要求所有 requested target
 存在；有效 plan 建立後 target 消失則回傳 `risk.plan_stale`。
+公開 `consume` contract 必須在 caller 未開啟 database transaction 時呼叫；若已有 outer
+transaction，會在讀取或修改任何 security state 前 fail closed。HTTP execution 使用內部
+middleware executor，由它擁有完整的 domain、plan、proof 與 event boundary。
 
 啟用 Spatie 萬用字元權限時，鎖定的授權快照會對剛從資料庫讀取的直接與角色授權套用已設定的萬用字元實作，不會使用權限註冊器的陳舊快取，並保留 guard 與 team 範圍語意。關閉萬用字元支援時，精確權限行為維持不變。
 
 單站模型只接受一個規範化的 `website_id`、`website_key`，或只含一項的 `website_ids`。提供多個不同網站會回傳 `422 validation.failed`；WNCMS 不會靜默選取第一個值。計畫建立、直接執行與資源控制器使用同一模型網站模式和規範綁定。
+單站 PATCH 省略所有 selector 時，現有 binding 也必須正好包含一個網站；現有 membership 為零或多筆時回傳 `422 validation.failed`。
 
 執行會在任何副作用前，以交易內重新讀取的目標與環境快照重算有效風險，再重新套用計畫資格、憑證、step-up 與高風險模式規則。因此 normal→high 的即時升級在沒有確認碼時回傳 `428 risk.plan_required`，操作不具計畫資格時回傳 `503 risk.policy_unavailable`，而已提供計畫與新風險或環境綁定不符時回傳 `409 risk.plan_stale`。直接模式仍會執行其憑證限制。
 

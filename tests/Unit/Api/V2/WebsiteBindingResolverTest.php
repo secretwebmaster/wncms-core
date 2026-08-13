@@ -90,4 +90,33 @@ class WebsiteBindingResolverTest extends TestCase
         $this->assertSame([(int) $first->getKey()], $resolver->resolve(['website_id' => $first->getKey()], Channel::class, 'store')->websiteIds);
         $this->assertSame([(int) $second->getKey()], $resolver->resolve(['website_key' => 'website:'.$second->getKey()], Channel::class, 'update')->websiteIds);
     }
+
+    public function test_single_mode_patch_omission_requires_exactly_one_existing_binding(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'single']);
+        $first = Website::query()->firstOrFail();
+        $second = Website::create([
+            'site_name' => 'Single omitted second',
+            'domain' => 'single-omitted-'.uniqid().'.test',
+            'user_id' => $first->user_id,
+        ]);
+        $resolver = app(WebsiteBindingResolver::class);
+
+        $valid = Channel::create(['name' => 'Single valid', 'slug' => 'single-valid-'.uniqid()]);
+        $valid->websites()->sync([$first->getKey()]);
+        $this->assertSame([(int) $first->getKey()], $resolver->resolve([], Channel::class, 'update', $valid)->websiteIds);
+
+        foreach ([[], [$first->getKey(), $second->getKey()]] as $websiteIds) {
+            $invalid = Channel::create(['name' => 'Single invalid', 'slug' => 'single-invalid-'.uniqid()]);
+            $invalid->websites()->sync($websiteIds);
+
+            try {
+                $resolver->resolve([], Channel::class, 'update', $invalid);
+                $this->fail('Expected invalid omitted single-site binding.');
+            } catch (RiskContextException $exception) {
+                $this->assertSame('validation.failed', $exception->errorCode);
+                $this->assertSame(422, $exception->httpStatus);
+            }
+        }
+    }
 }
