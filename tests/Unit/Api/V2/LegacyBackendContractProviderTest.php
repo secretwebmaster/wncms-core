@@ -13,8 +13,6 @@ class LegacyBackendContractProviderTest extends TestCase
 {
     /**
      * Register every enabled resource route and configured bridge action exactly once.
-     *
-     * @return void
      */
     public function test_it_adapts_every_enabled_backend_route_into_a_contract_operation(): void
     {
@@ -93,9 +91,8 @@ class LegacyBackendContractProviderTest extends TestCase
             $this->assertSame("api.v2.backend.{$action['name']}", $operation->routeName);
             $this->assertSame($action['permission_template'] ?? $action['permission'] ?? null, $operation->permission);
             $this->assertSame(isset($action['permission_template']) ? 'model_template' : 'static', $operation->permissionMode);
-            $domain = explode('.', (string) $action['name'], 2)[0];
-            $expectedAbility = $domain.'.'.(strtoupper((string) $action['method']) === 'GET' ? 'read' : 'write');
-            $this->assertSame($expectedAbility, $operation->ability);
+            $expectedAbilitySuffix = $operation->sideEffectKind === 'read' ? 'read' : 'write';
+            $this->assertSame(explode('.', (string) $action['name'], 2)[0].'.'.$expectedAbilitySuffix, $operation->ability);
             $this->assertTrue($operation->websiteScoped);
             $this->assertSame('legacy_bridge', $operation->implementation);
             if ($operation->sideEffectKind === 'read') {
@@ -117,8 +114,6 @@ class LegacyBackendContractProviderTest extends TestCase
 
     /**
      * Verify an enabled resource operation without a permission is never published.
-     *
-     * @return void
      */
     public function test_it_rejects_a_resource_operation_without_a_permission(): void
     {
@@ -136,8 +131,6 @@ class LegacyBackendContractProviderTest extends TestCase
 
     /**
      * Verify a bridge operation without static or validated dynamic permission is never published.
-     *
-     * @return void
      */
     public function test_it_rejects_a_bridge_operation_without_a_permission(): void
     {
@@ -157,8 +150,6 @@ class LegacyBackendContractProviderTest extends TestCase
 
     /**
      * Verify account credential mutations reject service tokens and require exact step-up.
-     *
-     * @return void
      */
     public function test_credential_mutation_contract_is_interactive_and_step_up_only(): void
     {

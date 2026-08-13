@@ -11,6 +11,7 @@ final readonly class RiskContext
      * @param  array<string, mixed>  $targetState
      * @param  array<string, mixed>  $environment
      * @param  array<int, string>  $modelKeys
+     * @param  array<int, string>  $connectionNames
      * @return void
      */
     public function __construct(
@@ -18,5 +19,6 @@ final readonly class RiskContext
         public array $targetState,
         public array $environment,
         public array $modelKeys = [],
+        public array $connectionNames = [],
     ) {}
 }

@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiResponseFactory;
+use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\LoginThrottleService;
+use Wncms\Http\Middleware\ApiV2TokenAuth;
 use Wncms\Services\Security\SecurityEventService;
 
 class RouteServiceProvider extends ServiceProvider
@@ -113,10 +115,41 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api-v2-reauthenticate', function (Request $request) {
             $window = max(1, (int) config('wncms.auth_security.login_window_minutes', 15));
             $failed = static fn (Response $response): bool => $response->getStatusCode() === Response::HTTP_UNAUTHORIZED;
-            $response = static fn (Request $request, array $headers): Response => app(ApiResponseFactory::class)
-                ->failure('authentication.rate_limited', 'Too many reauthentication attempts', Response::HTTP_TOO_MANY_REQUESTS)
-                ->withHeaders($headers);
-            $actorId = (string) ($request->user()?->getAuthIdentifier() ?? 'unknown');
+            $response = static function (Request $request, array $headers): Response {
+                $context = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
+                try {
+                    app(SecurityEventService::class)->recordAggregate('auth.step_up.failed', 'warning', 'denied', [
+                        'surface' => 'api_v2',
+                        'request_id' => $request->attributes->get('wncms_api_v2_request_id'),
+                        'actor_type' => $context instanceof AuthenticationContext ? $context->actor()::class : null,
+                        'actor_id' => $context instanceof AuthenticationContext ? $context->actorId() : null,
+                        'credential_type' => $context instanceof AuthenticationContext ? $context->credentialType() : null,
+                        'credential_id' => $context instanceof AuthenticationContext ? $context->credentialPublicId() : null,
+                        'session_id' => $context instanceof AuthenticationContext ? $context->sessionPublicId() : null,
+                        'website_ids' => $context instanceof AuthenticationContext ? $context->websiteIds() : [],
+                        'ip' => (string) $request->ip(),
+                        'login_identifier' => 'user:'.(string) ($context instanceof AuthenticationContext ? $context->actorId() : 'unknown'),
+                        'user_agent' => (string) ($request->userAgent() ?: 'unknown-client'),
+                        'error_code' => 'authentication.rate_limited',
+                        'http_status' => 429,
+                        'context' => ['reason' => 'reauthentication_throttled_account_or_ip'],
+                    ]);
+                } catch (\Throwable $exception) {
+                    report($exception);
+
+                    return app(ApiResponseFactory::class)->failure(
+                        'security.audit_unavailable',
+                        'Security audit is unavailable',
+                        Response::HTTP_SERVICE_UNAVAILABLE,
+                    );
+                }
+
+                return app(ApiResponseFactory::class)
+                    ->failure('authentication.rate_limited', 'Too many reauthentication attempts', Response::HTTP_TOO_MANY_REQUESTS)
+                    ->withHeaders($headers);
+            };
+            $context = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
+            $actorId = (string) ($context instanceof AuthenticationContext ? $context->actorId() : 'unknown');
 
             return [
                 Limit::perMinutes($window, max(1, (int) config('wncms.auth_security.login_account_attempts', 5)))

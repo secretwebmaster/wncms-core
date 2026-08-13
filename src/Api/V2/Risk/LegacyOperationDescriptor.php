@@ -7,22 +7,17 @@ final readonly class LegacyOperationDescriptor
     /**
      * Create one explicit legacy operation security descriptor.
      *
-     * @param  string  $operationId
-     * @param  string  $securityRisk
      * @param  array<int, string>  $acceptedCredentialTypes
-     * @param  bool  $requiresStepUp
      * @param  array<int, string>  $stepUpPurposes
-     * @param  bool  $actionPlanEligible
      * @param  array<int, string>  $domainModelKeys
      * @param  array<int, string>  $transactionalOutboxModelKeys
-     * @param  string  $sideEffectKind
-     * @param  string  $canonicalizer
-     * @param  string  $targetResolver
-     * @param  bool  $idempotent
+     * @param  array<int, string>  $relationshipBoundaries
      * @return void
      */
     public function __construct(
         public string $operationId,
+        public string $ability,
+        public string $dataRisk,
         public string $securityRisk,
         public array $acceptedCredentialTypes,
         public bool $requiresStepUp,
@@ -34,5 +29,6 @@ final readonly class LegacyOperationDescriptor
         public string $canonicalizer,
         public string $targetResolver,
         public bool $idempotent,
+        public array $relationshipBoundaries = [],
     ) {}
 }

@@ -179,6 +179,23 @@ binding。Bulk binding 同時包含排序後的 requested IDs 與 locked rows，
 原先缺失的 target 都會使 plan stale。Account 與 IP reauthentication limit 會在 token
 authentication 後執行，讓 account limit 綁定到實際 actor。
 
+Generic resource descriptor 也會綁定所選 website rows，以及 target model 實際的
+`websites` pivot membership。每個 `website_id` 與 `website_ids` 值都必須同時位於
+credential scope 與 actor 目前可存取範圍內；沒有 membership 的 website-scoped target
+會被拒絕。執行 transaction 內會再次鎖定並解析這些 rows 與 pivots，因此 membership
+或 website existence 改變會使 plan stale。Target、website、pivot、plan、proof 與
+security-event model 必須解析到同一個 named database connection，否則 plan 建立或
+執行會在 side effect 前 fail closed。Global model 在明確選擇的 website 通過一般 scope
+授權後，仍保留 global target semantics。
+
+Descriptor 的 `ability` 與 data `risk` 是語意宣告，不會從 HTTP method 推導。Registry
+啟動時會拒絕 resource/bridge operation-ID collision，除非 ID 位於經審核的 override
+清單。Direct mode 可執行已授權的 external bridge，但沒有 transactional plan guarantee；
+planned mode 下不符合 plan 資格的 high/critical bridge 會回傳
+`risk.policy_unavailable`。Reauthentication 達到 account 或 IP limit 時，`429` denial
+會以 rate-limited context 記錄為 `auth.step_up.failed`；mandatory audit 無法持久化時，
+WNCMS 回傳 `503`。
+
 ## 簡易驗證（建議）
 
 使用 API token 的最常見身份驗證方法。

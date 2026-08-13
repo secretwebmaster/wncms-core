@@ -2,6 +2,7 @@
 
 namespace Wncms\Tests\Unit\Api\V2;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Wncms\Api\V2\Risk\LegacyOperationDescriptorRegistry;
 
@@ -9,8 +10,6 @@ class LegacyOperationDescriptorRegistryTest extends TestCase
 {
     /**
      * Verify every configured legacy operation has one explicit security descriptor.
-     *
-     * @return void
      */
     public function test_every_configured_operation_has_a_complete_explicit_descriptor(): void
     {
@@ -28,20 +27,20 @@ class LegacyOperationDescriptorRegistryTest extends TestCase
                 }
             }
         }
-        $this->assertCount(count(array_unique($operationIds)), $descriptors);
+        $this->assertCount(count($operationIds) - 4, $descriptors);
         foreach ($descriptors as $operationId => $descriptor) {
             $this->assertSame($operationId, $descriptor->operationId);
             $this->assertNotSame([], $descriptor->acceptedCredentialTypes);
             $this->assertContains($descriptor->sideEffectKind, ['database', 'transactional_outbox', 'external', 'read']);
             $this->assertNotSame('', $descriptor->canonicalizer);
             $this->assertNotSame('', $descriptor->targetResolver);
+            $this->assertNotSame('', $descriptor->ability);
+            $this->assertContains($descriptor->dataRisk, ['read', 'write', 'destructive']);
         }
     }
 
     /**
      * Verify credential mutations and service-safe content mutations have explicit allowlists.
-     *
-     * @return void
      */
     public function test_credential_and_service_token_boundaries_are_explicit(): void
     {
@@ -62,13 +61,74 @@ class LegacyOperationDescriptorRegistryTest extends TestCase
             'permissions' => ['update' => 'channel_edit'],
         ]);
         $this->assertSame(['interactive_access', 'service_token'], $channel->acceptedCredentialTypes);
-        $this->assertSame(['channel'], $channel->domainModelKeys);
+        $this->assertSame(['channel', 'website'], $channel->domainModelKeys);
+        $this->assertSame(['websites'], $channel->relationshipBoundaries);
+    }
+
+    /**
+     * Verify semantic read/write declarations do not follow the transport method.
+     */
+    public function test_bridge_ability_and_data_risk_are_explicit(): void
+    {
+        $registry = new LegacyOperationDescriptorRegistry;
+
+        $postRead = $registry->action($this->action('menus.get_menu_item'));
+        $this->assertSame('menus.read', $postRead->ability);
+        $this->assertSame('read', $postRead->dataRisk);
+
+        $getExternal = $registry->action($this->action('settings.google_test'));
+        $this->assertSame('settings.write', $getExternal->ability);
+        $this->assertSame('write', $getExternal->dataRisk);
+    }
+
+    /**
+     * Verify only maintained collision overrides may replace resource descriptors.
+     */
+    public function test_unapproved_operation_collision_fails_closed(): void
+    {
+        $registry = new LegacyOperationDescriptorRegistry;
+
+        $this->expectException(InvalidArgumentException::class);
+        $registry->configured([
+            'menus' => [
+                'model_key' => 'menu',
+                'enabled_actions' => ['update'],
+                'permissions' => ['update' => 'menu_edit'],
+            ],
+        ], [[
+            'name' => 'menus.update',
+            'method' => 'post',
+            'permission' => 'menu_edit',
+        ]]);
+    }
+
+    /**
+     * Verify every production collision has an explicit audited bridge override.
+     */
+    public function test_production_collisions_are_explicit_overrides(): void
+    {
+        $config = require dirname(__DIR__, 4).'/config/wncms-backend-api-v2.php';
+        $descriptors = (new LegacyOperationDescriptorRegistry)->configured($config['resources'], $config['actions']);
+
+        $collisions = array_keys(array_filter(
+            $descriptors,
+            static fn ($descriptor): bool => in_array($descriptor->operationId, [
+                'backend.clicks.bulk_delete', 'backend.clicks.destroy', 'backend.pages.bulk_delete', 'backend.permissions.bulk_delete',
+            ], true),
+        ));
+        sort($collisions);
+
+        $this->assertSame([
+            'backend.clicks.bulk_delete',
+            'backend.clicks.destroy',
+            'backend.pages.bulk_delete',
+            'backend.permissions.bulk_delete',
+        ], $collisions);
     }
 
     /**
      * Find one real configured bridge action.
      *
-     * @param  string  $name
      * @return array<string, mixed>
      */
     private function action(string $name): array

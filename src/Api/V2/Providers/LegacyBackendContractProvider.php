@@ -9,35 +9,33 @@ use Wncms\Api\V2\Data\ApiDomainContract;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Api\V2\Data\ApiSchema;
 use Wncms\Api\V2\LegacyOperationSecurity;
+use Wncms\Api\V2\Risk\LegacyOperationDescriptorRegistry;
 use Wncms\Http\Controllers\Api\V2\Backend\ResourceController;
 
 class LegacyBackendContractProvider implements ApiContractProvider
 {
     /**
      * Register configured backend resource and bridge contracts.
-     *
-     * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
-     * @return void
      */
     public function register(ApiContractRegistry $registry): void
     {
         $actions = config('wncms-backend-api-v2.actions', []);
+        $resources = config('wncms-backend-api-v2.resources', []);
+        (new LegacyOperationDescriptorRegistry)->validateCollisions($resources, $actions);
         $bridgeOperationIds = array_map(
             fn (array $action): string => 'backend.'.($action['name'] ?? ''),
             $actions,
         );
 
-        $this->registerResources($registry, config('wncms-backend-api-v2.resources', []), $bridgeOperationIds);
+        $this->registerResources($registry, $resources, $bridgeOperationIds);
         $this->registerActions($registry, $actions);
     }
 
     /**
      * Register configured backend resource contracts.
      *
-     * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
      * @param  array<string, array<string, mixed>>  $resources
      * @param  array<int, string>  $bridgeOperationIds
-     * @return void
      */
     protected function registerResources(ApiContractRegistry $registry, array $resources, array $bridgeOperationIds): void
     {
@@ -79,7 +77,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                     permission: $security['permission'],
                     ability: $security['ability'],
                     websiteScoped: true,
-                    risk: $method === 'GET' ? 'read' : 'write',
+                    risk: $security['data_risk'],
                     implementation: $this->resourceImplementation($resource, $resourceConfig, $referenceDomain),
                     request: ApiSchema::object(),
                     response: ApiSchema::object(),
@@ -95,6 +93,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                     sideEffectKind: $security['side_effect_kind'],
                     canonicalizer: $security['canonicalizer'],
                     targetResolver: $security['target_resolver'],
+                    relationshipBoundaries: $security['relationship_boundaries'],
                 ));
             }
         }
@@ -103,9 +102,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
     /**
      * Register configured backend bridge action contracts.
      *
-     * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
      * @param  array<int, array<string, mixed>>  $actions
-     * @return void
      */
     protected function registerActions(ApiContractRegistry $registry, array $actions): void
     {
@@ -132,7 +129,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                 permission: $security['permission'],
                 ability: $security['ability'],
                 websiteScoped: true,
-                risk: $method === 'GET' ? 'read' : 'write',
+                risk: $security['data_risk'],
                 implementation: 'legacy_bridge',
                 request: ApiSchema::object(),
                 response: ApiSchema::object(),
@@ -148,16 +145,13 @@ class LegacyBackendContractProvider implements ApiContractProvider
                 sideEffectKind: $security['side_effect_kind'],
                 canonicalizer: $security['canonicalizer'],
                 targetResolver: $security['target_resolver'],
+                relationshipBoundaries: $security['relationship_boundaries'],
             ));
         }
     }
 
     /**
      * Register a domain only when it has not already been declared.
-     *
-     * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
-     * @param  string  $domain
-     * @return void
      */
     protected function registerDomain(ApiContractRegistry $registry, string $domain): void
     {
@@ -171,10 +165,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
     /**
      * Determine how a configured resource is currently implemented.
      *
-     * @param  string  $resource
      * @param  array<string, mixed>  $resourceConfig
-     * @param  string|null  $referenceDomain
-     * @return string
      */
     protected function resourceImplementation(string $resource, array $resourceConfig, ?string $referenceDomain): string
     {

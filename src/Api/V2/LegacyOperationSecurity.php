@@ -16,8 +16,6 @@ final class LegacyOperationSecurity
     /**
      * Build the ordered middleware catalog entry for one resource operation.
      *
-     * @param  string  $resource
-     * @param  string  $action
      * @param  array<string, mixed>  $resourceConfig
      * @return array<int, string>
      */
@@ -29,10 +27,8 @@ final class LegacyOperationSecurity
     /**
      * Resolve the validated security contract for one resource operation.
      *
-     * @param  string  $resource
-     * @param  string  $action
      * @param  array<string, mixed>  $resourceConfig
-     * @return array{ability: string, permission: string, permission_mode: string, security_risk: string, accepted_credential_types: array<int, string>, requires_step_up: bool, step_up_purposes: array<int, string>, action_plan_eligible: bool, domain_model_keys: array<int, string>, transactional_outbox_model_keys: array<int, string>, side_effect_kind: string, canonicalizer: string, target_resolver: string, idempotent: bool, middleware: array<int, string>}
+     * @return array{ability: string, data_risk: string, permission: string, permission_mode: string, security_risk: string, accepted_credential_types: array<int, string>, requires_step_up: bool, step_up_purposes: array<int, string>, action_plan_eligible: bool, domain_model_keys: array<int, string>, transactional_outbox_model_keys: array<int, string>, side_effect_kind: string, canonicalizer: string, target_resolver: string, relationship_boundaries: array<int, string>, idempotent: bool, middleware: array<int, string>}
      */
     public static function resourceRequirements(string $resource, string $action, array $resourceConfig): array
     {
@@ -44,11 +40,11 @@ final class LegacyOperationSecurity
             throw new InvalidArgumentException("Backend API resource [{$resource}.{$action}] cannot use a model template as a static permission.");
         }
 
-        $ability = self::resourceAbility($resource, $action);
         $descriptor = (new LegacyOperationDescriptorRegistry)->resource($resource, $action, $resourceConfig);
 
         return [
-            'ability' => $ability,
+            'ability' => $descriptor->ability,
+            'data_risk' => $descriptor->dataRisk,
             'permission' => $permission,
             'permission_mode' => 'static',
             'security_risk' => $descriptor->securityRisk,
@@ -61,8 +57,9 @@ final class LegacyOperationSecurity
             'side_effect_kind' => $descriptor->sideEffectKind,
             'canonicalizer' => $descriptor->canonicalizer,
             'target_resolver' => $descriptor->targetResolver,
+            'relationship_boundaries' => $descriptor->relationshipBoundaries,
             'idempotent' => $descriptor->idempotent,
-            'middleware' => self::middleware($ability, 'api_v2_permission:'.$permission, $descriptor->idempotent),
+            'middleware' => self::middleware($descriptor->ability, 'api_v2_permission:'.$permission, $descriptor->idempotent),
         ];
     }
 
@@ -81,7 +78,7 @@ final class LegacyOperationSecurity
      * Resolve the validated security contract for one bridge operation.
      *
      * @param  array<string, mixed>  $action
-     * @return array{ability: string, permission: string, permission_mode: string, security_risk: string, accepted_credential_types: array<int, string>, requires_step_up: bool, step_up_purposes: array<int, string>, action_plan_eligible: bool, domain_model_keys: array<int, string>, transactional_outbox_model_keys: array<int, string>, side_effect_kind: string, canonicalizer: string, target_resolver: string, idempotent: bool, middleware: array<int, string>}
+     * @return array{ability: string, data_risk: string, permission: string, permission_mode: string, security_risk: string, accepted_credential_types: array<int, string>, requires_step_up: bool, step_up_purposes: array<int, string>, action_plan_eligible: bool, domain_model_keys: array<int, string>, transactional_outbox_model_keys: array<int, string>, side_effect_kind: string, canonicalizer: string, target_resolver: string, relationship_boundaries: array<int, string>, idempotent: bool, middleware: array<int, string>}
      */
     public static function actionRequirements(array $action): array
     {
@@ -105,7 +102,6 @@ final class LegacyOperationSecurity
             throw new InvalidArgumentException("Backend API bridge operation [{$name}] has an unsupported permission template.");
         }
 
-        $ability = self::actionAbility($name, (string) ($action['method'] ?? 'post'));
         $permissionIdentity = $template !== '' ? $template : $permission;
         $permissionMiddleware = $template !== ''
             ? 'api_v2_model_permission:'.$modelPermission[1]
@@ -114,7 +110,8 @@ final class LegacyOperationSecurity
         $descriptor = (new LegacyOperationDescriptorRegistry)->action($action);
 
         return [
-            'ability' => $ability,
+            'ability' => $descriptor->ability,
+            'data_risk' => $descriptor->dataRisk,
             'permission' => $permissionIdentity,
             'permission_mode' => $template !== '' ? 'model_template' : 'static',
             'security_risk' => $descriptor->securityRisk,
@@ -127,17 +124,14 @@ final class LegacyOperationSecurity
             'side_effect_kind' => $descriptor->sideEffectKind,
             'canonicalizer' => $descriptor->canonicalizer,
             'target_resolver' => $descriptor->targetResolver,
+            'relationship_boundaries' => $descriptor->relationshipBoundaries,
             'idempotent' => $descriptor->idempotent,
-            'middleware' => self::middleware($ability, $permissionMiddleware, $descriptor->idempotent),
+            'middleware' => self::middleware($descriptor->ability, $permissionMiddleware, $descriptor->idempotent),
         ];
     }
 
     /**
      * Return the stable read/write ability for one resource operation.
-     *
-     * @param  string  $resource
-     * @param  string  $action
-     * @return string
      */
     public static function resourceAbility(string $resource, string $action): string
     {
@@ -146,24 +140,18 @@ final class LegacyOperationSecurity
 
     /**
      * Return the stable read/write ability for one configured bridge operation.
-     *
-     * @param  string  $name
-     * @param  string  $method
-     * @return string
      */
     public static function actionAbility(string $name, string $method): string
     {
-        $domain = explode('.', $name, 2)[0];
-
-        return $domain.'.'.(strtoupper($method) === 'GET' ? 'read' : 'write');
+        return (new LegacyOperationDescriptorRegistry)->action([
+            'name' => $name,
+            'method' => $method,
+        ])->ability;
     }
 
     /**
      * Return the mandatory ordered authorization middleware chain.
      *
-     * @param  string  $ability
-     * @param  string  $permissionMiddleware
-     * @param  bool  $idempotent
      * @return array<int, string>
      */
     private static function middleware(string $ability, string $permissionMiddleware, bool $idempotent): array

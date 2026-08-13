@@ -23,8 +23,15 @@ use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 use Wncms\Api\V2\ApiResponseFactory;
+use Wncms\Auth\Api\V2\ApiCredential;
+use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\TokenHasher;
+use Wncms\Http\Middleware\ApiV2TokenAuth;
+use Wncms\Http\Middleware\EnforceApiV2RiskPolicy;
+use Wncms\Http\Middleware\ResolveApiV2RiskContext;
+use Wncms\Http\Middleware\ResolveApiV2WebsiteScope;
 use Wncms\Models\ApiSession;
+use Wncms\Models\Channel;
 use Wncms\Models\User;
 use Wncms\Models\Website;
 use Wncms\Tests\Fixtures\Api\V2\MismatchedModelKey;
@@ -47,8 +54,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Register a fully guarded endpoint with deterministic authorization requirements.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -96,8 +101,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify ability denial prevents permission, website, and domain evaluation.
-     *
-     * @return void
      */
     public function test_ability_denial_short_circuits_later_guards_and_domain_execution(): void
     {
@@ -116,8 +119,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify permission denial follows ability and prevents website/domain evaluation.
-     *
-     * @return void
      */
     public function test_permission_denial_short_circuits_website_and_domain_execution(): void
     {
@@ -135,8 +136,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify website scope is the final authorization guard before domain execution.
-     *
-     * @return void
      */
     public function test_website_denial_short_circuits_domain_execution(): void
     {
@@ -162,8 +161,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify an absent or malformed selector has a stable missing-scope failure.
-     *
-     * @return void
      */
     public function test_absent_and_malformed_website_selectors_return_scope_missing(): void
     {
@@ -196,8 +193,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify a production resource route enforces credential, ability, permission, and scope in order.
-     *
-     * @return void
      */
     public function test_links_index_route_enforces_the_production_guard_chain_before_domain_execution(): void
     {
@@ -245,8 +240,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify production route declarations retain parameterized guards in execution order.
-     *
-     * @return void
      */
     public function test_production_resource_route_declares_parameterized_guards_in_order(): void
     {
@@ -266,8 +259,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify high-risk routes resolve context before idempotency and risk confirmation.
-     *
-     * @return void
      */
     public function test_high_risk_route_resolves_context_then_idempotency_before_confirmation(): void
     {
@@ -286,9 +277,105 @@ class ApiGuardOrderTest extends TestCase
     }
 
     /**
+     * Verify scoped generic mutations cannot reach targets belonging to another token website.
+     */
+    public function test_generic_resource_mutations_reject_cross_scope_targets(): void
+    {
+        uss('enable_api_access', 1);
+        uss('api_access_whitelist', '');
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        foreach (['channel_edit', 'channel_delete', 'channel_bulk_delete'] as $permission) {
+            Permission::findOrCreate($permission, 'web');
+            $this->user->givePermissionTo($permission);
+        }
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $other = Website::create([
+            'user_id' => $this->user->id,
+            'domain' => 'scope-b-'.uniqid().'.test',
+            'site_name' => 'Scope B',
+            'theme' => 'default',
+        ]);
+        $this->user->websites()->syncWithoutDetaching([$other->id]);
+        $context = new AuthenticationContext($this->user, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'scope-test', $this->session->session_id, ['channels.write'], [$this->website->id]);
+        $targets = collect(['update', 'destroy', 'bulk'])->map(function (string $suffix) use ($other): Channel {
+            $channel = Channel::create(['name' => 'Scope '.$suffix, 'slug' => 'scope-'.$suffix.'-'.uniqid()]);
+            $channel->websites()->sync([$other->id]);
+
+            return $channel;
+        });
+
+        $update = Request::create('/api/v2/backend/channels/'.$targets[0]->id, 'PATCH', ['name' => 'Must not update', 'website_id' => $this->website->id]);
+        $response = $this->scopedResourceRequest($update, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $targets[0]->id));
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('website.scope_denied', $response->getData(true)['meta']['error_code']);
+        $this->assertNotSame('Must not update', $targets[0]->fresh()->name);
+
+        $destroy = Request::create('/api/v2/backend/channels/'.$targets[1]->id, 'DELETE', ['website_id' => $this->website->id]);
+        $response = $this->scopedResourceRequest($destroy, 'api.v2.backend.channels.destroy', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->destroy($request, 'channels', $targets[1]->id));
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertNotNull($targets[1]->fresh());
+
+        $bulk = Request::create('/api/v2/backend/channels/bulk_delete', 'POST', ['model_ids' => [$targets[2]->id], 'website_id' => $this->website->id]);
+        $response = $this->scopedResourceRequest($bulk, 'api.v2.backend.channels.bulk_delete', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->bulkDelete($request, 'channels'));
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertNotNull($targets[2]->fresh());
+    }
+
+    /**
+     * Verify every requested website is scoped and a legal scoped mutation still executes.
+     */
+    public function test_generic_resource_update_validates_all_website_ids_and_allows_legal_scope(): void
+    {
+        uss('enable_api_access', 1);
+        uss('api_access_whitelist', '');
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        Permission::findOrCreate('channel_edit', 'web');
+        $this->user->givePermissionTo('channel_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $other = Website::create([
+            'user_id' => $this->user->id,
+            'domain' => 'scope-request-b-'.uniqid().'.test',
+            'site_name' => 'Scope Request B',
+            'theme' => 'default',
+        ]);
+        $this->user->websites()->syncWithoutDetaching([$other->id]);
+        $channel = Channel::create(['name' => 'Scoped Before', 'slug' => 'scoped-legal-'.uniqid()]);
+        $channel->websites()->sync([$this->website->id]);
+        $context = new AuthenticationContext($this->user, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'scope-test', $this->session->session_id, ['channels.write'], [$this->website->id]);
+
+        $denied = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
+            'name' => 'Denied', 'website_id' => $this->website->id, 'website_ids' => [$other->id, $this->website->id],
+        ]);
+        $response = $this->scopedResourceRequest($denied, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('Scoped Before', $channel->fresh()->name);
+
+        $allowed = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
+            'name' => 'Scoped After', 'website_id' => $this->website->id, 'website_ids' => [$this->website->id, $this->website->id],
+        ]);
+        $response = $this->scopedResourceRequest($allowed, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('Scoped After', $channel->fresh()->name);
+        $this->assertSame([$this->website->id], $channel->fresh()->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->all());
+
+        $unscoped = Channel::create(['name' => 'No Membership', 'slug' => 'scoped-empty-'.uniqid()]);
+        $emptyMembership = Request::create('/api/v2/backend/channels/'.$unscoped->id, 'PATCH', [
+            'name' => 'Must remain unchanged', 'website_id' => $this->website->id,
+        ]);
+        $response = $this->scopedResourceRequest($emptyMembership, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $unscoped->id));
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('No Membership', $unscoped->fresh()->name);
+
+        $malformed = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
+            'name' => 'Must remain scoped', 'website_id' => $this->website->id, 'website_ids' => [$this->website->id, 'invalid'],
+        ]);
+        $response = $this->scopedResourceRequest($malformed, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('Scoped After', $channel->fresh()->name);
+    }
+
+    /**
      * Verify generic model mutations enforce permission before their unsupported risk boundary.
-     *
-     * @return void
      */
     public function test_generic_model_update_enforces_the_validated_target_permission(): void
     {
@@ -326,16 +413,12 @@ class ApiGuardOrderTest extends TestCase
             'column' => 'username',
             'value' => 'generic-target-allowed',
             'website_id' => $this->website->id,
-        ])
-            ->assertStatus(503)
-            ->assertJsonPath('meta.error_code', 'risk.policy_unavailable');
-        $this->assertNotSame('generic-target-allowed', $target->fresh()->username);
+        ])->assertOk();
+        $this->assertSame('generic-target-allowed', $target->fresh()->username);
     }
 
     /**
-     * Verify a dynamic override cannot execute without a declared atomic risk boundary.
-     *
-     * @return void
+     * Verify direct mode mutates the exact trusted override rather than a decoy.
      */
     public function test_generic_model_update_mutates_the_exact_trusted_override_instead_of_a_same_name_decoy(): void
     {
@@ -373,20 +456,15 @@ class ApiGuardOrderTest extends TestCase
             'column' => 'updated_at',
             'value' => $newTimestamp,
             'website_id' => $this->website->id,
-        ])
-            ->assertStatus(503)
-            ->assertJsonPath('meta.error_code', 'risk.policy_unavailable');
+        ])->assertOk();
 
-        $this->assertSame($targetBefore, (string) DB::table('users')->where('id', $target->id)->value('updated_at'));
+        $this->assertSame($newTimestamp, (string) DB::table('users')->where('id', $target->id)->value('updated_at'));
+        $this->assertNotSame($targetBefore, (string) DB::table('users')->where('id', $target->id)->value('updated_at'));
         $this->assertSame($decoyBefore, (string) DB::table('websites')->where('id', $decoy->id)->value('updated_at'));
     }
 
     /**
      * Verify invalid modelKey metadata returns a stable permission denial instead of an exception.
-     *
-     * @param  string  $modelKey
-     * @param  string  $modelClass
-     * @return void
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('invalidCatalogModelProvider')]
     public function test_generic_model_update_rejects_invalid_catalog_metadata_without_a_server_error(
@@ -433,8 +511,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify unknown generic model selectors fail before website resolution.
-     *
-     * @return void
      */
     public function test_generic_model_update_rejects_an_unknown_model_selector_before_scope(): void
     {
@@ -456,8 +532,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify generic model routes advertise their dynamic permission templates and middleware.
-     *
-     * @return void
      */
     public function test_generic_model_routes_declare_dynamic_target_permission_before_scope(): void
     {
@@ -489,8 +563,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify every configured resource and bridge operation declares its own ordered guards.
-     *
-     * @return void
      */
     public function test_every_production_resource_and_bridge_route_declares_operation_specific_guards(): void
     {
@@ -521,8 +593,9 @@ class ApiGuardOrderTest extends TestCase
             $route = Route::getRoutes()->getByName('api.v2.backend.'.(string) $action['name']);
 
             $this->assertNotNull($route, 'Missing configured route api.v2.backend.'.(string) $action['name'].'.');
-            $domain = explode('.', (string) $action['name'], 2)[0];
-            $ability = $domain.'.'.(strtoupper((string) $action['method']) === 'GET' ? 'read' : 'write');
+            $operation = app(\Wncms\Api\V2\ApiContractRegistry::class)->operation('backend.'.(string) $action['name']);
+            $this->assertNotNull($operation);
+            $ability = $operation->ability;
             $permissionMiddleware = isset($action['permission_template'])
                 ? 'api_v2_model_permission:'.str_replace(['{model}_', '{model}'], '', (string) $action['permission_template'])
                 : 'api_v2_permission:'.(string) ($action['permission'] ?? '');
@@ -537,9 +610,29 @@ class ApiGuardOrderTest extends TestCase
     }
 
     /**
+     * Verify bridge authorization and risk follow semantic operation metadata.
+     */
+    public function test_production_bridge_semantics_are_not_inferred_from_http_method(): void
+    {
+        $registry = app(\Wncms\Api\V2\ApiContractRegistry::class);
+        $expectations = [
+            'backend.menus.get_menu_item' => ['menus.read', 'read'],
+            'backend.settings.google_test' => ['settings.write', 'write'],
+        ];
+
+        foreach ($expectations as $operationId => [$ability, $risk]) {
+            $operation = $registry->operation($operationId);
+            $this->assertNotNull($operation);
+            $this->assertSame($ability, $operation->ability);
+            $this->assertSame($risk, $operation->risk);
+            $route = Route::getRoutes()->getByName($operation->routeName);
+            $this->assertNotNull($route);
+            $this->assertContains('api_v2_ability:'.$ability, $route->gatherMiddleware());
+        }
+    }
+
+    /**
      * Verify numeric IDs and canonical website keys select the same stable website identity.
-     *
-     * @return void
      */
     public function test_explicit_website_id_and_key_resolve_the_same_stable_identity(): void
     {
@@ -561,8 +654,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify changing a website domain does not change token or idempotency identity.
-     *
-     * @return void
      */
     public function test_domain_changes_do_not_change_the_explicit_website_identity(): void
     {
@@ -584,8 +675,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify actor website access remains an independent ceiling over token scope.
-     *
-     * @return void
      */
     public function test_token_scope_cannot_bypass_current_actor_website_access(): void
     {
@@ -602,8 +691,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Verify every guard failure retains the outer request identifier.
-     *
-     * @return void
      */
     public function test_guard_failure_preserves_the_request_id(): void
     {
@@ -625,7 +712,6 @@ class ApiGuardOrderTest extends TestCase
      *
      * @param  array<int, string>  $abilities
      * @param  array<int, int>  $websiteIds
-     * @return string
      */
     private function token(array $abilities, array $websiteIds): string
     {
@@ -645,9 +731,26 @@ class ApiGuardOrderTest extends TestCase
     }
 
     /**
+     * Execute production scope and risk middleware around a real generic resource controller.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    private function scopedResourceRequest(Request $request, string $routeName, AuthenticationContext $context, callable $domain)
+    {
+        $route = Route::getRoutes()->getByName($routeName);
+        $route->bind($request);
+        $request->setRouteResolver(fn () => $route);
+        $request->attributes->set(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE, $context);
+        auth()->setUser($this->user);
+
+        return app(ResolveApiV2WebsiteScope::class)->handle($request, fn (Request $request) => app(ResolveApiV2RiskContext::class)->handle($request, fn (Request $request) => app(EnforceApiV2RiskPolicy::class)->handle($request, $domain)
+        )
+        );
+    }
+
+    /**
      * Send a request through the complete ordered guard chain.
      *
-     * @param  string  $token
      * @param  array<string, mixed>  $query
      * @return \Illuminate\Testing\TestResponse
      */
@@ -663,7 +766,6 @@ class ApiGuardOrderTest extends TestCase
      *
      * @param  array<int, string>  $middleware
      * @param  array<int, string>  $expected
-     * @return void
      */
     private function assertMiddlewareOrder(array $middleware, array $expected): void
     {
@@ -684,10 +786,6 @@ class ApiGuardOrderTest extends TestCase
 
     /**
      * Add one model to the backend allowlist and WNCMS override map.
-     *
-     * @param  string  $modelKey
-     * @param  string  $modelClass
-     * @return void
      */
     private function configureCatalogModel(string $modelKey, string $modelClass): void
     {

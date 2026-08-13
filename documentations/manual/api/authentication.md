@@ -198,6 +198,26 @@ new, deleted, or previously missing target makes the plan stale. Account and IP
 reauthentication limits run after token authentication, allowing account limits
 to bind to the actual actor.
 
+Generic resource descriptors also bind the selected website rows and the
+target model's actual `websites` pivot membership. Every `website_id` and
+`website_ids` value must be inside both the credential scope and the actor's
+current access. Website-scoped targets with no membership are denied. These
+rows and pivots are locked and resolved again inside execution, so membership
+or website existence changes make a plan stale. The target, website, pivot,
+plan, proof, and security-event models must resolve to one named database
+connection; otherwise plan creation or execution fails before a side effect.
+Global models retain global target semantics after the explicitly selected
+websites pass normal scope authorization.
+
+Descriptor `ability` and data `risk` are semantic declarations, not deductions
+from the HTTP method. Registry startup rejects resource/bridge operation-ID
+collisions unless the ID is on the reviewed override list. In direct mode an
+authorized external bridge may execute without transactional plan guarantees;
+in planned mode a high/critical bridge that is not plan-eligible returns
+`risk.policy_unavailable`. When reauthentication reaches its account or IP
+limit, the `429` denial is recorded as `auth.step_up.failed` with rate-limited
+context; if that mandatory audit cannot be persisted, WNCMS returns `503`.
+
 ## Simple Authentication (Recommended)
 
 The most common authentication method using API tokens.

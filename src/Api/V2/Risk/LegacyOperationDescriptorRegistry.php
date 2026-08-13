@@ -8,6 +8,10 @@ use Wncms\Http\Controllers\Api\V2\Backend\ResourceController;
 
 final class LegacyOperationDescriptorRegistry
 {
+    private const ACTION_OVERRIDES = [
+        'pages.bulk_delete', 'permissions.bulk_delete', 'clicks.destroy', 'clicks.bulk_delete',
+    ];
+
     private const READ_ACTIONS = [
         'menus.get_menu_item', 'menus.search_source_items', 'pages.builder.load', 'pages.templates',
         'pages.widget', 'posts.meta', 'posts.translations', 'tags.create_type', 'tags.bulk_create',
@@ -85,6 +89,7 @@ final class LegacyOperationDescriptorRegistry
      */
     public function configured(array $resources, array $actions): array
     {
+        $this->validateCollisions($resources, $actions);
         $descriptors = [];
         foreach ($resources as $resource => $config) {
             $enabled = $config['enabled_actions'] ?? ['index', 'show', 'store', 'update', 'destroy', 'bulk_delete'];
@@ -105,12 +110,33 @@ final class LegacyOperationDescriptorRegistry
     }
 
     /**
+     * Reject unapproved resource and bridge operation collisions.
+     *
+     * @param  array<string, array<string, mixed>>  $resources
+     * @param  array<int, array<string, mixed>>  $actions
+     */
+    public function validateCollisions(array $resources, array $actions): void
+    {
+        $resourceIds = [];
+        foreach ($resources as $resource => $config) {
+            foreach ($config['enabled_actions'] ?? ['index', 'show', 'store', 'update', 'destroy', 'bulk_delete'] as $action) {
+                if ($action !== 'bulk_delete' || ($config['enable_bulk_delete'] ?? true) === true) {
+                    $resourceIds[] = "backend.{$resource}.{$action}";
+                }
+            }
+        }
+        foreach ($actions as $action) {
+            $name = (string) ($action['name'] ?? '');
+            if (in_array('backend.'.$name, $resourceIds, true) && ! in_array($name, self::ACTION_OVERRIDES, true)) {
+                throw new InvalidArgumentException("Legacy operation [backend.{$name}] has an unapproved resource/bridge collision.");
+            }
+        }
+    }
+
+    /**
      * Resolve one configured resource descriptor.
      *
-     * @param  string  $resource
-     * @param  string  $action
      * @param  array<string, mixed>  $config
-     * @return \Wncms\Api\V2\Risk\LegacyOperationDescriptor
      */
     public function resource(string $resource, string $action, array $config): LegacyOperationDescriptor
     {
@@ -130,10 +156,18 @@ final class LegacyOperationDescriptorRegistry
         $database = $controller === ResourceController::class && ! in_array($resource, ['permissions', 'roles'], true);
         $modelKeys = [(string) ($config['model_key'] ?? '')];
         $modelKeys = $database ? array_values(array_filter(array_unique($modelKeys))) : [];
+        $relationshipBoundaries = $database && ! $read ? ['websites'] : [];
+        if ($relationshipBoundaries !== []) {
+            $modelKeys[] = 'website';
+        }
         $plan = $database && in_array($risk, ['high', 'critical'], true);
+        $ability = $resource.'.'.($read ? 'read' : 'write');
+        $dataRisk = $read ? 'read' : (in_array($action, ['destroy', 'bulk_delete'], true) ? 'destructive' : 'write');
 
         return new LegacyOperationDescriptor(
             $operationId,
+            $ability,
+            $dataRisk,
             $risk,
             $credential ? [ApiCredential::TYPE_INTERACTIVE_ACCESS] : $this->resourceCredentials($resource),
             $credential,
@@ -145,6 +179,7 @@ final class LegacyOperationDescriptorRegistry
             'resource',
             $resource === 'roles' ? 'role' : ($action === 'bulk_delete' ? 'bulk_ids' : ($action === 'store' ? 'create' : 'route_id')),
             $plan,
+            $relationshipBoundaries,
         );
     }
 
@@ -152,7 +187,6 @@ final class LegacyOperationDescriptorRegistry
      * Resolve one explicitly classified bridge descriptor.
      *
      * @param  array<string, mixed>  $action
-     * @return \Wncms\Api\V2\Risk\LegacyOperationDescriptor
      */
     public function action(array $action): LegacyOperationDescriptor
     {
@@ -176,9 +210,14 @@ final class LegacyOperationDescriptorRegistry
         $risk = $read ? 'normal' : ($credential || in_array($name, self::CRITICAL_ACTIONS, true) ? 'critical' : 'high');
         $plan = $database && in_array($risk, ['high', 'critical'], true);
         $serviceAllowed = in_array($name, self::READ_ACTIONS, true) || in_array($name, self::SERVICE_ACTION_ALLOWLIST, true);
+        $domain = explode('.', $name, 2)[0];
+        $ability = $domain.'.'.($read ? 'read' : 'write');
+        $dataRisk = $read ? 'read' : (in_array($risk, ['critical'], true) ? 'destructive' : 'write');
 
         return new LegacyOperationDescriptor(
             'backend.'.$name,
+            $ability,
+            $dataRisk,
             $risk,
             $credential || ! $serviceAllowed
                 ? [ApiCredential::TYPE_INTERACTIVE_ACCESS]
@@ -198,7 +237,6 @@ final class LegacyOperationDescriptorRegistry
     /**
      * Return the explicit credential allowlist for one resource.
      *
-     * @param  string  $resource
      * @return array<int, string>
      */
     private function resourceCredentials(string $resource): array
@@ -210,9 +248,6 @@ final class LegacyOperationDescriptorRegistry
 
     /**
      * Return the maintained target resolver name for one bridge operation.
-     *
-     * @param  string  $name
-     * @return string
      */
     private function targetResolver(string $name): string
     {

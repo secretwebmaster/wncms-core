@@ -11,13 +11,6 @@ class LegacyOperationSecurityTest extends TestCase
 {
     /**
      * Verify resource read/write abilities and permissions produce literal ordered guards.
-     *
-     * @param  string  $action
-     * @param  string  $ability
-     * @param  string  $permission
-     * @param  string  $risk
-     * @param  bool  $planEligible
-     * @return void
      */
     #[DataProvider('resourceRequirementProvider')]
     public function test_resource_requirements_use_stable_literal_mappings(
@@ -75,7 +68,6 @@ class LegacyOperationSecurityTest extends TestCase
      *
      * @param  array<string, mixed>  $action
      * @param  array<string, mixed>  $expected
-     * @return void
      */
     #[DataProvider('actionRequirementProvider')]
     public function test_action_requirements_use_stable_literal_mappings(array $action, array $expected): void
@@ -97,6 +89,7 @@ class LegacyOperationSecurityTest extends TestCase
                 'permission' => 'page_edit',
             ], [
                 'ability' => 'pages.read',
+                'data_risk' => 'read',
                 'permission' => 'page_edit',
                 'permission_mode' => 'static',
                 'security_risk' => 'normal',
@@ -109,6 +102,7 @@ class LegacyOperationSecurityTest extends TestCase
                 'side_effect_kind' => 'read',
                 'canonicalizer' => 'bridge',
                 'target_resolver' => 'route_id',
+                'relationship_boundaries' => [],
                 'idempotent' => false,
                 'middleware' => [
                     'api_v2_ability:pages.read',
@@ -124,6 +118,7 @@ class LegacyOperationSecurityTest extends TestCase
                 'permission' => 'page_edit',
             ], [
                 'ability' => 'pages.write',
+                'data_risk' => 'write',
                 'permission' => 'page_edit',
                 'permission_mode' => 'static',
                 'security_risk' => 'high',
@@ -136,6 +131,7 @@ class LegacyOperationSecurityTest extends TestCase
                 'side_effect_kind' => 'external',
                 'canonicalizer' => 'bridge',
                 'target_resolver' => 'route_id',
+                'relationship_boundaries' => [],
                 'idempotent' => false,
                 'middleware' => [
                     'api_v2_ability:pages.write',
@@ -151,6 +147,7 @@ class LegacyOperationSecurityTest extends TestCase
                 'permission_template' => '{model}_edit',
             ], [
                 'ability' => 'models.write',
+                'data_risk' => 'write',
                 'permission' => '{model}_edit',
                 'permission_mode' => 'model_template',
                 'security_risk' => 'high',
@@ -163,6 +160,7 @@ class LegacyOperationSecurityTest extends TestCase
                 'side_effect_kind' => 'external',
                 'canonicalizer' => 'dynamic_model',
                 'target_resolver' => 'dynamic_model_ids',
+                'relationship_boundaries' => [],
                 'idempotent' => false,
                 'middleware' => [
                     'api_v2_ability:models.write',
@@ -177,8 +175,6 @@ class LegacyOperationSecurityTest extends TestCase
 
     /**
      * Verify unknown model permission templates fail closed.
-     *
-     * @return void
      */
     public function test_unknown_model_permission_template_is_rejected(): void
     {
@@ -193,8 +189,6 @@ class LegacyOperationSecurityTest extends TestCase
 
     /**
      * Verify a supported template cannot be attached to an unapproved bridge operation.
-     *
-     * @return void
      */
     public function test_model_permission_template_is_rejected_for_an_unknown_operation(): void
     {
@@ -209,8 +203,6 @@ class LegacyOperationSecurityTest extends TestCase
 
     /**
      * Verify template syntax cannot be smuggled through a static resource permission.
-     *
-     * @return void
      */
     public function test_resource_static_permission_rejects_model_template_syntax(): void
     {
@@ -223,8 +215,6 @@ class LegacyOperationSecurityTest extends TestCase
 
     /**
      * Verify template syntax cannot be smuggled through a static bridge permission.
-     *
-     * @return void
      */
     public function test_bridge_static_permission_rejects_model_template_syntax(): void
     {

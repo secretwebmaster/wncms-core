@@ -13,6 +13,7 @@ use Wncms\Api\V2\Risk\ActionPlanException;
 use Wncms\Api\V2\Risk\ActionPlanService;
 use Wncms\Api\V2\Risk\OperationRiskContextResolver;
 use Wncms\Api\V2\Risk\RiskContext;
+use Wncms\Api\V2\Risk\RiskContextException;
 use Wncms\Api\V2\Risk\RiskPolicy;
 use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
@@ -67,9 +68,13 @@ final class EnforceApiV2RiskPolicy
             return $this->responses->failure('risk.credential_type_denied', 'Credential type is not allowed', 403);
         }
 
-        $requiresPlan = $this->policy->requiresPlan($operation, $risk, AuthSecurityConfig::fromRuntime()->highRiskMode());
+        $highRiskMode = AuthSecurityConfig::fromRuntime()->highRiskMode();
+        if ($highRiskMode === 'planned' && in_array($risk, ['high', 'critical'], true) && ! $operation->actionPlanEligible) {
+            return $this->responses->failure('risk.policy_unavailable', 'Operation is not eligible for planned execution', 503);
+        }
+        $requiresPlan = $this->policy->requiresPlan($operation, $risk, $highRiskMode);
         if (
-            in_array($risk, ['high', 'critical'], true)
+            $requiresPlan
             && ($operation->canonicalizer !== 'schema' || $operation->targetResolver !== 'none')
             && ! in_array($operation->sideEffectKind, ['database', 'transactional_outbox'], true)
         ) {
@@ -84,7 +89,9 @@ final class EnforceApiV2RiskPolicy
             return $this->responses->failure('risk.plan_required', 'Action plan confirmation is required', 428);
         }
 
-        if (! $operation->requiresStepUp && ! $requiresPlan) {
+        $requiresScopedTransaction = $operation->sideEffectKind === 'database'
+            && in_array('websites', $operation->relationshipBoundaries, true);
+        if (! $operation->requiresStepUp && ! $requiresPlan && ! $requiresScopedTransaction) {
             return $next($request);
         }
 
@@ -112,17 +119,25 @@ final class EnforceApiV2RiskPolicy
         )));
 
         try {
-            $connections = $this->events->modelConnectionNames($modelKeys);
+            $connections = array_values(array_unique(array_merge(
+                $this->events->modelConnectionNames($modelKeys),
+                $riskContext->connectionNames,
+            )));
             if (count($connections) !== 1) {
                 throw new \RuntimeException('Domain, outbox, security mutation, and event connections must match.');
             }
 
-            return DB::connection($connections[0])->transaction(function () use ($request, $next, $context, $operation, $requiresPlan, $proof, $confirmation, $formalDescriptor, $riskContext): Response {
+            $connection = $connections[0];
+
+            return DB::connection($connection)->transaction(function () use ($request, $next, $context, $operation, $requiresPlan, $proof, $confirmation, $formalDescriptor, $riskContext, $connection): Response {
                 $route = $request->route();
                 $parameters = $route instanceof Route ? $route->parameters() : [];
                 $riskContext = $formalDescriptor
                     ? $this->riskContexts->resolveExecution($request, $operation, $parameters)
                     : $riskContext;
+                if (array_diff(array_unique($riskContext->connectionNames), [$connection]) !== []) {
+                    throw new \RuntimeException('Target relationship connections must match.');
+                }
                 $risk = $this->policy->effective($operation, $riskContext->normalizedInput, $riskContext->environment);
                 $stepReservation = null;
                 if ($operation->requiresStepUp) {
@@ -152,6 +167,8 @@ final class EnforceApiV2RiskPolicy
             return $rollback->response;
         } catch (ActionPlanException|StepUpException $exception) {
             return $this->responses->failure($exception->errorCode, 'Security confirmation is not valid', $exception->httpStatus);
+        } catch (RiskContextException $exception) {
+            return $this->responses->failure($exception->errorCode, 'Risk context is not valid', $exception->httpStatus);
         } catch (\Throwable $exception) {
             report($exception);
 

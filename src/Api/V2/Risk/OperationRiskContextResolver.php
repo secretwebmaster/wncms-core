@@ -2,8 +2,13 @@
 
 namespace Wncms\Api\V2\Risk;
 
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\Request;
 use Wncms\Api\V2\Data\ApiOperationContract;
+use Wncms\Auth\Api\V2\AuthenticationContext;
+use Wncms\Auth\Api\V2\WebsiteScopeGuard;
+use Wncms\Http\Middleware\ApiV2TokenAuth;
 
 final class OperationRiskContextResolver
 {
@@ -13,17 +18,17 @@ final class OperationRiskContextResolver
     /**
      * Create the operation risk context resolver.
      *
-     * @param  \Wncms\Api\V2\Risk\RiskEnvironmentProvider  $environment
      * @return void
      */
-    public function __construct(private RiskEnvironmentProvider $environment) {}
+    public function __construct(
+        private RiskEnvironmentProvider $environment,
+        private WebsiteScopeGuard $websiteScope,
+    ) {}
 
     /**
      * Register one operation-specific server context resolver.
      *
-     * @param  string  $operationId
      * @param  callable(array<string, mixed>, array<string, mixed>): array<string, mixed>  $resolver
-     * @return void
      */
     public function register(string $operationId, callable $resolver): void
     {
@@ -32,9 +37,6 @@ final class OperationRiskContextResolver
 
     /**
      * Determine whether an operation has an application-supplied resolver.
-     *
-     * @param  string  $operationId
-     * @return bool
      */
     public function hasResolver(string $operationId): bool
     {
@@ -44,10 +46,8 @@ final class OperationRiskContextResolver
     /**
      * Resolve canonical input and server-owned target/environment state.
      *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
      * @param  array<string, mixed>  $input
      * @param  array<string, mixed>  $parameters
-     * @return \Wncms\Api\V2\Risk\RiskContext
      */
     public function resolve(ApiOperationContract $operation, array $input, array $parameters = []): RiskContext
     {
@@ -61,16 +61,14 @@ final class OperationRiskContextResolver
             $this->normalize((array) ($resolved['target_state'] ?? [])),
             $this->normalize((array) ($resolved['environment'] ?? $this->environment->resolve())),
             array_values(array_unique(array_filter((array) ($resolved['model_keys'] ?? []), 'is_string'))),
+            array_values(array_unique(array_filter((array) ($resolved['connection_names'] ?? []), 'is_string'))),
         );
     }
 
     /**
      * Resolve a real execution request while ignoring client target/environment claims.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
      * @param  array<string, mixed>  $parameters
-     * @return \Wncms\Api\V2\Risk\RiskContext
      */
     public function resolveRequest(Request $request, ApiOperationContract $operation, array $parameters = []): RiskContext
     {
@@ -80,19 +78,16 @@ final class OperationRiskContextResolver
             $resolved = ($this->resolvers[$operation->id])($this->normalizeInput($operation, $input), $parameters);
             $resolved['environment'] = $resolved['environment'] ?? $this->environment->resolve($request);
 
-            return $this->context($operation, $input, $resolved);
+            return $this->scopedContext($request, $operation, $input, $resolved);
         }
 
-        return $this->context($operation, $input, $this->resolveLegacy($operation, $this->normalizeInput($operation, $input), $parameters, false, $request));
+        return $this->scopedContext($request, $operation, $input, $this->resolveLegacy($operation, $this->normalizeInput($operation, $input), $parameters, false, $request));
     }
 
     /**
      * Resolve and lock fresh execution state inside the selected transaction.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
      * @param  array<string, mixed>  $parameters
-     * @return \Wncms\Api\V2\Risk\RiskContext
      */
     public function resolveExecution(Request $request, ApiOperationContract $operation, array $parameters = []): RiskContext
     {
@@ -102,19 +97,17 @@ final class OperationRiskContextResolver
             $resolved = ($this->resolvers[$operation->id])($normalized, $parameters, true);
             $resolved['environment'] = $resolved['environment'] ?? $this->environment->resolve($request);
 
-            return $this->context($operation, $input, $resolved);
+            return $this->scopedContext($request, $operation, $input, $resolved);
         }
 
-        return $this->context($operation, $input, $this->resolveLegacy($operation, $normalized, $parameters, true, $request));
+        return $this->scopedContext($request, $operation, $input, $this->resolveLegacy($operation, $normalized, $parameters, true, $request));
     }
 
     /**
      * Build one normalized context value.
      *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
      * @param  array<string, mixed>  $input
      * @param  array<string, mixed>  $resolved
-     * @return \Wncms\Api\V2\Risk\RiskContext
      */
     private function context(ApiOperationContract $operation, array $input, array $resolved): RiskContext
     {
@@ -125,13 +118,30 @@ final class OperationRiskContextResolver
             $this->normalize((array) ($resolved['target_state'] ?? [])),
             $this->normalize((array) ($resolved['environment'] ?? $this->environment->resolve())),
             array_values(array_unique(array_filter((array) ($resolved['model_keys'] ?? []), 'is_string'))),
+            array_values(array_unique(array_filter((array) ($resolved['connection_names'] ?? []), 'is_string'))),
         );
+    }
+
+    /**
+     * Build and authorize one request-bound risk context.
+     *
+     * @param  array<string, mixed>  $input
+     * @param  array<string, mixed>  $resolved
+     */
+    private function scopedContext(Request $request, ApiOperationContract $operation, array $input, array $resolved): RiskContext
+    {
+        $context = $this->context($operation, $input, $resolved);
+        $authentication = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
+        if ($authentication instanceof AuthenticationContext) {
+            $this->websiteScope->assertResolvedScope($authentication, $context);
+        }
+
+        return $context;
     }
 
     /**
      * Resolve legacy backend target state from the configured model boundary.
      *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
      * @param  array<string, mixed>  $input
      * @param  array<string, mixed>  $parameters
      * @return array<string, mixed>
@@ -152,31 +162,106 @@ final class OperationRiskContextResolver
         $modelKey = (string) ($operation->domainModelKeys[0] ?? '');
         $modelClass = $modelKey !== '' ? wncms()->getModelClass($modelKey) : null;
         $target = ['resource' => $resource, 'action' => $action];
+        $models = new Collection;
         if (is_string($modelClass) && isset($parameters['id'])) {
             $query = $modelClass::query()->whereKey($parameters['id']);
             $model = ($lock ? $query->lockForUpdate() : $query)->first();
             $target['record'] = $model?->getAttributes();
+            $models = $model === null ? new Collection : new Collection([$model]);
         } elseif (is_string($modelClass) && $action === 'bulk_delete') {
             $ids = $this->ids($input['model_ids'] ?? []);
             sort($ids);
             $query = $modelClass::query()->whereIn('id', $ids)->orderBy('id');
             $target['requested_ids'] = $ids;
-            $target['records'] = ($lock ? $query->lockForUpdate() : $query)->get()->map->getAttributes()->all();
+            $models = ($lock ? $query->lockForUpdate() : $query)->get();
+            $target['records'] = $models->map->getAttributes()->all();
         } else {
             $target['record'] = null;
+        }
+        $websiteState = $this->websiteState($operation, $modelClass, $models, $input, $lock);
+        if ($websiteState !== null) {
+            $target['website_scope'] = $websiteState['state'];
         }
 
         return [
             'target_state' => $target,
             'environment' => $this->environment->resolve($request),
             'model_keys' => $operation->domainModelKeys,
+            'connection_names' => $websiteState['connection_names'] ?? [],
+        ];
+    }
+
+    /**
+     * Resolve requested website rows and actual target pivot membership.
+     *
+     * @param  class-string|null  $modelClass
+     * @param  \Illuminate\Database\Eloquent\Collection<int, \Illuminate\Database\Eloquent\Model>  $models
+     * @param  array<string, mixed>  $input
+     * @return array{state: array<string, mixed>, connection_names: array<int, string>}|null
+     */
+    private function websiteState(ApiOperationContract $operation, ?string $modelClass, Collection $models, array $input, bool $lock): ?array
+    {
+        if (! in_array('websites', $operation->relationshipBoundaries, true) || $modelClass === null) {
+            return null;
+        }
+        $requestedIds = $this->ids(array_merge(
+            isset($input['website_id']) ? [$input['website_id']] : [],
+            (array) ($input['website_ids'] ?? []),
+        ));
+        $websiteClass = wncms()->getModelClass('website');
+        $websiteQuery = $websiteClass::query()->whereIn((new $websiteClass)->getKeyName(), $requestedIds)->orderBy((new $websiteClass)->getKeyName());
+        $websiteRows = ($lock ? $websiteQuery->lockForUpdate() : $websiteQuery)->get()->map->getAttributes()->all();
+        $connectionNames = [(new $modelClass)->getConnection()->getName(), (new $websiteClass)->getConnection()->getName()];
+        $scoped = method_exists($modelClass, 'isWebsiteScopedModel') && $modelClass::isWebsiteScopedModel();
+        $pivots = [];
+        $targetIds = [];
+        if ($scoped) {
+            if (! method_exists($modelClass, 'websites')) {
+                throw new \RuntimeException("Scoped model [{$modelClass}] does not declare a websites relation.");
+            }
+            $relationModels = $models->isEmpty() ? new Collection([new $modelClass]) : $models;
+            foreach ($relationModels as $model) {
+                $relation = $model->websites();
+                if (! $relation instanceof BelongsToMany) {
+                    throw new \RuntimeException("Scoped model [{$modelClass}] has an unsupported websites relation.");
+                }
+                $connectionNames[] = $relation->getRelated()->getConnection()->getName();
+                $connectionNames[] = $relation->newPivotStatement()->getConnection()->getName();
+                if (! $model->exists) {
+                    continue;
+                }
+                $relatedPivotKey = $relation->getRelatedPivotKeyName();
+                $pivot = $relation->newPivotStatement()->where($relation->getForeignPivotKeyName(), $model->getKey());
+                if (method_exists($relation, 'getMorphType') && method_exists($relation, 'getMorphClass')) {
+                    $pivot->where($relation->getMorphType(), $relation->getMorphClass());
+                }
+                $pivot->orderBy($relatedPivotKey);
+                $rows = ($lock ? $pivot->lockForUpdate() : $pivot)->get()->map(static fn ($row): array => (array) $row)->all();
+                array_push($pivots, ...$rows);
+                foreach ($rows as $row) {
+                    $targetIds[] = (int) ($row[$relatedPivotKey] ?? 0);
+                }
+            }
+        }
+        $targetIds = array_values(array_unique(array_filter($targetIds)));
+        sort($targetIds);
+
+        return [
+            'state' => [
+                'requested_ids' => $requestedIds,
+                'requested_rows' => $websiteRows,
+                'target_ids' => $targetIds,
+                'target_count' => $models->count(),
+                'scoped_model' => $scoped,
+                'pivot_rows' => $pivots,
+            ],
+            'connection_names' => array_values(array_unique($connectionNames)),
         ];
     }
 
     /**
      * Apply operation schema defaults and primitive type normalization.
      *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
      * @param  array<string, mixed>  $input
      * @return array<string, mixed>
      */
@@ -211,7 +296,6 @@ final class OperationRiskContextResolver
     /**
      * Canonicalize the exact transport values consumed by generic resources.
      *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
      * @param  array<string, mixed>  $input
      * @return array<string, mixed>
      */
@@ -233,10 +317,6 @@ final class OperationRiskContextResolver
 
     /**
      * Normalize one value according to its declared API schema type.
-     *
-     * @param  mixed  $value
-     * @param  string  $type
-     * @return mixed
      */
     private function normalizeType(mixed $value, string $type): mixed
     {
@@ -262,7 +342,6 @@ final class OperationRiskContextResolver
     /**
      * Normalize scalar or list identifier input into a stable sorted set.
      *
-     * @param  mixed  $value
      * @return array<int, int>
      */
     private function ids(mixed $value): array

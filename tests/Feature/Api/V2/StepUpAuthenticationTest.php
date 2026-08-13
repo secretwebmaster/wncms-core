@@ -4,16 +4,16 @@ namespace Wncms\Tests\Feature\Api\V2;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\Data\ApiDomainContract;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Api\V2\Data\ApiSchema;
-use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AccessTokenService;
+use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\StepUpException;
 use Wncms\Auth\Api\V2\StepUpService;
@@ -159,8 +159,6 @@ class StepUpAuthenticationTest extends TestCase
 
     /**
      * Verify the account dimension enforces the configured reauthentication threshold.
-     *
-     * @return void
      */
     public function test_reauthentication_account_threshold_returns_429(): void
     {
@@ -180,12 +178,19 @@ class StepUpAuthenticationTest extends TestCase
         $this->withToken($token)->withServerVariables(['REMOTE_ADDR' => '192.0.2.20'])->postJson('/api/v2/backend/auth/reauthenticate', [
             'password' => 'wrong-password', 'operation' => $operation->id, 'purpose' => 'password.change',
         ])->assertStatus(429)->assertJsonPath('meta.error_code', 'authentication.rate_limited');
+
+        $event = DB::table('api_security_events')
+            ->where('event_type', 'auth.step_up.failed')
+            ->where('actor_id', User::query()->firstOrFail()->id)
+            ->latest('id')
+            ->first();
+        $this->assertNotNull($event);
+        $this->assertSame('authentication.rate_limited', $event->error_code);
+        $this->assertSame('reauthentication_throttled_account_or_ip', json_decode($event->context, true)['reason'] ?? null);
     }
 
     /**
      * Verify the IP dimension enforces the configured reauthentication threshold.
-     *
-     * @return void
      */
     public function test_reauthentication_ip_threshold_returns_429(): void
     {

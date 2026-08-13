@@ -12,6 +12,7 @@ use Wncms\Api\V2\Risk\OperationRiskContextResolver;
 use Wncms\Api\V2\Risk\RiskContextException;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Http\Middleware\ApiV2TokenAuth;
+use Wncms\Services\Security\SecurityEventService;
 
 final class ActionPlanController extends ApiV2Controller
 {
@@ -19,6 +20,7 @@ final class ActionPlanController extends ApiV2Controller
         private ApiContractRegistry $contracts,
         private ActionPlanService $plans,
         private OperationRiskContextResolver $riskContexts,
+        private SecurityEventService $events,
     ) {}
 
     /**
@@ -46,6 +48,17 @@ final class ActionPlanController extends ApiV2Controller
             $riskContext = $this->riskContexts->resolveRequest($planRequest, $operation, (array) ($validated['parameters'] ?? []));
             if ($operation->domainModelKeys === [] && $operation->transactionalOutboxModelKeys === []) {
                 return $this->responseFactory()->failure('risk.policy_unavailable', 'Transactional domain boundary is required', 503);
+            }
+            $connections = array_values(array_unique(array_merge(
+                $this->events->modelConnectionNames(array_merge(
+                    ['api_action_plan', 'api_security_event'],
+                    $operation->domainModelKeys,
+                    $operation->transactionalOutboxModelKeys,
+                )),
+                $riskContext->connectionNames,
+            )));
+            if (count($connections) !== 1) {
+                return $this->responseFactory()->failure('risk.policy_unavailable', 'Operation connections do not share one transaction', 503);
             }
             $plan = $this->plans->createResolved($context, $operation, $riskContext);
         } catch (RiskContextException $exception) {

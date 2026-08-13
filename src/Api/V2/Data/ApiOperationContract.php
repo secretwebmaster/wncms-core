@@ -7,35 +7,15 @@ final class ApiOperationContract
     /**
      * Create an API operation contract.
      *
-     * @param  string  $id
-     * @param  string  $domain
-     * @param  string  $surface
-     * @param  string  $method
-     * @param  string  $path
-     * @param  string  $routeName
-     * @param  string|null  $permission
-     * @param  string|null  $ability
-     * @param  bool  $websiteScoped
-     * @param  string  $risk
-     * @param  string  $implementation
-     * @param  \Wncms\Api\V2\Data\ApiSchema  $request
-     * @param  \Wncms\Api\V2\Data\ApiSchema  $response
      * @param  array<int, string>  $filters
      * @param  array<int, string>  $sorts
      * @param  array<int, string>  $includes
      * @param  array<int, string>  $fields
-     * @param  bool  $idempotent
-     * @param  string  $permissionMode
-     * @param  string  $securityRisk
      * @param  array<int, string>  $acceptedCredentialTypes
-     * @param  bool  $requiresStepUp
      * @param  array<int, string>  $stepUpPurposes
-     * @param  bool  $actionPlanEligible
      * @param  array<int, string>  $domainModelKeys
      * @param  array<int, string>  $transactionalOutboxModelKeys
-     * @param  string  $sideEffectKind
-     * @param  string  $canonicalizer
-     * @param  string  $targetResolver
+     * @param  array<int, string>  $relationshipBoundaries
      * @return void
      */
     public function __construct(
@@ -68,6 +48,7 @@ final class ApiOperationContract
         public readonly string $sideEffectKind = 'read',
         public readonly string $canonicalizer = 'schema',
         public readonly string $targetResolver = 'none',
+        public readonly array $relationshipBoundaries = [],
     ) {}
 
     /**
@@ -107,6 +88,7 @@ final class ApiOperationContract
             'side_effect_kind' => $this->sideEffectKind,
             'canonicalizer' => $this->canonicalizer,
             'target_resolver' => $this->targetResolver,
+            'relationship_boundaries' => $this->relationshipBoundaries,
         ];
     }
 }
