@@ -13,7 +13,9 @@ use Wncms\Tests\TestCase;
 
 class SecurityEventPostCommitTest extends TestCase
 {
-    private const SECOND_CONNECTION = 'task7_security_events_second';
+    public const SECOND_CONNECTION = 'task7_security_events_second';
+
+    public const OVERRIDE_TABLE = 'task7_api_security_events';
 
     private bool $secondConnectionConfigured = false;
 
@@ -48,9 +50,12 @@ class SecurityEventPostCommitTest extends TestCase
             while ($connection->transactionLevel() > 0) {
                 $connection->rollBack();
             }
+            $connection->statement('DROP TABLE IF EXISTS '.self::OVERRIDE_TABLE);
             $connection->disconnect();
             DB::purge(self::SECOND_CONNECTION);
         }
+        config(['wncms.models.api_security_event' => null]);
+        $this->clearCachedModelClass('api_security_event');
         DB::table('api_security_events')->where('request_id', 'like', 'task7-post-commit-%')->delete();
 
         parent::tearDown();
@@ -194,6 +199,111 @@ class SecurityEventPostCommitTest extends TestCase
     }
 
     /**
+     * Verify a model override owns its default connection, custom table, and post-commit boundary.
+     */
+    public function test_model_override_default_connection_rolls_back_and_commits_with_exact_notification(): void
+    {
+        $connection = $this->configureOverrideModel();
+        $coreCount = DB::table('api_security_events')->count();
+        Event::fake([ApiSecurityEventRecorded::class]);
+        Log::spy();
+        $connection->beginTransaction();
+
+        $this->recordInsideServiceTransaction('task7-post-commit-override-rollback');
+        $this->assertSame(1, $connection->table(self::OVERRIDE_TABLE)->where('request_id', 'task7-post-commit-override-rollback')->count());
+        Event::assertNotDispatched(ApiSecurityEventRecorded::class);
+        $connection->rollBack();
+
+        $this->assertSame(0, $connection->table(self::OVERRIDE_TABLE)->where('request_id', 'task7-post-commit-override-rollback')->count());
+        Event::assertNotDispatched(ApiSecurityEventRecorded::class);
+        Log::shouldNotHaveReceived('info');
+
+        $connection->beginTransaction();
+        $this->recordInsideServiceTransaction('task7-post-commit-override-success');
+        Event::assertNotDispatched(ApiSecurityEventRecorded::class);
+        $connection->commit();
+
+        $this->assertSame(1, $connection->table(self::OVERRIDE_TABLE)->where('request_id', 'task7-post-commit-override-success')->count());
+        $this->assertSame($coreCount, DB::table('api_security_events')->count());
+        Event::assertDispatchedTimes(ApiSecurityEventRecorded::class, 1);
+        Event::assertDispatched(ApiSecurityEventRecorded::class, static fn (ApiSecurityEventRecorded $event): bool => $event->event instanceof Task7ApiSecurityEventOverride
+            && $event->event->getConnectionName() === self::SECOND_CONNECTION
+            && $event->event->getTable() === self::OVERRIDE_TABLE);
+        Log::shouldHaveReceived('info')->once();
+    }
+
+    /**
+     * Verify aggregate reads and writes use the override model table and connection.
+     */
+    public function test_model_override_aggregate_uses_custom_table_and_leaves_core_table_untouched(): void
+    {
+        $connection = $this->configureOverrideModel();
+        $coreCount = DB::table('api_security_events')->count();
+        $context = [
+            'surface' => 'api_v2',
+            'request_id' => 'task7-post-commit-override-aggregate-1',
+            'ip' => '203.0.113.71',
+            'login_identifier' => 'override-aggregate@example.test',
+            'user_agent' => 'Task7 override aggregate',
+        ];
+
+        app(SecurityEventService::class)->recordAggregate('security.origin.denied', 'warning', 'denied', $context);
+        $updated = app(SecurityEventService::class)->recordAggregate('security.origin.denied', 'warning', 'denied', [
+            ...$context,
+            'request_id' => 'task7-post-commit-override-aggregate-2',
+        ]);
+
+        $this->assertInstanceOf(Task7ApiSecurityEventOverride::class, $updated);
+        $this->assertSame(2, $updated->context['aggregate']['count']);
+        $this->assertSame(1, $connection->table(self::OVERRIDE_TABLE)->count());
+        $this->assertSame($coreCount, DB::table('api_security_events')->count());
+    }
+
+    /**
+     * Verify an invalid registry override fails before mutation or observability dispatch.
+     */
+    public function test_invalid_security_event_model_override_fails_closed_without_mutation_or_dispatch(): void
+    {
+        config(['wncms.models.api_security_event' => ['class' => Task7InvalidSecurityEventOverride::class]]);
+        $this->clearCachedModelClass('api_security_event');
+        Event::fake([ApiSecurityEventRecorded::class]);
+        $mutated = false;
+
+        try {
+            app(SecurityEventService::class)->withinTransaction(function () use (&$mutated): void {
+                $mutated = true;
+            }, [
+                'type' => 'auth.refresh.succeeded',
+                'severity' => 'info',
+                'outcome' => 'succeeded',
+                'context' => ['request_id' => 'task7-post-commit-invalid-override'],
+            ]);
+            $this->fail('An invalid security-event model override must fail closed.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Invalid api_security_event model override.', $exception->getMessage());
+        }
+
+        $this->assertFalse($mutated);
+        $this->assertDatabaseMissing('api_security_events', ['request_id' => 'task7-post-commit-invalid-override']);
+        Event::assertNotDispatched(ApiSecurityEventRecorded::class);
+
+        config(['wncms.models.api_security_event' => ['class' => Task7PlainEloquentSecurityEventOverride::class]]);
+        $this->clearCachedModelClass('api_security_event');
+
+        try {
+            app(SecurityEventService::class)->record('auth.refresh.succeeded', 'info', 'succeeded', [
+                'request_id' => 'task7-post-commit-invalid-eloquent-override',
+            ]);
+            $this->fail('A non-BaseModel Eloquent override must fail closed.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Invalid api_security_event model override.', $exception->getMessage());
+        }
+
+        $this->assertDatabaseMissing('api_security_events', ['request_id' => 'task7-post-commit-invalid-eloquent-override']);
+        Event::assertNotDispatched(ApiSecurityEventRecorded::class);
+    }
+
+    /**
      * Verify a failing event listener cannot fail an already committed caller.
      */
     public function test_event_listener_failure_after_commit_is_non_fatal_and_redacted(): void
@@ -255,4 +365,60 @@ class SecurityEventPostCommitTest extends TestCase
 
         return DB::connection(self::SECOND_CONNECTION);
     }
+
+    /**
+     * Configure the registry override with a non-default connection and custom table.
+     */
+    private function configureOverrideModel(): \Illuminate\Database\Connection
+    {
+        $connection = $this->configureSecondConnection();
+        $connection->statement('DROP TABLE IF EXISTS '.self::OVERRIDE_TABLE);
+        $connection->statement('CREATE TABLE '.self::OVERRIDE_TABLE.' AS SELECT * FROM api_security_events WHERE 0');
+        $connection->statement('CREATE UNIQUE INDEX task7_security_event_event_id_unique ON '.self::OVERRIDE_TABLE.' (event_id)');
+        $connection->statement('CREATE UNIQUE INDEX task7_security_event_aggregate_key_unique ON '.self::OVERRIDE_TABLE.' (aggregate_key)');
+        config(['wncms.models.api_security_event' => ['class' => Task7ApiSecurityEventOverride::class]]);
+        $this->clearCachedModelClass('api_security_event');
+
+        return $connection;
+    }
+
+    /**
+     * Forget a test-owned WNCMS registry entry.
+     */
+    private function clearCachedModelClass(string $key): void
+    {
+        $wncms = wncms();
+        $reflection = new \ReflectionObject($wncms);
+        $property = $reflection->getProperty('modelClassCache');
+        $property->setAccessible(true);
+        $cache = (array) $property->getValue($wncms);
+        unset($cache[$key]);
+        $property->setValue($wncms, $cache);
+    }
+}
+
+/**
+ * Test-only security event model with host-owned storage defaults.
+ */
+class Task7ApiSecurityEventOverride extends ApiSecurityEvent
+{
+    protected $connection = SecurityEventPostCommitTest::SECOND_CONNECTION;
+
+    protected $table = SecurityEventPostCommitTest::OVERRIDE_TABLE;
+}
+
+/**
+ * Test-only Eloquent override with a mismatched model identity.
+ */
+class Task7InvalidSecurityEventOverride extends ApiSecurityEvent
+{
+    public static $modelKey = 'wrong_security_event';
+}
+
+/**
+ * Test-only plain Eloquent override that does not satisfy the WNCMS model contract.
+ */
+class Task7PlainEloquentSecurityEventOverride extends \Illuminate\Database\Eloquent\Model
+{
+    public static $modelKey = 'api_security_event';
 }

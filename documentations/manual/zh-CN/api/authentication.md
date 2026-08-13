@@ -85,7 +85,9 @@ Origins，否则 `SameSite=None` 会被拒绝。Host `allowed_origins` 不可包
 closed。被拒绝的 actual 与 preflight 请求绝不会反射 CORS 许可标头。永久 remember credential 的浏览器
 cookie 仍采用有界的 400 天持久期限，logout 始终按完全相同 scope 清除。覆盖范围包含
 `auth/me` 在内的所有 auth routes，并支持 Laravel 风格的前后 slash 与
-host-keyed `cors.paths`。
+host-keyed `cors.paths`，以及 Laravel `fullUrlIs()` URL pattern。参数化 session
+删除 route 必须由 auth-wide wildcard 或明确的 `auth/sessions/*` wildcard 覆盖；
+单一示例 session ID 的精确 path 不能证明已覆盖整个 route。
 
 切换 refresh transport 会撤销所有 active interactive sessions；更改 Cookie
 domain、SameSite、允许 Origins 或 Referer fallback 会撤销 active Cookie
@@ -100,6 +102,10 @@ Origin 与 CSRF denial 会保留有限的 HMAC sample，并按 event type 与 UT
 实际 database connection 的最外层 transaction commit 后发出；outer rollback
 不会发出任何一项。Commit 后的 listener 或 logging 故障会被隔离，不能让已提交
 请求失败。
+若 host 覆盖 `api_security_event` model，该覆盖必须继承
+`ApiSecurityEvent`、保留 `api_security_event` model key，并可拥有自定义默认
+connection 与 table。除非明确传入 connection，否则 persistence、aggregation
+与 post-commit notification 都使用该 model 自有的 storage。
 
 ```javascript
 const csrf = readCookie('wncms_refresh_csrf')

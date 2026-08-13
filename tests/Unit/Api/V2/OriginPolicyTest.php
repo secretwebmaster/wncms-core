@@ -3,7 +3,9 @@
 namespace Wncms\Tests\Unit\Api\V2;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Wncms\Auth\Api\V2\AuthRouteSurface;
 use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\OriginPolicy;
 use Wncms\Tests\TestCase;
@@ -259,6 +261,105 @@ class OriginPolicyTest extends TestCase
 
         $this->assertSame('json', $config->refreshTransport());
         $this->assertArrayHasKey('api_refresh_cookie_allowed_origins', $config->validate());
+    }
+
+    /**
+     * Verify one exact example cannot stand in for the parameterized session route.
+     */
+    public function test_cookie_transport_rejects_exact_parameter_sentinel_path(): void
+    {
+        $this->configureCredentialedCors([
+            'api/v2/backend/auth/login',
+            'api/v2/backend/auth/refresh',
+            'api/v2/backend/auth/logout',
+            'api/v2/backend/auth/logout-all',
+            'api/v2/backend/auth/me',
+            'api/v2/backend/auth/sessions',
+            'api/v2/backend/auth/sessions/example-session-id',
+        ]);
+
+        $config = AuthSecurityConfig::fromValues([
+            'api_refresh_transport' => 'cookie',
+            'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+        ]);
+
+        $this->assertSame('json', $config->refreshTransport());
+        $this->assertArrayHasKey('api_refresh_cookie_allowed_origins', $config->validate());
+    }
+
+    /**
+     * Verify Laravel full-URL patterns cover the complete authentication route surface.
+     */
+    public function test_cookie_transport_accepts_full_url_wildcard_and_matching_host_key(): void
+    {
+        $this->configureCredentialedCors(['https://api.example.test/api/v2/backend/auth/*']);
+        $values = [
+            'api_refresh_transport' => 'cookie',
+            'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+        ];
+
+        $fullUrl = AuthSecurityConfig::fromValues($values);
+        $this->assertSame('cookie', $fullUrl->refreshTransport());
+
+        config(['cors.paths' => [
+            'api.example.test' => ['https://api.example.test/api/v2/backend/auth/*'],
+            'other.example.test' => ['https://other.example.test/api/v2/backend/auth/*'],
+        ]]);
+        $hostKeyed = AuthSecurityConfig::fromValues($values);
+        $this->assertSame('cookie', $hostKeyed->refreshTransport());
+    }
+
+    /**
+     * Verify a full-URL wildcard for another host covers none of the auth surface.
+     */
+    public function test_cookie_transport_rejects_wrong_host_full_url_pattern(): void
+    {
+        $this->configureCredentialedCors(['https://other.example.test/api/v2/backend/auth/*']);
+        $config = AuthSecurityConfig::fromValues([
+            'api_refresh_transport' => 'cookie',
+            'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+        ]);
+
+        $this->assertSame('json', $config->refreshTransport());
+        $this->assertArrayHasKey('api_refresh_cookie_allowed_origins', $config->validate());
+    }
+
+    /**
+     * Verify the central CORS descriptors include every registered auth route.
+     */
+    public function test_cors_route_descriptors_cover_every_registered_auth_route(): void
+    {
+        $registered = collect(Route::getRoutes()->getRoutes())
+            ->filter(static fn ($route): bool => str_starts_with((string) $route->getName(), 'api.v2.backend.auth.'))
+            ->map(static fn ($route): string => str_replace('{session_id}', '*', $route->uri()))
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+        $described = collect(AuthRouteSurface::corsRouteDescriptors())
+            ->pluck('pattern')
+            ->sort()
+            ->values()
+            ->all();
+
+        $this->assertSame($registered, $described);
+    }
+
+    /**
+     * Configure exact credentialed CORS for one path collection.
+     *
+     * @param  array<int|string, mixed>  $paths
+     */
+    private function configureCredentialedCors(array $paths): void
+    {
+        config([
+            'app.url' => 'https://api.example.test',
+            'session.secure' => true,
+            'cors.allowed_origins' => ['https://admin.example.test'],
+            'cors.allowed_origins_patterns' => [],
+            'cors.supports_credentials' => true,
+            'cors.paths' => $paths,
+        ]);
     }
 
     /**

@@ -5,20 +5,20 @@ namespace Wncms\Auth\Api\V2;
 final class AuthRouteSurface
 {
     /**
-     * Return representative Laravel request paths for every authentication route.
+     * Return exact and parameterized descriptors for every authentication route.
      *
-     * @return array<int, string>
+     * @return array<int, array{pattern: string, parameterized: bool}>
      */
-    public static function corsPaths(): array
+    public static function corsRouteDescriptors(): array
     {
         return [
-            'api/v2/backend/auth/login',
-            'api/v2/backend/auth/refresh',
-            'api/v2/backend/auth/logout',
-            'api/v2/backend/auth/logout-all',
-            'api/v2/backend/auth/me',
-            'api/v2/backend/auth/sessions',
-            'api/v2/backend/auth/sessions/example-session-id',
+            ['pattern' => 'api/v2/backend/auth/login', 'parameterized' => false],
+            ['pattern' => 'api/v2/backend/auth/refresh', 'parameterized' => false],
+            ['pattern' => 'api/v2/backend/auth/logout', 'parameterized' => false],
+            ['pattern' => 'api/v2/backend/auth/logout-all', 'parameterized' => false],
+            ['pattern' => 'api/v2/backend/auth/me', 'parameterized' => false],
+            ['pattern' => 'api/v2/backend/auth/sessions', 'parameterized' => false],
+            ['pattern' => 'api/v2/backend/auth/sessions/*', 'parameterized' => true],
         ];
     }
 }

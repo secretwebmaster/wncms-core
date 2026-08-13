@@ -4,11 +4,13 @@ namespace Wncms\Services\Security;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Connection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Wncms\Events\ApiSecurityEventRecorded;
 use Wncms\Models\ApiSecurityEvent;
+use Wncms\Models\BaseModel;
 use Wncms\Services\Automation\MutationAuditService;
 
 final class SecurityEventService
@@ -121,14 +123,16 @@ final class SecurityEventService
             throw new \RuntimeException('Security event correlation keys are unavailable.');
         }
 
-        $connection = $this->eventConnection($connectionName);
+        $model = $this->eventModel($connectionName);
+        $connection = $model->getConnection();
+        $table = $model->getTable();
 
-        return $connection->transaction(function () use ($type, $severity, $outcome, $context, $connection, $bucketStartsAt): ApiSecurityEvent {
+        return $connection->transaction(function () use ($type, $severity, $outcome, $context, $model, $connection, $table, $bucketStartsAt): ApiSecurityEvent {
             $this->validateCatalogValue($type, $severity, $outcome);
             $attributes = $this->buildAttributes($type, $severity, $outcome, $context);
             $this->requireAggregateCorrelations($attributes);
             $attributes['aggregate_key'] = $this->aggregateKey($attributes, $bucketStartsAt);
-            $event = $connection->table('api_security_events')
+            $event = $connection->table($table)
                 ->where('aggregate_key', $attributes['aggregate_key'])
                 ->lockForUpdate()
                 ->first();
@@ -136,15 +140,15 @@ final class SecurityEventService
             if ($event === null) {
                 $attributes['context'] = $this->aggregateContext($attributes['context'], 1, $attributes['occurred_at'], $attributes['request_id']);
 
-                $inserted = $connection->table('api_security_events')->insertOrIgnore($this->databaseAttributes($attributes));
+                $inserted = $connection->table($table)->insertOrIgnore($this->databaseAttributes($attributes));
 
-                $event = $connection->table('api_security_events')
+                $event = $connection->table($table)
                     ->where('aggregate_key', $attributes['aggregate_key'])
                     ->lockForUpdate()
                     ->first();
 
                 if ($inserted === 1 && $event !== null) {
-                    $created = $this->eventModel($connection->getName())->newQuery()
+                    $created = $model->newQuery()
                         ->where('aggregate_key', $attributes['aggregate_key'])
                         ->firstOrFail();
                     $this->dispatchAfterCommit($created);
@@ -166,11 +170,11 @@ final class SecurityEventService
                 $attributes['request_id'],
                 $attributes['occurred_at']
             );
-            $connection->table('api_security_events')->where('id', $event->id)->update([
+            $connection->table($table)->where('id', $event->id)->update([
                 'context' => json_encode($aggregateContext, JSON_THROW_ON_ERROR),
                 'updated_at' => CarbonImmutable::now('UTC'),
             ]);
-            $updated = $this->eventModel($connection->getName())->newQuery()->findOrFail($event->id);
+            $updated = $model->newQuery()->findOrFail($event->id);
 
             return $updated;
         });
@@ -359,7 +363,20 @@ final class SecurityEventService
      */
     protected function eventModel(?string $connectionName = null): ApiSecurityEvent
     {
-        $model = new ApiSecurityEvent;
+        try {
+            $modelClass = wncms()->getModelClass('api_security_event');
+            $model = new $modelClass;
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException('Invalid api_security_event model override.', 0, $exception);
+        }
+
+        if (! $model instanceof Model
+            || ! $model instanceof BaseModel
+            || ! $model instanceof ApiSecurityEvent
+            || $model::getModelKey() !== 'api_security_event') {
+            throw new \RuntimeException('Invalid api_security_event model override.');
+        }
+
         if ($connectionName !== null) {
             $model->setConnection($connectionName);
         }

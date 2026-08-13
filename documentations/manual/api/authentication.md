@@ -87,7 +87,10 @@ origin. Host `allowed_origins` must contain no `*`, and
 `allowed_origins_patterns` must be empty; mixed exact/wildcard configurations
 fail closed. Denied actual and preflight requests never reflect CORS permission
 headers. Coverage includes every auth route, including `auth/me`; Laravel-style
-leading/trailing slashes and host-keyed `cors.paths` are supported.
+leading/trailing slashes, host-keyed `cors.paths`, and Laravel `fullUrlIs()` URL
+patterns are supported. Parameterized session deletion requires either the
+auth-wide wildcard or an explicit `auth/sessions/*` wildcard; one exact example
+session ID does not prove coverage of the route.
 Permanent remembered credentials still use a bounded 400-day persistent
 browser-cookie horizon; logout always expires the exact cookie scope.
 
@@ -107,6 +110,11 @@ success event notifications and structured success logs are emitted only after
 the outermost transaction on the event model's actual database connection
 commits; an outer rollback emits neither. Listener and logging failures after
 commit are isolated and cannot turn an already committed request into a failure.
+If the host overrides the `api_security_event` model, the override must extend
+`ApiSecurityEvent`, retain the `api_security_event` model key, and may own a
+custom default connection and table. Persistence, aggregation, and post-commit
+notification then use that model-owned storage unless a connection is explicitly
+supplied.
 
 ```javascript
 const csrf = readCookie('wncms_refresh_csrf')

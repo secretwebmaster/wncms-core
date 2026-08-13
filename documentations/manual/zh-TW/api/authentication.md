@@ -85,7 +85,9 @@ Origins，否則 `SameSite=None` 會被拒絕。Host `allowed_origins` 不可包
 closed。被拒絕的 actual 與 preflight 請求絕不會反射 CORS 許可標頭。永久 remember credential 的瀏覽器
 cookie 仍採用有界的 400 天持久期限，logout 始終依完全相同 scope 清除。涵蓋範圍包含
 `auth/me` 在內的所有 auth routes，並支援 Laravel 風格的前後 slash 與
-host-keyed `cors.paths`。
+host-keyed `cors.paths`，以及 Laravel `fullUrlIs()` URL pattern。參數化 session
+刪除 route 必須由 auth-wide wildcard 或明確的 `auth/sessions/*` wildcard 涵蓋；
+單一範例 session ID 的精確 path 不能證明已涵蓋整個 route。
 
 切換 refresh transport 會撤銷所有 active interactive sessions；變更 Cookie
 domain、SameSite、允許 Origins 或 Referer fallback 會撤銷 active Cookie
@@ -100,6 +102,10 @@ fallback 會同時依 tuple 與全域限流；database、cache 與 logger 故障
 model 實際 database connection 的最外層 transaction commit 後發出；outer
 rollback 不會發出任何一項。Commit 後的 listener 或 logging 故障會被隔離，不能
 讓已提交 request 失敗。
+若 host 覆寫 `api_security_event` model，該覆寫必須繼承
+`ApiSecurityEvent`、保留 `api_security_event` model key，並可擁有自訂預設
+connection 與 table。除非明確傳入 connection，否則 persistence、aggregation
+與 post-commit notification 都使用該 model 自有的 storage。
 
 ```javascript
 const csrf = readCookie('wncms_refresh_csrf')

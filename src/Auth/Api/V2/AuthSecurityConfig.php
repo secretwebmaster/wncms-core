@@ -493,16 +493,49 @@ final class AuthSecurityConfig
         }
 
         $paths = $this->hostCorsPaths();
-        foreach (AuthRouteSurface::corsPaths() as $surfacePath) {
-            if (! collect($paths)->contains(static fn (string $path): bool => Str::is(
-                $path === '/' ? $path : trim($path, '/'),
-                $surfacePath,
-            ))) {
+        foreach (AuthRouteSurface::corsRouteDescriptors() as $descriptor) {
+            if (! collect($paths)->contains(fn (string $path): bool => $this->corsPathCoversRoute($path, $descriptor))) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    /**
+     * Determine whether one Laravel CORS path covers an entire route descriptor.
+     *
+     * @param  array{pattern: string, parameterized: bool}  $descriptor
+     */
+    private function corsPathCoversRoute(string $configuredPath, array $descriptor): bool
+    {
+        $configuredPattern = $configuredPath === '/' ? $configuredPath : trim($configuredPath, '/');
+        $routePattern = $descriptor['pattern'];
+        $fullUrlPattern = rtrim((string) config('app.url'), '/').'/'.$routePattern;
+
+        if (! $descriptor['parameterized']) {
+            return Str::is($configuredPattern, $routePattern)
+                || Str::is($configuredPattern, $fullUrlPattern);
+        }
+
+        return $this->wildcardPatternCovers($configuredPattern, $routePattern)
+            || $this->wildcardPatternCovers($configuredPattern, $fullUrlPattern);
+    }
+
+    /**
+     * Conservatively prove that one single-wildcard pattern covers another.
+     */
+    private function wildcardPatternCovers(string $configuredPattern, string $routePattern): bool
+    {
+        if (substr_count($configuredPattern, '*') !== 1 || substr_count($routePattern, '*') !== 1) {
+            return false;
+        }
+
+        [$configuredPrefix, $configuredSuffix] = explode('*', $configuredPattern, 2);
+        [$routePrefix, $routeSuffix] = explode('*', $routePattern, 2);
+
+        return str_starts_with($routePrefix, $configuredPrefix)
+            && str_ends_with($routeSuffix, $configuredSuffix);
     }
 
     /**
