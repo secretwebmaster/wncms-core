@@ -78,7 +78,7 @@ class SecurityEventServiceTest extends TestCase
                 'type' => 'invalid.event.type',
                 'severity' => 'warning',
                 'outcome' => 'denied',
-            ]);
+            ], null, $this->service->modelConnectionNames(['api_service_token']));
 
             $this->fail('An invalid mandatory security event must reject the mutation.');
         } catch (\InvalidArgumentException $e) {
@@ -140,7 +140,7 @@ class SecurityEventServiceTest extends TestCase
                 'type' => 'auth.service_token.created',
                 'severity' => 'critical',
                 'outcome' => 'succeeded',
-            ]);
+            ], null, $this->service->modelConnectionNames(['api_service_token']));
 
             $this->fail('A mandatory security mutation must fail without correlation keys.');
         } catch (\RuntimeException $e) {

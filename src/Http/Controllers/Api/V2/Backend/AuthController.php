@@ -114,7 +114,11 @@ class AuthController extends ApiV2Controller
                 'severity' => 'info',
                 'outcome' => 'succeeded',
                 'context' => $this->loginEventContext($request, $identifier, $user, $sessionId),
-            ]);
+            ], null, $this->events->modelConnectionNames([
+                'api_session',
+                'api_access_token',
+                'api_refresh_token',
+            ]));
         } catch (\Throwable $exception) {
             return $this->securityAuditUnavailable($exception);
         }

@@ -107,7 +107,7 @@ final class RefreshTokenService
                     'credential_id' => $token->token_id,
                     'session_id' => $session->session_id,
                 ],
-            ]);
+            ], null, $this->mutationConnectionNames());
         } catch (RefreshTokenReuseException $exception) {
             $token->refresh();
             $this->revokeForReuse($token, $session);
@@ -225,9 +225,23 @@ final class RefreshTokenService
                 'http_status' => 401,
                 'context' => ['reason' => 'refresh_reuse'],
             ],
-        ]);
+        ], null, $this->mutationConnectionNames());
 
         throw new RefreshTokenReuseException;
+    }
+
+    /**
+     * Return every connection participating in refresh-family mutations.
+     *
+     * @return array<int, string>
+     */
+    private function mutationConnectionNames(): array
+    {
+        return $this->events->modelConnectionNames([
+            'api_session',
+            'api_access_token',
+            'api_refresh_token',
+        ]);
     }
 
     /**

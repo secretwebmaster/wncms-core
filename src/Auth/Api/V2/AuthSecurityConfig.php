@@ -514,8 +514,13 @@ final class AuthSecurityConfig
         $fullUrlPattern = rtrim((string) config('app.url'), '/').'/'.$routePattern;
 
         if (! $descriptor['parameterized']) {
-            return Str::is($configuredPattern, $routePattern)
-                || Str::is($configuredPattern, $fullUrlPattern);
+            if (Str::is($configuredPattern, $routePattern)) {
+                return true;
+            }
+
+            return str_contains($configuredPattern, '*')
+                && Str::is($configuredPattern, $fullUrlPattern)
+                && Str::is($configuredPattern, $fullUrlPattern.'?wncms_query_probe=1');
         }
 
         return $this->wildcardPatternCovers($configuredPattern, $routePattern)

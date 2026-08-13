@@ -50,7 +50,7 @@ final class SessionService
             'severity' => 'warning',
             'outcome' => 'succeeded',
             'context' => $this->eventContext($session, $reason),
-        ]);
+        ], null, $this->mutationConnectionNames());
     }
 
     /**
@@ -87,7 +87,7 @@ final class SessionService
                 'actor_id' => $user->getKey(),
                 'context' => ['reason' => 'logout_all'],
             ],
-        ]);
+        ], null, $this->mutationConnectionNames());
     }
 
     /**
@@ -105,6 +105,20 @@ final class SessionService
             'severity' => 'info',
             'outcome' => 'succeeded',
             'context' => $this->eventContext($session, 'logout'),
+        ], null, $this->mutationConnectionNames());
+    }
+
+    /**
+     * Return every connection participating in session-family mutations.
+     *
+     * @return array<int, string>
+     */
+    private function mutationConnectionNames(): array
+    {
+        return $this->events->modelConnectionNames([
+            'api_session',
+            'api_access_token',
+            'api_refresh_token',
         ]);
     }
 

@@ -85,7 +85,10 @@ Origins，否则 `SameSite=None` 会被拒绝。Host `allowed_origins` 不可包
 closed。被拒绝的 actual 与 preflight 请求绝不会反射 CORS 许可标头。永久 remember credential 的浏览器
 cookie 仍采用有界的 400 天持久期限，logout 始终按完全相同 scope 清除。覆盖范围包含
 `auth/me` 在内的所有 auth routes，并支持 Laravel 风格的前后 slash 与
-host-keyed `cors.paths`，以及 Laravel `fullUrlIs()` URL pattern。参数化 session
+host-keyed `cors.paths`，以及 Laravel `fullUrlIs()` URL pattern。精确 path 项目
+采用 Laravel 不受 query 影响的 `path()` 语义，但精确 full URL 无法证明覆盖
+任意 query variant；full-URL 覆盖因此必须使用 path wildcard，例如
+`https://api.example.test/api/v2/backend/auth/*`。参数化 session
 删除 route 必须由 auth-wide wildcard 或明确的 `auth/sessions/*` wildcard 覆盖；
 单一示例 session ID 的精确 path 不能证明已覆盖整个 route。
 
@@ -105,7 +108,12 @@ Origin 与 CSRF denial 会保留有限的 HMAC sample，并按 event type 与 UT
 若 host 覆盖 `api_security_event` model，该覆盖必须继承
 `ApiSecurityEvent`、保留 `api_security_event` model key，并可拥有自定义默认
 connection 与 table。除非明确传入 connection，否则 persistence、aggregation
-与 post-commit notification 都使用该 model 自有的 storage。
+与 post-commit notification 都使用该 model 自有的 storage。Aggregate 更新通过
+`aggregate_key` 定位，不要求主键名为 `id`。必要的审计变更有更严格的要求：
+操作涉及的 setting、session、access-token 与 refresh-token model 必须与
+security-event model 解析到完全相同的命名 connection。WNCMS 会在调用变更前
+完成此预检，任何不一致都会返回 audit-unavailable（API 为 `503`）；系统绝不会
+假设跨数据库原子性。
 
 ```javascript
 const csrf = readCookie('wncms_refresh_csrf')

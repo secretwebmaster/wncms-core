@@ -2,6 +2,7 @@
 
 namespace Wncms\Tests\Feature\Api\V2;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Events\TransactionCommitting;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -42,6 +43,7 @@ class SecurityEventPostCommitTest extends TestCase
      */
     protected function tearDown(): void
     {
+        CarbonImmutable::setTestNow();
         while (DB::transactionLevel() > 0) {
             DB::rollBack();
         }
@@ -239,6 +241,7 @@ class SecurityEventPostCommitTest extends TestCase
     {
         $connection = $this->configureOverrideModel();
         $coreCount = DB::table('api_security_events')->count();
+        CarbonImmutable::setTestNow('2026-08-14 08:00:00 UTC');
         $context = [
             'surface' => 'api_v2',
             'request_id' => 'task7-post-commit-override-aggregate-1',
@@ -247,7 +250,9 @@ class SecurityEventPostCommitTest extends TestCase
             'user_agent' => 'Task7 override aggregate',
         ];
 
-        app(SecurityEventService::class)->recordAggregate('security.origin.denied', 'warning', 'denied', $context);
+        $first = app(SecurityEventService::class)->recordAggregate('security.origin.denied', 'warning', 'denied', $context);
+        $firstOccurredAt = $first->context['aggregate']['first_occurred_at'];
+        CarbonImmutable::setTestNow('2026-08-14 08:01:00 UTC');
         $updated = app(SecurityEventService::class)->recordAggregate('security.origin.denied', 'warning', 'denied', [
             ...$context,
             'request_id' => 'task7-post-commit-override-aggregate-2',
@@ -255,6 +260,8 @@ class SecurityEventPostCommitTest extends TestCase
 
         $this->assertInstanceOf(Task7ApiSecurityEventOverride::class, $updated);
         $this->assertSame(2, $updated->context['aggregate']['count']);
+        $this->assertSame($firstOccurredAt, $updated->context['aggregate']['first_occurred_at']);
+        $this->assertSame('2026-08-14T08:01:00+00:00', $updated->context['aggregate']['last_occurred_at']);
         $this->assertSame(1, $connection->table(self::OVERRIDE_TABLE)->count());
         $this->assertSame($coreCount, DB::table('api_security_events')->count());
     }
@@ -277,7 +284,7 @@ class SecurityEventPostCommitTest extends TestCase
                 'severity' => 'info',
                 'outcome' => 'succeeded',
                 'context' => ['request_id' => 'task7-post-commit-invalid-override'],
-            ]);
+            ], null, [DB::connection()->getName()]);
             $this->fail('An invalid security-event model override must fail closed.');
         } catch (\RuntimeException $exception) {
             $this->assertSame('Invalid api_security_event model override.', $exception->getMessage());
@@ -340,7 +347,12 @@ class SecurityEventPostCommitTest extends TestCase
      */
     private function recordInsideServiceTransaction(string $requestId, ?string $connectionName = null): mixed
     {
-        return app(SecurityEventService::class)->withinTransaction(static fn (): null => null, [
+        $service = app(SecurityEventService::class);
+        $requiredConnectionNames = $connectionName === null
+            ? $service->modelConnectionNames(['api_security_event'])
+            : [DB::connection($connectionName)->getName()];
+
+        return $service->withinTransaction(static fn (): null => null, [
             'type' => 'auth.refresh.succeeded',
             'severity' => 'info',
             'outcome' => 'succeeded',
@@ -348,7 +360,7 @@ class SecurityEventPostCommitTest extends TestCase
                 'surface' => 'api_v2',
                 'request_id' => $requestId,
             ],
-        ], $connectionName);
+        ], $connectionName, $requiredConnectionNames);
     }
 
     /**
@@ -373,7 +385,7 @@ class SecurityEventPostCommitTest extends TestCase
     {
         $connection = $this->configureSecondConnection();
         $connection->statement('DROP TABLE IF EXISTS '.self::OVERRIDE_TABLE);
-        $connection->statement('CREATE TABLE '.self::OVERRIDE_TABLE.' AS SELECT * FROM api_security_events WHERE 0');
+        $connection->statement('CREATE TABLE '.self::OVERRIDE_TABLE.' AS SELECT event_id, occurred_at, event_type, severity, outcome, surface, request_id, run_id, actor_type, actor_id, target_type, target_id, credential_type, credential_id, session_id, website_ids, error_code, http_status, ip_hash, login_identifier_hash, user_agent_hash, correlation_key_version, aggregate_key, mutation_audit_id, context, created_at, updated_at FROM api_security_events WHERE 0');
         $connection->statement('CREATE UNIQUE INDEX task7_security_event_event_id_unique ON '.self::OVERRIDE_TABLE.' (event_id)');
         $connection->statement('CREATE UNIQUE INDEX task7_security_event_aggregate_key_unique ON '.self::OVERRIDE_TABLE.' (aggregate_key)');
         config(['wncms.models.api_security_event' => ['class' => Task7ApiSecurityEventOverride::class]]);
@@ -405,6 +417,12 @@ class Task7ApiSecurityEventOverride extends ApiSecurityEvent
     protected $connection = SecurityEventPostCommitTest::SECOND_CONNECTION;
 
     protected $table = SecurityEventPostCommitTest::OVERRIDE_TABLE;
+
+    protected $primaryKey = 'event_id';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 }
 
 /**

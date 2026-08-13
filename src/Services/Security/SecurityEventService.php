@@ -78,16 +78,18 @@ final class SecurityEventService
      * Commit a security mutation and its mandatory event atomically.
      *
      * @param  array<string, mixed>  $event
+     * @param  array<int, string>  $requiredConnectionNames
      *
      * @throws \RuntimeException
      */
-    public function withinTransaction(callable $mutation, array $event, ?string $connectionName = null): mixed
+    public function withinTransaction(callable $mutation, array $event, ?string $connectionName = null, array $requiredConnectionNames = []): mixed
     {
         if (! $this->correlationHasher->isConfigured()) {
             throw new \RuntimeException('Security event correlation keys are unavailable.');
         }
 
         $connection = $this->eventConnection($connectionName);
+        $this->assertAtomicConnections($connection, $requiredConnectionNames);
 
         return $connection->transaction(function () use ($mutation, $event, $connection): mixed {
             $result = $mutation();
@@ -101,6 +103,36 @@ final class SecurityEventService
 
             return $result;
         });
+    }
+
+    /**
+     * Resolve the actual connection names for mutation model registry keys.
+     *
+     * @param  array<int, string>  $modelKeys
+     * @return array<int, string>
+     *
+     * @throws \RuntimeException
+     */
+    public function modelConnectionNames(array $modelKeys): array
+    {
+        $connectionNames = [];
+
+        foreach ($modelKeys as $modelKey) {
+            try {
+                $modelClass = wncms()->getModelClass($modelKey);
+                $model = new $modelClass;
+            } catch (\Throwable $exception) {
+                throw new \RuntimeException("Invalid mutation model [{$modelKey}].", 0, $exception);
+            }
+
+            if (! $model instanceof Model) {
+                throw new \RuntimeException("Invalid mutation model [{$modelKey}].");
+            }
+
+            $connectionNames[] = $model->getConnection()->getName();
+        }
+
+        return array_values(array_unique($connectionNames));
     }
 
     /**
@@ -170,11 +202,13 @@ final class SecurityEventService
                 $attributes['request_id'],
                 $attributes['occurred_at']
             );
-            $connection->table($table)->where('id', $event->id)->update([
+            $connection->table($table)->where('aggregate_key', $attributes['aggregate_key'])->update([
                 'context' => json_encode($aggregateContext, JSON_THROW_ON_ERROR),
                 'updated_at' => CarbonImmutable::now('UTC'),
             ]);
-            $updated = $model->newQuery()->findOrFail($event->id);
+            $updated = $model->newQuery()
+                ->where('aggregate_key', $attributes['aggregate_key'])
+                ->firstOrFail();
 
             return $updated;
         });
@@ -356,6 +390,26 @@ final class SecurityEventService
     protected function eventConnection(?string $connectionName = null): Connection
     {
         return $this->eventModel($connectionName)->getConnection();
+    }
+
+    /**
+     * Reject mandatory audit mutations that cannot share one database transaction.
+     *
+     * @param  array<int, string>  $requiredConnectionNames
+     */
+    protected function assertAtomicConnections(Connection $eventConnection, array $requiredConnectionNames): void
+    {
+        if ($requiredConnectionNames === []) {
+            throw new \RuntimeException('Security mutation connection requirements are unavailable.');
+        }
+
+        foreach ($requiredConnectionNames as $requiredConnectionName) {
+            if (! is_string($requiredConnectionName)
+                || $requiredConnectionName === ''
+                || $requiredConnectionName !== $eventConnection->getName()) {
+                throw new \RuntimeException('Security mutation and event connections must match.');
+            }
+        }
     }
 
     /**

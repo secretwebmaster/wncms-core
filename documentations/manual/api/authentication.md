@@ -88,7 +88,10 @@ origin. Host `allowed_origins` must contain no `*`, and
 fail closed. Denied actual and preflight requests never reflect CORS permission
 headers. Coverage includes every auth route, including `auth/me`; Laravel-style
 leading/trailing slashes, host-keyed `cors.paths`, and Laravel `fullUrlIs()` URL
-patterns are supported. Parameterized session deletion requires either the
+patterns are supported. Exact path entries use Laravel's query-independent
+`path()` semantics, but an exact full URL cannot prove coverage of arbitrary
+query variants. Full-URL coverage therefore requires a path wildcard such as
+`https://api.example.test/api/v2/backend/auth/*`. Parameterized session deletion requires either the
 auth-wide wildcard or an explicit `auth/sessions/*` wildcard; one exact example
 session ID does not prove coverage of the route.
 Permanent remembered credentials still use a bounded 400-day persistent
@@ -114,7 +117,12 @@ If the host overrides the `api_security_event` model, the override must extend
 `ApiSecurityEvent`, retain the `api_security_event` model key, and may own a
 custom default connection and table. Persistence, aggregation, and post-commit
 notification then use that model-owned storage unless a connection is explicitly
-supplied.
+supplied. Aggregate updates are located by `aggregate_key` and do not require an
+`id` primary key. Mandatory audited mutations are stricter: the setting, session,
+access-token, and refresh-token models involved in an operation must all resolve
+to the exact same named connection as the security-event model. WNCMS performs
+this preflight before invoking the mutation and returns audit-unavailable (`503`
+for API calls) on any mismatch; cross-database atomicity is never assumed.
 
 ```javascript
 const csrf = readCookie('wncms_refresh_csrf')

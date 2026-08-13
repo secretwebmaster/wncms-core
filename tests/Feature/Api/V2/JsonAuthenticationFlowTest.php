@@ -11,6 +11,7 @@ use Symfony\Component\Process\Process;
 use Wncms\Auth\Api\V2\AccessTokenService;
 use Wncms\Auth\Api\V2\CredentialParser;
 use Wncms\Models\ApiRefreshToken;
+use Wncms\Models\ApiSecurityEvent;
 use Wncms\Models\ApiSession;
 use Wncms\Models\User;
 use Wncms\Models\Website;
@@ -23,6 +24,12 @@ class JsonAuthenticationFlowTest extends TestCase
     private User $user;
 
     private string $password = 'json-auth-password';
+
+    public const EVENT_CONNECTION = 'task7_atomic_event';
+
+    public const EVENT_TABLE = 'task7_atomic_security_events';
+
+    private ?string $eventDatabase = null;
 
     /**
      * Prepare one interactive actor and mandatory event keys.
@@ -55,6 +62,31 @@ class JsonAuthenticationFlowTest extends TestCase
         ]);
         $website = Website::firstOrFail();
         $this->user->websites()->syncWithoutDetaching([$website->id]);
+    }
+
+    /**
+     * Remove test-owned model overrides and isolated event storage.
+     */
+    protected function tearDown(): void
+    {
+        config([
+            'wncms.models.api_security_event' => null,
+            'wncms.models.api_session' => null,
+            'wncms.models.api_access_token' => null,
+            'wncms.models.api_refresh_token' => null,
+        ]);
+        foreach (['api_security_event', 'api_session', 'api_access_token', 'api_refresh_token'] as $modelKey) {
+            $this->clearCachedModelClass($modelKey);
+        }
+        if ($this->eventDatabase !== null) {
+            DB::connection(self::EVENT_CONNECTION)->disconnect();
+            DB::purge(self::EVENT_CONNECTION);
+            if (is_file($this->eventDatabase)) {
+                unlink($this->eventDatabase);
+            }
+        }
+
+        parent::tearDown();
     }
 
     /**
@@ -258,6 +290,44 @@ class JsonAuthenticationFlowTest extends TestCase
     }
 
     /**
+     * Verify an event-model connection mismatch rejects login before credential mutation.
+     */
+    public function test_login_maps_cross_connection_audit_preflight_to_503_without_mutation(): void
+    {
+        $this->configureIsolatedEventOverride();
+        config([
+            'wncms.models.api_session' => ['class' => Task6ApiSessionOverride::class],
+            'wncms.models.api_access_token' => ['class' => Task6ApiAccessTokenOverride::class],
+            'wncms.models.api_refresh_token' => ['class' => Task6ApiRefreshTokenOverride::class],
+        ]);
+        foreach (['api_session', 'api_access_token', 'api_refresh_token'] as $modelKey) {
+            $this->clearCachedModelClass($modelKey);
+        }
+        Task6ApiSessionOverride::resetTracking();
+        Task6ApiAccessTokenOverride::resetTracking();
+        Task6ApiRefreshTokenOverride::resetTracking();
+        $sessionCount = DB::table('api_sessions')->count();
+        $accessCount = DB::table('api_access_tokens')->count();
+        $refreshCount = DB::table('api_refresh_tokens')->count();
+
+        auth()->forgetGuards();
+        $this->postJson('/api/v2/backend/auth/login', [
+            'email' => $this->user->email,
+            'password' => $this->password,
+            'device_name' => 'cross-connection-preflight',
+        ])->assertStatus(503)
+            ->assertJsonPath('meta.error_code', 'security.audit_unavailable');
+
+        $this->assertSame(0, Task6ApiSessionOverride::$creates);
+        $this->assertSame(0, Task6ApiAccessTokenOverride::$creates);
+        $this->assertSame(0, Task6ApiRefreshTokenOverride::$creates);
+        $this->assertSame($sessionCount, DB::table('api_sessions')->count());
+        $this->assertSame($accessCount, DB::table('api_access_tokens')->count());
+        $this->assertSame($refreshCount, DB::table('api_refresh_tokens')->count());
+        $this->assertSame(0, DB::connection(self::EVENT_CONNECTION)->table(self::EVENT_TABLE)->count());
+    }
+
+    /**
      * Send one valid JSON login request.
      *
      * @param  array<string, mixed>  $overrides
@@ -307,6 +377,22 @@ class JsonAuthenticationFlowTest extends TestCase
                 'user_agent' => 'task6-json-agent-correlation-key-1234567890',
             ]],
         ]]);
+    }
+
+    /**
+     * Configure an isolated security-event model connection for atomicity preflight.
+     */
+    private function configureIsolatedEventOverride(): void
+    {
+        $this->eventDatabase = tempnam(sys_get_temp_dir(), 'wncms-atomic-event-');
+        config(['database.connections.'.self::EVENT_CONNECTION => [
+            ...config('database.connections.sqlite'),
+            'database' => $this->eventDatabase,
+        ]]);
+        DB::purge(self::EVENT_CONNECTION);
+        DB::connection(self::EVENT_CONNECTION)->statement('CREATE TABLE '.self::EVENT_TABLE.' (event_id TEXT PRIMARY KEY, request_id TEXT NULL)');
+        config(['wncms.models.api_security_event' => ['class' => Task7AtomicSecurityEventOverride::class]]);
+        $this->clearCachedModelClass('api_security_event');
     }
 
     /**
@@ -435,4 +521,14 @@ class Task6ApiRefreshTokenOverride extends ApiRefreshToken
         self::$creates = 0;
         self::$builderUpdates = 0;
     }
+}
+
+/**
+ * Test-only security-event override on an isolated named connection.
+ */
+class Task7AtomicSecurityEventOverride extends ApiSecurityEvent
+{
+    protected $connection = JsonAuthenticationFlowTest::EVENT_CONNECTION;
+
+    protected $table = JsonAuthenticationFlowTest::EVENT_TABLE;
 }

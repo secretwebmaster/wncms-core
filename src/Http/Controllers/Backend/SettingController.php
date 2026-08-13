@@ -241,7 +241,12 @@ class SettingController extends Controller
                         'reason' => 'auth_policy_changed',
                     ],
                 ],
-            ]);
+            ], null, app(SecurityEventService::class)->modelConnectionNames([
+                'setting',
+                'api_session',
+                'api_access_token',
+                'api_refresh_token',
+            ]));
         } catch (\Throwable $exception) {
             report($exception);
 

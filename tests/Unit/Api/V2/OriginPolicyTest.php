@@ -310,6 +310,52 @@ class OriginPolicyTest extends TestCase
     }
 
     /**
+     * Verify exact full URLs cannot prove coverage of arbitrary query variants.
+     */
+    public function test_cookie_transport_rejects_exact_full_urls_for_every_auth_route(): void
+    {
+        $this->configureCredentialedCors([
+            'https://api.example.test/api/v2/backend/auth/login',
+            'https://api.example.test/api/v2/backend/auth/refresh',
+            'https://api.example.test/api/v2/backend/auth/logout',
+            'https://api.example.test/api/v2/backend/auth/logout-all',
+            'https://api.example.test/api/v2/backend/auth/me',
+            'https://api.example.test/api/v2/backend/auth/sessions',
+            'https://api.example.test/api/v2/backend/auth/sessions/*',
+        ]);
+        $config = AuthSecurityConfig::fromValues([
+            'api_refresh_transport' => 'cookie',
+            'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+        ]);
+
+        $this->assertSame('json', $config->refreshTransport());
+        $this->assertArrayHasKey('api_refresh_cookie_allowed_origins', $config->validate());
+    }
+
+    /**
+     * Verify exact Laravel paths cover query variants while parameterized routes stay wildcarded.
+     */
+    public function test_cookie_transport_accepts_exact_paths_with_parameter_route_wildcard(): void
+    {
+        $this->configureCredentialedCors([
+            'api/v2/backend/auth/login',
+            'api/v2/backend/auth/refresh',
+            'api/v2/backend/auth/logout',
+            'api/v2/backend/auth/logout-all',
+            'api/v2/backend/auth/me',
+            'api/v2/backend/auth/sessions',
+            'api/v2/backend/auth/sessions/*',
+        ]);
+        $config = AuthSecurityConfig::fromValues([
+            'api_refresh_transport' => 'cookie',
+            'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+        ]);
+
+        $this->assertSame('cookie', $config->refreshTransport());
+        $this->assertArrayNotHasKey('api_refresh_cookie_allowed_origins', $config->validate());
+    }
+
+    /**
      * Verify a full-URL wildcard for another host covers none of the auth surface.
      */
     public function test_cookie_transport_rejects_wrong_host_full_url_pattern(): void
