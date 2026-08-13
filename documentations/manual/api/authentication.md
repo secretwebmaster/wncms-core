@@ -234,6 +234,33 @@ direct package callers cannot bypass authorization or mandatory audit. Bulk
 operations require every requested target to exist at direct execution and plan
 creation; disappearance after a valid plan returns `risk.plan_stale`.
 
+When Spatie wildcard permissions are enabled, the locked authorization snapshot
+applies the configured wildcard implementation to freshly loaded direct and role
+grants. It does not use the permission registrar cache, and it preserves guard
+and team scoping. Exact permission behavior is unchanged when wildcard support
+is disabled.
+
+Single-website models accept exactly one canonical `website_id`, `website_key`,
+or one-item `website_ids` value. Supplying several distinct websites returns
+`422 validation.failed`; WNCMS never silently chooses the first value. Plan
+creation, direct execution, and the resource controller use this same model
+website mode and canonical binding.
+
+Execution recomputes effective risk from the transaction-fresh target and
+environment snapshot before any side effect, then reapplies plan eligibility,
+credential, step-up, and high-risk mode rules. A fresh normal-to-high escalation
+therefore returns `428 risk.plan_required` when no confirmation is present,
+`503 risk.policy_unavailable` when planning is not eligible, or
+`409 risk.plan_stale` when a supplied plan no longer matches the risk or
+environment binding. Direct mode still applies its credential restrictions.
+
+Stale and reused confirmation denials first roll back the complete domain
+transaction. WNCMS then writes exactly one mandatory `risk.plan.stale` or
+`risk.confirmation.reused` event on the same named connection in an independent
+transaction, including the stable error code and HTTP status. If that denial
+audit cannot commit, the final response is `503 security.audit_unavailable`;
+the domain mutation and confirmation state remain unchanged.
+
 Descriptor `ability` and data `risk` are semantic declarations, not deductions
 from the HTTP method. Registry startup rejects resource/bridge operation-ID
 collisions unless the ID is on the reviewed override list. In direct mode an

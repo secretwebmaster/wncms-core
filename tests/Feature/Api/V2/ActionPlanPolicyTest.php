@@ -215,6 +215,7 @@ class ActionPlanPolicyTest extends TestCase
         $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
         $version = 8;
         $executions = 0;
+        $beforeDenials = DB::table('api_security_events')->where('event_type', 'risk.plan.stale')->where('actor_id', $context->actorId())->count();
 
         $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions): JsonResponse {
             $executions++;
@@ -225,6 +226,180 @@ class ActionPlanPolicyTest extends TestCase
         $this->assertSame(409, $response->getStatusCode());
         $this->assertSame('risk.plan_stale', $response->getData(true)['meta']['error_code']);
         $this->assertSame(0, $executions);
+        $this->assertSame($beforeDenials + 1, DB::table('api_security_events')->where('event_type', 'risk.plan.stale')->where('actor_id', $context->actorId())->count());
+        $denial = DB::table('api_security_events')->where('event_type', 'risk.plan.stale')->where('actor_id', $context->actorId())->latest('id')->first();
+        $this->assertSame('risk.plan_stale', $denial->error_code);
+        $this->assertSame(409, (int) $denial->http_status);
+        $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('reservation_id'));
+        $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('consumed_at'));
+    }
+
+    public function test_reused_confirmation_denial_is_audited_once_after_execution_rollback(): void
+    {
+        [$context, $operation] = $this->fixture();
+        $this->registerOperation($operation);
+        uss('api_high_risk_action_mode', 'planned');
+        $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
+        $request = $this->riskRequest($context, $operation, ['name' => 'exact'], ['version' => 7]);
+        $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
+
+        $this->assertSame(200, app(EnforceApiV2RiskPolicy::class)->handle($request, fn () => new JsonResponse(['ok' => true]))->getStatusCode());
+        $beforeDenials = DB::table('api_security_events')->where('event_type', 'risk.confirmation.reused')->where('actor_id', $context->actorId())->count();
+        $executions = 0;
+        $denied = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions): JsonResponse {
+            $executions++;
+
+            return new JsonResponse(['ok' => true]);
+        });
+
+        $this->assertSame(409, $denied->getStatusCode());
+        $this->assertSame('risk.confirmation_reused', $denied->getData(true)['meta']['error_code']);
+        $this->assertSame(0, $executions);
+        $this->assertSame($beforeDenials + 1, DB::table('api_security_events')->where('event_type', 'risk.confirmation.reused')->where('actor_id', $context->actorId())->count());
+    }
+
+    public function test_stale_denial_audit_failure_returns_503_after_domain_rollback(): void
+    {
+        [$context, $operation] = $this->fixture();
+        $this->registerOperation($operation);
+        uss('api_high_risk_action_mode', 'planned');
+        $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
+        $request = $this->riskRequest($context, $operation, ['name' => 'changed'], ['version' => 7]);
+        $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
+        config(['wncms-api-v2.auth_security.security_event_correlation.keys' => []]);
+        $before = $context->actor()->username;
+
+        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use ($context): JsonResponse {
+            $context->actor()->newQuery()->whereKey($context->actorId())->update(['username' => 'denial-must-roll-back']);
+
+            return new JsonResponse(['ok' => true]);
+        });
+
+        $this->assertSame(503, $response->getStatusCode());
+        $this->assertSame('security.audit_unavailable', $response->getData(true)['meta']['error_code']);
+        $this->assertSame($before, $context->actor()->fresh()->username);
+        $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('reservation_id'));
+        $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('consumed_at'));
+    }
+
+    public function test_transaction_fresh_risk_upgrade_requires_a_plan_before_side_effect(): void
+    {
+        [$context] = $this->fixture();
+        $operation = $this->dynamicOperation('backend.tokens.dynamic_planned', true);
+        $this->registerOperation($operation);
+        uss('api_high_risk_action_mode', 'planned');
+        app(OperationRiskContextResolver::class)->register($operation->id, static fn (): array => [
+            'target_state' => ['version' => 7],
+            'environment' => ['security_risk' => 'high'],
+            'model_keys' => ['setting'],
+        ]);
+        $request = $this->riskRequest($context, $operation, ['name' => 'exact'], ['version' => 7]);
+        $executions = 0;
+
+        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions): JsonResponse {
+            $executions++;
+
+            return new JsonResponse(['ok' => true]);
+        });
+
+        $this->assertSame(428, $response->getStatusCode());
+        $this->assertSame('risk.plan_required', $response->getData(true)['meta']['error_code']);
+        $this->assertSame(0, $executions);
+    }
+
+    public function test_transaction_fresh_risk_upgrade_invalidates_a_normal_risk_plan(): void
+    {
+        [$context] = $this->fixture();
+        $operation = $this->dynamicOperation('backend.tokens.dynamic_stale', true);
+        $this->registerOperation($operation);
+        uss('api_high_risk_action_mode', 'planned');
+        $normal = new RiskContext(['name' => 'exact'], ['version' => 7], ['security_risk' => 'normal'], ['setting']);
+        $plan = app(ActionPlanService::class)->createResolved($context, $operation, $normal);
+        app(OperationRiskContextResolver::class)->register($operation->id, static fn (): array => [
+            'target_state' => ['version' => 7],
+            'environment' => ['security_risk' => 'high'],
+            'model_keys' => ['setting'],
+        ]);
+        $request = $this->riskRequest($context, $operation, ['name' => 'exact'], ['version' => 7]);
+        $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
+        $executions = 0;
+
+        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions): JsonResponse {
+            $executions++;
+
+            return new JsonResponse(['ok' => true]);
+        });
+
+        $this->assertSame(409, $response->getStatusCode());
+        $this->assertSame('risk.plan_stale', $response->getData(true)['meta']['error_code']);
+        $this->assertSame(0, $executions);
+    }
+
+    public function test_transaction_fresh_risk_upgrade_fails_closed_when_planning_is_ineligible(): void
+    {
+        [$context] = $this->fixture();
+        $operation = $this->dynamicOperation('backend.tokens.dynamic_ineligible', false);
+        $this->registerOperation($operation);
+        uss('api_high_risk_action_mode', 'planned');
+        app(OperationRiskContextResolver::class)->register($operation->id, static fn (): array => [
+            'target_state' => ['version' => 7],
+            'environment' => ['security_risk' => 'critical'],
+            'model_keys' => ['setting'],
+        ]);
+        $request = $this->riskRequest($context, $operation, ['name' => 'exact'], ['version' => 7]);
+        $executions = 0;
+
+        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions): JsonResponse {
+            $executions++;
+
+            return new JsonResponse(['ok' => true]);
+        });
+
+        $this->assertSame(503, $response->getStatusCode());
+        $this->assertSame('risk.policy_unavailable', $response->getData(true)['meta']['error_code']);
+        $this->assertSame(0, $executions);
+    }
+
+    public function test_transaction_fresh_risk_upgrade_obeys_direct_mode_and_legacy_critical_denial(): void
+    {
+        [$context] = $this->fixture();
+        $operation = $this->dynamicOperation('backend.tokens.dynamic_direct', true, [
+            ApiCredential::TYPE_INTERACTIVE_ACCESS,
+            ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN,
+        ]);
+        $this->registerOperation($operation);
+        uss('api_high_risk_action_mode', 'direct');
+        $risk = 'high';
+        app(OperationRiskContextResolver::class)->register($operation->id, static function () use (&$risk): array {
+            return [
+                'target_state' => ['version' => 7],
+                'environment' => ['security_risk' => $risk],
+                'model_keys' => ['setting'],
+            ];
+        });
+        $request = $this->riskRequest($context, $operation, ['name' => 'exact'], ['version' => 7]);
+        $executions = 0;
+
+        $allowed = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions): JsonResponse {
+            $executions++;
+
+            return new JsonResponse(['ok' => true]);
+        });
+        $this->assertSame(200, $allowed->getStatusCode());
+        $this->assertSame(1, $executions);
+
+        $risk = 'critical';
+        $legacy = new AuthenticationContext($context->actor(), ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN, 'legacy-dynamic', null, ['tokens.create'], [1]);
+        $legacyRequest = $this->riskRequest($legacy, $operation, ['name' => 'exact'], ['version' => 7]);
+        $denied = app(EnforceApiV2RiskPolicy::class)->handle($legacyRequest, function () use (&$executions): JsonResponse {
+            $executions++;
+
+            return new JsonResponse(['ok' => true]);
+        });
+
+        $this->assertSame(403, $denied->getStatusCode());
+        $this->assertSame('risk.credential_type_denied', $denied->getData(true)['meta']['error_code']);
+        $this->assertSame(1, $executions);
     }
 
     public function test_planned_middleware_maps_missing_and_stale_confirmations_to_428_and_409(): void
@@ -594,6 +769,19 @@ class ActionPlanPolicyTest extends TestCase
             sideEffectKind: 'database', idempotent: true,
         );
 
+    }
+
+    private function dynamicOperation(string $id, bool $actionPlanEligible, array $acceptedCredentialTypes = [ApiCredential::TYPE_INTERACTIVE_ACCESS, ApiCredential::TYPE_SERVICE_TOKEN]): ApiOperationContract
+    {
+        return new ApiOperationContract(
+            id: $id, domain: 'tokens', surface: 'backend', method: 'POST',
+            path: '/api/v2/backend/tokens', routeName: 'api.v2.backend.tokens.dynamic',
+            permission: 'api_token_create', ability: 'tokens.create', websiteScoped: true,
+            risk: 'write', implementation: 'domain', request: ApiSchema::object(), response: ApiSchema::object(),
+            securityRisk: 'normal', acceptedCredentialTypes: $acceptedCredentialTypes,
+            actionPlanEligible: $actionPlanEligible, domainModelKeys: ['setting'],
+            sideEffectKind: 'database', idempotent: true,
+        );
     }
 
     private function registerOperation(ApiOperationContract $operation): void

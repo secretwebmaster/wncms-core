@@ -207,6 +207,14 @@ direct/role permission snapshot 会在 target 或 website resolution 前检查�
 mandatory audit。Bulk operation 在 direct execution 与 plan 创建时要求所有 requested target
 存在；有效 plan 建立后 target 消失则返回 `risk.plan_stale`。
 
+启用 Spatie 通配符权限时，锁定的授权快照会对刚从数据库读取的直接与角色授权套用已配置的通配符实现，不会使用权限注册器的陈旧缓存，并保留 guard 与 team 范围语义。关闭通配符支持时，精确权限行为维持不变。
+
+单站模型只接受一个规范化的 `website_id`、`website_key`，或只含一项的 `website_ids`。提供多个不同网站会返回 `422 validation.failed`；WNCMS 不会静默选取第一个值。计划创建、直接执行与资源控制器使用同一模型网站模式和规范绑定。
+
+执行会在任何副作用前，以事务内重新读取的目标与环境快照重算有效风险，再重新套用计划资格、凭证、step-up 与高风险模式规则。因此 normal→high 的即时升级在没有确认码时返回 `428 risk.plan_required`，操作不具计划资格时返回 `503 risk.policy_unavailable`，而已提供计划与新风险或环境绑定不符时返回 `409 risk.plan_stale`。直接模式仍会执行其凭证限制。
+
+计划过时或确认码重复使用时，会先回滚完整领域事务，再于相同具名连接的独立事务中准确写入一笔必要的 `risk.plan.stale` 或 `risk.confirmation.reused` 事件，并包含稳定错误代码与 HTTP 状态。若拒绝审计无法提交，最终响应为 `503 security.audit_unavailable`；领域变更与确认状态均保持不变。
+
 Descriptor 的 `ability` 与 data `risk` 是语义声明，不会从 HTTP method 推导。Registry
 启动时会拒绝 resource/bridge operation-ID collision，除非 ID 位于经审核的 override
 清单。Direct mode 可执行已授权的 external bridge，但没有 transactional plan guarantee；

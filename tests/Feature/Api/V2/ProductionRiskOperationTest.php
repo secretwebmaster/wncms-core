@@ -894,6 +894,41 @@ class ProductionRiskOperationTest extends TestCase
         $this->assertSame(1, DB::table('api_security_events')->where('event_type', 'risk.plan.created')->where('credential_id', 'plan-atomic')->count());
     }
 
+    public function test_single_mode_plan_creation_rejects_multiple_websites_and_accepts_one_key(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'single']);
+        $actor = User::query()->firstOrFail();
+        $website = Website::query()->firstOrFail();
+        $other = Website::create([
+            'user_id' => $actor->id,
+            'domain' => 'single-plan-'.uniqid().'.test',
+            'site_name' => 'Single Plan Other',
+            'theme' => 'default',
+        ]);
+        $actor->websites()->syncWithoutDetaching([$website->id, $other->id]);
+        $actor->givePermissionTo(Permission::findOrCreate('channel_edit', 'web'));
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $channel = Channel::create(['name' => 'Single plan', 'slug' => 'single-plan-'.uniqid()]);
+        $channel->websites()->sync([$website->id]);
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'plan-single', 'plan-session', ['channels.write'], [$website->id, $other->id]);
+        $beforePlans = DB::table('api_action_plans')->count();
+
+        $rejected = app(ActionPlanController::class)->store($this->actionPlanRequest($context, $operation->id, [
+            'name' => 'Must not plan', 'website_id' => $website->id,
+            'website_ids' => [$website->id, $other->id],
+        ], ['id' => $channel->id]));
+        $this->assertSame(422, $rejected->getStatusCode());
+        $this->assertSame('validation.failed', $rejected->getData(true)['meta']['error_code']);
+        $this->assertSame($beforePlans, DB::table('api_action_plans')->count());
+
+        $accepted = app(ActionPlanController::class)->store($this->actionPlanRequest($context, $operation->id, [
+            'name' => 'Valid plan', 'website_key' => 'website:'.$other->id,
+        ], ['id' => $channel->id]));
+        $this->assertSame(201, $accepted->getStatusCode(), (string) $accepted->getContent());
+        $this->assertSame($beforePlans + 1, DB::table('api_action_plans')->count());
+    }
+
     /**
      * Verify mandatory audit failure rolls back plan storage without returning a secret.
      */

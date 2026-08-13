@@ -49,6 +49,10 @@ final class WebsiteBindingResolver
         if ($canonical === []) {
             throw new RiskContextException('validation.failed', 422);
         }
+        $mode = method_exists($modelClass, 'getWebsiteMode') ? $modelClass::getWebsiteMode() : 'global';
+        if ($mode === 'single' && count($canonical) !== 1) {
+            throw new RiskContextException('validation.failed', 422);
+        }
 
         return new WebsiteBinding($canonical, true, in_array($action, ['store', 'update'], true));
     }

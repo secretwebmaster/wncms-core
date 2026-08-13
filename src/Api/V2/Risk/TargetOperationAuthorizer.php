@@ -3,6 +3,7 @@
 namespace Wncms\Api\V2\Risk;
 
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Contracts\Wildcard;
 use Spatie\Permission\Guard;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Auth\Api\V2\AuthenticationContext;
@@ -115,7 +116,11 @@ final class TargetOperationAuthorizer
         $roleKey = $roleModel->getKeyName();
         $roleRows = $roleIds === []
             ? collect()
-            : $roleModel->newQuery()->whereKey($roleIds)->orderBy($roleKey)->lockForUpdate()->get();
+            : $roles->getQuery()
+                ->whereKey($roleIds)
+                ->orderBy($roleModel->qualifyColumn($roleKey))
+                ->lockForUpdate()
+                ->get();
         $rolePermissionIds = [];
         if ($roleRows->isNotEmpty()) {
             $rolePermissions = $roleRows->first()->permissions();
@@ -133,16 +138,37 @@ final class TargetOperationAuthorizer
 
         $permissionIds = array_values(array_unique(array_merge($directIds, $rolePermissionIds)));
         $permissionModel = $permissions->getRelated();
-        $permissionRow = $permissionIds === []
-            ? null
+        $guardName = Guard::getDefaultName($freshActor);
+        $permissionRows = $permissionIds === []
+            ? collect()
             : $permissionModel->newQuery()
                 ->whereKey($permissionIds)
-                ->where('name', $permission)
-                ->where('guard_name', Guard::getDefaultName($freshActor))
+                ->where('guard_name', $guardName)
                 ->orderBy($permissionModel->getKeyName())
                 ->lockForUpdate()
-                ->first();
+                ->get();
 
-        return $permissionRow !== null;
+        if (! config('permission.enable_wildcard_permission')) {
+            return $permissionRows->contains(static fn ($row): bool => (string) $row->name === $permission);
+        }
+
+        $permissionRowsById = $permissionRows->keyBy($permissionModel->getKeyName());
+        $freshActor->setRelation('permissions', $permissionRowsById->only($directIds)->values());
+        foreach ($roleRows as $roleRow) {
+            $rolePermissionIdsForRow = $rolePermissions->newPivotStatement()
+                ->where($rolePermissions->getForeignPivotKeyName(), $roleRow->getKey())
+                ->pluck($rolePermissions->getRelatedPivotKeyName())
+                ->all();
+            $roleRow->setRelation('permissions', $permissionRowsById->only($rolePermissionIdsForRow)->values());
+        }
+        $freshActor->setRelation('roles', $roleRows);
+
+        $wildcardClass = config('permission.wildcard_permission', \Spatie\Permission\WildcardPermission::class);
+        $wildcard = app($wildcardClass, ['record' => $freshActor]);
+        if (! $wildcard instanceof Wildcard) {
+            throw new \RuntimeException('Configured wildcard permission resolver is invalid.');
+        }
+
+        return $wildcard->implies($permission, $guardName, $wildcard->getIndex());
     }
 }

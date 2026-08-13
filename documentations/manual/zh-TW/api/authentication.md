@@ -207,6 +207,14 @@ direct/role permission snapshot 會在 target 或 website resolution 前檢查�
 mandatory audit。Bulk operation 在 direct execution 與 plan 建立時要求所有 requested target
 存在；有效 plan 建立後 target 消失則回傳 `risk.plan_stale`。
 
+啟用 Spatie 萬用字元權限時，鎖定的授權快照會對剛從資料庫讀取的直接與角色授權套用已設定的萬用字元實作，不會使用權限註冊器的陳舊快取，並保留 guard 與 team 範圍語意。關閉萬用字元支援時，精確權限行為維持不變。
+
+單站模型只接受一個規範化的 `website_id`、`website_key`，或只含一項的 `website_ids`。提供多個不同網站會回傳 `422 validation.failed`；WNCMS 不會靜默選取第一個值。計畫建立、直接執行與資源控制器使用同一模型網站模式和規範綁定。
+
+執行會在任何副作用前，以交易內重新讀取的目標與環境快照重算有效風險，再重新套用計畫資格、憑證、step-up 與高風險模式規則。因此 normal→high 的即時升級在沒有確認碼時回傳 `428 risk.plan_required`，操作不具計畫資格時回傳 `503 risk.policy_unavailable`，而已提供計畫與新風險或環境綁定不符時回傳 `409 risk.plan_stale`。直接模式仍會執行其憑證限制。
+
+計畫過時或確認碼重複使用時，會先回滾完整領域交易，再於相同具名連線的獨立交易中準確寫入一筆必要的 `risk.plan.stale` 或 `risk.confirmation.reused` 事件，並包含穩定錯誤代碼與 HTTP 狀態。若拒絕稽核無法提交，最終回應為 `503 security.audit_unavailable`；領域變更與確認狀態均保持不變。
+
 Descriptor 的 `ability` 與 data `risk` 是語意宣告，不會從 HTTP method 推導。Registry
 啟動時會拒絕 resource/bridge operation-ID collision，除非 ID 位於經審核的 override
 清單。Direct mode 可執行已授權的 external bridge，但沒有 transactional plan guarantee；

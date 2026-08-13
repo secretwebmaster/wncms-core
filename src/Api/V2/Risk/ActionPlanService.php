@@ -214,7 +214,7 @@ final class ActionPlanService
                 $eventType = $exception->errorCode === 'risk.plan_stale' ? 'risk.plan.stale' : 'risk.confirmation.reused';
                 $this->events->withinTransaction(
                     static fn (): null => null,
-                    $this->event($eventType, $context, $operation, $this->policy->effective($operation, $riskContext->normalizedInput, $riskContext->environment), 'denied'),
+                    $this->event($eventType, $context, $operation, $this->policy->effective($operation, $riskContext->normalizedInput, $riskContext->environment), 'denied', $exception->errorCode, $exception->httpStatus),
                     null,
                     $this->events->modelConnectionNames(['api_action_plan']),
                 );
@@ -240,6 +240,25 @@ final class ActionPlanService
      */
     public function reserveResolved(AuthenticationContext $context, ApiOperationContract $operation, string $confirmation, RiskContext $riskContext): string
     {
+        $connections = $this->events->modelConnectionNames(['api_action_plan', 'api_security_event']);
+        if (count($connections) !== 1) {
+            throw new \RuntimeException('Security mutation and event connections must match.');
+        }
+
+        try {
+            return $this->reserveResolvedWithinTransaction($context, $operation, $confirmation, $riskContext);
+        } catch (ActionPlanException $exception) {
+            $this->recordDenialOutsideTransaction($exception, $context, $operation, $riskContext);
+
+            throw $exception;
+        }
+    }
+
+    /**
+     * Reserve a plan inside a caller-owned transaction without persisting denial audit early.
+     */
+    public function reserveResolvedWithinTransaction(AuthenticationContext $context, ApiOperationContract $operation, string $confirmation, RiskContext $riskContext): string
+    {
         $publicId = $this->publicId($confirmation);
         if ($publicId === null) {
             throw new ActionPlanException('risk.plan_invalid', 409);
@@ -253,12 +272,7 @@ final class ActionPlanService
         $reservationId = (string) Str::uuid();
 
         $plan = $planModel::query()->where('plan_id', $publicId)->lockForUpdate()->first();
-        try {
-            $this->assertUsable($plan, $confirmation, $context, $operation, $riskContext);
-        } catch (ActionPlanException $exception) {
-            $this->recordDenial($exception, $context, $operation, $riskContext);
-            throw $exception;
-        }
+        $this->assertUsable($plan, $confirmation, $context, $operation, $riskContext);
         $now = CarbonImmutable::now('UTC');
         $updated = $planModel::query()
             ->whereKey($plan->getKey())
@@ -270,9 +284,7 @@ final class ActionPlanService
                 'updated_at' => $now,
             ]);
         if ($updated !== 1) {
-            $exception = new ActionPlanException('risk.confirmation_reused', 409);
-            $this->recordDenial($exception, $context, $operation, $riskContext);
-            throw $exception;
+            throw new ActionPlanException('risk.confirmation_reused', 409);
         }
 
         return $reservationId;
@@ -367,8 +379,13 @@ final class ActionPlanService
     }
 
     /** @return array<string, mixed> */
-    private function event(string $type, AuthenticationContext $context, ApiOperationContract $operation, string $risk, string $outcome = 'succeeded'): array
+    private function event(string $type, AuthenticationContext $context, ApiOperationContract $operation, string $risk, string $outcome = 'succeeded', ?string $errorCode = null, ?int $httpStatus = null): array
     {
+        $eventContext = ['operation' => $operation->id];
+        if ($errorCode !== null) {
+            $eventContext['reason'] = $errorCode;
+        }
+
         return [
             'type' => $type,
             'severity' => $risk === 'critical' ? 'critical' : 'warning',
@@ -381,7 +398,9 @@ final class ActionPlanService
                 'credential_id' => $context->credentialPublicId(),
                 'session_id' => $context->sessionPublicId(),
                 'website_ids' => $context->websiteIds(),
-                'context' => ['operation' => $operation->id],
+                'error_code' => $errorCode,
+                'http_status' => $httpStatus,
+                'context' => $eventContext,
             ],
         ];
     }
@@ -414,7 +433,7 @@ final class ActionPlanService
         }
     }
 
-    private function recordDenial(ActionPlanException $exception, AuthenticationContext $context, ApiOperationContract $operation, RiskContext $riskContext): void
+    public function recordDenialOutsideTransaction(ActionPlanException $exception, AuthenticationContext $context, ApiOperationContract $operation, RiskContext $riskContext): void
     {
         if (! in_array($exception->errorCode, ['risk.plan_stale', 'risk.confirmation_reused'], true)) {
             return;
@@ -423,7 +442,7 @@ final class ActionPlanService
         $eventType = $exception->errorCode === 'risk.plan_stale' ? 'risk.plan.stale' : 'risk.confirmation.reused';
         $this->events->withinTransaction(
             static fn (): null => null,
-            $this->event($eventType, $context, $operation, $this->policy->effective($operation, $riskContext->normalizedInput, $riskContext->environment), 'denied'),
+            $this->event($eventType, $context, $operation, $this->policy->effective($operation, $riskContext->normalizedInput, $riskContext->environment), 'denied', $exception->errorCode, $exception->httpStatus),
             null,
             $this->events->modelConnectionNames(['api_action_plan']),
         );

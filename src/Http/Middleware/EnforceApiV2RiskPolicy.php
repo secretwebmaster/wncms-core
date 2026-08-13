@@ -93,15 +93,14 @@ final class EnforceApiV2RiskPolicy
 
         $requiresScopedTransaction = $operation->sideEffectKind === 'database'
             && in_array('websites', $operation->relationshipBoundaries, true);
-        if (! $operation->requiresStepUp && ! $requiresPlan && ! $requiresScopedTransaction) {
-            return $next($request);
-        }
-
         $route = $request->route();
         $async = $route instanceof Route && (bool) ($route->defaults['api_async_enqueue'] ?? false);
         $formalDescriptor = $operation->canonicalizer !== 'schema'
             || $operation->targetResolver !== 'none'
             || $this->riskContexts->hasResolver($operation->id);
+        if (! $operation->requiresStepUp && ! $requiresPlan && ! $requiresScopedTransaction && ! $formalDescriptor) {
+            return $next($request);
+        }
         $outboxModelKeys = $formalDescriptor
             ? $operation->transactionalOutboxModelKeys
             : ($route instanceof Route ? (array) ($route->defaults['api_transactional_outbox_model_keys'] ?? []) : []);
@@ -117,10 +116,11 @@ final class EnforceApiV2RiskPolicy
             $domainModelKeys,
             $outboxModelKeys,
             $operation->requiresStepUp ? ['api_step_up_proof', 'api_session'] : [],
-            $requiresPlan ? ['api_action_plan'] : [],
+            ($requiresPlan || ($formalDescriptor && $highRiskMode === 'planned' && $operation->actionPlanEligible)) ? ['api_action_plan'] : [],
         )));
 
         try {
+            $denialRiskContext = $riskContext;
             $connections = array_values(array_unique(array_merge(
                 $this->events->modelConnectionNames($modelKeys),
                 $riskContext->connectionNames,
@@ -132,10 +132,12 @@ final class EnforceApiV2RiskPolicy
 
             $connection = $connections[0];
 
-            return DB::connection($connection)->transaction(function () use ($request, $next, $context, $operation, $requiresPlan, $proof, $confirmation, $formalDescriptor, $riskContext, $connection): Response {
+            return DB::connection($connection)->transaction(function () use ($request, $next, $context, $operation, $requiresPlan, $requiresScopedTransaction, $proof, $confirmation, $formalDescriptor, $riskContext, $connection, $highRiskMode, $async, $domainModelKeys, $outboxModelKeys, &$denialRiskContext): Response {
                 $route = $request->route();
                 $parameters = $route instanceof Route ? $route->parameters() : [];
-                $this->authorizer->authorizePreTarget($context, $operation);
+                if ($requiresPlan || $requiresScopedTransaction) {
+                    $this->authorizer->authorizePreTarget($context, $operation);
+                }
                 $allowMissingForStalePlan = false;
                 if ($requiresPlan) {
                     $this->plans->assertUsableReference($context, $operation, $confirmation);
@@ -144,10 +146,40 @@ final class EnforceApiV2RiskPolicy
                 $riskContext = $formalDescriptor
                     ? $this->riskContexts->resolveExecution($request, $operation, $parameters, $allowMissingForStalePlan)
                     : $riskContext;
+                $denialRiskContext = $riskContext;
                 if (array_diff(array_unique($riskContext->connectionNames), [$connection]) !== []) {
                     throw new \RuntimeException('Target relationship connections must match.');
                 }
                 $risk = $this->policy->effective($operation, $riskContext->normalizedInput, $riskContext->environment);
+                if ($risk === 'critical' && $context->credentialType() === ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN) {
+                    return $this->responses->failure('risk.credential_type_denied', 'Credential type is not allowed', 403);
+                }
+                if ($highRiskMode === 'planned' && in_array($risk, ['high', 'critical'], true) && ! $operation->actionPlanEligible) {
+                    return $this->responses->failure('risk.policy_unavailable', 'Operation is not eligible for planned execution', 503);
+                }
+                $freshRequiresPlan = $this->policy->requiresPlan($operation, $risk, $highRiskMode);
+                if ($freshRequiresPlan && ! $requiresPlan) {
+                    $this->authorizer->authorizePreTarget($context, $operation);
+                }
+                if (
+                    $freshRequiresPlan
+                    && ($operation->canonicalizer !== 'schema' || $operation->targetResolver !== 'none')
+                    && ! in_array($operation->sideEffectKind, ['database', 'transactional_outbox'], true)
+                ) {
+                    return $this->responses->failure('risk.policy_unavailable', 'Operation does not have a transactional risk boundary', 503);
+                }
+                if ($async && $outboxModelKeys === []) {
+                    return $this->responses->failure('risk.policy_unavailable', 'Transactional outbox is required', 503);
+                }
+                if ($freshRequiresPlan && $domainModelKeys === [] && $outboxModelKeys === []) {
+                    return $this->responses->failure('risk.policy_unavailable', 'Transactional domain boundary is required', 503);
+                }
+                if ($freshRequiresPlan && $confirmation === '') {
+                    return $this->responses->failure('risk.plan_required', 'Action plan confirmation is required', 428);
+                }
+                if ($freshRequiresPlan && ! $requiresPlan) {
+                    $this->plans->assertUsableReference($context, $operation, $confirmation);
+                }
                 $stepReservation = null;
                 if ($operation->requiresStepUp) {
                     $selectedPurpose = count($operation->stepUpPurposes) === 1
@@ -155,8 +187,8 @@ final class EnforceApiV2RiskPolicy
                         : trim((string) $request->headers->get('X-WNCMS-Step-Up-Purpose', ''));
                     $stepReservation = $this->stepUp->reserveAny($context, $proof, $operation->stepUpPurposes, $selectedPurpose);
                 }
-                $planReservation = $requiresPlan
-                    ? $this->plans->reserveResolved($context, $operation, $confirmation, $riskContext)
+                $planReservation = $freshRequiresPlan
+                    ? $this->plans->reserveResolvedWithinTransaction($context, $operation, $confirmation, $riskContext)
                     : null;
 
                 $response = $next($request);
@@ -174,7 +206,17 @@ final class EnforceApiV2RiskPolicy
             });
         } catch (RiskExecutionRollback $rollback) {
             return $rollback->response;
-        } catch (ActionPlanException|StepUpException $exception) {
+        } catch (ActionPlanException $exception) {
+            try {
+                $this->plans->recordDenialOutsideTransaction($exception, $context, $operation, $denialRiskContext);
+            } catch (\Throwable $auditException) {
+                report($auditException);
+
+                return $this->responses->failure('security.audit_unavailable', 'Security audit is unavailable', 503);
+            }
+
+            return $this->responses->failure($exception->errorCode, 'Security confirmation is not valid', $exception->httpStatus);
+        } catch (StepUpException $exception) {
             return $this->responses->failure($exception->errorCode, 'Security confirmation is not valid', $exception->httpStatus);
         } catch (RiskContextException $exception) {
             return $this->responses->failure($exception->errorCode, 'Risk context is not valid', $exception->httpStatus);

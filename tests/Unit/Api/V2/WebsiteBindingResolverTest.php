@@ -67,4 +67,27 @@ class WebsiteBindingResolverTest extends TestCase
         $this->assertSame([], $empty->websiteIds);
         $this->assertFalse($empty->shouldSync);
     }
+
+    public function test_single_mode_rejects_multiple_values_but_accepts_each_single_selector(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'single']);
+        $first = Website::query()->firstOrFail();
+        $second = Website::create([
+            'site_name' => 'Single binding second',
+            'domain' => 'single-binding-'.uniqid().'.test',
+            'user_id' => $first->user_id,
+        ]);
+        $resolver = app(WebsiteBindingResolver::class);
+
+        try {
+            $resolver->resolve(['website_ids' => [$first->getKey(), $second->getKey()]], Channel::class, 'store');
+            $this->fail('Expected multiple single-mode websites to be rejected.');
+        } catch (RiskContextException $exception) {
+            $this->assertSame('validation.failed', $exception->errorCode);
+            $this->assertSame(422, $exception->httpStatus);
+        }
+
+        $this->assertSame([(int) $first->getKey()], $resolver->resolve(['website_id' => $first->getKey()], Channel::class, 'store')->websiteIds);
+        $this->assertSame([(int) $second->getKey()], $resolver->resolve(['website_key' => 'website:'.$second->getKey()], Channel::class, 'update')->websiteIds);
+    }
 }

@@ -413,6 +413,51 @@ class ApiGuardOrderTest extends TestCase
         $this->assertSame([$this->website->id], $channel->fresh()->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->all());
     }
 
+    public function test_single_mode_direct_store_and_update_reject_multiple_websites_atomically(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'single']);
+        foreach (['channel_create', 'channel_edit'] as $permission) {
+            $this->user->givePermissionTo(Permission::findOrCreate($permission, 'web'));
+        }
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $other = Website::create([
+            'user_id' => $this->user->id,
+            'domain' => 'single-direct-'.uniqid().'.test',
+            'site_name' => 'Single Direct Other',
+            'theme' => 'default',
+        ]);
+        $this->user->websites()->syncWithoutDetaching([$other->id]);
+        $context = new AuthenticationContext($this->user, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'binding-single-direct', $this->session->session_id, ['channels.write'], [$this->website->id, $other->id]);
+        $before = Channel::query()->count();
+        $store = Request::create('/api/v2/backend/channels', 'POST', [
+            'name' => 'Must not create', 'slug' => 'single-reject-'.uniqid(),
+            'website_id' => $this->website->id,
+            'website_ids' => [$this->website->id, $other->id],
+        ]);
+
+        $response = $this->scopedResourceRequest($store, 'api.v2.backend.channels.store', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->store($request, 'channels'));
+        $this->assertSame(422, $response->getStatusCode());
+        $this->assertSame($before, Channel::query()->count());
+
+        $channel = Channel::create(['name' => 'Single before', 'slug' => 'single-update-'.uniqid()]);
+        $channel->websites()->sync([$this->website->id]);
+        $update = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
+            'name' => 'Must not update', 'website_id' => $this->website->id,
+            'website_ids' => [$this->website->id, $other->id],
+        ]);
+        $response = $this->scopedResourceRequest($update, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $this->assertSame(422, $response->getStatusCode());
+        $this->assertSame('Single before', $channel->fresh()->name);
+        $this->assertSame([$this->website->id], $channel->fresh()->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->all());
+
+        $valid = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
+            'name' => 'Single after', 'website_key' => 'website:'.$other->id,
+        ]);
+        $response = $this->scopedResourceRequest($valid, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $this->assertSame(200, $response->getStatusCode(), (string) $response->getContent());
+        $this->assertSame([$other->id], $channel->fresh()->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->all());
+    }
+
     /**
      * Verify planned execution and its controller consume the same canonical website-key binding.
      */
