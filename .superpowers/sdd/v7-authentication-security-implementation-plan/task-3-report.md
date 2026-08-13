@@ -114,3 +114,33 @@ metadata confirmed `api_refresh_tokens.expires_at` has `notnull=0`. The focused
 schema/PAT PHPUnit command was run as one process after confirming no other
 PHPUnit/testbench/composer process was active. `php -l` passed for the modified
 schema class, refresh model, and test; `git diff --check` passed.
+
+## Fix Round 2/5 — Primary-Key And Scope Re-review
+
+### RED
+
+Added a consumed-token assertion to the permanent refresh fixture, a same-name
+`api_sessions` fixture that is complete except for `$table->id()`, and a unique
+helper fixture containing only the composite unique index
+`(csrf_hash, user_id)`. Before this round, the scope test did not cover a
+consumed permanent token, canonical definitions omitted `id`, and the helper
+would accept a composite unique index for a single-column requirement.
+
+### GREEN
+
+- The permanent refresh fixture now marks the token consumed, proves it is
+  inactive, resets consumption, and proves revocation still excludes it.
+- All five canonical definitions include `id` as a non-null integer-family
+  field and a primary-key/autoincrement contract. The metadata preflight now
+  rejects a missing or non-autoincrement primary key before a same-name table
+  can be accepted by `createApi*()`.
+- Self-review compared every `Blueprint` create column with its corresponding
+  canonical definition; each is represented, including `id`, timestamps, JSON
+  fields, and lifecycle fields.
+- `assertUniqueIndex()` now accepts only an exact one-column unique index.
+
+### Verification
+
+Ran `composer run test:prepare-db`, then ran the three new focused regression
+cases as one PHPUnit process after confirming no competing PHPUnit/testbench/
+composer process. `php -l` and `git diff --check` were run before commit.

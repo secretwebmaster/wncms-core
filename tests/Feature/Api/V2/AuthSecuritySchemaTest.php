@@ -245,6 +245,14 @@ class AuthSecuritySchemaTest extends TestCase
         $this->assertNull($token->expires_at);
         $this->assertTrue(ApiRefreshToken::active()->whereKey($token->id)->exists());
 
+        $token->update(['consumed_at' => now()]);
+
+        $this->assertFalse(ApiRefreshToken::active()->whereKey($token->id)->exists());
+
+        $token->update(['consumed_at' => null]);
+
+        $this->assertTrue(ApiRefreshToken::active()->whereKey($token->id)->exists());
+
         $token->update(['revoked_at' => now()]);
 
         $this->assertFalse(ApiRefreshToken::active()->whereKey($token->id)->exists());
@@ -268,6 +276,36 @@ class AuthSecuritySchemaTest extends TestCase
     }
 
     /**
+     * Verify compatibility checks reject a same-name table that omits its primary key contract.
+     *
+     * @return void
+     */
+    public function test_schema_compatibility_rejects_same_name_table_without_id_primary_key(): void
+    {
+        $this->withCompatibilityDatabase(function (): void {
+            Schema::create('api_sessions', function (Blueprint $table): void {
+                $table->string('session_id', 64)->unique();
+                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->string('device_name', 120)->nullable();
+                $table->string('refresh_transport', 16)->default('json');
+                $table->boolean('remembered')->default(false);
+                $table->string('csrf_hash', 64)->nullable()->unique();
+                $table->timestamp('last_activity_at')->nullable();
+                $table->timestamp('last_step_up_at')->nullable();
+                $table->timestamp('expires_at')->nullable()->index();
+                $table->timestamp('revoked_at')->nullable()->index();
+                $table->string('revocation_reason')->nullable();
+                $table->timestamps();
+
+                $table->index(['user_id', 'revoked_at']);
+            });
+
+            $this->expectException(\RuntimeException::class);
+            ApiAuthSchema::createApiSessions();
+        });
+    }
+
+    /**
      * Verify compatibility checks reject a same-name table without its public-ID uniqueness constraint.
      *
      * @return void
@@ -282,6 +320,26 @@ class AuthSecuritySchemaTest extends TestCase
 
             $this->expectException(\RuntimeException::class);
             ApiAuthSchema::assertCompatibleExistingTables();
+        });
+    }
+
+    /**
+     * Verify a composite unique index cannot satisfy a required single-column unique contract.
+     *
+     * @return void
+     */
+    public function test_unique_index_assertion_rejects_composite_unique_index_for_single_column_contract(): void
+    {
+        $this->withCompatibilityDatabase(function (): void {
+            Schema::create('api_unique_helper_fixture', function (Blueprint $table): void {
+                $table->id();
+                $table->string('csrf_hash');
+                $table->unsignedBigInteger('user_id');
+                $table->unique(['csrf_hash', 'user_id']);
+            });
+
+            $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+            $this->assertUniqueIndex('api_unique_helper_fixture', 'csrf_hash');
         });
     }
 
@@ -399,7 +457,7 @@ class AuthSecuritySchemaTest extends TestCase
             $indexName = (string) $index->name;
             $columns = DB::select("PRAGMA index_info('{$indexName}')");
 
-            if (in_array($column, array_map(fn ($item) => $item->name, $columns), true)) {
+            if (array_map(fn ($item) => $item->name, $columns) === [$column]) {
                 $this->addToAssertionCount(1);
                 return;
             }

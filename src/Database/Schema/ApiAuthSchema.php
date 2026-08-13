@@ -238,6 +238,14 @@ final class ApiAuthSchema
         }
 
         $indexes = Schema::getIndexes($table);
+        $primaryKey = $definition['primary_key'];
+        $primaryColumn = $columns->get($primaryKey[0]);
+        $hasPrimaryKey = collect($indexes)->contains(fn (array $index): bool => $index['columns'] === $primaryKey && (bool) $index['primary']);
+
+        if (!$hasPrimaryKey || !(bool) $primaryColumn['auto_increment']) {
+            throw new \RuntimeException("Existing {$table} table is incompatible; invalid primary key: " . implode(',', $primaryKey));
+        }
+
         foreach ($definition['indexes'] as $expected) {
             $found = collect($indexes)->contains(function (array $index) use ($expected): bool {
                 return $index['columns'] === $expected['columns'] && (bool) $index['unique'] === $expected['unique'];
@@ -266,7 +274,7 @@ final class ApiAuthSchema
     /**
      * Return exact portable metadata for WNCMS-owned authentication tables.
      *
-     * @return array<string, array{columns: array<string, array{types: array<int, string>, nullable: bool}>, indexes: array<int, array{columns: array<int, string>, unique: bool}>, foreign_keys: array<int, array{column: string, table: string}>}>
+     * @return array<string, array{primary_key: array<int, string>, columns: array<string, array{types: array<int, string>, nullable: bool}>, indexes: array<int, array{columns: array<int, string>, unique: bool}>, foreign_keys: array<int, array{column: string, table: string}>}>
      */
     private static function tableDefinitions(): array
     {
@@ -279,27 +287,32 @@ final class ApiAuthSchema
 
         return [
             'api_sessions' => [
-                'columns' => ['session_id' => $column($string, false), 'user_id' => $column($integer, false), 'device_name' => $column($string, true), 'refresh_transport' => $column($string, false), 'remembered' => $column($boolean, false), 'csrf_hash' => $column($string, true), 'last_activity_at' => $column($timestamp, true), 'last_step_up_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, true), 'revoked_at' => $column($timestamp, true), 'revocation_reason' => $column($string, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
+                'primary_key' => ['id'],
+                'columns' => ['id' => $column($integer, false), 'session_id' => $column($string, false), 'user_id' => $column($integer, false), 'device_name' => $column($string, true), 'refresh_transport' => $column($string, false), 'remembered' => $column($boolean, false), 'csrf_hash' => $column($string, true), 'last_activity_at' => $column($timestamp, true), 'last_step_up_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, true), 'revoked_at' => $column($timestamp, true), 'revocation_reason' => $column($string, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
                 'indexes' => [['columns' => ['session_id'], 'unique' => true], ['columns' => ['csrf_hash'], 'unique' => true], ['columns' => ['expires_at'], 'unique' => false], ['columns' => ['revoked_at'], 'unique' => false], ['columns' => ['user_id', 'revoked_at'], 'unique' => false]],
                 'foreign_keys' => [['column' => 'user_id', 'table' => 'users']],
             ],
             'api_access_tokens' => [
-                'columns' => ['token_id' => $column($string, false), 'token_hash' => $column($string, false), 'user_id' => $column($integer, false), 'session_id' => $column($integer, false), 'abilities' => $column($json, false), 'website_ids' => $column($json, false), 'last_used_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, false), 'revoked_at' => $column($timestamp, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
+                'primary_key' => ['id'],
+                'columns' => ['id' => $column($integer, false), 'token_id' => $column($string, false), 'token_hash' => $column($string, false), 'user_id' => $column($integer, false), 'session_id' => $column($integer, false), 'abilities' => $column($json, false), 'website_ids' => $column($json, false), 'last_used_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, false), 'revoked_at' => $column($timestamp, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
                 'indexes' => [['columns' => ['token_id'], 'unique' => true], ['columns' => ['token_hash'], 'unique' => true], ['columns' => ['expires_at'], 'unique' => false], ['columns' => ['revoked_at'], 'unique' => false], ['columns' => ['user_id', 'revoked_at'], 'unique' => false], ['columns' => ['session_id', 'revoked_at'], 'unique' => false]],
                 'foreign_keys' => [['column' => 'user_id', 'table' => 'users'], ['column' => 'session_id', 'table' => 'api_sessions']],
             ],
             'api_refresh_tokens' => [
-                'columns' => ['token_id' => $column($string, false), 'token_hash' => $column($string, false), 'user_id' => $column($integer, false), 'session_id' => $column($integer, false), 'family_id' => $column($string, false), 'parent_token_id' => $column($string, true), 'replaced_by_token_id' => $column($string, true), 'consumed_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, true), 'revoked_at' => $column($timestamp, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
+                'primary_key' => ['id'],
+                'columns' => ['id' => $column($integer, false), 'token_id' => $column($string, false), 'token_hash' => $column($string, false), 'user_id' => $column($integer, false), 'session_id' => $column($integer, false), 'family_id' => $column($string, false), 'parent_token_id' => $column($string, true), 'replaced_by_token_id' => $column($string, true), 'consumed_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, true), 'revoked_at' => $column($timestamp, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
                 'indexes' => [['columns' => ['token_id'], 'unique' => true], ['columns' => ['token_hash'], 'unique' => true], ['columns' => ['family_id'], 'unique' => false], ['columns' => ['parent_token_id'], 'unique' => false], ['columns' => ['replaced_by_token_id'], 'unique' => false], ['columns' => ['consumed_at'], 'unique' => false], ['columns' => ['expires_at'], 'unique' => false], ['columns' => ['revoked_at'], 'unique' => false], ['columns' => ['user_id', 'revoked_at'], 'unique' => false], ['columns' => ['session_id', 'family_id'], 'unique' => false]],
                 'foreign_keys' => [['column' => 'user_id', 'table' => 'users'], ['column' => 'session_id', 'table' => 'api_sessions']],
             ],
             'api_service_tokens' => [
-                'columns' => ['token_id' => $column($string, false), 'token_hash' => $column($string, false), 'user_id' => $column($integer, false), 'name' => $column($string, false), 'ability_template' => $column($string, false), 'abilities' => $column($json, false), 'website_ids' => $column($json, false), 'last_used_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, true), 'revoked_at' => $column($timestamp, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
+                'primary_key' => ['id'],
+                'columns' => ['id' => $column($integer, false), 'token_id' => $column($string, false), 'token_hash' => $column($string, false), 'user_id' => $column($integer, false), 'name' => $column($string, false), 'ability_template' => $column($string, false), 'abilities' => $column($json, false), 'website_ids' => $column($json, false), 'last_used_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, true), 'revoked_at' => $column($timestamp, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
                 'indexes' => [['columns' => ['token_id'], 'unique' => true], ['columns' => ['token_hash'], 'unique' => true], ['columns' => ['ability_template'], 'unique' => false], ['columns' => ['expires_at'], 'unique' => false], ['columns' => ['revoked_at'], 'unique' => false], ['columns' => ['user_id', 'revoked_at'], 'unique' => false]],
                 'foreign_keys' => [['column' => 'user_id', 'table' => 'users']],
             ],
             'api_security_events' => [
-                'columns' => ['event_id' => $column($string, false), 'occurred_at' => $column($timestamp, false), 'event_type' => $column($string, false), 'severity' => $column($string, false), 'outcome' => $column($string, false), 'surface' => $column($string, false), 'request_id' => $column($string, true), 'run_id' => $column($string, true), 'actor_type' => $column($string, true), 'actor_id' => $column($integer, true), 'target_type' => $column($string, true), 'target_id' => $column($integer, true), 'credential_type' => $column($string, true), 'credential_id' => $column($string, true), 'session_id' => $column($string, true), 'website_ids' => $column($json, true), 'error_code' => $column($string, true), 'http_status' => $column($integer, true), 'ip_hash' => $column($string, true), 'login_identifier_hash' => $column($string, true), 'user_agent_hash' => $column($string, true), 'correlation_key_version' => $column($string, true), 'mutation_audit_id' => $column($integer, true), 'context' => $column($json, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
+                'primary_key' => ['id'],
+                'columns' => ['id' => $column($integer, false), 'event_id' => $column($string, false), 'occurred_at' => $column($timestamp, false), 'event_type' => $column($string, false), 'severity' => $column($string, false), 'outcome' => $column($string, false), 'surface' => $column($string, false), 'request_id' => $column($string, true), 'run_id' => $column($string, true), 'actor_type' => $column($string, true), 'actor_id' => $column($integer, true), 'target_type' => $column($string, true), 'target_id' => $column($integer, true), 'credential_type' => $column($string, true), 'credential_id' => $column($string, true), 'session_id' => $column($string, true), 'website_ids' => $column($json, true), 'error_code' => $column($string, true), 'http_status' => $column($integer, true), 'ip_hash' => $column($string, true), 'login_identifier_hash' => $column($string, true), 'user_agent_hash' => $column($string, true), 'correlation_key_version' => $column($string, true), 'mutation_audit_id' => $column($integer, true), 'context' => $column($json, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
                 'indexes' => [['columns' => ['event_id'], 'unique' => true], ['columns' => ['occurred_at'], 'unique' => false], ['columns' => ['event_type'], 'unique' => false], ['columns' => ['severity'], 'unique' => false], ['columns' => ['outcome'], 'unique' => false], ['columns' => ['surface'], 'unique' => false], ['columns' => ['request_id'], 'unique' => false], ['columns' => ['run_id'], 'unique' => false], ['columns' => ['actor_type'], 'unique' => false], ['columns' => ['actor_id'], 'unique' => false], ['columns' => ['target_type'], 'unique' => false], ['columns' => ['target_id'], 'unique' => false], ['columns' => ['credential_type'], 'unique' => false], ['columns' => ['credential_id'], 'unique' => false], ['columns' => ['session_id'], 'unique' => false], ['columns' => ['error_code'], 'unique' => false], ['columns' => ['http_status'], 'unique' => false], ['columns' => ['ip_hash'], 'unique' => false], ['columns' => ['login_identifier_hash'], 'unique' => false], ['columns' => ['user_agent_hash'], 'unique' => false], ['columns' => ['mutation_audit_id'], 'unique' => false], ['columns' => ['event_type', 'occurred_at'], 'unique' => false], ['columns' => ['actor_type', 'actor_id'], 'unique' => false], ['columns' => ['target_type', 'target_id'], 'unique' => false]],
                 'foreign_keys' => [],
             ],
