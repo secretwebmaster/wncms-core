@@ -107,6 +107,23 @@ class AuthSecuritySettingsTest extends TestCase
     }
 
     /**
+     * Verify rejected settings input is rendered after the validation redirect.
+     */
+    public function test_rejected_settings_input_is_rendered_after_validation_redirect(): void
+    {
+        $this->authenticateSettingsEditor();
+
+        $response = $this->from(route('settings.index'))->followingRedirects()->put(route('settings.update'), [
+            'settings' => [
+                'api_access_token_lifetime_minutes' => '0',
+            ],
+        ]);
+
+        $response->assertOk();
+        $response->assertSee('name="settings[api_access_token_lifetime_minutes]" value="0"', false);
+    }
+
+    /**
      * Verify Cookie transport cannot be persisted without exact allowed Origins.
      */
     public function test_settings_update_rejects_cookie_transport_without_allowed_origins(): void

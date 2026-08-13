@@ -68,6 +68,9 @@
                                         @endif
 
                                         @foreach ($nav_tab['tab_content'] as $tab_content_index => $tab_content)
+                                            @php
+                                                $settingValue = old('settings.' . $tab_content['name'], $settings[$tab_content['name']] ?? '');
+                                            @endphp
                                             @if ($tab_content['type'] == 'heading')
                                                 @if ($isSystemTab)
                                                     <div class="col-12">
@@ -89,7 +92,7 @@
                                                     ])
 
                                                     <div class="{{ $isSystemTab ? 'col-lg-7 fv-row' : 'col-lg-8 fv-row' }}">
-                                                        <input type="{{ $tab_content['type'] }}" class="form-control form-control-sm" name="settings[{{ $tab_content['name'] }}]" value="{{ $settings[$tab_content['name']] ?? '' }}" @if (!empty($tab_content['disabled'])) disabled @endif />
+                                                        <input type="{{ $tab_content['type'] }}" class="form-control form-control-sm" name="settings[{{ $tab_content['name'] }}]" value="{{ $settingValue }}" @if (!empty($tab_content['disabled'])) disabled @endif />
                                                     </div>
                                                 </div>
                                                 @if ($isSystemTab)
@@ -114,7 +117,7 @@
                                                                 type="checkbox"
                                                                 name="settings[{{ $tab_content['name'] }}]"
                                                                 value="1"
-                                                                {{ $settings[$tab_content['name']] ?? false ? 'checked' : '' }}>
+                                                                {{ $settingValue ? 'checked' : '' }}>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -142,7 +145,7 @@
                                                                     @php
                                                                         $value = $optionKey;
                                                                         $label = $optionValue;
-                                                                        $isSelected = ($settings[$tab_content['name']] ?? '') == $value;
+                                                                        $isSelected = $settingValue == $value;
                                                                     @endphp
                                                                     <option value="{{ $value }}" @if ($isSelected) selected @endif>{{ $label }}</option>
                                                                 @endforeach
@@ -151,7 +154,7 @@
                                                                     @php
                                                                         $value = is_int($optionKey) ? $optionValue : $optionKey;
                                                                         $label = is_int($optionKey) ? $optionValue : $optionValue;
-                                                                        $isSelected = ($settings[$tab_content['name']] ?? '') == $value;
+                                                                        $isSelected = $settingValue == $value;
                                                                     @endphp
                                                                     <option value="{{ $value }}" @if ($isSelected) selected @endif>
                                                                         @if (isset($tab_content['translate_option']) && $tab_content['translate_option'] === false)
@@ -181,7 +184,7 @@
                                                     ])
 
                                                     <div class="{{ $isSystemTab ? 'col-lg-7 fv-row' : 'col-lg-8 fv-row' }}">
-                                                        <textarea name="settings[{{ $tab_content['name'] }}]" class="form-control form-control-sm" rows="4">{{ $settings[$tab_content['name']] ?? '' }}</textarea>
+                                                        <textarea name="settings[{{ $tab_content['name'] }}]" class="form-control form-control-sm" rows="4">{{ $settingValue }}</textarea>
                                                     </div>
                                                 </div>
                                                 @if ($isSystemTab)

@@ -361,7 +361,15 @@ final class AuthSecurityConfig
     {
         $value = trim((string) $this->values['api_legacy_personal_tokens_cutoff_at']);
 
-        return $value === '' ? null : $value;
+        if ($value === '') {
+            return null;
+        }
+
+        try {
+            return (new DateTimeImmutable($value))->getOffset() === 0 ? $value : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**
@@ -609,8 +617,8 @@ final class AuthSecurityConfig
      */
     private function validateLegacyCutoff(array &$errors): void
     {
-        $value = $this->legacyPersonalTokensCutoffAt();
-        if ($value === null) {
+        $value = trim((string) $this->values['api_legacy_personal_tokens_cutoff_at']);
+        if ($value === '') {
             return;
         }
 

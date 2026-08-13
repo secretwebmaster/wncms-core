@@ -117,6 +117,20 @@ class AuthSecurityConfigTest extends TestCase
     }
 
     /**
+     * Verify an invalid legacy personal-token cutoff is never exposed to runtime consumers.
+     */
+    public function test_invalid_legacy_personal_token_cutoff_fails_closed_to_null(): void
+    {
+        uss('api_legacy_personal_tokens_cutoff_at', 'not-a-date');
+
+        $config = AuthSecurityConfig::fromRuntime();
+
+        $this->assertNull($config->legacyPersonalTokensCutoffAt());
+        $this->assertNull($config->toArray()['legacy_personal_tokens_cutoff_at']);
+        $this->assertArrayHasKey('api_legacy_personal_tokens_cutoff_at', $config->validate());
+    }
+
+    /**
      * Verify validated settings are mapped under the WNCMS runtime configuration namespace.
      */
     public function test_provider_maps_validated_auth_security_settings_to_runtime_config(): void
