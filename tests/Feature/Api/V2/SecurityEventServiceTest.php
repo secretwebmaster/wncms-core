@@ -2,6 +2,7 @@
 
 namespace Wncms\Tests\Feature\Api\V2;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -150,6 +151,7 @@ class SecurityEventServiceTest extends TestCase
 
     public function test_aggregate_recording_updates_one_correlation_tuple_atomically(): void
     {
+        CarbonImmutable::setTestNow('2026-08-13 00:00:00 UTC');
         $first = $this->service->recordAggregate('auth.login.failed', 'warning', 'denied', [
             'surface' => 'api_v2',
             'request_id' => 'aggregate-request-1',
@@ -158,6 +160,8 @@ class SecurityEventServiceTest extends TestCase
             'user_agent' => 'Aggregate test agent',
             'context' => ['reason' => 'invalid_credentials'],
         ]);
+        $firstOccurredAt = $first->context['aggregate']['first_occurred_at'];
+        CarbonImmutable::setTestNow('2026-08-13 00:01:00 UTC');
         $second = $this->service->recordAggregate('auth.login.failed', 'warning', 'denied', [
             'surface' => 'api_v2',
             'request_id' => 'aggregate-request-2',
@@ -170,7 +174,10 @@ class SecurityEventServiceTest extends TestCase
         $this->assertSame($first->getKey(), $second->getKey());
         $this->assertSame(1, ApiSecurityEvent::where('event_type', 'auth.login.failed')->count());
         $this->assertSame(2, $second->context['aggregate']['count']);
+        $this->assertSame($firstOccurredAt, $second->context['aggregate']['first_occurred_at']);
+        $this->assertSame('2026-08-13T00:01:00+00:00', $second->context['aggregate']['last_occurred_at']);
         $this->assertSame('aggregate-request-2', $second->context['aggregate']['latest_request_id']);
+        CarbonImmutable::setTestNow();
     }
 
     public function test_ordinary_model_mutations_are_rejected_while_retention_prunes_expired_events(): void
@@ -191,6 +198,18 @@ class SecurityEventServiceTest extends TestCase
             $this->assertSame('Security events are append-only.', $e->getMessage());
         }
 
+        foreach (['update', 'delete'] as $operation) {
+            try {
+                $query = ApiSecurityEvent::query()->whereKey($event->getKey());
+                $operation === 'update'
+                    ? $query->update(['severity' => 'critical'])
+                    : $query->delete();
+                $this->fail("Security event query {$operation} must be rejected.");
+            } catch (\LogicException $e) {
+                $this->assertSame('Security events are append-only.', $e->getMessage());
+            }
+        }
+
         DB::table('api_security_events')->where('id', $event->getKey())->update(['occurred_at' => now()->subDays(91)]);
         $deleted = app(SecurityEventRetentionService::class)->prune(now()->subDays(90)->toImmutable(), 500);
 
@@ -200,5 +219,46 @@ class SecurityEventServiceTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Security event prune batch size must be between 1 and 500.');
         app(SecurityEventRetentionService::class)->prune(now()->toImmutable(), 501);
+    }
+
+    public function test_aggregate_unique_conflict_reloads_and_increments_the_existing_event(): void
+    {
+        $injected = false;
+        $firstOccurredAt = null;
+        $aggregateKey = hash('sha256', implode("\n", [
+            'auth.login.failed',
+            'warning',
+            'denied',
+            'api_v2',
+            hash_hmac('sha256', '203.0.113.10', 'test-security-correlation-ip-key-123456'),
+            hash_hmac('sha256', 'aggregate@example.test', 'test-security-correlation-login-key-123456'),
+            hash_hmac('sha256', 'Aggregate test agent', 'test-security-correlation-agent-key-123456'),
+            'v1',
+        ]));
+        DB::connection()->beforeExecuting(function (string $query, array $bindings, $connection) use (&$injected, &$firstOccurredAt, $aggregateKey): void {
+            if ($injected || !str_contains(strtolower($query), 'insert into "api_security_events"')) {
+                return;
+            }
+
+            $injected = true;
+            $connection->insert($query, $bindings);
+            $context = json_decode((string) DB::table('api_security_events')->where('aggregate_key', $aggregateKey)->value('context'), true);
+            $firstOccurredAt = $context['aggregate']['first_occurred_at'];
+        });
+
+        $event = $this->service->recordAggregate('auth.login.failed', 'warning', 'denied', [
+            'surface' => 'api_v2',
+            'request_id' => 'aggregate-request-2',
+            'ip' => '203.0.113.10',
+            'login_identifier' => 'aggregate@example.test',
+            'user_agent' => 'Aggregate test agent',
+            'context' => ['reason' => 'invalid_credentials'],
+        ]);
+
+        $this->assertTrue($injected);
+        $this->assertSame(1, ApiSecurityEvent::where('aggregate_key', $event->aggregate_key)->count());
+        $this->assertSame(2, $event->context['aggregate']['count']);
+        $this->assertSame($firstOccurredAt, $event->context['aggregate']['first_occurred_at']);
+        $this->assertSame('aggregate-request-2', $event->context['aggregate']['latest_request_id']);
     }
 }

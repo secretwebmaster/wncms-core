@@ -3,7 +3,7 @@
 namespace Wncms\Services\Security;
 
 use Carbon\CarbonImmutable;
-use Wncms\Models\ApiSecurityEvent;
+use Illuminate\Support\Facades\DB;
 
 final class SecurityEventRetentionService
 {
@@ -26,23 +26,18 @@ final class SecurityEventRetentionService
         $deleted = 0;
 
         do {
-            $events = ApiSecurityEvent::query()
+            $ids = DB::table('api_security_events')
                 ->where('occurred_at', '<', $cutoff)
                 ->orderBy('id')
                 ->limit($batchSize)
-                ->get();
+                ->pluck('id');
 
-            if ($events->isEmpty()) {
+            if ($ids->isEmpty()) {
                 break;
             }
 
-            $scope = SecurityEventMutationScope::retention();
-            foreach ($events as $event) {
-                if ($event->deleteForRetention($scope)) {
-                    $deleted++;
-                }
-            }
-        } while ($events->count() === $batchSize);
+            $deleted += DB::table('api_security_events')->whereIn('id', $ids)->delete();
+        } while ($ids->count() === $batchSize);
 
         return $deleted;
     }

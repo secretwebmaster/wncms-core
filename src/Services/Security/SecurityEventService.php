@@ -130,38 +130,53 @@ final class SecurityEventService
             $this->validateCatalogValue($type, $severity, $outcome);
             $attributes = $this->buildAttributes($type, $severity, $outcome, $context);
             $this->requireAggregateCorrelations($attributes);
-            $event = ApiSecurityEvent::query()
-                ->where('event_type', $type)
-                ->where('severity', $severity)
-                ->where('outcome', $outcome)
-                ->where('surface', $attributes['surface'])
-                ->where('ip_hash', $attributes['ip_hash'])
-                ->where('login_identifier_hash', $attributes['login_identifier_hash'])
-                ->where('user_agent_hash', $attributes['user_agent_hash'])
-                ->where('correlation_key_version', $attributes['correlation_key_version'])
+            $attributes['aggregate_key'] = $this->aggregateKey($attributes);
+            $event = DB::table('api_security_events')
+                ->where('aggregate_key', $attributes['aggregate_key'])
                 ->lockForUpdate()
                 ->first();
 
             if ($event === null) {
                 $attributes['context'] = $this->aggregateContext($attributes['context'], 1, $attributes['occurred_at'], $attributes['request_id']);
 
-                return $this->persist($attributes);
+                try {
+                    DB::table('api_security_events')->insert($this->databaseAttributes($attributes));
+                } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                    $event = DB::table('api_security_events')
+                        ->where('aggregate_key', $attributes['aggregate_key'])
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($event === null) {
+                        throw $e;
+                    }
+                }
+
+                if ($event === null) {
+                    $created = ApiSecurityEvent::query()->where('aggregate_key', $attributes['aggregate_key'])->firstOrFail();
+                    $this->dispatch($created);
+
+                    return $created;
+                }
             }
 
-            $aggregate = (array) (($event->context ?? [])['aggregate'] ?? []);
-            $event->updateAggregate([
-                'context' => $this->aggregateContext(
-                    $event->context,
-                    max(0, (int) ($aggregate['count'] ?? 0)) + 1,
-                    $event->occurred_at,
-                    $attributes['request_id'],
-                    $attributes['occurred_at']
-                ),
-            ], SecurityEventMutationScope::aggregate());
-            $event->refresh();
-            $this->dispatch($event);
+            $existingContext = is_string($event->context) ? json_decode($event->context, true) : (array) $event->context;
+            $aggregate = (array) ($existingContext['aggregate'] ?? []);
+            $aggregateContext = $this->aggregateContext(
+                $existingContext,
+                max(0, (int) ($aggregate['count'] ?? 0)) + 1,
+                new \DateTimeImmutable((string) $event->occurred_at),
+                $attributes['request_id'],
+                $attributes['occurred_at']
+            );
+            DB::table('api_security_events')->where('id', $event->id)->update([
+                'context' => json_encode($aggregateContext, JSON_THROW_ON_ERROR),
+                'updated_at' => CarbonImmutable::now('UTC'),
+            ]);
+            $updated = ApiSecurityEvent::query()->findOrFail($event->id);
+            $this->dispatch($updated);
 
-            return $event;
+            return $updated;
         });
     }
 
@@ -341,7 +356,7 @@ final class SecurityEventService
      */
     protected function dispatch(ApiSecurityEvent $event): void
     {
-        $safePayload = $event->makeHidden(['ip_hash', 'login_identifier_hash', 'user_agent_hash']);
+        $safePayload = $event->makeHidden(['ip_hash', 'login_identifier_hash', 'user_agent_hash', 'aggregate_key']);
 
         Event::dispatch(new ApiSecurityEventRecorded($safePayload));
         Log::info('WNCMS security event recorded.', ['event' => $safePayload->toArray()]);
@@ -418,5 +433,47 @@ final class SecurityEventService
         ];
 
         return $context;
+    }
+
+    /**
+     * Build the stable database-enforced identity for one aggregate tuple.
+     *
+     * @param  array  $attributes
+     *
+     * @return string
+     */
+    protected function aggregateKey(array $attributes): string
+    {
+        return hash('sha256', implode("\n", [
+            $attributes['event_type'],
+            $attributes['severity'],
+            $attributes['outcome'],
+            $attributes['surface'],
+            $attributes['ip_hash'],
+            $attributes['login_identifier_hash'],
+            $attributes['user_agent_hash'],
+            $attributes['correlation_key_version'],
+        ]));
+    }
+
+    /**
+     * Serialize model attributes for the service-owned aggregate insert.
+     *
+     * @param  array  $attributes
+     *
+     * @return array
+     */
+    protected function databaseAttributes(array $attributes): array
+    {
+        foreach (['website_ids', 'context'] as $field) {
+            if (is_array($attributes[$field] ?? null)) {
+                $attributes[$field] = json_encode($attributes[$field], JSON_THROW_ON_ERROR);
+            }
+        }
+
+        $attributes['created_at'] = CarbonImmutable::now('UTC');
+        $attributes['updated_at'] = CarbonImmutable::now('UTC');
+
+        return $attributes;
     }
 }

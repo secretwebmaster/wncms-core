@@ -45,6 +45,7 @@ class AuthSecuritySchemaTest extends TestCase
         $this->assertUniqueIndex('api_service_tokens', 'token_id');
         $this->assertUniqueIndex('api_service_tokens', 'token_hash');
         $this->assertUniqueIndex('api_security_events', 'event_id');
+        $this->assertUniqueIndex('api_security_events', 'aggregate_key');
 
         foreach (['api_access_tokens', 'api_service_tokens'] as $table) {
             $this->assertTrue(Schema::hasColumn($table, 'abilities'), "{$table}.abilities");
@@ -82,6 +83,33 @@ class AuthSecuritySchemaTest extends TestCase
         ] as [$table, $column]) {
             $this->assertColumnIsIndexed($table, $column);
         }
+    }
+
+    /**
+     * Verify aggregate identity cannot produce duplicate security-event rows.
+     *
+     * @return void
+     */
+    public function test_security_event_aggregate_key_is_unique_when_present(): void
+    {
+        $attributes = [
+            'event_id' => 'aggregate-identity-first',
+            'aggregate_key' => hash('sha256', 'aggregate-identity'),
+            'occurred_at' => now(),
+            'event_type' => 'auth.login.failed',
+            'severity' => 'warning',
+            'outcome' => 'denied',
+            'surface' => 'api_v2',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+        DB::table('api_security_events')->insert($attributes);
+
+        $this->expectException(\Illuminate\Database\UniqueConstraintViolationException::class);
+        DB::table('api_security_events')->insert([
+            ...$attributes,
+            'event_id' => 'aggregate-identity-second',
+        ]);
     }
 
     /**
