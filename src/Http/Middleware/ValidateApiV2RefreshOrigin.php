@@ -4,12 +4,11 @@ namespace Wncms\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\OriginPolicy;
-use Wncms\Services\Security\SecurityEventService;
+use Wncms\Services\Security\SecurityDenialRecorder;
 
 final class ValidateApiV2RefreshOrigin
 {
@@ -19,7 +18,7 @@ final class ValidateApiV2RefreshOrigin
     public function __construct(
         private OriginPolicy $origins,
         private ApiResponseFactory $responses,
-        private SecurityEventService $events,
+        private SecurityDenialRecorder $denials,
     ) {}
 
     /**
@@ -34,7 +33,7 @@ final class ValidateApiV2RefreshOrigin
         try {
             $this->origins->assertAllowed($request);
         } catch (\RuntimeException $exception) {
-            $this->recordDenial($request);
+            $this->denials->record($request, 'security.origin.denied', 'authentication.origin_denied');
 
             return $this->responses->failure(
                 'authentication.origin_denied',
@@ -44,30 +43,5 @@ final class ValidateApiV2RefreshOrigin
         }
 
         return $next($request);
-    }
-
-    /**
-     * Persist an allowlisted Origin denial or emit a redacted fallback warning.
-     */
-    private function recordDenial(Request $request): void
-    {
-        try {
-            $this->events->record('security.origin.denied', 'warning', 'denied', [
-                'surface' => 'api_v2',
-                'request_id' => $request->attributes->get('wncms_api_v2_request_id'),
-                'error_code' => 'authentication.origin_denied',
-                'http_status' => Response::HTTP_FORBIDDEN,
-                'ip' => (string) $request->ip(),
-                'user_agent' => (string) $request->userAgent(),
-                'context' => ['reason' => 'origin_denied'],
-            ]);
-        } catch (\Throwable $exception) {
-            Log::warning('WNCMS Cookie security denial event could not be persisted.', [
-                'event_type' => 'security.origin.denied',
-                'error_code' => 'authentication.origin_denied',
-                'request_id' => $request->attributes->get('wncms_api_v2_request_id'),
-                'exception' => $exception::class,
-            ]);
-        }
     }
 }

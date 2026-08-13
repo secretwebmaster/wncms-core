@@ -38,7 +38,10 @@ class AuthSecuritySchemaTest extends TestCase
         $this->assertUniqueIndex('api_access_tokens', 'token_hash');
         $this->assertUniqueIndex('api_refresh_tokens', 'token_id');
         $this->assertUniqueIndex('api_refresh_tokens', 'token_hash');
-        $this->assertUniqueIndex('api_refresh_tokens', 'csrf_hash');
+        $this->assertFalse(collect(Schema::getIndexes('api_refresh_tokens'))->contains(
+            static fn (array $index): bool => ($index['unique'] ?? false)
+                && ($index['columns'] ?? []) === ['csrf_hash'],
+        ));
         $this->assertUniqueIndex('api_service_tokens', 'token_id');
         $this->assertUniqueIndex('api_service_tokens', 'token_hash');
         $this->assertUniqueIndex('api_security_events', 'event_id');
@@ -105,6 +108,43 @@ class AuthSecuritySchemaTest extends TestCase
             ...$attributes,
             'event_id' => 'aggregate-identity-second',
         ]);
+    }
+
+    /**
+     * Verify JSON refresh credentials can persist multiple portable nullable CSRF proofs.
+     */
+    public function test_multiple_json_refresh_rows_allow_null_csrf_proofs(): void
+    {
+        $userId = DB::table('users')->insertGetId([
+            'username' => 'nullable-csrf-owner',
+            'email' => 'nullable-csrf-owner@example.test',
+            'password' => 'not-a-real-password',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $sessionId = DB::table('api_sessions')->insertGetId([
+            'session_id' => 'nullable-csrf-session',
+            'user_id' => $userId,
+            'refresh_transport' => 'json',
+            'remembered' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        foreach ([1, 2] as $suffix) {
+            DB::table('api_refresh_tokens')->insert([
+                'token_id' => "nullable-csrf-token-{$suffix}",
+                'token_hash' => hash('sha256', "nullable-csrf-secret-{$suffix}"),
+                'csrf_hash' => null,
+                'user_id' => $userId,
+                'session_id' => $sessionId,
+                'family_id' => 'nullable-csrf-family',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $this->assertSame(2, DB::table('api_refresh_tokens')->where('session_id', $sessionId)->whereNull('csrf_hash')->count());
     }
 
     /**

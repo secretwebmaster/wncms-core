@@ -80,7 +80,7 @@ final class ApiAuthSchema
             $table->string('family_id', 64)->index();
             $table->string('parent_token_id', 64)->nullable()->index();
             $table->string('replaced_by_token_id', 64)->nullable()->index();
-            $table->string('csrf_hash', 64)->nullable()->unique();
+            $table->string('csrf_hash', 64)->nullable();
             $table->timestamp('consumed_at')->nullable()->index();
             $table->timestamp('expires_at')->nullable()->index();
             $table->timestamp('revoked_at')->nullable()->index();
@@ -288,7 +288,7 @@ final class ApiAuthSchema
             'api_refresh_tokens' => [
                 'primary_key' => ['id'],
                 'columns' => ['id' => $column($integer, false), 'token_id' => $column($string, false), 'token_hash' => $column($string, false), 'user_id' => $column($integer, false), 'session_id' => $column($integer, false), 'family_id' => $column($string, false), 'parent_token_id' => $column($string, true), 'replaced_by_token_id' => $column($string, true), 'csrf_hash' => $column($string, true), 'consumed_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, true), 'revoked_at' => $column($timestamp, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
-                'indexes' => [['columns' => ['token_id'], 'unique' => true], ['columns' => ['token_hash'], 'unique' => true], ['columns' => ['csrf_hash'], 'unique' => true], ['columns' => ['family_id'], 'unique' => false], ['columns' => ['parent_token_id'], 'unique' => false], ['columns' => ['replaced_by_token_id'], 'unique' => false], ['columns' => ['consumed_at'], 'unique' => false], ['columns' => ['expires_at'], 'unique' => false], ['columns' => ['revoked_at'], 'unique' => false], ['columns' => ['user_id', 'revoked_at'], 'unique' => false], ['columns' => ['session_id', 'family_id'], 'unique' => false]],
+                'indexes' => [['columns' => ['token_id'], 'unique' => true], ['columns' => ['token_hash'], 'unique' => true], ['columns' => ['family_id'], 'unique' => false], ['columns' => ['parent_token_id'], 'unique' => false], ['columns' => ['replaced_by_token_id'], 'unique' => false], ['columns' => ['consumed_at'], 'unique' => false], ['columns' => ['expires_at'], 'unique' => false], ['columns' => ['revoked_at'], 'unique' => false], ['columns' => ['user_id', 'revoked_at'], 'unique' => false], ['columns' => ['session_id', 'family_id'], 'unique' => false]],
                 'foreign_keys' => [['column' => 'user_id', 'table' => 'users'], ['column' => 'session_id', 'table' => 'api_sessions']],
             ],
             'api_service_tokens' => [

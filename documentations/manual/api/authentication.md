@@ -79,7 +79,11 @@ the `api/v2/backend/auth/*` path. Do not use `*` origins with credentials. WNCMS
 adds exact `Access-Control-Allow-Origin`, `Access-Control-Allow-Credentials:
 true`, and `Vary: Origin` headers, and handles auth preflights. `SameSite=None`
 is rejected unless the application URL/cookies are HTTPS and host CORS has
-`supports_credentials = true`, an auth path, and every configured exact origin.
+`supports_credentials = true`, every auth path, and every configured exact
+origin. Host `allowed_origins` must contain no `*`, and
+`allowed_origins_patterns` must be empty; mixed exact/wildcard configurations
+fail closed. Denied actual and preflight requests never reflect CORS permission
+headers.
 Permanent remembered credentials still use a bounded 400-day persistent
 browser-cookie horizon; logout always expires the exact cookie scope.
 
@@ -88,6 +92,13 @@ Cookie domain, SameSite, allowed Origins, or Referer fallback revokes active
 Cookie sessions. The setting write, credential revocation, and mandatory
 `security.auth_policy.changed` event commit atomically; service tokens are not
 revoked.
+
+Origin and CSRF denials are HMAC-correlated and aggregated into one persisted
+row per attacker tuple. Repeated denials increment the bounded aggregate rather
+than creating a row or info log per request. If event persistence is unavailable,
+the redacted warning fallback is limited per tuple and globally. Mandatory
+success event notifications and structured success logs are emitted only after
+the outermost database transaction commits; an outer rollback emits neither.
 
 ```javascript
 const csrf = readCookie('wncms_refresh_csrf')

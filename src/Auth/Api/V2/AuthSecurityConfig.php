@@ -194,9 +194,19 @@ final class AuthSecurityConfig
             return 'json';
         }
 
-        return $this->hasExactAllowedOrigins() && $this->hasSecureSameSiteNoneConfiguration()
+        return $this->hasExactAllowedOrigins()
+            && $this->hasCredentialedHostCorsConfiguration()
+            && $this->hasSecureSameSiteNoneConfiguration()
             ? 'cookie'
             : 'json';
+    }
+
+    /**
+     * Return whether the persisted transport setting explicitly requests Cookie mode.
+     */
+    public function cookieTransportConfigured(): bool
+    {
+        return $this->rawEnumValue('api_refresh_transport', ['json', 'cookie']) === 'cookie';
     }
 
     /**
@@ -469,23 +479,44 @@ final class AuthSecurityConfig
             return false;
         }
 
-        $allowedOrigins = array_values(array_filter(
-            (array) config('cors.allowed_origins', []),
-            static fn ($origin): bool => is_string($origin) && $origin !== '*',
-        ));
+        $rawAllowedOrigins = (array) config('cors.allowed_origins', []);
+        if (in_array('*', $rawAllowedOrigins, true)
+            || (array) config('cors.allowed_origins_patterns', []) !== []) {
+            return false;
+        }
+
+        $allowedOrigins = array_values(array_filter($rawAllowedOrigins, 'is_string'));
         foreach ($this->rawAllowedOrigins() as $origin) {
             if (! in_array($origin, $allowedOrigins, true)) {
                 return false;
             }
         }
 
-        foreach ((array) config('cors.paths', []) as $path) {
-            if (is_string($path) && Str::is($path, 'api/v2/backend/auth/refresh')) {
-                return true;
+        $paths = array_values(array_filter((array) config('cors.paths', []), 'is_string'));
+        foreach (self::cookieCorsSurfacePaths() as $surfacePath) {
+            if (! collect($paths)->contains(static fn (string $path): bool => Str::is($path, $surfacePath))) {
+                return false;
             }
         }
 
-        return false;
+        return true;
+    }
+
+    /**
+     * Return representative paths for the complete Cookie authentication surface.
+     *
+     * @return array<int, string>
+     */
+    private static function cookieCorsSurfacePaths(): array
+    {
+        return [
+            'api/v2/backend/auth/login',
+            'api/v2/backend/auth/refresh',
+            'api/v2/backend/auth/logout',
+            'api/v2/backend/auth/logout-all',
+            'api/v2/backend/auth/sessions',
+            'api/v2/backend/auth/sessions/example-session-id',
+        ];
     }
 
     /**
@@ -627,6 +658,12 @@ final class AuthSecurityConfig
 
         if ($transport === 'cookie' && ! $this->hasExactAllowedOrigins()) {
             $errors['api_refresh_cookie_allowed_origins'] = 'At least one exact allowed origin is required when Cookie refresh transport is enabled.';
+        }
+
+        if ($transport === 'cookie'
+            && $this->hasExactAllowedOrigins()
+            && ! $this->hasCredentialedHostCorsConfiguration()) {
+            $errors['api_refresh_cookie_allowed_origins'] = 'Cookie refresh transport requires exact credentialed host CORS coverage for every API auth path.';
         }
 
         if ($sameSite !== 'none') {

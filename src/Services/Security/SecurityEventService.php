@@ -130,7 +130,7 @@ final class SecurityEventService
 
                 if ($inserted === 1 && $event !== null) {
                     $created = ApiSecurityEvent::query()->where('aggregate_key', $attributes['aggregate_key'])->firstOrFail();
-                    $this->dispatch($created);
+                    $this->dispatchAfterCommit($created);
 
                     return $created;
                 }
@@ -154,7 +154,6 @@ final class SecurityEventService
                 'updated_at' => CarbonImmutable::now('UTC'),
             ]);
             $updated = ApiSecurityEvent::query()->findOrFail($event->id);
-            $this->dispatch($updated);
 
             return $updated;
         });
@@ -290,9 +289,22 @@ final class SecurityEventService
     protected function persist(array $attributes): ApiSecurityEvent
     {
         $event = ApiSecurityEvent::create($attributes);
-        $this->dispatch($event);
+        $this->dispatchAfterCommit($event);
 
         return $event;
+    }
+
+    /**
+     * Dispatch observability only after the outermost database transaction commits.
+     *
+     * The connection transaction manager executes immediately when no transaction is
+     * active and discards the callback when any enclosing transaction rolls back.
+     */
+    protected function dispatchAfterCommit(ApiSecurityEvent $event): void
+    {
+        DB::connection()->afterCommit(function () use ($event): void {
+            $this->dispatch($event);
+        });
     }
 
     /**

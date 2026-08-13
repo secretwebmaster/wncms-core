@@ -139,6 +139,70 @@ class OriginPolicyTest extends TestCase
     }
 
     /**
+     * Verify unsafe host CORS wildcard and pattern mixes fail closed.
+     */
+    public function test_cookie_transport_rejects_wildcard_or_pattern_host_cors_mix(): void
+    {
+        config([
+            'app.url' => 'https://api.example.test',
+            'session.secure' => true,
+            'cors.paths' => ['api/v2/backend/auth/*'],
+            'cors.allowed_origins' => ['https://admin.example.test', '*'],
+            'cors.allowed_origins_patterns' => [],
+            'cors.supports_credentials' => true,
+        ]);
+        $values = [
+            'api_refresh_transport' => 'cookie',
+            'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+            'api_refresh_cookie_same_site' => 'none',
+        ];
+
+        $wildcard = AuthSecurityConfig::fromValues($values);
+        $this->assertSame('json', $wildcard->refreshTransport());
+        $this->assertArrayHasKey('api_refresh_cookie_allowed_origins', $wildcard->validate());
+
+        config([
+            'cors.allowed_origins' => ['https://admin.example.test'],
+            'cors.allowed_origins_patterns' => ['#^https://.*\\.example\\.test$#'],
+        ]);
+        $pattern = AuthSecurityConfig::fromValues($values);
+        $this->assertSame('json', $pattern->refreshTransport());
+        $this->assertArrayHasKey('api_refresh_cookie_allowed_origins', $pattern->validate());
+    }
+
+    /**
+     * Verify host CORS must cover every Cookie authentication path.
+     */
+    public function test_cookie_transport_requires_complete_host_cors_surface_coverage(): void
+    {
+        config([
+            'app.url' => 'https://api.example.test',
+            'session.secure' => true,
+            'cors.allowed_origins' => ['https://admin.example.test'],
+            'cors.allowed_origins_patterns' => [],
+            'cors.supports_credentials' => true,
+            'cors.paths' => [
+                'api/v2/backend/auth/login',
+                'api/v2/backend/auth/refresh',
+                'api/v2/backend/auth/logout',
+            ],
+        ]);
+        $values = [
+            'api_refresh_transport' => 'cookie',
+            'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+        ];
+
+        $partial = AuthSecurityConfig::fromValues($values);
+        $this->assertSame('json', $partial->refreshTransport());
+        $this->assertArrayHasKey('api_refresh_cookie_allowed_origins', $partial->validate());
+
+        config(['cors.paths' => ['api/v2/backend/auth/*']]);
+        $complete = AuthSecurityConfig::fromValues($values);
+        $this->assertSame('cookie', $complete->refreshTransport());
+        $this->assertArrayNotHasKey('api_refresh_cookie_allowed_origins', $complete->validate());
+    }
+
+    /**
      * Build a policy from typed security configuration values.
      *
      * @param  array<string, mixed>  $overrides

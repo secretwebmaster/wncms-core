@@ -16,6 +16,21 @@ class AuthSecuritySettingsTest extends TestCase
     use DatabaseTransactions;
 
     /**
+     * Configure safe host CORS defaults for Cookie-policy setting tests.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'cors.paths' => ['api/v2/backend/auth/*'],
+            'cors.allowed_origins' => ['https://admin.example.test'],
+            'cors.allowed_origins_patterns' => [],
+            'cors.supports_credentials' => true,
+        ]);
+    }
+
+    /**
      * Remove persisted authentication security settings after every request test.
      */
     protected function tearDown(): void

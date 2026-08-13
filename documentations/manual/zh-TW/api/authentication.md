@@ -77,13 +77,21 @@ credentialed CORS；credentials 不可搭配 `*` Origin。WNCMS 會加入精確�
 `Access-Control-Allow-Origin`、`Access-Control-Allow-Credentials: true` 與
 `Vary: Origin`，並處理 auth preflight。除非應用 URL/cookie 均為 HTTPS，且
 host CORS 設定 `supports_credentials = true`、涵蓋 auth path 與所有精確
-Origins，否則 `SameSite=None` 會被拒絕。永久 remember credential 的瀏覽器
+Origins，否則 `SameSite=None` 會被拒絕。Host `allowed_origins` 不可包含
+`*`，`allowed_origins_patterns` 必須為空；精確值與 wildcard 混用會 fail
+closed。被拒絕的 actual 與 preflight 請求絕不會反射 CORS 許可標頭。永久 remember credential 的瀏覽器
 cookie 仍採用有界的 400 天持久期限，logout 始終依完全相同 scope 清除。
 
 切換 refresh transport 會撤銷所有 active interactive sessions；變更 Cookie
 domain、SameSite、允許 Origins 或 Referer fallback 會撤銷 active Cookie
 sessions。Setting 寫入、credential 撤銷與必要的
 `security.auth_policy.changed` event 會原子提交；service tokens 不受影響。
+
+Origin 與 CSRF denial 會依 HMAC correlation tuple 聚合為每個 attacker tuple
+一列；重複 denial 只增加有界 aggregate，不會為每個 request 新增 row 或 info
+log。Event persistence 不可用時，已去識別化 warning fallback 會同時依 tuple
+與全域限流。必要的 success event notification 與 structured success log 只會在
+最外層 database transaction commit 後發出；outer rollback 不會發出任何一項。
 
 ```javascript
 const csrf = readCookie('wncms_refresh_csrf')

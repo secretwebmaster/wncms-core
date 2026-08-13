@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpFoundation\Cookie;
 use Wncms\Auth\Api\V2\AuthSecurityConfig;
@@ -15,6 +16,7 @@ use Wncms\Models\ApiRefreshToken;
 use Wncms\Models\ApiSession;
 use Wncms\Models\User;
 use Wncms\Models\Website;
+use Wncms\Services\Security\SecurityDenialRecorder;
 use Wncms\Tests\TestCase;
 
 class CookieAuthenticationFlowTest extends TestCase
@@ -186,13 +188,23 @@ class CookieAuthenticationFlowTest extends TestCase
             ->assertNoContent()
             ->assertHeader('Access-Control-Allow-Origin', 'https://admin.example.test')
             ->assertHeader('Access-Control-Allow-Credentials', 'true')
-            ->assertHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+            ->assertHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
 
         $denied = $this->withHeaders([
             'Origin' => 'https://attacker.example.test',
             'Access-Control-Request-Method' => 'POST',
         ])->optionsJson('/api/v2/backend/auth/refresh');
         $denied->assertForbidden()->assertHeaderMissing('Access-Control-Allow-Origin');
+
+        config([
+            'cors.allowed_origins' => ['*', 'https://admin.example.test'],
+            'cors.supports_credentials' => true,
+        ]);
+        $actualDenied = $this->withHeader('Origin', 'https://attacker.example.test')
+            ->postJson('/api/v2/backend/auth/login', $this->loginPayload(['device_name' => 'cors-denied-actual']));
+        $actualDenied->assertForbidden()
+            ->assertHeaderMissing('Access-Control-Allow-Origin')
+            ->assertHeaderMissing('Access-Control-Allow-Credentials');
     }
 
     /**
@@ -226,6 +238,7 @@ class CookieAuthenticationFlowTest extends TestCase
      */
     public function test_cookie_denial_audit_failure_keeps_403_and_logs_no_origin_plaintext(): void
     {
+        RateLimiter::clear(SecurityDenialRecorder::FALLBACK_GLOBAL_KEY);
         Log::spy();
         DB::unprepared("CREATE TEMP TRIGGER task7_denial_audit_failure BEFORE INSERT ON api_security_events BEGIN SELECT RAISE(FAIL, 'injected denial audit failure'); END");
 
@@ -243,6 +256,28 @@ class CookieAuthenticationFlowTest extends TestCase
                 && ($context['event_type'] ?? null) === 'security.origin.denied'
                 && ($context['error_code'] ?? null) === 'authentication.origin_denied'
                 && ! str_contains(json_encode($context, JSON_THROW_ON_ERROR), 'CANARY-ORIGIN');
+        })->once();
+    }
+
+    /**
+     * Verify missing correlation keys preserve a redacted Origin denial response.
+     */
+    public function test_cookie_origin_denial_with_missing_correlation_keys_stays_redacted_403(): void
+    {
+        config(['wncms-api-v2.auth_security.security_event_correlation' => []]);
+        RateLimiter::clear(SecurityDenialRecorder::FALLBACK_GLOBAL_KEY);
+        Log::spy();
+
+        $this->withHeader('Origin', 'https://CANARY-MISSING-KEY.attacker.test')
+            ->postJson('/api/v2/backend/auth/login', $this->loginPayload(['device_name' => 'missing-correlation']))
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'authentication.origin_denied')
+            ->assertHeaderMissing('Access-Control-Allow-Origin')
+            ->assertHeaderMissing('Access-Control-Allow-Credentials');
+
+        Log::shouldHaveReceived('warning')->withArgs(static function (string $message, array $context): bool {
+            return $message === 'WNCMS Cookie security denial event could not be persisted.'
+                && ! str_contains(json_encode($context, JSON_THROW_ON_ERROR), 'CANARY-MISSING-KEY');
         })->once();
     }
 
