@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Wncms\Auth\Api\V2\AuthSecurityConfig;
 
 class SettingController extends Controller
 {
@@ -29,7 +30,10 @@ class SettingController extends Controller
             return redirect()->route('settings.index');
         }
 
-        $settings = wncms()->setting()->getList();
+        $settings = array_replace(
+            AuthSecurityConfig::defaultSettings(),
+            wncms()->setting()->getList(),
+        );
         $availableSettings = array_merge(config('wncms-system-settings'), config('wncms.custom-settings') ?? []);
 
         if (gss('multi_website')) {
@@ -145,6 +149,18 @@ class SettingController extends Controller
 
     public function update(Request $request)
     {
+        $settings = (array) $request->settings;
+        $securitySettings = array_intersect_key($settings, array_flip(AuthSecurityConfig::settingKeys()));
+
+        if ($securitySettings !== []) {
+            $currentSecuritySettings = wncms()->setting()->getList(AuthSecurityConfig::settingKeys());
+            $errors = AuthSecurityConfig::fromValues(array_replace($currentSecuritySettings, $securitySettings))->validate();
+
+            if ($errors !== []) {
+                return redirect()->back()->withInput()->withErrors($errors);
+            }
+        }
+
         if ($request->has('model_website_modes')) {
             $allowedModelKeys = collect(wncms()->getModelNames())
                 ->filter(fn($modelData) => !empty($modelData['routes']))
@@ -168,7 +184,7 @@ class SettingController extends Controller
             uss('model_website_modes', json_encode($modes));
         }
 
-        foreach ((array) $request->settings as $key => $value) {
+        foreach ($settings as $key => $value) {
             uss($key, $value);
         }
 

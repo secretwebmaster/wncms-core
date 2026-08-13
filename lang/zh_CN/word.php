@@ -48,6 +48,28 @@ $words = [
     'api_tokens' => 'API TOKEN',
     'token' => '密匙',
 
+    // api security
+    'api_security' => 'API 安全性',
+    'api_access_token_lifetime_minutes' => '存取权杖有效期（分钟）',
+    'api_refresh_token_lifetime_days' => '刷新权杖有效期（天）',
+    'api_refresh_transport' => '刷新传输方式',
+    'api_permanent_remember_enabled' => '允许永久记住登入状态',
+    'api_refresh_cookie_domain' => '刷新 Cookie 网域',
+    'api_refresh_cookie_same_site' => '刷新 Cookie SameSite 策略',
+    'api_refresh_cookie_allowed_origins' => '刷新 Cookie 允许的来源',
+    'api_refresh_cookie_referer_fallback' => '允许刷新 Cookie Referer 备用验证',
+    'api_login_account_attempts' => '登入帐号尝试次数上限',
+    'api_login_ip_attempts' => '登入 IP 尝试次数上限',
+    'api_login_window_minutes' => '登入速率限制时间窗（分钟）',
+    'api_login_progressive_delay_seconds' => '登入渐进延迟（秒）',
+    'api_high_risk_action_mode' => '高风险动作模式',
+    'api_action_plan_lifetime_seconds' => '动作计划有效期（秒）',
+    'api_step_up_lifetime_seconds' => '加强验证有效期（秒）',
+    'blade_enabled' => '启用 WNCMS Blade 路由',
+    'api_legacy_personal_tokens_enabled' => '启用旧版个人权杖',
+    'api_legacy_personal_tokens_cutoff_at' => '旧版个人权杖截止时间（UTC）',
+    'api_security_event_retention_days' => '安全事件保留期限（天）',
+
     // auth
     'email_or_username' => 'Email 或 用户名',
     'enter_email' => '输入Email',

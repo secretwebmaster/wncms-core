@@ -48,6 +48,28 @@ $words = [
     'api_tokens' => 'API TOKEN',
     'token' => 'Token',
 
+    // api security
+    'api_security' => 'API Security',
+    'api_access_token_lifetime_minutes' => 'Access Token Lifetime (Minutes)',
+    'api_refresh_token_lifetime_days' => 'Refresh Token Lifetime (Days)',
+    'api_refresh_transport' => 'Refresh Transport',
+    'api_permanent_remember_enabled' => 'Allow Permanent Remember Me',
+    'api_refresh_cookie_domain' => 'Refresh Cookie Domain',
+    'api_refresh_cookie_same_site' => 'Refresh Cookie SameSite Policy',
+    'api_refresh_cookie_allowed_origins' => 'Refresh Cookie Allowed Origins',
+    'api_refresh_cookie_referer_fallback' => 'Allow Refresh Cookie Referer Fallback',
+    'api_login_account_attempts' => 'Login Account Attempt Limit',
+    'api_login_ip_attempts' => 'Login IP Attempt Limit',
+    'api_login_window_minutes' => 'Login Rate Limit Window (Minutes)',
+    'api_login_progressive_delay_seconds' => 'Login Progressive Delay (Seconds)',
+    'api_high_risk_action_mode' => 'High-Risk Action Mode',
+    'api_action_plan_lifetime_seconds' => 'Action Plan Lifetime (Seconds)',
+    'api_step_up_lifetime_seconds' => 'Step-Up Authentication Lifetime (Seconds)',
+    'blade_enabled' => 'Enable WNCMS Blade Routes',
+    'api_legacy_personal_tokens_enabled' => 'Enable Legacy Personal Tokens',
+    'api_legacy_personal_tokens_cutoff_at' => 'Legacy Personal Token Cutoff (UTC)',
+    'api_security_event_retention_days' => 'Security Event Retention (Days)',
+
     // auth
     'email_or_username' => 'Email or Username',
     'enter_email' => 'Enter Email',

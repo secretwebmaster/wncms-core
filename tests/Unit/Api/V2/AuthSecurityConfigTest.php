@@ -135,4 +135,23 @@ class AuthSecurityConfigTest extends TestCase
         $this->assertSame('json', config('wncms.auth_security.refresh_transport'));
         $this->assertSame(15, config('wncms.auth_security.access_token_lifetime_minutes'));
     }
+
+    /**
+     * Verify invalid security settings map to conservative runtime values.
+     */
+    public function test_invalid_runtime_values_fail_closed_without_requiring_consumers_to_check_validity(): void
+    {
+        uss('blade_enabled', 'invalid');
+        uss('api_refresh_transport', 'cookie');
+        uss('api_refresh_cookie_allowed_origins', '');
+
+        $config = AuthSecurityConfig::fromRuntime();
+        $runtime = $config->toArray();
+
+        $this->assertFalse($config->bladeEnabled());
+        $this->assertSame('json', $config->refreshTransport());
+        $this->assertFalse($runtime['blade_enabled']);
+        $this->assertSame('json', $runtime['refresh_transport']);
+        $this->assertFalse($runtime['valid']);
+    }
 }

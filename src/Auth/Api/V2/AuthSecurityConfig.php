@@ -6,6 +6,8 @@ use DateTimeImmutable;
 
 final class AuthSecurityConfig
 {
+    private ?array $validationErrors = null;
+
     private const SETTING_KEYS = [
         'api_access_token_lifetime_minutes',
         'api_refresh_token_lifetime_days',
@@ -42,7 +44,20 @@ final class AuthSecurityConfig
             $values[$settingKey] = gss($settingKey, self::defaultFor($defaults, $settingKey));
         }
 
-        return new self($values, $defaults);
+        return self::fromValues($values);
+    }
+
+    /**
+     * Create a configuration value object from candidate system-setting values.
+     *
+     * @param  array<string, mixed>  $values
+     * @return self
+     */
+    public static function fromValues(array $values): self
+    {
+        $defaults = (array) config('wncms-api-v2.auth_security', []);
+
+        return new self(array_replace(self::defaultSettings(), array_intersect_key($values, array_flip(self::SETTING_KEYS))), $defaults);
     }
 
     /**
@@ -53,6 +68,23 @@ final class AuthSecurityConfig
     public static function settingKeys(): array
     {
         return self::SETTING_KEYS;
+    }
+
+    /**
+     * Return stable default values keyed by persisted system-setting name.
+     *
+     * @return array<string, mixed>
+     */
+    public static function defaultSettings(): array
+    {
+        $defaults = (array) config('wncms-api-v2.auth_security', []);
+        $settings = [];
+
+        foreach (self::SETTING_KEYS as $settingKey) {
+            $settings[$settingKey] = self::defaultFor($defaults, $settingKey);
+        }
+
+        return $settings;
     }
 
     /**
@@ -74,6 +106,10 @@ final class AuthSecurityConfig
      */
     public function validate(): array
     {
+        if ($this->validationErrors !== null) {
+            return $this->validationErrors;
+        }
+
         $errors = [];
 
         $this->validateInteger($errors, 'api_access_token_lifetime_minutes', 1, 60);
@@ -99,7 +135,7 @@ final class AuthSecurityConfig
 
         ksort($errors);
 
-        return $errors;
+        return $this->validationErrors = $errors;
     }
 
     /**
@@ -109,6 +145,8 @@ final class AuthSecurityConfig
      */
     public function toArray(): array
     {
+        $errors = $this->validate();
+
         return [
             'access_token_lifetime_minutes' => $this->accessLifetimeMinutes(),
             'refresh_token_lifetime_days' => $this->refreshLifetimeDays(),
@@ -129,8 +167,8 @@ final class AuthSecurityConfig
             'legacy_personal_tokens_enabled' => $this->legacyPersonalTokensEnabled(),
             'legacy_personal_tokens_cutoff_at' => $this->legacyPersonalTokensCutoffAt(),
             'security_event_retention_days' => $this->securityEventRetentionDays(),
-            'valid' => $this->validate() === [],
-            'errors' => $this->validate(),
+            'valid' => $errors === [],
+            'errors' => $errors,
         ];
     }
 
@@ -161,7 +199,13 @@ final class AuthSecurityConfig
      */
     public function refreshTransport(): string
     {
-        return $this->enumValue('api_refresh_transport', ['json', 'cookie']);
+        if ($this->rawEnumValue('api_refresh_transport', ['json', 'cookie']) !== 'cookie') {
+            return 'json';
+        }
+
+        return $this->hasExactAllowedOrigins() && $this->hasSecureSameSiteNoneConfiguration()
+            ? 'cookie'
+            : 'json';
     }
 
     /**
@@ -183,7 +227,7 @@ final class AuthSecurityConfig
     {
         $value = trim((string) $this->values['api_refresh_cookie_domain']);
 
-        return $value === '' ? null : $value;
+        return $value === '' || !$this->isValidCookieDomain($value) ? null : $value;
     }
 
     /**
@@ -193,7 +237,7 @@ final class AuthSecurityConfig
      */
     public function refreshCookieSameSite(): string
     {
-        return $this->enumValue('api_refresh_cookie_same_site', ['strict', 'lax', 'none']);
+        return $this->rawEnumValue('api_refresh_cookie_same_site', ['strict', 'lax', 'none']) ?? 'strict';
     }
 
     /**
@@ -203,11 +247,7 @@ final class AuthSecurityConfig
      */
     public function refreshCookieAllowedOrigins(): array
     {
-        $origins = preg_split('/\r\n|\r|\n/', (string) $this->values['api_refresh_cookie_allowed_origins']) ?: [];
-        $origins = array_map(static fn($origin) => trim((string) $origin), $origins);
-        $origins = array_filter($origins, static fn($origin) => $origin !== '');
-
-        return array_values(array_unique($origins));
+        return $this->hasExactAllowedOrigins() ? $this->rawAllowedOrigins() : [];
     }
 
     /**
@@ -257,20 +297,9 @@ final class AuthSecurityConfig
      */
     public function loginProgressiveDelaySeconds(): array
     {
-        $value = trim((string) $this->values['api_login_progressive_delay_seconds']);
-        $parts = $value === '' ? [] : explode(',', $value);
-        $delays = [];
-
-        foreach ($parts as $part) {
-            $part = trim($part);
-            if (filter_var($part, FILTER_VALIDATE_INT) === false) {
-                return $this->defaultProgressiveDelays();
-            }
-
-            $delays[] = (int) $part;
-        }
-
-        return $delays === [] ? $this->defaultProgressiveDelays() : $delays;
+        return $this->isValidProgressiveDelay()
+            ? array_map(static fn($delay) => (int) trim($delay), explode(',', (string) $this->values['api_login_progressive_delay_seconds']))
+            : $this->defaultProgressiveDelays();
     }
 
     /**
@@ -280,7 +309,7 @@ final class AuthSecurityConfig
      */
     public function highRiskMode(): string
     {
-        return $this->enumValue('api_high_risk_action_mode', ['direct', 'planned']);
+        return $this->rawEnumValue('api_high_risk_action_mode', ['direct', 'planned']) ?? 'planned';
     }
 
     /**
@@ -310,7 +339,7 @@ final class AuthSecurityConfig
      */
     public function bladeEnabled(): bool
     {
-        return $this->booleanValue('blade_enabled');
+        return $this->parseBoolean($this->values['blade_enabled']) ?? false;
     }
 
     /**
@@ -360,6 +389,125 @@ final class AuthSecurityConfig
         }
 
         return $defaults[$configKey] ?? null;
+    }
+
+    /**
+     * Return one raw enum value when it is valid.
+     *
+     * @param  string  $settingKey
+     * @param  array<int, string>  $allowedValues
+     * @return string|null
+     */
+    private function rawEnumValue(string $settingKey, array $allowedValues): ?string
+    {
+        $value = strtolower(trim((string) $this->values[$settingKey]));
+
+        return in_array($value, $allowedValues, true) ? $value : null;
+    }
+
+    /**
+     * Return the untrusted, normalized list of configured origins.
+     *
+     * @return array<int, string>
+     */
+    private function rawAllowedOrigins(): array
+    {
+        $origins = preg_split('/\r\n|\r|\n/', (string) $this->values['api_refresh_cookie_allowed_origins']) ?: [];
+        $origins = array_map(static fn($origin) => trim((string) $origin), $origins);
+        $origins = array_filter($origins, static fn($origin) => $origin !== '');
+
+        return array_values(array_unique($origins));
+    }
+
+    /**
+     * Determine whether every configured Origin is exact and valid.
+     *
+     * @return bool
+     */
+    private function hasExactAllowedOrigins(): bool
+    {
+        $origins = $this->rawAllowedOrigins();
+        if ($origins === []) {
+            return false;
+        }
+
+        foreach ($origins as $origin) {
+            $parsed = parse_url($origin);
+            $isExactOrigin = is_array($parsed)
+                && isset($parsed['scheme'], $parsed['host'])
+                && in_array(strtolower($parsed['scheme']), ['http', 'https'], true)
+                && !isset($parsed['path'], $parsed['query'], $parsed['fragment'], $parsed['user'], $parsed['pass'])
+                && !str_contains($parsed['host'], '*')
+                && strtolower($origin) !== 'null';
+
+            if (!$isExactOrigin) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Determine whether an optional cookie domain is a valid application parent.
+     *
+     * @param  string  $domain
+     * @return bool
+     */
+    private function isValidCookieDomain(string $domain): bool
+    {
+        $normalizedDomain = ltrim(strtolower($domain), '.');
+        $appHost = strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+        $isDomain = preg_match('/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/', $normalizedDomain) === 1;
+
+        return $isDomain && $appHost !== '' && str_ends_with($appHost, '.' . $normalizedDomain);
+    }
+
+    /**
+     * Determine whether SameSite=None has a secure application and origin boundary.
+     *
+     * @return bool
+     */
+    private function hasSecureSameSiteNoneConfiguration(): bool
+    {
+        if ($this->rawEnumValue('api_refresh_cookie_same_site', ['strict', 'lax', 'none']) !== 'none') {
+            return true;
+        }
+
+        $origins = $this->rawAllowedOrigins();
+        $appScheme = strtolower((string) parse_url((string) config('app.url'), PHP_URL_SCHEME));
+        $secureCookies = $this->parseBoolean(config('session.secure')) === true;
+        $hasSecureOrigins = $this->hasExactAllowedOrigins()
+            && count(array_filter($origins, static fn($origin) => str_starts_with(strtolower($origin), 'https://'))) === count($origins);
+
+        return $appScheme === 'https' && $secureCookies && $hasSecureOrigins;
+    }
+
+    /**
+     * Determine whether configured progressive delays are valid and ascending.
+     *
+     * @return bool
+     */
+    private function isValidProgressiveDelay(): bool
+    {
+        $rawValue = trim((string) $this->values['api_login_progressive_delay_seconds']);
+        $parts = $rawValue === '' ? [] : explode(',', $rawValue);
+        $previous = -1;
+
+        if ($parts === []) {
+            return false;
+        }
+
+        foreach ($parts as $part) {
+            $value = filter_var(trim($part), FILTER_VALIDATE_INT);
+            if ($value === false || $value < 0 || $value > 300 || $value < $previous) {
+                return false;
+            }
+
+            $previous = $value;
+        }
+
+        return true;
     }
 
     /**
@@ -417,17 +565,12 @@ final class AuthSecurityConfig
      */
     private function validateCookieDomain(array &$errors): void
     {
-        $domain = $this->refreshCookieDomain();
-        if ($domain === null) {
+        $domain = trim((string) $this->values['api_refresh_cookie_domain']);
+        if ($domain === '') {
             return;
         }
 
-        $normalizedDomain = ltrim(strtolower($domain), '.');
-        $appHost = strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
-        $isDomain = preg_match('/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/', $normalizedDomain) === 1;
-        $isParent = $appHost !== '' && str_ends_with($appHost, '.' . $normalizedDomain);
-
-        if (!$isDomain || !$isParent) {
+        if (!$this->isValidCookieDomain($domain)) {
             $errors['api_refresh_cookie_domain'] = 'Must be empty or a valid parent domain for the application host.';
         }
     }
@@ -440,19 +583,8 @@ final class AuthSecurityConfig
      */
     private function validateAllowedOrigins(array &$errors): void
     {
-        foreach ($this->refreshCookieAllowedOrigins() as $origin) {
-            $parsed = parse_url($origin);
-            $isExactOrigin = is_array($parsed)
-                && isset($parsed['scheme'], $parsed['host'])
-                && in_array(strtolower($parsed['scheme']), ['http', 'https'], true)
-                && !isset($parsed['path'], $parsed['query'], $parsed['fragment'], $parsed['user'], $parsed['pass'])
-                && !str_contains($parsed['host'], '*')
-                && strtolower($origin) !== 'null';
-
-            if (!$isExactOrigin) {
-                $errors['api_refresh_cookie_allowed_origins'] = 'Must contain newline-separated exact HTTP or HTTPS origins.';
-                return;
-            }
+        if (!$this->hasExactAllowedOrigins() && $this->rawAllowedOrigins() !== []) {
+            $errors['api_refresh_cookie_allowed_origins'] = 'Must contain newline-separated exact HTTP or HTTPS origins.';
         }
     }
 
@@ -464,23 +596,8 @@ final class AuthSecurityConfig
      */
     private function validateProgressiveDelay(array &$errors): void
     {
-        $rawValue = trim((string) $this->values['api_login_progressive_delay_seconds']);
-        $parts = $rawValue === '' ? [] : explode(',', $rawValue);
-        $previous = -1;
-
-        if ($parts === []) {
+        if (!$this->isValidProgressiveDelay()) {
             $errors['api_login_progressive_delay_seconds'] = 'Must be ascending comma-separated integers between 0 and 300.';
-            return;
-        }
-
-        foreach ($parts as $part) {
-            $value = filter_var(trim($part), FILTER_VALIDATE_INT);
-            if ($value === false || $value < 0 || $value > 300 || $value < $previous) {
-                $errors['api_login_progressive_delay_seconds'] = 'Must be ascending comma-separated integers between 0 and 300.';
-                return;
-            }
-
-            $previous = $value;
         }
     }
 
@@ -515,20 +632,18 @@ final class AuthSecurityConfig
      */
     private function validateCookieCompatibility(array &$errors): void
     {
-        if ($this->refreshTransport() === 'cookie' && $this->refreshCookieAllowedOrigins() === []) {
+        $transport = $this->rawEnumValue('api_refresh_transport', ['json', 'cookie']);
+        $sameSite = $this->rawEnumValue('api_refresh_cookie_same_site', ['strict', 'lax', 'none']);
+
+        if ($transport === 'cookie' && !$this->hasExactAllowedOrigins()) {
             $errors['api_refresh_cookie_allowed_origins'] = 'At least one exact allowed origin is required when Cookie refresh transport is enabled.';
         }
 
-        if ($this->refreshCookieSameSite() !== 'none') {
+        if ($sameSite !== 'none') {
             return;
         }
 
-        $appScheme = strtolower((string) parse_url((string) config('app.url'), PHP_URL_SCHEME));
-        $secureCookies = $this->parseBoolean(config('session.secure')) === true;
-        $hasSecureOrigins = $this->refreshCookieAllowedOrigins() !== []
-            && count(array_filter($this->refreshCookieAllowedOrigins(), static fn($origin) => str_starts_with(strtolower($origin), 'https://'))) === count($this->refreshCookieAllowedOrigins());
-
-        if ($appScheme !== 'https' || !$secureCookies || !$hasSecureOrigins) {
+        if (!$this->hasSecureSameSiteNoneConfiguration()) {
             $errors['api_refresh_cookie_same_site'] = 'SameSite=None requires an HTTPS application URL and secure refresh cookies.';
         }
     }

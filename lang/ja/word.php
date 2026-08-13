@@ -48,6 +48,28 @@ $words = [
     'api_tokens' => 'APIトークン',
     'token' => 'トークン',
 
+    // api security
+    'api_security' => 'API セキュリティ',
+    'api_access_token_lifetime_minutes' => 'アクセストークンの有効期間（分）',
+    'api_refresh_token_lifetime_days' => 'リフレッシュトークンの有効期間（日）',
+    'api_refresh_transport' => 'リフレッシュ転送方式',
+    'api_permanent_remember_enabled' => '永続的なログイン保持を許可',
+    'api_refresh_cookie_domain' => 'リフレッシュ Cookie ドメイン',
+    'api_refresh_cookie_same_site' => 'リフレッシュ Cookie SameSite ポリシー',
+    'api_refresh_cookie_allowed_origins' => 'リフレッシュ Cookie の許可オリジン',
+    'api_refresh_cookie_referer_fallback' => 'リフレッシュ Cookie の Referer フォールバックを許可',
+    'api_login_account_attempts' => 'ログインアカウント試行回数上限',
+    'api_login_ip_attempts' => 'ログイン IP 試行回数上限',
+    'api_login_window_minutes' => 'ログインレート制限ウィンドウ（分）',
+    'api_login_progressive_delay_seconds' => 'ログイン段階的遅延（秒）',
+    'api_high_risk_action_mode' => '高リスク操作モード',
+    'api_action_plan_lifetime_seconds' => '操作計画の有効期間（秒）',
+    'api_step_up_lifetime_seconds' => 'ステップアップ認証の有効期間（秒）',
+    'blade_enabled' => 'WNCMS Blade ルートを有効化',
+    'api_legacy_personal_tokens_enabled' => '旧式の個人トークンを有効化',
+    'api_legacy_personal_tokens_cutoff_at' => '旧式の個人トークン期限（UTC）',
+    'api_security_event_retention_days' => 'セキュリティイベント保持期間（日）',
+
     // auth
     'email_or_username' => 'メールまたはユーザー名',
     'enter_email' => 'メールを入力',
