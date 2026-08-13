@@ -4,6 +4,7 @@ namespace Wncms\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Wncms\Foundation\Auth\Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -77,6 +78,46 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     public function posts()
     {
         return $this->hasMany(wncms()->getModelClass('post'));
+    }
+
+    /**
+     * Get the interactive API sessions owned by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function apiSessions(): HasMany
+    {
+        return $this->hasMany(wncms()->getModelClass('api_session'));
+    }
+
+    /**
+     * Get the interactive API access tokens owned by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function apiAccessTokens(): HasMany
+    {
+        return $this->hasMany(wncms()->getModelClass('api_access_token'));
+    }
+
+    /**
+     * Get the one-time API refresh tokens owned by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function apiRefreshTokens(): HasMany
+    {
+        return $this->hasMany(wncms()->getModelClass('api_refresh_token'));
+    }
+
+    /**
+     * Get the scoped API service tokens owned by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function apiServiceTokens(): HasMany
+    {
+        return $this->hasMany(wncms()->getModelClass('api_service_token'));
     }
 
     public function emails_received()
