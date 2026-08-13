@@ -15,7 +15,8 @@
                     }
                 ],
                 "x-wncms-permission": "advertisement_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "advertisements.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
@@ -63,7 +64,8 @@
                     }
                 ],
                 "x-wncms-permission": "advertisement_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "advertisements.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -123,7 +125,8 @@
                     }
                 ],
                 "x-wncms-permission": "advertisement_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "advertisements.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -183,7 +186,8 @@
                     }
                 ],
                 "x-wncms-permission": "advertisement_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "advertisements.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -251,7 +255,8 @@
                     }
                 ],
                 "x-wncms-permission": "advertisement_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "advertisements.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
@@ -309,7 +314,8 @@
                     }
                 ],
                 "x-wncms-permission": "advertisement_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "advertisements.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -379,7 +385,8 @@
                     }
                 ],
                 "x-wncms-permission": "advertisement_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "advertisements.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -449,7 +456,8 @@
                     }
                 ],
                 "x-wncms-permission": "advertisement_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "advertisements.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -519,7 +527,8 @@
                     }
                 ],
                 "x-wncms-permission": "cache_clear",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "cache.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -589,7 +598,8 @@
                     }
                 ],
                 "x-wncms-permission": "cache_clear",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "cache.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -667,7 +677,8 @@
                     }
                 ],
                 "x-wncms-permission": "cache_flush",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "cache.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -727,7 +738,8 @@
                     }
                 ],
                 "x-wncms-permission": "cache_flush",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "cache.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -797,7 +809,8 @@
                     }
                 ],
                 "x-wncms-permission": "channel_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "channels.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -845,7 +858,8 @@
                     }
                 ],
                 "x-wncms-permission": "channel_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "channels.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -905,7 +919,8 @@
                     }
                 ],
                 "x-wncms-permission": "channel_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "channels.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -965,7 +980,8 @@
                     }
                 ],
                 "x-wncms-permission": "channel_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "channels.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -1033,7 +1049,8 @@
                     }
                 ],
                 "x-wncms-permission": "channel_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "channels.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -1091,7 +1108,8 @@
                     }
                 ],
                 "x-wncms-permission": "channel_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "channels.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -1161,7 +1179,8 @@
                     }
                 ],
                 "x-wncms-permission": "click_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "clicks.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -1211,7 +1230,8 @@
                     }
                 ],
                 "x-wncms-permission": "click_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "clicks.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -1271,7 +1291,8 @@
                     }
                 ],
                 "x-wncms-permission": "click_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "clicks.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
@@ -1321,7 +1342,8 @@
                     }
                 ],
                 "x-wncms-permission": "click_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "clicks.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -1391,7 +1413,8 @@
                     }
                 ],
                 "x-wncms-permission": "comment_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "comments.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
@@ -1439,7 +1462,8 @@
                     }
                 ],
                 "x-wncms-permission": "comment_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "comments.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -1499,7 +1523,8 @@
                     }
                 ],
                 "x-wncms-permission": "comment_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "comments.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -1559,7 +1584,8 @@
                     }
                 ],
                 "x-wncms-permission": "comment_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "comments.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -1627,7 +1653,8 @@
                     }
                 ],
                 "x-wncms-permission": "comment_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "comments.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
@@ -1685,7 +1712,8 @@
                     }
                 ],
                 "x-wncms-permission": "comment_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "comments.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -1755,7 +1783,8 @@
                     }
                 ],
                 "x-wncms-permission": "comment_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "comments.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -1825,7 +1854,8 @@
                     }
                 ],
                 "x-wncms-permission": "comment_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "comments.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -1894,8 +1924,9 @@
                         "bearerAuth": []
                     }
                 ],
-                "x-wncms-permission": null,
-                "x-wncms-ability": null,
+                "x-wncms-permission": "website_index",
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "dashboard.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -1955,7 +1986,8 @@
                     }
                 ],
                 "x-wncms-permission": "link_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "links.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "domain",
@@ -2003,7 +2035,8 @@
                     }
                 ],
                 "x-wncms-permission": "link_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "links.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "domain",
@@ -2063,7 +2096,8 @@
                     }
                 ],
                 "x-wncms-permission": "link_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "links.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -2123,7 +2157,8 @@
                     }
                 ],
                 "x-wncms-permission": "link_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "links.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -2183,7 +2218,8 @@
                     }
                 ],
                 "x-wncms-permission": "link_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "links.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "domain",
@@ -2251,7 +2287,8 @@
                     }
                 ],
                 "x-wncms-permission": "link_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "links.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "domain",
@@ -2309,7 +2346,8 @@
                     }
                 ],
                 "x-wncms-permission": "link_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "links.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "domain",
@@ -2379,7 +2417,8 @@
                     }
                 ],
                 "x-wncms-permission": "menu_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "menus.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -2427,7 +2466,8 @@
                     }
                 ],
                 "x-wncms-permission": "menu_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "menus.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -2487,7 +2527,8 @@
                     }
                 ],
                 "x-wncms-permission": "menu_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "menus.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -2547,7 +2588,8 @@
                     }
                 ],
                 "x-wncms-permission": "menu_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "menus.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -2607,7 +2649,8 @@
                     }
                 ],
                 "x-wncms-permission": "menu_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "menus.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -2667,7 +2710,8 @@
                     }
                 ],
                 "x-wncms-permission": "menu_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "menus.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -2727,7 +2771,8 @@
                     }
                 ],
                 "x-wncms-permission": "menu_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "menus.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -2795,7 +2840,8 @@
                     }
                 ],
                 "x-wncms-permission": "menu_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "menus.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -2853,7 +2899,8 @@
                     }
                 ],
                 "x-wncms-permission": "menu_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "menus.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -2923,6 +2970,7 @@
                     }
                 ],
                 "x-wncms-permission": "{model}_bulk_delete",
+                "x-wncms-permission-mode": "model_template",
                 "x-wncms-ability": "models.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
@@ -2983,6 +3031,7 @@
                     }
                 ],
                 "x-wncms-permission": "{model}_bulk_delete",
+                "x-wncms-permission-mode": "model_template",
                 "x-wncms-ability": "models.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
@@ -3043,6 +3092,7 @@
                     }
                 ],
                 "x-wncms-permission": "{model}_edit",
+                "x-wncms-permission-mode": "model_template",
                 "x-wncms-ability": "models.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
@@ -3103,6 +3153,7 @@
                     }
                 ],
                 "x-wncms-permission": null,
+                "x-wncms-permission-mode": "static",
                 "x-wncms-ability": null,
                 "x-wncms-website-scoped": false,
                 "x-wncms-risk": "read",
@@ -3266,6 +3317,7 @@
                     }
                 ],
                 "x-wncms-permission": "operation_cancel",
+                "x-wncms-permission-mode": "static",
                 "x-wncms-ability": null,
                 "x-wncms-website-scoped": false,
                 "x-wncms-risk": "destructive",
@@ -3439,7 +3491,8 @@
                     }
                 ],
                 "x-wncms-permission": "package_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "packages.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
@@ -3489,7 +3542,8 @@
                     }
                 ],
                 "x-wncms-permission": "package_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "packages.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -3549,7 +3603,8 @@
                     }
                 ],
                 "x-wncms-permission": "package_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "packages.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -3619,7 +3674,8 @@
                     }
                 ],
                 "x-wncms-permission": "package_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "packages.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -3689,7 +3745,8 @@
                     }
                 ],
                 "x-wncms-permission": "page_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "pages.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -3737,7 +3794,8 @@
                     }
                 ],
                 "x-wncms-permission": "page_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "pages.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -3797,7 +3855,8 @@
                     }
                 ],
                 "x-wncms-permission": "page_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "pages.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -3857,7 +3916,8 @@
                     }
                 ],
                 "x-wncms-permission": "page_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "pages.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -3917,7 +3977,8 @@
                     }
                 ],
                 "x-wncms-permission": "page_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "pages.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -3977,7 +4038,8 @@
                     }
                 ],
                 "x-wncms-permission": "page_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "pages.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -4037,7 +4099,8 @@
                     }
                 ],
                 "x-wncms-permission": "page_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "pages.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -4105,7 +4168,8 @@
                     }
                 ],
                 "x-wncms-permission": "page_show",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "pages.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -4163,7 +4227,8 @@
                     }
                 ],
                 "x-wncms-permission": "page_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "pages.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -4233,7 +4298,8 @@
                     }
                 ],
                 "x-wncms-permission": "page_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "pages.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
@@ -4293,7 +4359,8 @@
                     }
                 ],
                 "x-wncms-permission": "page_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "pages.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -4363,7 +4430,8 @@
                     }
                 ],
                 "x-wncms-permission": "parameter_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "parameters.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -4411,7 +4479,8 @@
                     }
                 ],
                 "x-wncms-permission": "parameter_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "parameters.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -4471,7 +4540,8 @@
                     }
                 ],
                 "x-wncms-permission": "parameter_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "parameters.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -4531,7 +4601,8 @@
                     }
                 ],
                 "x-wncms-permission": "parameter_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "parameters.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -4599,7 +4670,8 @@
                     }
                 ],
                 "x-wncms-permission": "parameter_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "parameters.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -4657,7 +4729,8 @@
                     }
                 ],
                 "x-wncms-permission": "parameter_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "parameters.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -4727,7 +4800,8 @@
                     }
                 ],
                 "x-wncms-permission": "permission_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "permissions.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -4775,7 +4849,8 @@
                     }
                 ],
                 "x-wncms-permission": "permission_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "permissions.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -4835,7 +4910,8 @@
                     }
                 ],
                 "x-wncms-permission": "permission_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "permissions.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -4895,7 +4971,8 @@
                     }
                 ],
                 "x-wncms-permission": "permission_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "permissions.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -4955,7 +5032,8 @@
                     }
                 ],
                 "x-wncms-permission": "permission_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "permissions.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -5015,7 +5093,8 @@
                     }
                 ],
                 "x-wncms-permission": "permission_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "permissions.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -5083,7 +5162,8 @@
                     }
                 ],
                 "x-wncms-permission": "permission_show",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "permissions.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -5141,7 +5221,8 @@
                     }
                 ],
                 "x-wncms-permission": "permission_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "permissions.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -5211,7 +5292,8 @@
                     }
                 ],
                 "x-wncms-permission": "plugin_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "plugins.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
@@ -5261,7 +5343,8 @@
                     }
                 ],
                 "x-wncms-permission": "plugin_activate",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "plugins.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -5331,7 +5414,8 @@
                     }
                 ],
                 "x-wncms-permission": "plugin_activate",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "plugins.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -5401,7 +5485,8 @@
                     }
                 ],
                 "x-wncms-permission": "plugin_deactivate",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "plugins.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -5471,7 +5556,8 @@
                     }
                 ],
                 "x-wncms-permission": "plugin_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "plugins.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -5541,7 +5627,8 @@
                     }
                 ],
                 "x-wncms-permission": "plugin_activate",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "plugins.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -5611,7 +5698,8 @@
                     }
                 ],
                 "x-wncms-permission": "plugin_upload",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "plugins.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -5671,7 +5759,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
@@ -5719,7 +5808,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -5779,7 +5869,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_bulk_clone",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -5839,7 +5930,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -5899,7 +5991,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_bulk_sync_tags",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -5959,7 +6052,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_generate_demo_posts",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -6019,7 +6113,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
@@ -6068,8 +6163,9 @@
                         "bearerAuth": []
                     }
                 ],
-                "x-wncms-permission": null,
-                "x-wncms-ability": null,
+                "x-wncms-permission": "post_edit",
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -6139,7 +6235,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -6207,7 +6304,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_show",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
@@ -6265,7 +6363,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -6335,7 +6434,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -6405,7 +6505,8 @@
                     }
                 ],
                 "x-wncms-permission": "post_show",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "posts.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
@@ -6465,7 +6566,8 @@
                     }
                 ],
                 "x-wncms-permission": "record_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "records.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -6525,7 +6627,8 @@
                     }
                 ],
                 "x-wncms-permission": "record_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "records.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -6595,7 +6698,8 @@
                     }
                 ],
                 "x-wncms-permission": "role_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "roles.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
@@ -6643,7 +6747,8 @@
                     }
                 ],
                 "x-wncms-permission": "role_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "roles.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -6703,7 +6808,8 @@
                     }
                 ],
                 "x-wncms-permission": "role_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "roles.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -6771,7 +6877,8 @@
                     }
                 ],
                 "x-wncms-permission": "role_show",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "roles.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
@@ -6829,7 +6936,8 @@
                     }
                 ],
                 "x-wncms-permission": "role_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "roles.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_controller",
@@ -6899,7 +7007,8 @@
                     }
                 ],
                 "x-wncms-permission": "search_keyword_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "search_keywords.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -6947,7 +7056,8 @@
                     }
                 ],
                 "x-wncms-permission": "search_keyword_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "search_keywords.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -7007,7 +7117,8 @@
                     }
                 ],
                 "x-wncms-permission": "search_keyword_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "search_keywords.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -7067,7 +7178,8 @@
                     }
                 ],
                 "x-wncms-permission": "search_keyword_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "search_keywords.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -7135,7 +7247,8 @@
                     }
                 ],
                 "x-wncms-permission": "search_keyword_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "search_keywords.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -7193,7 +7306,8 @@
                     }
                 ],
                 "x-wncms-permission": "search_keyword_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "search_keywords.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -7263,7 +7377,8 @@
                     }
                 ],
                 "x-wncms-permission": "setting_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "settings.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -7323,7 +7438,8 @@
                     }
                 ],
                 "x-wncms-permission": "setting_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "settings.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
@@ -7373,7 +7489,8 @@
                     }
                 ],
                 "x-wncms-permission": "setting_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "settings.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -7433,7 +7550,8 @@
                     }
                 ],
                 "x-wncms-permission": "setting_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "settings.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -7493,7 +7611,8 @@
                     }
                 ],
                 "x-wncms-permission": "setting_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "settings.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -7553,7 +7672,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -7601,7 +7721,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -7661,7 +7782,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_bulk_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
@@ -7711,7 +7833,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -7771,7 +7894,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -7831,7 +7955,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_bulk_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -7891,7 +8016,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -7951,7 +8077,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_import_csv",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -8011,7 +8138,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_create_type",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_bridge",
@@ -8061,7 +8189,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_create_type",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -8121,7 +8250,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -8189,7 +8319,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_show",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -8247,7 +8378,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -8317,7 +8449,8 @@
                     }
                 ],
                 "x-wncms-permission": "tag_keyword_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "tags.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -8387,7 +8520,8 @@
                     }
                 ],
                 "x-wncms-permission": "theme_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "themes.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_controller",
@@ -8437,7 +8571,8 @@
                     }
                 ],
                 "x-wncms-permission": "theme_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "themes.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -8507,7 +8642,8 @@
                     }
                 ],
                 "x-wncms-permission": "theme_upload",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "themes.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -8567,7 +8703,8 @@
                     }
                 ],
                 "x-wncms-permission": "theme_upload",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "install_default_theme.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -8627,7 +8764,8 @@
                     }
                 ],
                 "x-wncms-permission": "setting_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "rerun_core_update.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -8686,8 +8824,9 @@
                         "bearerAuth": []
                     }
                 ],
-                "x-wncms-permission": null,
-                "x-wncms-ability": null,
+                "x-wncms-permission": "setting_index",
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "updates.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -8747,7 +8886,8 @@
                     }
                 ],
                 "x-wncms-permission": "upload_image",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "uploads.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -8807,7 +8947,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -8855,7 +8996,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -8915,7 +9057,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_api_update",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -8975,7 +9118,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_profile_update",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -9035,7 +9179,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_profile_update",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -9095,7 +9240,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_profile_update",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -9155,7 +9301,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -9215,7 +9362,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_bulk_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -9275,7 +9423,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -9335,7 +9484,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -9403,7 +9553,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_show",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -9461,7 +9612,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -9531,7 +9683,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -9601,7 +9754,8 @@
                     }
                 ],
                 "x-wncms-permission": "user_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "users.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -9671,7 +9825,8 @@
                     }
                 ],
                 "x-wncms-permission": "website_index",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "websites.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -9719,7 +9874,8 @@
                     }
                 ],
                 "x-wncms-permission": "website_create",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "websites.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -9779,7 +9935,8 @@
                     }
                 ],
                 "x-wncms-permission": "website_delete",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "websites.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -9847,7 +10004,8 @@
                     }
                 ],
                 "x-wncms-permission": "website_show",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "websites.read",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "read",
                 "x-wncms-implementation": "legacy_resource",
@@ -9905,7 +10063,8 @@
                     }
                 ],
                 "x-wncms-permission": "website_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "websites.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_resource",
@@ -9975,7 +10134,8 @@
                     }
                 ],
                 "x-wncms-permission": "website_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "websites.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -10045,7 +10205,8 @@
                     }
                 ],
                 "x-wncms-permission": "website_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "websites.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -10115,7 +10276,8 @@
                     }
                 ],
                 "x-wncms-permission": "website_edit",
-                "x-wncms-ability": null,
+                "x-wncms-permission-mode": "static",
+                "x-wncms-ability": "websites.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -10181,6 +10343,7 @@
                 "operationId": "frontend.health",
                 "security": [],
                 "x-wncms-permission": null,
+                "x-wncms-permission-mode": "static",
                 "x-wncms-ability": null,
                 "x-wncms-website-scoped": false,
                 "x-wncms-risk": "read",
@@ -10227,6 +10390,7 @@
                 "operationId": "system.translations",
                 "security": [],
                 "x-wncms-permission": null,
+                "x-wncms-permission-mode": "static",
                 "x-wncms-ability": null,
                 "x-wncms-website-scoped": false,
                 "x-wncms-risk": "read",

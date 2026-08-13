@@ -78,15 +78,15 @@ final class CapabilityResolver
      */
     private function isPermitted(Authenticatable $user, ApiOperationContract $operation): bool
     {
-        if ($operation->permission === null || trim($operation->permission) === '') {
-            return true;
-        }
-
-        if (str_starts_with($operation->permission, '{model}_')) {
-            return $this->modelPermissions->actorCanAny($user, $operation->permission);
-        }
-
-        return method_exists($user, 'can') && $user->can($operation->permission);
+        return match ($operation->permissionMode) {
+            'static' => $operation->permission === null || trim($operation->permission) === ''
+                ? true
+                : method_exists($user, 'can') && $user->can($operation->permission),
+            'model_template' => $operation->permission !== null
+                && trim($operation->permission) !== ''
+                && $this->modelPermissions->actorCanAny($user, $operation->permission),
+            default => false,
+        };
     }
 
     /**
@@ -102,6 +102,7 @@ final class CapabilityResolver
             'method' => $operation->method,
             'path' => $operation->path,
             'permission' => $operation->permission,
+            'permission_mode' => $operation->permissionMode,
             'ability' => $operation->ability,
             'website_scoped' => $operation->websiteScoped,
             'risk' => $operation->risk,

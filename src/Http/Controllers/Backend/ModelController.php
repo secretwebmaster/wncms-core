@@ -8,9 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
+use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\ModelPermissionResolver;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Http\Middleware\ApiV2TokenAuth;
+use Wncms\Http\Middleware\RequireApiV2ModelPermission;
 
 class ModelController extends Controller
 {
@@ -18,9 +20,12 @@ class ModelController extends Controller
      * Create the generic model controller.
      *
      * @param  \Wncms\Api\V2\ModelPermissionResolver  $modelPermissions
+     * @param  \Wncms\Api\V2\ApiResponseFactory  $responses
      */
-    public function __construct(private ModelPermissionResolver $modelPermissions)
-    {
+    public function __construct(
+        private ModelPermissionResolver $modelPermissions,
+        private ApiResponseFactory $responses,
+    ) {
     }
 
     /**
@@ -49,12 +54,10 @@ class ModelController extends Controller
 
     public function update(Request $request)
     {
-        if ($response = $this->authorizeAdminModelMutation($request, 'edit')) {
-            return $response;
+        $modelClass = $this->authorizedModelClass($request, 'edit');
+        if ($modelClass instanceof JsonResponse) {
+            return $modelClass;
         }
-
-        $modelKey = $request->attributes->get('wncms_api_v2_model_key', $request->model);
-        $modelClass = $this->resolveModelClass($modelKey);
 
         if (!$modelClass) {
             return response()->json([
@@ -106,12 +109,10 @@ class ModelController extends Controller
 
     public function bulk_delete(Request $request)
     {
-        if ($response = $this->authorizeAdminModelMutation($request, 'bulk_delete')) {
-            return $response;
+        $modelClass = $this->authorizedModelClass($request, 'bulk_delete');
+        if ($modelClass instanceof JsonResponse) {
+            return $modelClass;
         }
-
-        $modelKey = $request->attributes->get('wncms_api_v2_model_key', $request->model);
-        $modelClass = $this->resolveModelClass($modelKey);
 
         if (!$modelClass) {
             return response()->json([
@@ -162,12 +163,10 @@ class ModelController extends Controller
 
     public function bulk_force_delete(Request $request)
     {
-        if ($response = $this->authorizeAdminModelMutation($request, 'bulk_delete')) {
-            return $response;
+        $modelClass = $this->authorizedModelClass($request, 'bulk_delete');
+        if ($modelClass instanceof JsonResponse) {
+            return $modelClass;
         }
-
-        $modelKey = $request->attributes->get('wncms_api_v2_model_key', $request->model);
-        $modelClass = $this->resolveModelClass($modelKey);
 
         if (!$modelClass) {
             return response()->json([
@@ -218,37 +217,67 @@ class ModelController extends Controller
             ?? [];
     }
 
-    protected function authorizeAdminModelMutation(Request $request, string $permissionSuffix): ?JsonResponse
+    /**
+     * Resolve the exact authorized mutation class for API or legacy backend traffic.
+     *
+     * API traffic consumes only the server-side trusted resolution produced by
+     * the target permission middleware. Legacy backend traffic preserves the
+     * existing administrator-only class resolution behavior.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $permissionSuffix
+     * @return string|\Illuminate\Http\JsonResponse|null
+     */
+    protected function authorizedModelClass(Request $request, string $permissionSuffix): string|JsonResponse|null
     {
         $context = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
         if ($context instanceof AuthenticationContext) {
-            $requirement = $this->modelPermissions->resolve($request->input('model'), $permissionSuffix);
+            $requirement = $request->attributes->get(RequireApiV2ModelPermission::TRUSTED_RESOLUTION_ATTRIBUTE);
             $user = $context->actor();
 
             if (
-                $requirement !== null
+                is_array($requirement)
+                && $this->trustedResolutionMatches($request->input('model'), $permissionSuffix, $requirement)
                 && method_exists($user, 'checkPermissionTo')
                 && $user->checkPermissionTo($requirement['permission'])
             ) {
-                $request->attributes->set('wncms_api_v2_model_key', $requirement['model_key']);
-
-                return null;
+                return $requirement['model_class'];
             }
         } else {
             $user = $request->user();
 
             if ($user && method_exists($user, 'hasRole') && $user->hasRole(['admin', 'superadmin'])) {
-                return null;
+                return $this->resolveModelClass((string) $request->input('model', ''));
             }
         }
 
-        return response()->json([
-            'code' => Response::HTTP_FORBIDDEN,
-            'status' => 'fail',
-            'message' => __('wncms::word.permission_denied'),
-            'data' => null,
-            'meta' => [],
-            'errors' => [],
-        ], Response::HTTP_FORBIDDEN);
+        return $this->responses->failure(
+            'authorization.permission_denied',
+            'Permission denied',
+            Response::HTTP_FORBIDDEN
+        );
+    }
+
+    /**
+     * Validate a server-side trusted resolution against the request and action.
+     *
+     * @param  mixed  $selector
+     * @param  string  $permissionSuffix
+     * @param  array<string, mixed>  $resolution
+     * @return bool
+     */
+    protected function trustedResolutionMatches(mixed $selector, string $permissionSuffix, array $resolution): bool
+    {
+        if (! is_string($selector) || trim($selector) === '' || str_contains($selector, '\\')) {
+            return false;
+        }
+
+        $modelKey = Str::snake(Str::singular(trim($selector)));
+        $modelClass = $resolution['model_class'] ?? null;
+
+        return is_string($modelClass)
+            && ($resolution['model_key'] ?? null) === $modelKey
+            && ($resolution['permission'] ?? null) === $modelKey.'_'.$permissionSuffix
+            && $this->modelPermissions->validModelClass($modelKey, $modelClass);
     }
 }

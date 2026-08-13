@@ -54,6 +54,7 @@ class LegacyBackendContractProviderTest extends TestCase
                 $this->assertSame(sprintf($path, $resource), $operation->path);
                 $this->assertSame("api.v2.backend.{$resource}.{$action}", $operation->routeName);
                 $this->assertSame($resourceConfig['permissions'][$action] ?? null, $operation->permission);
+                $this->assertSame('static', $operation->permissionMode);
                 $this->assertSame(LegacyOperationSecurity::resourceAbility($resource, $action), $operation->ability);
                 $this->assertTrue($operation->websiteScoped);
 
@@ -80,6 +81,7 @@ class LegacyBackendContractProviderTest extends TestCase
             $this->assertSame('/api/v2/backend/' . $action['uri'], $operation->path);
             $this->assertSame("api.v2.backend.{$action['name']}", $operation->routeName);
             $this->assertSame($action['permission_template'] ?? $action['permission'] ?? null, $operation->permission);
+            $this->assertSame(isset($action['permission_template']) ? 'model_template' : 'static', $operation->permissionMode);
             $domain = explode('.', (string) $action['name'], 2)[0];
             $expectedAbility = $domain.'.'.(strtoupper((string) $action['method']) === 'GET' ? 'read' : 'write');
             $this->assertSame($expectedAbility, $operation->ability);

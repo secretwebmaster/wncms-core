@@ -31,7 +31,7 @@ final class LegacyOperationSecurity
      * @param  string  $resource
      * @param  string  $action
      * @param  array<string, mixed>  $resourceConfig
-     * @return array{ability: string, permission: string, middleware: array<int, string>}
+     * @return array{ability: string, permission: string, permission_mode: string, middleware: array<int, string>}
      */
     public static function resourceRequirements(string $resource, string $action, array $resourceConfig): array
     {
@@ -39,12 +39,16 @@ final class LegacyOperationSecurity
         if ($permission === '') {
             throw new InvalidArgumentException("Backend API resource [{$resource}.{$action}] must declare a permission.");
         }
+        if (str_contains($permission, '{model}')) {
+            throw new InvalidArgumentException("Backend API resource [{$resource}.{$action}] cannot use a model template as a static permission.");
+        }
 
         $ability = self::resourceAbility($resource, $action);
 
         return [
             'ability' => $ability,
             'permission' => $permission,
+            'permission_mode' => 'static',
             'middleware' => self::middleware($ability, 'api_v2_permission:'.$permission),
         ];
     }
@@ -64,7 +68,7 @@ final class LegacyOperationSecurity
      * Resolve the validated security contract for one bridge operation.
      *
      * @param  array<string, mixed>  $action
-     * @return array{ability: string, permission: string, middleware: array<int, string>}
+     * @return array{ability: string, permission: string, permission_mode: string, middleware: array<int, string>}
      */
     public static function actionRequirements(array $action): array
     {
@@ -77,6 +81,10 @@ final class LegacyOperationSecurity
 
         if ($permission !== '' && $template !== '') {
             throw new InvalidArgumentException("Backend API bridge operation [{$name}] cannot declare two permission modes.");
+        }
+
+        if ($permission !== '' && str_contains($permission, '{model}')) {
+            throw new InvalidArgumentException("Backend API bridge operation [{$name}] cannot use a model template as a static permission.");
         }
 
         $modelPermission = self::MODEL_PERMISSION_OPERATIONS[$name] ?? null;
@@ -93,6 +101,7 @@ final class LegacyOperationSecurity
         return [
             'ability' => $ability,
             'permission' => $permissionIdentity,
+            'permission_mode' => $template !== '' ? 'model_template' : 'static',
             'middleware' => self::middleware($ability, $permissionMiddleware),
         ];
     }

@@ -29,10 +29,15 @@ Permission filtering is fail-closed:
   denies it.
 - Generic model operations publish a target template such as `{model}_edit` or
   `{model}_bulk_delete`. They are visible only when the actor has at least one
-  matching permission for a model in the configured backend resource catalog.
-  At request time, the `model` selector is normalized through that allowlist and
-  the concrete target permission is checked before website scope resolution.
-  Arbitrary class names and unknown model keys are rejected.
+  matching permission for an eligible model in the configured backend resource
+  catalog. Eligibility requires the configured class to be an instantiable
+  Eloquent model with an exact public static `$modelKey`; invalid entries cannot
+  disclose the operation. At request time, the `model` selector is normalized
+  through that allowlist and authorization binds the exact resolved class to a
+  server-side request attribute. The controller consumes that class without a
+  namespace fallback, after checking the target key, action suffix, and concrete
+  permission again. Arbitrary class names, unknown model keys, and client body
+  fields that resemble the trusted attribute are rejected.
 - An authorized website-scoped operation remains visible when there is no
   current website, but has `available: false` and
   `disabled_reasons: ["website.context_missing"]`.
@@ -48,7 +53,7 @@ array.
 The standard six-key API v2 envelope contains `data.schema_version` and a
 domain-keyed `data.domains` object. Each visible operation contains:
 
-- `method`, `path`, `permission`, `ability`
+- `method`, `path`, `permission`, `permission_mode`, `ability`
 - `website_scoped`, `risk`, `implementation`, `idempotent`
 - `filters`, `sorts`, `includes`, `fields`
 - `available`, `disabled_reasons`
@@ -104,6 +109,10 @@ domain-keyed `data.domains` object. Each visible operation contains:
 The schemas are JSON Schema 2020-12 compatible and may themselves be boolean
 schemas. Extensions registered through configured contract providers appear
 dynamically in the same response.
+
+`permission_mode` is `static` for literal WNCMS permissions and
+`model_template` only for the validated generic model operations. Consumers
+must use this field instead of inferring mode from permission text.
 
 ## Parity Interpretation
 

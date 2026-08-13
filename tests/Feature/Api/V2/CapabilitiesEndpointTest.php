@@ -16,6 +16,7 @@ use Wncms\Api\V2\Data\ApiSchema;
 use Wncms\Models\User;
 use Wncms\Models\Website;
 use Wncms\Tests\TestCase;
+use Wncms\Tests\Fixtures\Api\V2\MismatchedModelKey;
 
 class CapabilitiesEndpointTest extends TestCase
 {
@@ -84,6 +85,7 @@ class CapabilitiesEndpointTest extends TestCase
                 'method',
                 'path',
                 'permission',
+                'permission_mode',
                 'ability',
                 'website_scoped',
                 'risk',
@@ -112,6 +114,18 @@ class CapabilitiesEndpointTest extends TestCase
     public function test_capabilities_filter_dynamic_model_permissions_against_the_supported_catalog(): void
     {
         $website = Website::firstOrFail();
+        config([
+            'wncms-backend-api-v2.resources.invalid_disclosure' => [
+                'model_key' => 'invalid_disclosure',
+                'enabled_actions' => [],
+            ],
+            'wncms.models.invalid_disclosure' => ['class' => MismatchedModelKey::class],
+            'wncms-api-v2.providers' => array_merge(
+                config('wncms-api-v2.providers', []),
+                [CapabilitiesEndpointTestProvider::class],
+            ),
+        ]);
+        app()->forgetInstance(ApiContractRegistry::class);
         [, $deniedToken] = $this->tokenUser(['link_index'], $website);
 
         $denied = $this->withToken($deniedToken)->getJson('/api/v2/capabilities');
@@ -122,12 +136,26 @@ class CapabilitiesEndpointTest extends TestCase
             $denied->json('data.domains.models.operations'),
         );
 
+        [, $invalidToken] = $this->tokenUser(['invalid_disclosure_edit'], $website);
+        $invalid = $this->withToken($invalidToken)->getJson('/api/v2/capabilities');
+
+        $invalid->assertOk();
+        $this->assertArrayNotHasKey(
+            'backend.models.update',
+            $invalid->json('data.domains.models.operations'),
+        );
+        $this->assertArrayNotHasKey(
+            'plugin.invalid_dynamic.inspect',
+            $invalid->json('data.domains.invalid_dynamic.operations'),
+        );
+
         [, $allowedToken] = $this->tokenUser(['user_edit'], $website);
         $allowed = $this->withToken($allowedToken)->getJson('/api/v2/capabilities');
 
         $allowed->assertOk();
         $operation = $allowed->json('data.domains.models.operations')['backend.models.update'];
         $this->assertSame('{model}_edit', $operation['permission']);
+        $this->assertSame('model_template', $operation['permission_mode']);
         $this->assertSame('models.write', $operation['ability']);
     }
 
@@ -430,6 +458,24 @@ class CapabilitiesEndpointTestProvider implements ApiContractProvider
                 ],
             ]),
             response: ApiSchema::object(),
+        ));
+
+        $registry->registerDomain(new ApiDomainContract('invalid_dynamic', 'Invalid Dynamic'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'plugin.invalid_dynamic.inspect',
+            domain: 'invalid_dynamic',
+            surface: 'frontend',
+            method: 'GET',
+            path: '/api/v2/invalid-dynamic',
+            routeName: 'api.v2.invalid_dynamic.inspect',
+            permission: null,
+            ability: null,
+            websiteScoped: false,
+            risk: 'read',
+            implementation: 'domain',
+            request: ApiSchema::object(),
+            response: ApiSchema::object(),
+            permissionMode: 'model_template',
         ));
     }
 }

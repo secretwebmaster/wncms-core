@@ -70,6 +70,7 @@ final class OpenApiDocumentBuilder
                 ? []
                 : [['bearerAuth' => []]],
             'x-wncms-permission' => $operation->permission,
+            'x-wncms-permission-mode' => $operation->permissionMode,
             'x-wncms-ability' => $operation->ability,
             'x-wncms-website-scoped' => $operation->websiteScoped,
             'x-wncms-risk' => $operation->risk,

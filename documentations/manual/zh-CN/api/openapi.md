@@ -30,11 +30,12 @@ capabilities 使用的同一个 registry。
 
 ## WNCMS Extensions
 
-每个 operation 都会包含且只包含以下五个 WNCMS extension field：
+每个 operation 都会包含且只包含以下六个 WNCMS extension field：
 
 | Extension | 含义 |
 | --- | --- |
 | `x-wncms-permission` | Actor 必须拥有的 WNCMS permission，或 `null` |
+| `x-wncms-permission-mode` | `static` 或已验证的 `model_template` permission 语义 |
 | `x-wncms-ability` | 额外的 named ability，或 `null` |
 | `x-wncms-website-scoped` | 是否要求当前 website context |
 | `x-wncms-risk` | `read`、`write`、`destructive` 等风险分类 |
@@ -42,13 +43,16 @@ capabilities 使用的同一个 registry。
 
 对于指定目标的通用 model operation，`x-wncms-permission` 会包含
 `{model}_edit` 或 `{model}_bulk_delete` 等已验证 template；runtime 只会使用
-后台 resource catalog 中的 model key 解析它。
+后台 resource catalog 中的 eligible model key 解析它。Consumer 必须读取
+`x-wncms-permission-mode`；含有 `{model}` 的 literal permission 会被拒绝，
+不会被解释成 template。
 
 ```json
 {
   "operationId": "backend.operations.cancel",
   "security": [{ "bearerAuth": [] }],
   "x-wncms-permission": "operation_cancel",
+  "x-wncms-permission-mode": "static",
   "x-wncms-ability": null,
   "x-wncms-website-scoped": false,
   "x-wncms-risk": "destructive",

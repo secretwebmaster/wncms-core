@@ -75,6 +75,7 @@ class OpenApiDocumentBuilderTest extends TestCase
         $this->assertSame('backend.posts.update', $backend['operationId']);
         $this->assertSame([['bearerAuth' => []]], $backend['security']);
         $this->assertSame('post_edit', $backend['x-wncms-permission']);
+        $this->assertSame('static', $backend['x-wncms-permission-mode']);
         $this->assertSame('posts:write', $backend['x-wncms-ability']);
         $this->assertTrue($backend['x-wncms-website-scoped']);
         $this->assertSame('write', $backend['x-wncms-risk']);

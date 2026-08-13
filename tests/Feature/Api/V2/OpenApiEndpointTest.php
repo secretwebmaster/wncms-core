@@ -49,6 +49,11 @@ class OpenApiEndpointTest extends TestCase
         );
         $this->assertTrue(Str::isUuid((string) $response->headers->get('X-Request-ID')));
         $this->assertTrue(Route::has('api.v2.openapi'));
+        $document = $response->json();
+        $this->assertSame(
+            'model_template',
+            $document['paths']['/api/v2/backend/models/update']['post']['x-wncms-permission-mode'],
+        );
 
         $middleware = Route::getRoutes()->getByName('api.v2.openapi')->gatherMiddleware();
         $this->assertContains('api_v2_request_id', $middleware);

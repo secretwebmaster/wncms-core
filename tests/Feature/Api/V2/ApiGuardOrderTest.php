@@ -1,9 +1,23 @@
 <?php
 
+namespace App\Models;
+
+if (! class_exists(TrustedWidget::class, false)) {
+    class TrustedWidget extends \Wncms\Models\BaseModel
+    {
+        public static $modelKey = 'trusted_widget';
+
+        protected $table = 'websites';
+
+        protected $guarded = [];
+    }
+}
+
 namespace Wncms\Tests\Feature\Api\V2;
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
@@ -14,6 +28,10 @@ use Wncms\Models\ApiSession;
 use Wncms\Models\User;
 use Wncms\Models\Website;
 use Wncms\Tests\TestCase;
+use Wncms\Tests\Fixtures\Api\V2\MismatchedModelKey;
+use Wncms\Tests\Fixtures\Api\V2\NonStaticModelKey;
+use Wncms\Tests\Fixtures\Api\V2\PrivateModelKey;
+use Wncms\Tests\Fixtures\Api\V2\Overrides\TrustedWidget as TrustedWidgetOverride;
 
 class ApiGuardOrderTest extends TestCase
 {
@@ -290,6 +308,106 @@ class ApiGuardOrderTest extends TestCase
     }
 
     /**
+     * Verify authorization and mutation bind to the same configured override class.
+     *
+     * @return void
+     */
+    public function test_generic_model_update_mutates_the_exact_trusted_override_instead_of_a_same_name_decoy(): void
+    {
+        uss('enable_api_access', 1);
+        uss('api_access_whitelist', '');
+        $this->configureCatalogModel('trusted_widget', TrustedWidgetOverride::class);
+        Permission::findOrCreate('trusted_widget_edit', 'web');
+        $this->user->givePermissionTo('trusted_widget_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        do {
+            $target = User::create([
+                'username' => 'trusted-target-'.uniqid(),
+                'email' => 'trusted-target-'.uniqid().'@example.test',
+                'password' => 'not-a-real-password',
+                'email_verified_at' => now(),
+            ]);
+        } while (Website::query()->whereKey($target->id)->exists());
+
+        $decoy = Website::create([
+            'id' => $target->id,
+            'user_id' => $this->user->id,
+            'domain' => 'trusted-decoy-'.uniqid().'.test',
+            'site_name' => 'Trusted Decoy',
+            'theme' => 'default',
+        ]);
+        $targetBefore = (string) DB::table('users')->where('id', $target->id)->value('updated_at');
+        $decoyBefore = (string) DB::table('websites')->where('id', $decoy->id)->value('updated_at');
+        $newTimestamp = '2025-01-02 03:04:05';
+        $token = $this->token(['models.write'], [$this->website->id]);
+
+        $this->withToken($token)->postJson('/api/v2/backend/models/update', [
+            'model' => 'trusted_widgets',
+            'model_id' => $target->id,
+            'column' => 'updated_at',
+            'value' => $newTimestamp,
+            'website_id' => $this->website->id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('status', 'success');
+
+        $this->assertNotSame($targetBefore, (string) DB::table('users')->where('id', $target->id)->value('updated_at'));
+        $this->assertSame($newTimestamp, (string) DB::table('users')->where('id', $target->id)->value('updated_at'));
+        $this->assertSame($decoyBefore, (string) DB::table('websites')->where('id', $decoy->id)->value('updated_at'));
+    }
+
+    /**
+     * Verify invalid modelKey metadata returns a stable permission denial instead of an exception.
+     *
+     * @param  string  $modelKey
+     * @param  string  $modelClass
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('invalidCatalogModelProvider')]
+    public function test_generic_model_update_rejects_invalid_catalog_metadata_without_a_server_error(
+        string $modelKey,
+        string $modelClass,
+    ): void {
+        uss('enable_api_access', 1);
+        uss('api_access_whitelist', '');
+        $this->configureCatalogModel($modelKey, $modelClass);
+        Permission::findOrCreate($modelKey.'_edit', 'web');
+        $this->user->givePermissionTo($modelKey.'_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $token = $this->token(['models.write'], [$this->website->id]);
+
+        $this->withToken($token)->postJson('/api/v2/backend/models/update', [
+            'model' => $modelKey,
+            'model_id' => $this->user->id,
+            'column' => 'username',
+            'value' => 'must-not-change',
+            'website_id' => $this->website->id,
+            'wncms_api_v2_model_resolution' => [
+                'model_key' => 'user',
+                'model_class' => User::class,
+                'permission' => 'user_edit',
+            ],
+        ])
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'authorization.permission_denied');
+    }
+
+    /**
+     * Provide catalog classes with invalid modelKey contracts.
+     *
+     * @return array<string, array{string, string}>
+     */
+    public static function invalidCatalogModelProvider(): array
+    {
+        return [
+            'private model key' => ['private_model_key', PrivateModelKey::class],
+            'non-static model key' => ['non_static_model_key', NonStaticModelKey::class],
+            'mismatched model key' => ['mismatched_model_key', MismatchedModelKey::class],
+        ];
+    }
+
+    /**
      * Verify unknown generic model selectors fail before website resolution.
      *
      * @return void
@@ -320,12 +438,12 @@ class ApiGuardOrderTest extends TestCase
     public function test_generic_model_routes_declare_dynamic_target_permission_before_scope(): void
     {
         $expectations = [
-            'models.update' => ['{model}_edit', 'api_v2_model_permission:edit'],
-            'models.bulk_delete' => ['{model}_bulk_delete', 'api_v2_model_permission:bulk_delete'],
-            'models.bulk_force_delete' => ['{model}_bulk_delete', 'api_v2_model_permission:bulk_delete'],
+            'models.update' => ['{model}_edit', 'model_template', 'api_v2_model_permission:edit'],
+            'models.bulk_delete' => ['{model}_bulk_delete', 'model_template', 'api_v2_model_permission:bulk_delete'],
+            'models.bulk_force_delete' => ['{model}_bulk_delete', 'model_template', 'api_v2_model_permission:bulk_delete'],
         ];
 
-        foreach ($expectations as $name => [$permission, $permissionMiddleware]) {
+        foreach ($expectations as $name => [$permission, $permissionMode, $permissionMiddleware]) {
             $route = Route::getRoutes()->getByName('api.v2.backend.'.$name);
             $this->assertNotNull($route);
             $this->assertMiddlewareOrder($route->gatherMiddleware(), [
@@ -337,6 +455,10 @@ class ApiGuardOrderTest extends TestCase
             $this->assertSame(
                 $permission,
                 app(\Wncms\Api\V2\ApiContractRegistry::class)->operation('backend.'.$name)?->permission,
+            );
+            $this->assertSame(
+                $permissionMode,
+                app(\Wncms\Api\V2\ApiContractRegistry::class)->operation('backend.'.$name)?->permissionMode,
             );
         }
     }
@@ -534,5 +656,23 @@ class ApiGuardOrderTest extends TestCase
         $sorted = $positions;
         sort($sorted);
         $this->assertSame($sorted, $positions);
+    }
+
+    /**
+     * Add one model to the backend allowlist and WNCMS override map.
+     *
+     * @param  string  $modelKey
+     * @param  string  $modelClass
+     * @return void
+     */
+    private function configureCatalogModel(string $modelKey, string $modelClass): void
+    {
+        config([
+            "wncms-backend-api-v2.resources.{$modelKey}" => [
+                'model_key' => $modelKey,
+                'enabled_actions' => [],
+            ],
+            "wncms.models.{$modelKey}" => ['class' => $modelClass],
+        ]);
     }
 }

@@ -26,10 +26,14 @@ Permission 过滤采用 fail-closed：
 - 没有 permission 的 operation 对已验证 actor 可见。
 - 有 permission 的 operation 若 `user->can(...)` 拒绝，会从回应中完全省略。
 - 通用 model operation 会公开 `{model}_edit` 或 `{model}_bulk_delete` 等目标
-  template。只有 actor 对后台 resource catalog 中至少一个 model 拥有相符
-  permission 时才会显示。请求执行时，`model` selector 会先通过该 allowlist
-  规范化，并在解析 website scope 前检查具体目标 permission。任意 class name
-  与未知 model key 都会被拒绝。
+  template。只有 actor 对后台 resource catalog 中至少一个 eligible model
+  拥有相符 permission 时才会显示。Eligible entry 的 configured class 必须是
+  可实例化 Eloquent model，并声明值完全相符的 public static `$modelKey`；无效
+  entry 不会公开 operation。请求执行时，`model` selector 会先通过该 allowlist
+  规范化，authorization 会把 exact resolved class 存入 server-side request
+  attribute。Controller 不会再使用 namespace fallback，并会再次检查 target
+  key、action suffix 与具体 permission。任意 class name、未知 model key，以及
+  模仿 trusted attribute 的 client body field 都会被拒绝。
 - 已授权且 website-scoped 的 operation 在没有当前 website 时仍然可见，
   但会标记 `available: false` 与
   `disabled_reasons: ["website.context_missing"]`。
@@ -44,7 +48,7 @@ map 会序列化为 JSON object，而不是 array。
 标准六 key API v2 envelope 会在 `data.schema_version` 提供 schema 版本，
 并以 `data.domains` object 按 domain key 分组。每个可见 operation 包含：
 
-- `method`、`path`、`permission`、`ability`
+- `method`、`path`、`permission`、`permission_mode`、`ability`
 - `website_scoped`、`risk`、`implementation`、`idempotent`
 - `filters`、`sorts`、`includes`、`fields`
 - `available`、`disabled_reasons`
@@ -99,6 +103,10 @@ map 会序列化为 JSON object，而不是 array。
 
 这些 schema 与 JSON Schema 2020-12 相容，也可能是 boolean schema。
 透过已设定 contract provider 注册的扩充会动态出现在同一回应中。
+
+Literal WNCMS permission 的 `permission_mode` 是 `static`；只有已验证的通用
+model operation 使用 `model_template`。Consumer 必须读取此 field，不得从
+permission 文字推断 mode。
 
 ## Parity 判读
 

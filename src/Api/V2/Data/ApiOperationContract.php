@@ -25,6 +25,7 @@ final class ApiOperationContract
      * @param  array<int, string>  $includes
      * @param  array<int, string>  $fields
      * @param  bool  $idempotent
+     * @param  string  $permissionMode
      * @return void
      */
     public function __construct(
@@ -46,6 +47,7 @@ final class ApiOperationContract
         public readonly array $includes = [],
         public readonly array $fields = [],
         public readonly bool $idempotent = false,
+        public readonly string $permissionMode = 'static',
     ) {
     }
 
@@ -64,6 +66,7 @@ final class ApiOperationContract
             'path' => $this->path,
             'route_name' => $this->routeName,
             'permission' => $this->permission,
+            'permission_mode' => $this->permissionMode,
             'ability' => $this->ability,
             'website_scoped' => $this->websiteScoped,
             'risk' => $this->risk,

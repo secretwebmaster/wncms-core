@@ -29,6 +29,7 @@ class LegacyOperationSecurityTest extends TestCase
 
         $this->assertSame($ability, $requirements['ability']);
         $this->assertSame($permission, $requirements['permission']);
+        $this->assertSame('static', $requirements['permission_mode']);
         $this->assertSame([
             'api_v2_ability:'.$ability,
             'api_v2_permission:'.$permission,
@@ -81,6 +82,7 @@ class LegacyOperationSecurityTest extends TestCase
             ], [
                 'ability' => 'pages.read',
                 'permission' => 'page_edit',
+                'permission_mode' => 'static',
                 'middleware' => [
                     'api_v2_ability:pages.read',
                     'api_v2_permission:page_edit',
@@ -94,6 +96,7 @@ class LegacyOperationSecurityTest extends TestCase
             ], [
                 'ability' => 'pages.write',
                 'permission' => 'page_edit',
+                'permission_mode' => 'static',
                 'middleware' => [
                     'api_v2_ability:pages.write',
                     'api_v2_permission:page_edit',
@@ -107,6 +110,7 @@ class LegacyOperationSecurityTest extends TestCase
             ], [
                 'ability' => 'models.write',
                 'permission' => '{model}_edit',
+                'permission_mode' => 'model_template',
                 'middleware' => [
                     'api_v2_ability:models.write',
                     'api_v2_model_permission:edit',
@@ -145,6 +149,36 @@ class LegacyOperationSecurityTest extends TestCase
             'name' => 'unsafe.update',
             'method' => 'post',
             'permission_template' => '{model}_edit',
+        ]);
+    }
+
+    /**
+     * Verify template syntax cannot be smuggled through a static resource permission.
+     *
+     * @return void
+     */
+    public function test_resource_static_permission_rejects_model_template_syntax(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        LegacyOperationSecurity::resourceRequirements('links', 'update', [
+            'permissions' => ['update' => '{model}_edit'],
+        ]);
+    }
+
+    /**
+     * Verify template syntax cannot be smuggled through a static bridge permission.
+     *
+     * @return void
+     */
+    public function test_bridge_static_permission_rejects_model_template_syntax(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        LegacyOperationSecurity::actionRequirements([
+            'name' => 'models.update',
+            'method' => 'post',
+            'permission' => '{model}_edit',
         ]);
     }
 }

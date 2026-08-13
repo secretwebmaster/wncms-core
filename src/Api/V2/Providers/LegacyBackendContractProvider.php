@@ -83,6 +83,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                     implementation: $this->resourceImplementation($resource, $resourceConfig, $referenceDomain),
                     request: ApiSchema::object(),
                     response: ApiSchema::object(),
+                    permissionMode: $security['permission_mode'],
                 ));
             }
         }
@@ -124,6 +125,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                 implementation: 'legacy_bridge',
                 request: ApiSchema::object(),
                 response: ApiSchema::object(),
+                permissionMode: $security['permission_mode'],
             ));
         }
     }

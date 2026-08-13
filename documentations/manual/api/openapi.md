@@ -31,11 +31,12 @@ from the same registry used by runtime capabilities.
 
 ## WNCMS Extensions
 
-Every operation includes exactly these five WNCMS extension fields:
+Every operation includes exactly these six WNCMS extension fields:
 
 | Extension | Meaning |
 | --- | --- |
 | `x-wncms-permission` | WNCMS permission required from the actor, or `null` |
+| `x-wncms-permission-mode` | `static` or validated `model_template` permission semantics |
 | `x-wncms-ability` | Additional named ability, or `null` |
 | `x-wncms-website-scoped` | Whether current website context is required |
 | `x-wncms-risk` | Declared risk classification such as `read`, `write`, or `destructive` |
@@ -43,13 +44,16 @@ Every operation includes exactly these five WNCMS extension fields:
 
 For target-specific generic model operations, `x-wncms-permission` contains a
 validated template such as `{model}_edit` or `{model}_bulk_delete`; the runtime
-resolves it only against model keys in the configured backend resource catalog.
+resolves it only against eligible model keys in the configured backend resource
+catalog. Consumers must read `x-wncms-permission-mode`; literal permissions that
+contain `{model}` are rejected and are never interpreted as templates.
 
 ```json
 {
   "operationId": "backend.operations.cancel",
   "security": [{ "bearerAuth": [] }],
   "x-wncms-permission": "operation_cancel",
+  "x-wncms-permission-mode": "static",
   "x-wncms-ability": null,
   "x-wncms-website-scoped": false,
   "x-wncms-risk": "destructive",

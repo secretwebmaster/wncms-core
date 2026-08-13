@@ -11,6 +11,8 @@ use Wncms\Auth\Api\V2\AuthenticationContext;
 
 final class RequireApiV2ModelPermission
 {
+    public const TRUSTED_RESOLUTION_ATTRIBUTE = 'wncms_api_v2_model_resolution';
+
     /**
      * Create the target-specific model permission guard.
      *
@@ -56,8 +58,7 @@ final class RequireApiV2ModelPermission
             );
         }
 
-        $request->attributes->set('wncms_api_v2_model_key', $requirement['model_key']);
-        $request->attributes->set('wncms_api_v2_model_permission', $requirement['permission']);
+        $request->attributes->set(self::TRUSTED_RESOLUTION_ATTRIBUTE, $requirement);
 
         return $next($request);
     }

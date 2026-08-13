@@ -3,7 +3,9 @@
 namespace Wncms\Api\V2;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use ReflectionClass;
 
 final class ModelPermissionResolver
 {
@@ -19,7 +21,7 @@ final class ModelPermissionResolver
      *
      * @param  mixed  $selector
      * @param  string  $suffix
-     * @return array{model_key: string, permission: string}|null
+     * @return array{model_key: string, model_class: class-string<\Illuminate\Database\Eloquent\Model>, permission: string}|null
      */
     public function resolve(mixed $selector, string $suffix): ?array
     {
@@ -40,19 +42,16 @@ final class ModelPermissionResolver
 
         try {
             $modelClass = wncms()->getModelClass($modelKey);
+            if (! $this->validModelClass($modelKey, $modelClass)) {
+                return null;
+            }
         } catch (\Throwable) {
-            return null;
-        }
-
-        $declaredKey = property_exists($modelClass, 'modelKey')
-            ? Str::snake(Str::singular((string) $modelClass::$modelKey))
-            : '';
-        if ($declaredKey !== $modelKey) {
             return null;
         }
 
         return [
             'model_key' => $modelKey,
+            'model_class' => $modelClass,
             'permission' => $modelKey.'_'.$suffix,
         ];
     }
@@ -76,7 +75,8 @@ final class ModelPermissionResolver
         }
 
         foreach ($this->allowedModelKeys() as $modelKey) {
-            if ($actor->checkPermissionTo($modelKey.'_'.$suffix)) {
+            $resolution = $this->resolve($modelKey, $suffix);
+            if ($resolution !== null && $actor->checkPermissionTo($resolution['permission'])) {
                 return true;
             }
         }
@@ -100,5 +100,35 @@ final class ModelPermissionResolver
         }
 
         return array_values(array_unique($keys));
+    }
+
+    /**
+     * Validate one resolved class and its public static canonical model key.
+     *
+     * @param  string  $modelKey
+     * @param  string  $modelClass
+     * @return bool
+     */
+    public function validModelClass(string $modelKey, string $modelClass): bool
+    {
+        try {
+            if (! class_exists($modelClass) || ! is_subclass_of($modelClass, Model::class)) {
+                return false;
+            }
+
+            $reflection = new ReflectionClass($modelClass);
+            if (! $reflection->isInstantiable() || ! $reflection->hasProperty('modelKey')) {
+                return false;
+            }
+
+            $property = $reflection->getProperty('modelKey');
+            if (! $property->isPublic() || ! $property->isStatic()) {
+                return false;
+            }
+
+            return $property->getValue() === $modelKey;
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }
