@@ -76,3 +76,41 @@ assigns the public authentication manual as a centralized Task 15 deliverable,
 so no public manual pages were changed in Task 3 to avoid conflicting or
 premature documentation scope. The existing model documentation was read before
 implementation as required.
+
+## Fix Round 1/5 — Schema Ownership Review
+
+### RED
+
+Added focused regression coverage for permanent refresh tokens, malformed
+same-name owned tables, `csrf_hash` uniqueness, JSON column declarations, and a
+direct-user-delete cascade fixture. Before the fix, the permanent refresh
+fixture could not insert `expires_at = null`; `ApiRefreshToken::active()` also
+excluded such a token. The compatibility fixtures exposed that the previous
+preflight accepted complete-looking tables with a missing unique index or a
+missing cascading foreign key.
+
+### GREEN
+
+- `api_refresh_tokens.expires_at` is now nullable and indexed; the active scope
+  accepts a null expiry or a future expiry while still excluding consumed and
+  revoked records.
+- `ApiAuthSchema::assertCompatibleExistingTables()` now uses Laravel Schema
+  Builder metadata (`getColumns`, `getIndexes`, `getForeignKeys`) rather than
+  raw SQL. It validates all canonical fields' portable type families and
+  nullability, every declared unique/composite index, and every required foreign
+  key target with `ON DELETE CASCADE`.
+- Every `createApi*()` method now rejects an incompatible same-name owned table
+  instead of silently returning.
+- The direct owner deletion fixture independently proves user-to-session,
+  access-token, refresh-token, and service-token cascades. JSON checks are
+  explicitly driver-aware: SQLite uses Laravel's native `TEXT` storage while
+  MySQL/MariaDB use `JSON`, PostgreSQL allows `json/jsonb`, and SQL Server uses
+  `nvarchar`.
+
+### Verification
+
+`composer run test:prepare-db` completed with migrations 41–45, and SQLite
+metadata confirmed `api_refresh_tokens.expires_at` has `notnull=0`. The focused
+schema/PAT PHPUnit command was run as one process after confirming no other
+PHPUnit/testbench/composer process was active. `php -l` passed for the modified
+schema class, refresh model, and test; `git diff --check` passed.

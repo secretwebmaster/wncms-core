@@ -32,6 +32,8 @@ class ApiRefreshToken extends BaseModel
         return $query
             ->whereNull('consumed_at')
             ->whereNull('revoked_at')
-            ->where('expires_at', '>', now());
+            ->where(function (Builder $query): void {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            });
     }
 }

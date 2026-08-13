@@ -6,6 +6,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Wncms\Database\Schema\ApiAuthSchema;
+use Wncms\Models\ApiRefreshToken;
 use Wncms\Tests\TestCase;
 
 class AuthSecuritySchemaTest extends TestCase
@@ -35,6 +37,7 @@ class AuthSecuritySchemaTest extends TestCase
     public function test_owned_credential_schema_has_unique_secret_material_and_lifecycle_indexes(): void
     {
         $this->assertUniqueIndex('api_sessions', 'session_id');
+        $this->assertUniqueIndex('api_sessions', 'csrf_hash');
         $this->assertUniqueIndex('api_access_tokens', 'token_id');
         $this->assertUniqueIndex('api_access_tokens', 'token_hash');
         $this->assertUniqueIndex('api_refresh_tokens', 'token_id');
@@ -46,6 +49,17 @@ class AuthSecuritySchemaTest extends TestCase
         foreach (['api_access_tokens', 'api_service_tokens'] as $table) {
             $this->assertTrue(Schema::hasColumn($table, 'abilities'), "{$table}.abilities");
             $this->assertTrue(Schema::hasColumn($table, 'website_ids'), "{$table}.website_ids");
+        }
+
+        foreach ([
+            ['api_access_tokens', 'abilities'],
+            ['api_access_tokens', 'website_ids'],
+            ['api_service_tokens', 'abilities'],
+            ['api_service_tokens', 'website_ids'],
+            ['api_security_events', 'website_ids'],
+            ['api_security_events', 'context'],
+        ] as [$table, $column]) {
+            $this->assertJsonColumn($table, $column);
         }
 
         foreach ([
@@ -137,6 +151,156 @@ class AuthSecuritySchemaTest extends TestCase
         DB::table('users')->where('id', $userId)->delete();
 
         $this->assertSame(0, DB::table('api_service_tokens')->where('token_id', 'service-public-id')->count());
+
+        $secondUserId = DB::table('users')->insertGetId([
+            'username' => 'auth-schema-direct-owner',
+            'email' => 'auth-schema-direct-owner@example.test',
+            'password' => 'not-a-real-password',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $secondSessionId = DB::table('api_sessions')->insertGetId([
+            'session_id' => 'direct-owner-session-public-id',
+            'user_id' => $secondUserId,
+            'refresh_transport' => 'json',
+            'csrf_hash' => hash('sha256', 'direct-owner-csrf'),
+            'expires_at' => now()->addDay(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('api_access_tokens')->insert([
+            'token_id' => 'direct-owner-access-public-id',
+            'token_hash' => hash('sha256', 'direct-owner-access'),
+            'user_id' => $secondUserId,
+            'session_id' => $secondSessionId,
+            'abilities' => json_encode(['auth:read']),
+            'website_ids' => json_encode([1]),
+            'expires_at' => now()->addMinutes(15),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('api_refresh_tokens')->insert([
+            'token_id' => 'direct-owner-refresh-public-id',
+            'token_hash' => hash('sha256', 'direct-owner-refresh'),
+            'user_id' => $secondUserId,
+            'session_id' => $secondSessionId,
+            'family_id' => 'direct-owner-refresh-family-id',
+            'expires_at' => now()->addDays(30),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('api_service_tokens')->insert([
+            'token_id' => 'direct-owner-service-public-id',
+            'token_hash' => hash('sha256', 'direct-owner-service'),
+            'user_id' => $secondUserId,
+            'name' => 'direct-owner-schema-test',
+            'ability_template' => 'read_only',
+            'abilities' => json_encode(['auth:read']),
+            'website_ids' => json_encode([1]),
+            'expires_at' => now()->addDay(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('users')->where('id', $secondUserId)->delete();
+
+        $this->assertSame(0, DB::table('api_sessions')->where('session_id', 'direct-owner-session-public-id')->count());
+        $this->assertSame(0, DB::table('api_access_tokens')->where('token_id', 'direct-owner-access-public-id')->count());
+        $this->assertSame(0, DB::table('api_refresh_tokens')->where('token_id', 'direct-owner-refresh-public-id')->count());
+        $this->assertSame(0, DB::table('api_service_tokens')->where('token_id', 'direct-owner-service-public-id')->count());
+    }
+
+    /**
+     * Verify permanent refresh tokens remain active until explicitly revoked.
+     *
+     * @return void
+     */
+    public function test_permanent_refresh_token_is_active_until_revoked(): void
+    {
+        $userId = DB::table('users')->insertGetId([
+            'username' => 'permanent-refresh-owner',
+            'email' => 'permanent-refresh-owner@example.test',
+            'password' => 'not-a-real-password',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $sessionId = DB::table('api_sessions')->insertGetId([
+            'session_id' => 'permanent-refresh-session',
+            'user_id' => $userId,
+            'refresh_transport' => 'json',
+            'csrf_hash' => hash('sha256', 'permanent-refresh-csrf'),
+            'expires_at' => now()->addDay(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $token = ApiRefreshToken::create([
+            'token_id' => 'permanent-refresh-token',
+            'token_hash' => hash('sha256', 'permanent-refresh-token'),
+            'user_id' => $userId,
+            'session_id' => $sessionId,
+            'family_id' => 'permanent-refresh-family',
+            'expires_at' => null,
+        ]);
+
+        $this->assertNull($token->expires_at);
+        $this->assertTrue(ApiRefreshToken::active()->whereKey($token->id)->exists());
+
+        $token->update(['revoked_at' => now()]);
+
+        $this->assertFalse(ApiRefreshToken::active()->whereKey($token->id)->exists());
+    }
+
+    /**
+     * Verify compatibility checks reject a same-name table that is missing required columns.
+     *
+     * @return void
+     */
+    public function test_schema_compatibility_rejects_same_name_table_with_missing_columns(): void
+    {
+        $this->withCompatibilityDatabase(function (): void {
+            Schema::create('api_sessions', function (Blueprint $table): void {
+                $table->id();
+            });
+
+            $this->expectException(\RuntimeException::class);
+            ApiAuthSchema::assertCompatibleExistingTables();
+        });
+    }
+
+    /**
+     * Verify compatibility checks reject a same-name table without its public-ID uniqueness constraint.
+     *
+     * @return void
+     */
+    public function test_schema_compatibility_rejects_same_name_table_without_unique_index(): void
+    {
+        $this->withCompatibilityDatabase(function (): void {
+            ApiAuthSchema::createApiSessions();
+            Schema::table('api_sessions', function (Blueprint $table): void {
+                $table->dropUnique(['session_id']);
+            });
+
+            $this->expectException(\RuntimeException::class);
+            ApiAuthSchema::assertCompatibleExistingTables();
+        });
+    }
+
+    /**
+     * Verify compatibility checks reject a same-name table without a cascading owner foreign key.
+     *
+     * @return void
+     */
+    public function test_schema_compatibility_rejects_same_name_table_without_cascading_foreign_key(): void
+    {
+        $this->withCompatibilityDatabase(function (): void {
+            ApiAuthSchema::createApiSessions();
+            Schema::table('api_sessions', function (Blueprint $table): void {
+                $table->dropForeign(['user_id']);
+            });
+
+            $this->expectException(\RuntimeException::class);
+            ApiAuthSchema::assertCompatibleExistingTables();
+        });
     }
 
     /**
@@ -242,5 +406,64 @@ class AuthSecuritySchemaTest extends TestCase
         }
 
         $this->fail("Expected {$table}.{$column} to have a unique index.");
+    }
+
+    /**
+     * Assert a JSON column retains its native declaration across supported drivers.
+     *
+     * @param  string  $table
+     * @param  string  $column
+     * @return void
+     */
+    private function assertJsonColumn(string $table, string $column): void
+    {
+        $columns = Schema::getColumns($table);
+        $definition = collect($columns)->firstWhere('name', $column);
+
+        $this->assertNotNull($definition, "{$table}.{$column}");
+        $type = strtolower((string) ($definition['type_name'] ?? $definition['type'] ?? ''));
+        $driver = DB::connection()->getDriverName();
+
+        $expectedTypes = match ($driver) {
+            'sqlite' => ['text'],
+            'mysql', 'mariadb' => ['json'],
+            'pgsql' => ['json', 'jsonb'],
+            'sqlsrv' => ['nvarchar'],
+            default => throw new \RuntimeException("Unsupported schema driver [{$driver}]."),
+        };
+
+        $this->assertContains($type, $expectedTypes, "{$table}.{$column}");
+    }
+
+    /**
+     * Run a compatibility fixture against an isolated SQLite database.
+     *
+     * @param  callable  $callback
+     * @return void
+     */
+    private function withCompatibilityDatabase(callable $callback): void
+    {
+        $originalConnection = config('database.default');
+        $connection = 'auth_schema_compatibility_regression';
+        config([
+            'database.connections.' . $connection => array_merge(
+                config('database.connections.' . $originalConnection),
+                ['database' => ':memory:']
+            ),
+            'database.default' => $connection,
+        ]);
+        DB::purge($connection);
+
+        try {
+            Schema::create('users', function (Blueprint $table): void {
+                $table->id();
+            });
+
+            $callback();
+        } finally {
+            DB::disconnect($connection);
+            DB::purge($connection);
+            config(['database.default' => $originalConnection]);
+        }
     }
 }
