@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Wncms\Models\ApiSecurityEvent;
+use Wncms\Services\Security\SecurityEventRetentionService;
 use Wncms\Services\Security\SecurityEventService;
 use Wncms\Tests\TestCase;
 
@@ -84,5 +85,120 @@ class SecurityEventServiceTest extends TestCase
 
         $this->assertSame($beforeCount, ApiSecurityEvent::count());
         $this->assertDatabaseMissing('api_service_tokens', ['token_id' => 'transactional-service-token']);
+    }
+
+    public function test_event_context_keeps_only_allowlisted_nested_leaves(): void
+    {
+        $event = $this->service->record('auth.login.failed', 'warning', 'denied', [
+            'context' => [
+                'reason' => 'invalid_credentials',
+                'aggregate' => [
+                    'count' => 1,
+                    'first_occurred_at' => '2026-08-13T00:00:00Z',
+                    'last_occurred_at' => '2026-08-13T00:00:00Z',
+                    'latest_request_id' => 'request-1',
+                    'nested_unknown' => 'CANARY-NESTED-UNKNOWN',
+                    'apiKey' => 'CANARY-API-KEY',
+                ],
+                'unknown' => 'CANARY-TOP-LEVEL-UNKNOWN',
+            ],
+        ]);
+
+        $context = $event->context ?? [];
+
+        $this->assertSame('invalid_credentials', $context['reason']);
+        $this->assertSame([
+            'count' => 1,
+            'first_occurred_at' => '2026-08-13T00:00:00Z',
+            'last_occurred_at' => '2026-08-13T00:00:00Z',
+            'latest_request_id' => 'request-1',
+        ], $context['aggregate']);
+        $this->assertStringNotContainsString('CANARY-', json_encode($event->toArray(), JSON_THROW_ON_ERROR));
+    }
+
+    public function test_security_mutation_fails_closed_when_correlation_keys_are_missing(): void
+    {
+        config(['wncms-api-v2.auth_security.security_event_correlation' => []]);
+
+        try {
+            $this->service->withinTransaction(function (): void {
+                DB::table('api_service_tokens')->insert([
+                    'token_id' => 'missing-correlation-service-token',
+                    'token_hash' => hash('sha256', 'missing-correlation-secret'),
+                    'user_id' => 1,
+                    'name' => 'Missing correlation key',
+                    'ability_template' => 'read_only',
+                    'abilities' => json_encode(['read']),
+                    'website_ids' => json_encode([1]),
+                    'expires_at' => now()->addDay(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }, [
+                'type' => 'auth.service_token.created',
+                'severity' => 'critical',
+                'outcome' => 'succeeded',
+            ]);
+
+            $this->fail('A mandatory security mutation must fail without correlation keys.');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('Security event correlation keys are unavailable.', $e->getMessage());
+        }
+
+        $this->assertDatabaseMissing('api_service_tokens', ['token_id' => 'missing-correlation-service-token']);
+    }
+
+    public function test_aggregate_recording_updates_one_correlation_tuple_atomically(): void
+    {
+        $first = $this->service->recordAggregate('auth.login.failed', 'warning', 'denied', [
+            'surface' => 'api_v2',
+            'request_id' => 'aggregate-request-1',
+            'ip' => '203.0.113.10',
+            'login_identifier' => 'aggregate@example.test',
+            'user_agent' => 'Aggregate test agent',
+            'context' => ['reason' => 'invalid_credentials'],
+        ]);
+        $second = $this->service->recordAggregate('auth.login.failed', 'warning', 'denied', [
+            'surface' => 'api_v2',
+            'request_id' => 'aggregate-request-2',
+            'ip' => '203.0.113.10',
+            'login_identifier' => 'aggregate@example.test',
+            'user_agent' => 'Aggregate test agent',
+            'context' => ['reason' => 'invalid_credentials'],
+        ]);
+
+        $this->assertSame($first->getKey(), $second->getKey());
+        $this->assertSame(1, ApiSecurityEvent::where('event_type', 'auth.login.failed')->count());
+        $this->assertSame(2, $second->context['aggregate']['count']);
+        $this->assertSame('aggregate-request-2', $second->context['aggregate']['latest_request_id']);
+    }
+
+    public function test_ordinary_model_mutations_are_rejected_while_retention_prunes_expired_events(): void
+    {
+        $event = $this->service->record('auth.login.failed', 'warning', 'denied');
+
+        try {
+            $event->update(['severity' => 'critical']);
+            $this->fail('Security events must reject ordinary updates.');
+        } catch (\LogicException $e) {
+            $this->assertSame('Security events are append-only.', $e->getMessage());
+        }
+
+        try {
+            $event->delete();
+            $this->fail('Security events must reject ordinary deletion.');
+        } catch (\LogicException $e) {
+            $this->assertSame('Security events are append-only.', $e->getMessage());
+        }
+
+        DB::table('api_security_events')->where('id', $event->getKey())->update(['occurred_at' => now()->subDays(91)]);
+        $deleted = app(SecurityEventRetentionService::class)->prune(now()->subDays(90)->toImmutable(), 500);
+
+        $this->assertSame(1, $deleted);
+        $this->assertDatabaseMissing('api_security_events', ['id' => $event->getKey()]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Security event prune batch size must be between 1 and 500.');
+        app(SecurityEventRetentionService::class)->prune(now()->toImmutable(), 501);
     }
 }

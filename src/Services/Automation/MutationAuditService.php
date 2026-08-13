@@ -61,10 +61,10 @@ class MutationAuditService
                 'result_code' => $resultCode,
                 'result_status' => $isSuccess ? 'success' : 'fail',
                 'message' => $message,
-                'error_summary' => array_filter([
+                'error_summary' => $this->redact(array_filter([
                     'validation' => $validationErrors,
                     'guard' => $guardErrors,
-                ]),
+                ])),
                 'context' => $this->contextSummary($plan, $meta),
             ],
         ];
@@ -96,10 +96,10 @@ class MutationAuditService
      */
     public function reference(?MutationAudit $audit = null): array
     {
-        return [
+        return $this->redact([
             'enabled' => $this->enabled(),
             'id' => $audit === null ? null : (int) $audit->getKey(),
-        ];
+        ]);
     }
 
     /**
@@ -129,14 +129,14 @@ class MutationAuditService
      */
     protected function contextSummary(array $plan, array $meta): array
     {
-        return [
-            'meta' => $this->redact($meta),
+        return $this->redact([
+            'meta' => $meta,
             'cache' => (array) ($plan['cache'] ?? []),
             'hooks' => (array) ($plan['hooks'] ?? []),
             'notes' => (array) ($plan['notes'] ?? []),
             'guard' => (array) ($plan['guard'] ?? []),
             'write_mode' => $plan['safety']['write_mode'] ?? null,
-        ];
+        ]);
     }
 
     /**
@@ -207,9 +207,9 @@ class MutationAuditService
      */
     protected function isSensitiveKey(string $key): bool
     {
-        $key = strtolower($key);
+        $key = preg_replace('/[^a-z0-9]/', '', strtolower($key));
 
-        foreach (['password', 'token', 'secret', 'proof', 'confirmation', 'authorization', 'cookie', 'csrf', 'api_key', 'api-key'] as $needle) {
+        foreach (['password', 'token', 'secret', 'proof', 'confirmation', 'authorization', 'cookie', 'csrf', 'apikey'] as $needle) {
             if (str_contains($key, $needle)) {
                 return true;
             }

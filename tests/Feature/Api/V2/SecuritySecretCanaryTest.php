@@ -10,6 +10,7 @@ use Wncms\Events\ApiSecurityEventRecorded;
 use Wncms\Models\ApiSecurityEvent;
 use Wncms\Models\MutationAudit;
 use Wncms\Services\Automation\MutationAuditService;
+use Wncms\Services\Automation\LinkAutomationService;
 use Wncms\Services\Security\SecurityEventService;
 use Wncms\Tests\TestCase;
 
@@ -86,6 +87,36 @@ class SecuritySecretCanaryTest extends TestCase
         foreach ($surfaces as $surface) {
             $this->assertFalse($this->containsCanary($surface, $canaries));
         }
+    }
+
+    public function test_real_link_automation_preview_redacts_contextual_canaries_with_normalized_keys(): void
+    {
+        $canary = 'CANARY-CAMEL-CASE-API-KEY';
+        $plan = app(LinkAutomationService::class)->planCreate([
+            'name' => 'Canary preview link',
+            'url' => 'https://example.test/canary-preview',
+        ], [
+            'surface' => 'cli',
+            'run_id' => 'preview-canary-run',
+        ]);
+        $plan['cache']['apiKey'] = $canary;
+        $plan['hooks']['providerSecret'] = $canary;
+        $plan['notes'][] = ['confirmation Token' => $canary];
+        $plan['guard']['nested'] = ['csrf-token' => $canary];
+
+        $preview = app(MutationAuditService::class)->previewFromPlan($plan, [
+            'apiKey' => $canary,
+            'nested_meta' => ['authorization header' => $canary],
+        ]);
+
+        $serialized = json_encode($preview, JSON_THROW_ON_ERROR);
+
+        $this->assertStringNotContainsString('CANARY-', $serialized);
+        $this->assertSame('[redacted]', $preview['attributes']['context']['cache']['apiKey']);
+        $this->assertSame('[redacted]', $preview['attributes']['context']['hooks']['providerSecret']);
+        $this->assertSame('[redacted]', $preview['attributes']['context']['notes'][2]['confirmation Token']);
+        $this->assertSame('[redacted]', $preview['attributes']['context']['guard']['nested']['csrf-token']);
+        $this->assertSame('[redacted]', $preview['attributes']['context']['meta']['apiKey']);
     }
 
     protected function containsCanary(string $value, array $canaries): bool

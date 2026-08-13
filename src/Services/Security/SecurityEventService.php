@@ -34,9 +34,17 @@ final class SecurityEventService
         'mutation_audit_id', 'ip', 'login_identifier', 'user_agent', 'context',
     ];
 
-    protected const ALLOWED_CONTEXT_FIELDS = [
-        'aggregate', 'count', 'first_occurred_at', 'last_occurred_at', 'device_name', 'operation',
-        'policy_state', 'reason', 'latest_request_id',
+    protected const ALLOWED_CONTEXT_SCHEMA = [
+        'aggregate' => [
+            'count' => true,
+            'first_occurred_at' => true,
+            'last_occurred_at' => true,
+            'latest_request_id' => true,
+        ],
+        'device_name' => true,
+        'operation' => true,
+        'policy_state' => true,
+        'reason' => true,
     ];
 
     /**
@@ -67,13 +75,7 @@ final class SecurityEventService
     {
         $this->validateCatalogValue($type, $severity, $outcome);
         $attributes = $this->buildAttributes($type, $severity, $outcome, $context);
-        $event = ApiSecurityEvent::create($attributes);
-        $safePayload = $event->makeHidden(['ip_hash', 'login_identifier_hash', 'user_agent_hash']);
-
-        Event::dispatch(new ApiSecurityEventRecorded($safePayload));
-        Log::info('WNCMS security event recorded.', ['event' => $safePayload->toArray()]);
-
-        return $event;
+        return $this->persist($attributes);
     }
 
     /**
@@ -102,6 +104,64 @@ final class SecurityEventService
             );
 
             return $result;
+        });
+    }
+
+    /**
+     * Record or atomically increment a high-volume event aggregate.
+     *
+     * The correlation tuple is event catalog values, surface, HMAC correlations, and
+     * configured key version. Aggregates deliberately update only count/timestamps.
+     *
+     * @param  string  $type
+     * @param  string  $severity
+     * @param  string  $outcome
+     * @param  array  $context
+     *
+     * @return \Wncms\Models\ApiSecurityEvent
+     */
+    public function recordAggregate(string $type, string $severity, string $outcome, array $context = []): ApiSecurityEvent
+    {
+        if (!$this->correlationHasher->isConfigured()) {
+            throw new \RuntimeException('Security event correlation keys are unavailable.');
+        }
+
+        return DB::transaction(function () use ($type, $severity, $outcome, $context): ApiSecurityEvent {
+            $this->validateCatalogValue($type, $severity, $outcome);
+            $attributes = $this->buildAttributes($type, $severity, $outcome, $context);
+            $this->requireAggregateCorrelations($attributes);
+            $event = ApiSecurityEvent::query()
+                ->where('event_type', $type)
+                ->where('severity', $severity)
+                ->where('outcome', $outcome)
+                ->where('surface', $attributes['surface'])
+                ->where('ip_hash', $attributes['ip_hash'])
+                ->where('login_identifier_hash', $attributes['login_identifier_hash'])
+                ->where('user_agent_hash', $attributes['user_agent_hash'])
+                ->where('correlation_key_version', $attributes['correlation_key_version'])
+                ->lockForUpdate()
+                ->first();
+
+            if ($event === null) {
+                $attributes['context'] = $this->aggregateContext($attributes['context'], 1, $attributes['occurred_at'], $attributes['request_id']);
+
+                return $this->persist($attributes);
+            }
+
+            $aggregate = (array) (($event->context ?? [])['aggregate'] ?? []);
+            $event->updateAggregate([
+                'context' => $this->aggregateContext(
+                    $event->context,
+                    max(0, (int) ($aggregate['count'] ?? 0)) + 1,
+                    $event->occurred_at,
+                    $attributes['request_id'],
+                    $attributes['occurred_at']
+                ),
+            ], SecurityEventMutationScope::aggregate());
+            $event->refresh();
+            $this->dispatch($event);
+
+            return $event;
         });
     }
 
@@ -201,7 +261,7 @@ final class SecurityEventService
             return null;
         }
 
-        $allowed = array_intersect_key($context, array_flip(self::ALLOWED_CONTEXT_FIELDS));
+        $allowed = $this->allowlistNested($context, self::ALLOWED_CONTEXT_SCHEMA);
         $redacted = $this->redactor->redact($allowed);
 
         return $redacted === [] ? null : $redacted;
@@ -255,5 +315,108 @@ final class SecurityEventService
     protected function nullableInteger(mixed $value): ?int
     {
         return is_numeric($value) && (int) $value >= 0 ? (int) $value : null;
+    }
+
+    /**
+     * Persist one event and dispatch only its redacted observability payload.
+     *
+     * @param  array  $attributes
+     *
+     * @return \Wncms\Models\ApiSecurityEvent
+     */
+    protected function persist(array $attributes): ApiSecurityEvent
+    {
+        $event = ApiSecurityEvent::create($attributes);
+        $this->dispatch($event);
+
+        return $event;
+    }
+
+    /**
+     * Dispatch the redacted Laravel event and structured log entry.
+     *
+     * @param  \Wncms\Models\ApiSecurityEvent  $event
+     *
+     * @return void
+     */
+    protected function dispatch(ApiSecurityEvent $event): void
+    {
+        $safePayload = $event->makeHidden(['ip_hash', 'login_identifier_hash', 'user_agent_hash']);
+
+        Event::dispatch(new ApiSecurityEventRecorded($safePayload));
+        Log::info('WNCMS security event recorded.', ['event' => $safePayload->toArray()]);
+    }
+
+    /**
+     * Recursively keep only explicitly declared context keys.
+     *
+     * @param  array  $value
+     * @param  array  $schema
+     *
+     * @return array
+     */
+    protected function allowlistNested(array $value, array $schema): array
+    {
+        $allowed = [];
+
+        foreach ($schema as $key => $children) {
+            if (!array_key_exists($key, $value)) {
+                continue;
+            }
+
+            if ($children === true) {
+                if (is_scalar($value[$key]) || $value[$key] === null) {
+                    $allowed[$key] = $value[$key];
+                }
+
+                continue;
+            }
+
+            if (is_array($value[$key])) {
+                $allowed[$key] = $this->allowlistNested($value[$key], $children);
+            }
+        }
+
+        return $allowed;
+    }
+
+    /**
+     * Reject aggregate requests without a complete correlation tuple.
+     *
+     * @param  array  $attributes
+     *
+     * @return void
+     */
+    protected function requireAggregateCorrelations(array $attributes): void
+    {
+        foreach (['ip_hash', 'login_identifier_hash', 'user_agent_hash', 'correlation_key_version'] as $field) {
+            if (empty($attributes[$field])) {
+                throw new \InvalidArgumentException('Security event aggregates require complete correlation fields.');
+            }
+        }
+    }
+
+    /**
+     * Build allowlisted aggregate counter context.
+     *
+     * @param  array|null  $context
+     * @param  int  $count
+     * @param  \DateTimeInterface  $firstOccurredAt
+     * @param  string|null  $requestId
+     * @param  \DateTimeInterface|null  $lastOccurredAt
+     *
+     * @return array
+     */
+    protected function aggregateContext(?array $context, int $count, \DateTimeInterface $firstOccurredAt, ?string $requestId, ?\DateTimeInterface $lastOccurredAt = null): array
+    {
+        $context = $this->context($context ?? []) ?? [];
+        $context['aggregate'] = [
+            'count' => $count,
+            'first_occurred_at' => CarbonImmutable::instance($firstOccurredAt)->toAtomString(),
+            'last_occurred_at' => CarbonImmutable::instance($lastOccurredAt ?? $firstOccurredAt)->toAtomString(),
+            'latest_request_id' => $requestId,
+        ];
+
+        return $context;
     }
 }

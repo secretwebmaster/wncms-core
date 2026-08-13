@@ -26,18 +26,23 @@ final class SecurityEventRetentionService
         $deleted = 0;
 
         do {
-            $ids = ApiSecurityEvent::query()
+            $events = ApiSecurityEvent::query()
                 ->where('occurred_at', '<', $cutoff)
                 ->orderBy('id')
                 ->limit($batchSize)
-                ->pluck('id');
+                ->get();
 
-            if ($ids->isEmpty()) {
+            if ($events->isEmpty()) {
                 break;
             }
 
-            $deleted += ApiSecurityEvent::query()->whereIn('id', $ids)->delete();
-        } while ($ids->count() === $batchSize);
+            $scope = SecurityEventMutationScope::retention();
+            foreach ($events as $event) {
+                if ($event->deleteForRetention($scope)) {
+                    $deleted++;
+                }
+            }
+        } while ($events->count() === $batchSize);
 
         return $deleted;
     }
