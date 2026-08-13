@@ -64,7 +64,10 @@ class LegacyBackendContractProviderTest extends TestCase
                     default => 'normal',
                 };
                 $this->assertSame($expectedSecurityRisk, $operation->securityRisk);
-                $this->assertSame(in_array($action, ['update', 'destroy', 'bulk_delete'], true), $operation->actionPlanEligible);
+                $safeResourceBoundary = ! in_array($operationId, $bridgeOperationIds, true)
+                    && ($resourceConfig['controller'] ?? ResourceController::class) === ResourceController::class
+                    && ! in_array($resource, ['permissions', 'roles'], true);
+                $this->assertSame($safeResourceBoundary && in_array($action, ['update', 'destroy', 'bulk_delete'], true), $operation->actionPlanEligible);
 
                 if (! in_array($operationId, $bridgeOperationIds, true)) {
                     $expectedImplementation = $resource === $referenceDomain
@@ -95,12 +98,12 @@ class LegacyBackendContractProviderTest extends TestCase
             $this->assertSame($expectedAbility, $operation->ability);
             $this->assertTrue($operation->websiteScoped);
             $this->assertSame('legacy_bridge', $operation->implementation);
-            if (strtoupper((string) $action['method']) === 'GET') {
+            if ($operation->sideEffectKind === 'read') {
                 $this->assertSame('normal', $operation->securityRisk);
                 $this->assertFalse($operation->actionPlanEligible);
             } else {
                 $this->assertNotSame('normal', $operation->securityRisk, "Mutation bridge {$operationId} must declare security risk.");
-                $this->assertTrue($operation->actionPlanEligible, "Mutation bridge {$operationId} must be plan eligible.");
+                $this->assertFalse($operation->actionPlanEligible, "Unproven bridge {$operationId} must not expose planned execution.");
             }
             $expectedOperationIds[] = $operationId;
         }
@@ -150,5 +153,23 @@ class LegacyBackendContractProviderTest extends TestCase
         $this->expectExceptionMessage('name and permission');
 
         (new LegacyBackendContractProvider)->register(new ApiContractRegistry);
+    }
+
+    /**
+     * Verify account credential mutations reject service tokens and require exact step-up.
+     *
+     * @return void
+     */
+    public function test_credential_mutation_contract_is_interactive_and_step_up_only(): void
+    {
+        $registry = new ApiContractRegistry;
+        (new LegacyBackendContractProvider)->register($registry);
+
+        $operation = $registry->operation('backend.users.account.password.update');
+
+        $this->assertNotNull($operation);
+        $this->assertSame(['interactive_access'], $operation->acceptedCredentialTypes);
+        $this->assertTrue($operation->requiresStepUp);
+        $this->assertSame(['users.account.password.update'], $operation->stepUpPurposes);
     }
 }

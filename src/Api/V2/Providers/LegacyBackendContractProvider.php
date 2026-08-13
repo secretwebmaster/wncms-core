@@ -89,6 +89,12 @@ class LegacyBackendContractProvider implements ApiContractProvider
                     requiresStepUp: $security['requires_step_up'],
                     stepUpPurposes: $security['step_up_purposes'],
                     actionPlanEligible: $security['action_plan_eligible'],
+                    idempotent: $security['idempotent'],
+                    domainModelKeys: $security['domain_model_keys'],
+                    transactionalOutboxModelKeys: $security['transactional_outbox_model_keys'],
+                    sideEffectKind: $security['side_effect_kind'],
+                    canonicalizer: $security['canonicalizer'],
+                    targetResolver: $security['target_resolver'],
                 ));
             }
         }
@@ -136,6 +142,12 @@ class LegacyBackendContractProvider implements ApiContractProvider
                 requiresStepUp: $security['requires_step_up'],
                 stepUpPurposes: $security['step_up_purposes'],
                 actionPlanEligible: $security['action_plan_eligible'],
+                idempotent: $security['idempotent'],
+                domainModelKeys: $security['domain_model_keys'],
+                transactionalOutboxModelKeys: $security['transactional_outbox_model_keys'],
+                sideEffectKind: $security['side_effect_kind'],
+                canonicalizer: $security['canonicalizer'],
+                targetResolver: $security['target_resolver'],
             ));
         }
     }

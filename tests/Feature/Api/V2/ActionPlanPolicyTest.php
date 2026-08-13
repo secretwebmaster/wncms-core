@@ -137,6 +137,33 @@ class ActionPlanPolicyTest extends TestCase
         ));
     }
 
+    public function test_middleware_re_resolves_target_inside_execution_transaction(): void
+    {
+        [$context, $operation] = $this->fixture();
+        $this->registerOperation($operation);
+        uss('api_high_risk_action_mode', 'planned');
+        $version = 7;
+        app(OperationRiskContextResolver::class)->register($operation->id, function () use (&$version): array {
+            return ['target_state' => ['version' => $version], 'model_keys' => ['setting']];
+        });
+        $request = $this->riskRequest($context, $operation, ['name' => 'exact'], ['version' => 7]);
+        $created = app(OperationRiskContextResolver::class)->resolveRequest($request, $operation);
+        $plan = app(ActionPlanService::class)->createResolved($context, $operation, $created);
+        $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
+        $version = 8;
+        $executions = 0;
+
+        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions): JsonResponse {
+            $executions++;
+
+            return new JsonResponse(['ok' => true]);
+        });
+
+        $this->assertSame(409, $response->getStatusCode());
+        $this->assertSame('risk.plan_stale', $response->getData(true)['meta']['error_code']);
+        $this->assertSame(0, $executions);
+    }
+
     public function test_planned_middleware_maps_missing_and_stale_confirmations_to_428_and_409(): void
     {
         [$context, $operation] = $this->fixture();
@@ -498,7 +525,7 @@ class ActionPlanPolicyTest extends TestCase
             path: '/api/v2/backend/tokens', routeName: 'api.v2.backend.tokens.store',
             permission: $permission, ability: 'tokens.create', websiteScoped: true,
             risk: 'write', implementation: 'domain', request: ApiSchema::object(), response: ApiSchema::object(),
-            securityRisk: 'high', actionPlanEligible: true,
+            securityRisk: 'high', actionPlanEligible: true, domainModelKeys: ['setting'],
         );
 
     }

@@ -38,8 +38,13 @@ final class ActionPlanController extends ApiV2Controller
         }
 
         try {
-            $riskContext = $this->riskContexts->resolve($operation, $validated['input'], (array) ($validated['parameters'] ?? []));
-            if ($riskContext->modelKeys === []) {
+            if (! in_array($operation->sideEffectKind, ['database', 'transactional_outbox'], true) || ! $operation->idempotent) {
+                return $this->responseFactory()->failure('risk.policy_unavailable', 'Operation does not have a transactional risk boundary', 503);
+            }
+            $planRequest = Request::createFrom($request);
+            $planRequest->request->replace(['input' => $validated['input']]);
+            $riskContext = $this->riskContexts->resolveRequest($planRequest, $operation, (array) ($validated['parameters'] ?? []));
+            if ($operation->domainModelKeys === [] && $operation->transactionalOutboxModelKeys === []) {
                 return $this->responseFactory()->failure('risk.policy_unavailable', 'Transactional domain boundary is required', 503);
             }
             $plan = $this->plans->createResolved($context, $operation, $riskContext);

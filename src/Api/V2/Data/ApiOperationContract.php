@@ -31,6 +31,11 @@ final class ApiOperationContract
      * @param  bool  $requiresStepUp
      * @param  array<int, string>  $stepUpPurposes
      * @param  bool  $actionPlanEligible
+     * @param  array<int, string>  $domainModelKeys
+     * @param  array<int, string>  $transactionalOutboxModelKeys
+     * @param  string  $sideEffectKind
+     * @param  string  $canonicalizer
+     * @param  string  $targetResolver
      * @return void
      */
     public function __construct(
@@ -58,6 +63,11 @@ final class ApiOperationContract
         public readonly bool $requiresStepUp = false,
         public readonly array $stepUpPurposes = [],
         public readonly bool $actionPlanEligible = false,
+        public readonly array $domainModelKeys = [],
+        public readonly array $transactionalOutboxModelKeys = [],
+        public readonly string $sideEffectKind = 'read',
+        public readonly string $canonicalizer = 'schema',
+        public readonly string $targetResolver = 'none',
     ) {}
 
     /**
@@ -92,6 +102,11 @@ final class ApiOperationContract
             'requires_step_up' => $this->requiresStepUp,
             'step_up_purposes' => $this->stepUpPurposes,
             'action_plan_eligible' => $this->actionPlanEligible,
+            'domain_model_keys' => $this->domainModelKeys,
+            'transactional_outbox_model_keys' => $this->transactionalOutboxModelKeys,
+            'side_effect_kind' => $this->sideEffectKind,
+            'canonicalizer' => $this->canonicalizer,
+            'target_resolver' => $this->targetResolver,
         ];
     }
 }

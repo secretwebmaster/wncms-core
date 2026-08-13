@@ -11,6 +11,7 @@ use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\Risk\ActionPlanException;
 use Wncms\Api\V2\Risk\ActionPlanService;
+use Wncms\Api\V2\Risk\OperationRiskContextResolver;
 use Wncms\Api\V2\Risk\RiskContext;
 use Wncms\Api\V2\Risk\RiskPolicy;
 use Wncms\Auth\Api\V2\ApiCredential;
@@ -29,6 +30,7 @@ final class EnforceApiV2RiskPolicy
         private StepUpService $stepUp,
         private ApiResponseFactory $responses,
         private SecurityEventService $events,
+        private OperationRiskContextResolver $riskContexts,
     ) {}
 
     /**
@@ -66,6 +68,13 @@ final class EnforceApiV2RiskPolicy
         }
 
         $requiresPlan = $this->policy->requiresPlan($operation, $risk, AuthSecurityConfig::fromRuntime()->highRiskMode());
+        if (
+            in_array($risk, ['high', 'critical'], true)
+            && ($operation->canonicalizer !== 'schema' || $operation->targetResolver !== 'none')
+            && ! in_array($operation->sideEffectKind, ['database', 'transactional_outbox'], true)
+        ) {
+            return $this->responses->failure('risk.policy_unavailable', 'Operation does not have a transactional risk boundary', 503);
+        }
         $proof = trim((string) $request->headers->get('X-WNCMS-Step-Up', ''));
         if ($operation->requiresStepUp && $proof === '') {
             return $this->responses->failure('risk.step_up_required', 'Step-up proof is required', 428);
@@ -81,16 +90,22 @@ final class EnforceApiV2RiskPolicy
 
         $route = $request->route();
         $async = $route instanceof Route && (bool) ($route->defaults['api_async_enqueue'] ?? false);
-        $outboxModelKeys = $route instanceof Route ? (array) ($route->defaults['api_transactional_outbox_model_keys'] ?? []) : [];
+        $formalDescriptor = $operation->canonicalizer !== 'schema'
+            || $operation->targetResolver !== 'none'
+            || $this->riskContexts->hasResolver($operation->id);
+        $outboxModelKeys = $formalDescriptor
+            ? $operation->transactionalOutboxModelKeys
+            : ($route instanceof Route ? (array) ($route->defaults['api_transactional_outbox_model_keys'] ?? []) : []);
+        $domainModelKeys = $formalDescriptor ? $operation->domainModelKeys : $riskContext->modelKeys;
         if ($async && $outboxModelKeys === []) {
             return $this->responses->failure('risk.policy_unavailable', 'Transactional outbox is required', 503);
         }
-        if ($requiresPlan && $riskContext->modelKeys === [] && $outboxModelKeys === []) {
+        if ($requiresPlan && $domainModelKeys === [] && $outboxModelKeys === []) {
             return $this->responses->failure('risk.policy_unavailable', 'Transactional domain boundary is required', 503);
         }
         $modelKeys = array_values(array_unique(array_merge(
             ['api_security_event'],
-            $riskContext->modelKeys,
+            $domainModelKeys,
             $outboxModelKeys,
             $operation->requiresStepUp ? ['api_step_up_proof', 'api_session'] : [],
             $requiresPlan ? ['api_action_plan'] : [],
@@ -102,7 +117,13 @@ final class EnforceApiV2RiskPolicy
                 throw new \RuntimeException('Domain, outbox, security mutation, and event connections must match.');
             }
 
-            return DB::connection($connections[0])->transaction(function () use ($request, $next, $context, $operation, $riskContext, $risk, $requiresPlan, $proof, $confirmation): Response {
+            return DB::connection($connections[0])->transaction(function () use ($request, $next, $context, $operation, $requiresPlan, $proof, $confirmation, $formalDescriptor, $riskContext): Response {
+                $route = $request->route();
+                $parameters = $route instanceof Route ? $route->parameters() : [];
+                $riskContext = $formalDescriptor
+                    ? $this->riskContexts->resolveExecution($request, $operation, $parameters)
+                    : $riskContext;
+                $risk = $this->policy->effective($operation, $riskContext->normalizedInput, $riskContext->environment);
                 $stepReservation = null;
                 if ($operation->requiresStepUp) {
                     $selectedPurpose = count($operation->stepUpPurposes) === 1

@@ -46,6 +46,16 @@ class BridgeController extends ApiV2Controller
         if ($response instanceof JsonResponse) {
             $payload = $response->getData(true);
 
+            if (is_array($payload) && in_array(strtolower((string) ($payload['status'] ?? '')), ['fail', 'failed', 'error'], true)) {
+                return $this->responseFactory()->failure(
+                    'legacy.operation_failed',
+                    (string) ($payload['message'] ?? 'Legacy operation failed'),
+                    $response->getStatusCode() >= 400 ? $response->getStatusCode() : SymfonyResponse::HTTP_UNPROCESSABLE_ENTITY,
+                    [],
+                    ['legacy' => $payload],
+                );
+            }
+
             if (is_array($payload) && isset($payload['code'], $payload['status'], $payload['message'])) {
                 if (!array_key_exists('meta', $payload)) {
                     $payload['meta'] = [];

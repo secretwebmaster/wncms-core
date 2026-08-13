@@ -42,6 +42,33 @@ class OperationRiskContextResolverTest extends TestCase
         $this->assertInstanceOf(RiskContext::class, $second);
     }
 
+    /**
+     * Verify generic resource bulk inputs and target membership have stable semantics.
+     *
+     * @return void
+     */
+    public function test_resource_bulk_input_sorts_ids_and_preserves_missing_target_membership(): void
+    {
+        $operation = new ApiOperationContract(
+            id: 'backend.channels.bulk_delete', domain: 'channels', surface: 'backend', method: 'POST',
+            path: '/api/v2/backend/channels/bulk_delete', routeName: 'api.v2.backend.channels.bulk_delete',
+            permission: 'channel_bulk_delete', ability: 'channels.write', websiteScoped: true,
+            risk: 'write', implementation: 'legacy_resource', request: ApiSchema::object(), response: ApiSchema::object(),
+            securityRisk: 'critical', actionPlanEligible: true, domainModelKeys: ['channel'],
+            sideEffectKind: 'database', canonicalizer: 'resource', targetResolver: 'bulk_ids', idempotent: true,
+        );
+        $existing = \Wncms\Models\Channel::create(['name' => 'Existing', 'slug' => 'resolver-'.uniqid()]);
+        $missing = $existing->id + 10000;
+
+        $context = app(OperationRiskContextResolver::class)->resolve($operation, [
+            'model_ids' => [(string) $missing, (string) $existing->id, $existing->id],
+        ]);
+
+        $this->assertSame([$existing->id, $missing], $context->normalizedInput['model_ids']);
+        $this->assertSame([$existing->id, $missing], $context->targetState['requested_ids']);
+        $this->assertSame([$existing->id], array_column($context->targetState['records'], 'id'));
+    }
+
     private function operation(): ApiOperationContract
     {
         return new ApiOperationContract(

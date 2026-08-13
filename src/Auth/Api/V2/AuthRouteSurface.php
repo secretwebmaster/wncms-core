@@ -17,6 +17,7 @@ final class AuthRouteSurface
             ['pattern' => 'api/v2/backend/auth/logout', 'parameterized' => false],
             ['pattern' => 'api/v2/backend/auth/logout-all', 'parameterized' => false],
             ['pattern' => 'api/v2/backend/auth/me', 'parameterized' => false],
+            ['pattern' => 'api/v2/backend/auth/reauthenticate', 'parameterized' => false],
             ['pattern' => 'api/v2/backend/auth/sessions', 'parameterized' => false],
             ['pattern' => 'api/v2/backend/auth/sessions/*', 'parameterized' => true],
         ];

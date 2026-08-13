@@ -250,6 +250,7 @@ class OriginPolicyTest extends TestCase
                 'api/v2/backend/auth/refresh',
                 'api/v2/backend/auth/logout',
                 'api/v2/backend/auth/logout-all',
+                'api/v2/backend/auth/reauthenticate',
                 'api/v2/backend/auth/sessions',
                 'api/v2/backend/auth/sessions/*',
             ],
@@ -274,6 +275,7 @@ class OriginPolicyTest extends TestCase
             'api/v2/backend/auth/logout',
             'api/v2/backend/auth/logout-all',
             'api/v2/backend/auth/me',
+            'api/v2/backend/auth/reauthenticate',
             'api/v2/backend/auth/sessions',
             'api/v2/backend/auth/sessions/example-session-id',
         ]);
@@ -320,6 +322,7 @@ class OriginPolicyTest extends TestCase
             'https://api.example.test/api/v2/backend/auth/logout',
             'https://api.example.test/api/v2/backend/auth/logout-all',
             'https://api.example.test/api/v2/backend/auth/me',
+            'https://api.example.test/api/v2/backend/auth/reauthenticate',
             'https://api.example.test/api/v2/backend/auth/sessions',
             'https://api.example.test/api/v2/backend/auth/sessions/*',
         ]);
@@ -343,6 +346,7 @@ class OriginPolicyTest extends TestCase
             'api/v2/backend/auth/logout',
             'api/v2/backend/auth/logout-all',
             'api/v2/backend/auth/me',
+            'api/v2/backend/auth/reauthenticate',
             'api/v2/backend/auth/sessions',
             'api/v2/backend/auth/sessions/*',
         ]);

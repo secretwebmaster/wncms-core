@@ -164,6 +164,21 @@ database connection 原子提交。Async 只支持同 database 的 transactional
 network 或外部 queue enqueue 会在执行前 fail closed。Idempotent retry 会在重新检查已
 消费 confirmation 前 replay 已提交结果。
 
+Production legacy operation 使用显式 security descriptor；WNCMS 不会从 HTTP
+method 或 operation name 推断安全性。每条 configured route 都必须声明 credential
+types、step-up 与 plan policy、domain/outbox model boundary、side-effect kind、request
+canonicalizer、target resolver 及 idempotency；声明缺失或含糊时会 fail closed。目前
+planned execution 只开放给 model 与 plan 使用相同 database connection 的 generic
+resource mutation。Custom controller、dynamic-model operation、Spatie role/permission
+mutation 及 external side effect 在提供同等 atomic boundary 前均不开放 planned
+execution。
+
+Plan 建立与执行使用相同的 server-owned canonicalizer。执行时 WNCMS 会开启 named
+transaction，重新锁定并解析 target rows，然后重新采样当前 environment，再比较 plan
+binding。Bulk binding 同时包含排序后的 requested IDs 与 locked rows，因此新增、删除或
+原先缺失的 target 都会使 plan stale。Account 与 IP reauthentication limit 会在 token
+authentication 后执行，让 account limit 绑定到实际 actor。
+
 ## 简易验证（建议）
 
 使用 API token 的最常见身份验证方法。

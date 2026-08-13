@@ -286,7 +286,7 @@ class ApiGuardOrderTest extends TestCase
     }
 
     /**
-     * Verify generic model mutations require the selected model's permission before website scope.
+     * Verify generic model mutations enforce permission before their unsupported risk boundary.
      *
      * @return void
      */
@@ -327,13 +327,13 @@ class ApiGuardOrderTest extends TestCase
             'value' => 'generic-target-allowed',
             'website_id' => $this->website->id,
         ])
-            ->assertOk()
-            ->assertJsonPath('status', 'success');
-        $this->assertSame('generic-target-allowed', $target->fresh()->username);
+            ->assertStatus(503)
+            ->assertJsonPath('meta.error_code', 'risk.policy_unavailable');
+        $this->assertNotSame('generic-target-allowed', $target->fresh()->username);
     }
 
     /**
-     * Verify authorization and mutation bind to the same configured override class.
+     * Verify a dynamic override cannot execute without a declared atomic risk boundary.
      *
      * @return void
      */
@@ -374,11 +374,10 @@ class ApiGuardOrderTest extends TestCase
             'value' => $newTimestamp,
             'website_id' => $this->website->id,
         ])
-            ->assertOk()
-            ->assertJsonPath('status', 'success');
+            ->assertStatus(503)
+            ->assertJsonPath('meta.error_code', 'risk.policy_unavailable');
 
-        $this->assertNotSame($targetBefore, (string) DB::table('users')->where('id', $target->id)->value('updated_at'));
-        $this->assertSame($newTimestamp, (string) DB::table('users')->where('id', $target->id)->value('updated_at'));
+        $this->assertSame($targetBefore, (string) DB::table('users')->where('id', $target->id)->value('updated_at'));
         $this->assertSame($decoyBefore, (string) DB::table('websites')->where('id', $decoy->id)->value('updated_at'));
     }
 

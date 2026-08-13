@@ -3,6 +3,7 @@
 namespace Wncms\Api\V2;
 
 use InvalidArgumentException;
+use Wncms\Api\V2\Risk\LegacyOperationDescriptorRegistry;
 
 final class LegacyOperationSecurity
 {
@@ -31,7 +32,7 @@ final class LegacyOperationSecurity
      * @param  string  $resource
      * @param  string  $action
      * @param  array<string, mixed>  $resourceConfig
-     * @return array{ability: string, permission: string, permission_mode: string, security_risk: string, accepted_credential_types: array<int, string>, requires_step_up: bool, step_up_purposes: array<int, string>, action_plan_eligible: bool, middleware: array<int, string>}
+     * @return array{ability: string, permission: string, permission_mode: string, security_risk: string, accepted_credential_types: array<int, string>, requires_step_up: bool, step_up_purposes: array<int, string>, action_plan_eligible: bool, domain_model_keys: array<int, string>, transactional_outbox_model_keys: array<int, string>, side_effect_kind: string, canonicalizer: string, target_resolver: string, idempotent: bool, middleware: array<int, string>}
      */
     public static function resourceRequirements(string $resource, string $action, array $resourceConfig): array
     {
@@ -44,26 +45,24 @@ final class LegacyOperationSecurity
         }
 
         $ability = self::resourceAbility($resource, $action);
-        $risk = match ($action) {
-            'bulk_delete' => 'critical',
-            'update', 'destroy' => 'high',
-            'store' => 'sensitive',
-            default => 'normal',
-        };
-        $requiresStepUp = in_array($resource, ['permissions', 'roles', 'users'], true)
-            && ! in_array($action, ['index', 'show'], true);
-        $planEligible = in_array($risk, ['high', 'critical'], true);
+        $descriptor = (new LegacyOperationDescriptorRegistry)->resource($resource, $action, $resourceConfig);
 
         return [
             'ability' => $ability,
             'permission' => $permission,
             'permission_mode' => 'static',
-            'security_risk' => $risk,
-            'accepted_credential_types' => $requiresStepUp ? ['interactive_access'] : ['interactive_access', 'service_token'],
-            'requires_step_up' => $requiresStepUp,
-            'step_up_purposes' => $requiresStepUp ? ["{$resource}.{$action}"] : [],
-            'action_plan_eligible' => $planEligible,
-            'middleware' => self::middleware($ability, 'api_v2_permission:'.$permission, $planEligible),
+            'security_risk' => $descriptor->securityRisk,
+            'accepted_credential_types' => $descriptor->acceptedCredentialTypes,
+            'requires_step_up' => $descriptor->requiresStepUp,
+            'step_up_purposes' => $descriptor->stepUpPurposes,
+            'action_plan_eligible' => $descriptor->actionPlanEligible,
+            'domain_model_keys' => $descriptor->domainModelKeys,
+            'transactional_outbox_model_keys' => $descriptor->transactionalOutboxModelKeys,
+            'side_effect_kind' => $descriptor->sideEffectKind,
+            'canonicalizer' => $descriptor->canonicalizer,
+            'target_resolver' => $descriptor->targetResolver,
+            'idempotent' => $descriptor->idempotent,
+            'middleware' => self::middleware($ability, 'api_v2_permission:'.$permission, $descriptor->idempotent),
         ];
     }
 
@@ -82,7 +81,7 @@ final class LegacyOperationSecurity
      * Resolve the validated security contract for one bridge operation.
      *
      * @param  array<string, mixed>  $action
-     * @return array{ability: string, permission: string, permission_mode: string, security_risk: string, accepted_credential_types: array<int, string>, requires_step_up: bool, step_up_purposes: array<int, string>, action_plan_eligible: bool, middleware: array<int, string>}
+     * @return array{ability: string, permission: string, permission_mode: string, security_risk: string, accepted_credential_types: array<int, string>, requires_step_up: bool, step_up_purposes: array<int, string>, action_plan_eligible: bool, domain_model_keys: array<int, string>, transactional_outbox_model_keys: array<int, string>, side_effect_kind: string, canonicalizer: string, target_resolver: string, idempotent: bool, middleware: array<int, string>}
      */
     public static function actionRequirements(array $action): array
     {
@@ -112,23 +111,24 @@ final class LegacyOperationSecurity
             ? 'api_v2_model_permission:'.$modelPermission[1]
             : 'api_v2_permission:'.$permission;
 
-        $risk = match (true) {
-            strtoupper((string) ($action['method'] ?? 'post')) === 'GET' => 'normal',
-            str_contains($name, 'bulk_delete'), str_contains($name, 'bulk_force_delete'), str_contains($name, 'rerun_core_update') => 'critical',
-            default => 'high',
-        };
-        $planEligible = in_array($risk, ['high', 'critical'], true);
+        $descriptor = (new LegacyOperationDescriptorRegistry)->action($action);
 
         return [
             'ability' => $ability,
             'permission' => $permissionIdentity,
             'permission_mode' => $template !== '' ? 'model_template' : 'static',
-            'security_risk' => $risk,
-            'accepted_credential_types' => ['interactive_access', 'service_token'],
-            'requires_step_up' => false,
-            'step_up_purposes' => [],
-            'action_plan_eligible' => $planEligible,
-            'middleware' => self::middleware($ability, $permissionMiddleware, $planEligible),
+            'security_risk' => $descriptor->securityRisk,
+            'accepted_credential_types' => $descriptor->acceptedCredentialTypes,
+            'requires_step_up' => $descriptor->requiresStepUp,
+            'step_up_purposes' => $descriptor->stepUpPurposes,
+            'action_plan_eligible' => $descriptor->actionPlanEligible,
+            'domain_model_keys' => $descriptor->domainModelKeys,
+            'transactional_outbox_model_keys' => $descriptor->transactionalOutboxModelKeys,
+            'side_effect_kind' => $descriptor->sideEffectKind,
+            'canonicalizer' => $descriptor->canonicalizer,
+            'target_resolver' => $descriptor->targetResolver,
+            'idempotent' => $descriptor->idempotent,
+            'middleware' => self::middleware($ability, $permissionMiddleware, $descriptor->idempotent),
         ];
     }
 

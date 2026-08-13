@@ -180,6 +180,24 @@ external queue enqueue is rejected before execution because it cannot share
 that atomic boundary. Idempotent retries replay the committed result before
 rechecking a consumed confirmation.
 
+Production legacy operations use an explicit security descriptor; WNCMS does
+not infer safety from an HTTP method or operation name. Every configured route
+must declare its credential types, step-up and plan policy, domain/outbox model
+boundary, side-effect kind, request canonicalizer, target resolver, and
+idempotency. Missing or ambiguous declarations fail closed. Planned execution
+is currently available only to generic resource mutations whose models share
+the plan database connection. Custom controllers, dynamic-model operations,
+Spatie role/permission mutations, and external side effects remain unavailable
+through planned execution until they provide an equivalent atomic boundary.
+
+Plan creation and execution apply the same server-owned canonicalizer. At
+execution WNCMS opens the named transaction, locks and resolves target rows
+again, then samples the current environment before comparing the plan binding.
+Bulk bindings include the sorted requested IDs as well as the locked rows, so a
+new, deleted, or previously missing target makes the plan stale. Account and IP
+reauthentication limits run after token authentication, allowing account limits
+to bind to the actual actor.
+
 ## Simple Authentication (Recommended)
 
 The most common authentication method using API tokens.

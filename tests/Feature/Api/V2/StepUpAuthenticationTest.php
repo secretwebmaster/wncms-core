@@ -5,6 +5,7 @@ namespace Wncms\Tests\Feature\Api\V2;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Wncms\Api\V2\ApiContractRegistry;
@@ -12,6 +13,7 @@ use Wncms\Api\V2\Data\ApiDomainContract;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Api\V2\Data\ApiSchema;
 use Wncms\Auth\Api\V2\ApiCredential;
+use Wncms\Auth\Api\V2\AccessTokenService;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\StepUpException;
 use Wncms\Auth\Api\V2\StepUpService;
@@ -38,6 +40,8 @@ class StepUpAuthenticationTest extends TestCase
             ]],
         ]]);
         CarbonImmutable::setTestNow('2026-08-14 00:00:00 UTC');
+        Cache::flush();
+        uss('enable_api_access', 1);
     }
 
     protected function tearDown(): void
@@ -153,6 +157,56 @@ class StepUpAuthenticationTest extends TestCase
         $this->assertContains('throttle:api-v2-reauthenticate', $route?->gatherMiddleware() ?? []);
     }
 
+    /**
+     * Verify the account dimension enforces the configured reauthentication threshold.
+     *
+     * @return void
+     */
+    public function test_reauthentication_account_threshold_returns_429(): void
+    {
+        config([
+            'wncms.auth_security.login_account_attempts' => 2,
+            'wncms.auth_security.login_ip_attempts' => 10,
+            'wncms.auth_security.login_progressive_delay_seconds' => [0],
+        ]);
+
+        [$token, $operation] = $this->reauthHttpFixture();
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            $this->withToken($token)->withServerVariables(['REMOTE_ADDR' => '192.0.2.20'])->postJson('/api/v2/backend/auth/reauthenticate', [
+                'password' => 'wrong-password', 'operation' => $operation->id, 'purpose' => 'password.change',
+            ])->assertUnauthorized();
+        }
+
+        $this->withToken($token)->withServerVariables(['REMOTE_ADDR' => '192.0.2.20'])->postJson('/api/v2/backend/auth/reauthenticate', [
+            'password' => 'wrong-password', 'operation' => $operation->id, 'purpose' => 'password.change',
+        ])->assertStatus(429)->assertJsonPath('meta.error_code', 'authentication.rate_limited');
+    }
+
+    /**
+     * Verify the IP dimension enforces the configured reauthentication threshold.
+     *
+     * @return void
+     */
+    public function test_reauthentication_ip_threshold_returns_429(): void
+    {
+        config([
+            'wncms.auth_security.login_account_attempts' => 10,
+            'wncms.auth_security.login_ip_attempts' => 2,
+            'wncms.auth_security.login_progressive_delay_seconds' => [0],
+        ]);
+
+        [$token, $operation] = $this->reauthHttpFixture();
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            $this->withToken($token)->withServerVariables(['REMOTE_ADDR' => '192.0.2.21'])->postJson('/api/v2/backend/auth/reauthenticate', [
+                'password' => 'wrong-password', 'operation' => $operation->id, 'purpose' => 'password.change',
+            ])->assertUnauthorized();
+        }
+
+        $this->withToken($token)->withServerVariables(['REMOTE_ADDR' => '192.0.2.21'])->postJson('/api/v2/backend/auth/reauthenticate', [
+            'password' => 'wrong-password', 'operation' => $operation->id, 'purpose' => 'password.change',
+        ])->assertStatus(429)->assertJsonPath('meta.error_code', 'authentication.rate_limited');
+    }
+
     public function test_proof_reservation_blocks_replay_releases_on_failure_and_consumes_after_success(): void
     {
         [$session, $context] = $this->sessionContext();
@@ -180,6 +234,34 @@ class StepUpAuthenticationTest extends TestCase
         $context = new AuthenticationContext($user, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'access-public-id', $session->session_id, ['tokens.create'], [1]);
 
         return [$session, $context];
+    }
+
+    /**
+     * Create an access token and formal operation for HTTP reauthentication tests.
+     *
+     * @return array{string, \Wncms\Api\V2\Data\ApiOperationContract}
+     */
+    private function reauthHttpFixture(): array
+    {
+        [$session, $context] = $this->sessionContext();
+        $operation = new ApiOperationContract(
+            id: 'backend.account.password.http', domain: 'account', surface: 'backend', method: 'PATCH',
+            path: '/api/v2/backend/account/password-http', routeName: 'api.v2.backend.account.password.http',
+            permission: null, ability: 'account.password', websiteScoped: false, risk: 'write', implementation: 'domain',
+            request: ApiSchema::object(), response: ApiSchema::object(), securityRisk: 'sensitive',
+            acceptedCredentialTypes: [ApiCredential::TYPE_INTERACTIVE_ACCESS], requiresStepUp: true,
+            stepUpPurposes: ['password.change'],
+        );
+        $registry = app(ApiContractRegistry::class);
+        if (! isset($registry->domains()['account'])) {
+            $registry->registerDomain(new ApiDomainContract('account', 'Account'));
+        }
+        if ($registry->operation($operation->id) === null) {
+            $registry->registerOperation($operation);
+        }
+        $issued = app(AccessTokenService::class)->issue($context->actor(), $session, ['account.password'], []);
+
+        return [$issued['token'], $operation];
     }
 
     private function expectStepUpCode(string $code, callable $callback): void

@@ -127,6 +127,7 @@ class WncmsServiceProvider extends ServiceProvider
         $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
         $kernel->prependMiddleware(ApplyApiV2CookieCors::class);
         $kernel->prependToMiddlewarePriority(\Wncms\Http\Middleware\AssignApiV2RequestId::class);
+        $kernel->addToMiddlewarePriorityBefore(\Illuminate\Routing\Middleware\ThrottleRequests::class, ApiV2TokenAuth::class);
         foreach ([
             EnforceApiV2RefreshTransport::class,
             ValidateApiV2RefreshOrigin::class,
