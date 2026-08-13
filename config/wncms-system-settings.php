@@ -26,6 +26,30 @@ return [
             ['type' => 'number', 'name' => 'session_lifetime'],
         ]
     ],
+    'api_security' => [
+        'tab_name' => 'api_security',
+        'tab_content' => [
+            ['type' => 'number', 'name' => 'api_access_token_lifetime_minutes'],
+            ['type' => 'number', 'name' => 'api_refresh_token_lifetime_days'],
+            ['type' => 'select', 'name' => 'api_refresh_transport', 'options' => ['json', 'cookie'], 'translate_option' => false],
+            ['type' => 'switch', 'name' => 'api_permanent_remember_enabled'],
+            ['type' => 'text', 'name' => 'api_refresh_cookie_domain'],
+            ['type' => 'select', 'name' => 'api_refresh_cookie_same_site', 'options' => ['strict', 'lax', 'none'], 'translate_option' => false],
+            ['type' => 'textarea', 'name' => 'api_refresh_cookie_allowed_origins'],
+            ['type' => 'switch', 'name' => 'api_refresh_cookie_referer_fallback'],
+            ['type' => 'number', 'name' => 'api_login_account_attempts'],
+            ['type' => 'number', 'name' => 'api_login_ip_attempts'],
+            ['type' => 'number', 'name' => 'api_login_window_minutes'],
+            ['type' => 'text', 'name' => 'api_login_progressive_delay_seconds'],
+            ['type' => 'select', 'name' => 'api_high_risk_action_mode', 'options' => ['direct', 'planned'], 'translate_option' => false],
+            ['type' => 'number', 'name' => 'api_action_plan_lifetime_seconds'],
+            ['type' => 'number', 'name' => 'api_step_up_lifetime_seconds'],
+            ['type' => 'switch', 'name' => 'blade_enabled'],
+            ['type' => 'switch', 'name' => 'api_legacy_personal_tokens_enabled'],
+            ['type' => 'text', 'name' => 'api_legacy_personal_tokens_cutoff_at'],
+            ['type' => 'number', 'name' => 'api_security_event_retention_days'],
+        ],
+    ],
     'smtp' => [
         'tab_name' => 'smtp',
         'tab_content' => [

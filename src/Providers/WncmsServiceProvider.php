@@ -28,6 +28,7 @@ use Wncms\Api\V2\OpenApiDocumentBuilder;
 use Wncms\Api\V2\ReplayResponseTrust;
 use Wncms\Api\V2\Repositories\CacheIdempotencyStore;
 use Wncms\Api\V2\Repositories\CacheOperationRepository;
+use Wncms\Auth\Api\V2\AuthSecurityConfig;
 
 class WncmsServiceProvider extends ServiceProvider
 {
@@ -339,6 +340,8 @@ class WncmsServiceProvider extends ServiceProvider
 
         $this->loadMutationAuditSettings();
 
+        $this->loadAuthSecuritySettings();
+
         // Runtime model website mode override from system settings
         $this->loadModelWebsiteModeSettings();
     }
@@ -352,6 +355,18 @@ class WncmsServiceProvider extends ServiceProvider
     {
         config([
             'wncms.mutation_audit.enabled' => (bool) gss('enable_mutation_audit', false),
+        ]);
+    }
+
+    /**
+     * Load validated authentication security settings into runtime configuration.
+     *
+     * @return void
+     */
+    protected function loadAuthSecuritySettings(): void
+    {
+        config([
+            'wncms.auth_security' => AuthSecurityConfig::fromRuntime()->toArray(),
         ]);
     }
 
