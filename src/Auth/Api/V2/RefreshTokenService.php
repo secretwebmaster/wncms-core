@@ -1,0 +1,340 @@
+<?php
+
+namespace Wncms\Auth\Api\V2;
+
+use Carbon\CarbonImmutable;
+use Closure;
+use Illuminate\Support\Str;
+use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Models\ApiRefreshToken;
+use Wncms\Models\ApiSession;
+use Wncms\Models\User;
+use Wncms\Services\Security\SecurityEventService;
+
+final class RefreshTokenService
+{
+    /**
+     * Create the refresh-token lifecycle service.
+     *
+     * The optional callback is a deterministic race-test seam invoked immediately before
+     * the database conditional consume. Production resolution never supplies it.
+     *
+     * @param  \Wncms\Auth\Api\V2\TokenHasher  $hasher
+     * @param  \Wncms\Auth\Api\V2\AccessTokenService  $accessTokens
+     * @param  \Wncms\Services\Security\SecurityEventService  $events
+     * @param  \Wncms\Api\V2\ApiContractRegistry  $contracts
+     * @param  \Closure|null  $beforeConsume
+     */
+    public function __construct(
+        private TokenHasher $hasher,
+        private AccessTokenService $accessTokens,
+        private SecurityEventService $events,
+        private ApiContractRegistry $contracts,
+        private ?Closure $beforeConsume = null,
+    ) {
+    }
+
+    /**
+     * Issue the initial one-time refresh credential for an active session.
+     *
+     * The caller owns the surrounding audited transaction used for login.
+     *
+     * @param  \Wncms\Models\ApiSession  $session
+     * @return \Wncms\Auth\Api\V2\IssuedRefreshToken
+     */
+    public function issue(ApiSession $session): IssuedRefreshToken
+    {
+        return $this->issueForFamily($session, (string) Str::ulid(), null);
+    }
+
+    /**
+     * Atomically consume one refresh token and issue a replacement credential pair.
+     *
+     * A lost conditional update is handled as replay and revokes only this session family.
+     *
+     * @param  \Wncms\Auth\Api\V2\ApiCredential  $credential
+     * @return \Wncms\Auth\Api\V2\RotatedCredentialPair
+     *
+     * @throws \Wncms\Auth\Api\V2\RefreshTokenException
+     */
+    public function rotate(ApiCredential $credential): RotatedCredentialPair
+    {
+        $token = $this->resolve($credential);
+        $session = $this->activeSession($token);
+
+        if ($token->consumed_at !== null) {
+            $this->revokeForReuse($token, $session);
+        }
+
+        if ($token->revoked_at !== null || $session->revoked_at !== null) {
+            throw new RefreshTokenException('authentication.session_revoked');
+        }
+
+        if (($token->expires_at !== null && !$token->expires_at->isFuture())
+            || ($session->expires_at !== null && !$session->expires_at->isFuture())) {
+            throw new RefreshTokenException('authentication.refresh_expired');
+        }
+
+        if ($this->beforeConsume !== null) {
+            ($this->beforeConsume)();
+        }
+
+        try {
+            return $this->events->withinTransaction(function () use ($token, $session): RotatedCredentialPair {
+                $now = CarbonImmutable::now('UTC');
+                $replacementMaterial = $this->hasher->issue('wncms_rt');
+                $consumed = ApiRefreshToken::query()
+                    ->whereKey($token->getKey())
+                    ->whereNull('consumed_at')
+                    ->whereNull('revoked_at')
+                    ->update([
+                        'consumed_at' => $now,
+                        'replaced_by_token_id' => $replacementMaterial['public_id'],
+                        'updated_at' => $now,
+                    ]);
+
+                if ($consumed !== 1) {
+                    throw new RefreshRotationLost('The refresh token was consumed by another request.');
+                }
+
+                $refresh = $this->persistIssued(
+                    $session,
+                    (string) $token->family_id,
+                    (string) $token->token_id,
+                    $replacementMaterial,
+                );
+                $user = $this->activeUser($token->user_id);
+                $access = $this->accessTokens->issue(
+                    $user,
+                    $session,
+                    $this->interactiveAbilities(),
+                    $this->websiteIds($user),
+                );
+
+                return new RotatedCredentialPair($access, $refresh);
+            }, [
+                'type' => 'auth.refresh.succeeded',
+                'severity' => 'info',
+                'outcome' => 'succeeded',
+                'context' => [
+                    'surface' => 'api_v2',
+                    'actor_type' => User::class,
+                    'actor_id' => $token->user_id,
+                    'credential_type' => ApiCredential::TYPE_REFRESH,
+                    'credential_id' => $token->token_id,
+                    'session_id' => $session->session_id,
+                ],
+            ]);
+        } catch (RefreshRotationLost $exception) {
+            $token->refresh();
+            $this->revokeForReuse($token, $session);
+        }
+    }
+
+    /**
+     * Resolve a correctly hashed refresh credential's session for idempotent logout.
+     *
+     * Revoked and consumed credentials remain resolvable for logout only.
+     *
+     * @param  \Wncms\Auth\Api\V2\ApiCredential  $credential
+     * @return \Wncms\Models\ApiSession|null
+     */
+    public function sessionForLogout(ApiCredential $credential): ?ApiSession
+    {
+        try {
+            $token = $this->resolve($credential);
+        } catch (RefreshTokenException $exception) {
+            return null;
+        }
+
+        $session = ApiSession::query()->whereKey($token->session_id)->where('user_id', $token->user_id)->first();
+
+        return $session instanceof ApiSession ? $session : null;
+    }
+
+    /**
+     * Resolve and verify one typed refresh credential.
+     *
+     * @param  \Wncms\Auth\Api\V2\ApiCredential  $credential
+     * @return \Wncms\Models\ApiRefreshToken
+     *
+     * @throws \Wncms\Auth\Api\V2\RefreshTokenException
+     */
+    private function resolve(ApiCredential $credential): ApiRefreshToken
+    {
+        if ($credential->type() !== ApiCredential::TYPE_REFRESH || $credential->publicId() === null) {
+            throw new RefreshTokenException('authentication.refresh_invalid');
+        }
+
+        $token = ApiRefreshToken::query()->where('token_id', $credential->publicId())->first();
+        if (!$token instanceof ApiRefreshToken
+            || !$this->hasher->matches($credential->plainText(), (string) $token->token_hash)) {
+            throw new RefreshTokenException('authentication.refresh_invalid');
+        }
+
+        return $token;
+    }
+
+    /**
+     * Resolve the token's exact session.
+     *
+     * @param  \Wncms\Models\ApiRefreshToken  $token
+     * @return \Wncms\Models\ApiSession
+     *
+     * @throws \Wncms\Auth\Api\V2\RefreshTokenException
+     */
+    private function activeSession(ApiRefreshToken $token): ApiSession
+    {
+        $session = ApiSession::query()->whereKey($token->session_id)->where('user_id', $token->user_id)->first();
+        if (!$session instanceof ApiSession || $session->refresh_transport !== 'json') {
+            throw new RefreshTokenException('authentication.refresh_invalid');
+        }
+
+        return $session;
+    }
+
+    /**
+     * Revoke the replayed family/session atomically, then throw the typed reuse failure.
+     *
+     * @param  \Wncms\Models\ApiRefreshToken  $token
+     * @param  \Wncms\Models\ApiSession  $session
+     * @return never
+     */
+    private function revokeForReuse(ApiRefreshToken $token, ApiSession $session): never
+    {
+        $this->events->withinTransaction(function () use ($session): void {
+            $now = CarbonImmutable::now('UTC');
+            ApiSession::query()->whereKey($session->getKey())->whereNull('revoked_at')->update([
+                'revoked_at' => $now,
+                'revocation_reason' => 'refresh_reuse',
+                'updated_at' => $now,
+            ]);
+            $this->revokeSessionCredentials($session, $now);
+        }, [
+            'type' => 'auth.refresh.reuse_detected',
+            'severity' => 'critical',
+            'outcome' => 'denied',
+            'context' => [
+                'surface' => 'api_v2',
+                'actor_type' => User::class,
+                'actor_id' => $token->user_id,
+                'credential_type' => ApiCredential::TYPE_REFRESH,
+                'credential_id' => $token->token_id,
+                'session_id' => $session->session_id,
+                'error_code' => 'authentication.refresh_reuse_detected',
+                'http_status' => 401,
+                'context' => ['reason' => 'refresh_reuse'],
+            ],
+        ]);
+
+        throw new RefreshTokenReuseException();
+    }
+
+    /**
+     * Revoke access and refresh credentials belonging only to one session.
+     *
+     * @param  \Wncms\Models\ApiSession  $session
+     * @param  \Carbon\CarbonImmutable  $now
+     * @return void
+     */
+    private function revokeSessionCredentials(ApiSession $session, CarbonImmutable $now): void
+    {
+        $accessModel = wncms()->getModelClass('api_access_token');
+        $refreshModel = wncms()->getModelClass('api_refresh_token');
+        $accessModel::query()->where('session_id', $session->getKey())->whereNull('revoked_at')->update([
+            'revoked_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $refreshModel::query()->where('session_id', $session->getKey())->whereNull('revoked_at')->update([
+            'revoked_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    /**
+     * Persist one issued refresh token from pre-generated material.
+     *
+     * @param  \Wncms\Models\ApiSession  $session
+     * @param  string  $familyId
+     * @param  string|null  $parentTokenId
+     * @param  array{plain_text: string, public_id: string, hash: string}  $material
+     * @return \Wncms\Auth\Api\V2\IssuedRefreshToken
+     */
+    private function persistIssued(ApiSession $session, string $familyId, ?string $parentTokenId, array $material): IssuedRefreshToken
+    {
+        $expiresAt = $session->expires_at === null
+            ? null
+            : CarbonImmutable::instance($session->expires_at);
+        $model = ApiRefreshToken::create([
+            'token_id' => $material['public_id'],
+            'token_hash' => $material['hash'],
+            'user_id' => $session->user_id,
+            'session_id' => $session->getKey(),
+            'family_id' => $familyId,
+            'parent_token_id' => $parentTokenId,
+            'expires_at' => $expiresAt,
+        ]);
+
+        return new IssuedRefreshToken($material['plain_text'], $expiresAt, $model);
+    }
+
+    /**
+     * Issue refresh material for one exact family.
+     *
+     * @param  \Wncms\Models\ApiSession  $session
+     * @param  string  $familyId
+     * @param  string|null  $parentTokenId
+     * @return \Wncms\Auth\Api\V2\IssuedRefreshToken
+     */
+    private function issueForFamily(ApiSession $session, string $familyId, ?string $parentTokenId): IssuedRefreshToken
+    {
+        if ($session->revoked_at !== null
+            || ($session->expires_at !== null && !$session->expires_at->isFuture())) {
+            throw new RefreshTokenException('authentication.session_revoked');
+        }
+
+        return $this->persistIssued($session, $familyId, $parentTokenId, $this->hasher->issue('wncms_rt'));
+    }
+
+    /**
+     * Resolve one active account.
+     *
+     * @param  mixed  $userId
+     * @return \Wncms\Models\User
+     */
+    private function activeUser(mixed $userId): User
+    {
+        $user = User::query()->find($userId);
+        if (!$user instanceof User || (method_exists($user, 'hasRole') && $user->hasRole('suspended'))) {
+            throw new RefreshTokenException('authentication.refresh_invalid');
+        }
+
+        return $user;
+    }
+
+    /**
+     * Return the explicit current operation ability catalog for interactive access.
+     *
+     * @return array<int, string>
+     */
+    private function interactiveAbilities(): array
+    {
+        $abilities = array_map(
+            static fn ($operation): ?string => $operation->ability,
+            $this->contracts->operations(),
+        );
+
+        return array_values(array_unique(array_filter($abilities, static fn (?string $ability): bool => $ability !== null)));
+    }
+
+    /**
+     * Return stable website IDs currently accessible to the actor.
+     *
+     * @param  \Wncms\Models\User  $user
+     * @return array<int, int>
+     */
+    private function websiteIds(User $user): array
+    {
+        return array_map('intval', $user->websites()->pluck('websites.id')->all());
+    }
+}

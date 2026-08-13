@@ -4,6 +4,7 @@ namespace Wncms\Auth\Api\V2;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Support\Facades\Log;
 use Wncms\Models\ApiAccessToken;
 use Wncms\Models\ApiSession;
 use Wncms\Models\User;
@@ -117,7 +118,7 @@ final class AccessTokenService
             throw new AuthenticationException('authentication.invalid_token');
         }
 
-        return new AuthenticationContext(
+        $context = new AuthenticationContext(
             $user,
             ApiCredential::TYPE_INTERACTIVE_ACCESS,
             (string) $token->token_id,
@@ -125,6 +126,45 @@ final class AccessTokenService
             $this->normalizeAbilities((array) $token->abilities),
             $this->normalizeWebsiteIds((array) $token->website_ids),
         );
+
+        $this->touchActivity($token, $session);
+
+        return $context;
+    }
+
+    /**
+     * Debounce ordinary activity metadata writes to at most once per five minutes.
+     *
+     * Metadata failure never denies an otherwise valid request and never extends expiry.
+     *
+     * @param  \Wncms\Models\ApiAccessToken  $token
+     * @param  \Wncms\Models\ApiSession  $session
+     * @return void
+     */
+    private function touchActivity(ApiAccessToken $token, ApiSession $session): void
+    {
+        try {
+            $now = CarbonImmutable::now('UTC');
+            $cutoff = $now->subMinutes(5);
+            ApiAccessToken::query()
+                ->whereKey($token->getKey())
+                ->where(function ($query) use ($cutoff): void {
+                    $query->whereNull('last_used_at')->orWhere('last_used_at', '<=', $cutoff);
+                })
+                ->update(['last_used_at' => $now, 'updated_at' => $now]);
+            ApiSession::query()
+                ->whereKey($session->getKey())
+                ->where(function ($query) use ($cutoff): void {
+                    $query->whereNull('last_activity_at')->orWhere('last_activity_at', '<=', $cutoff);
+                })
+                ->update(['last_activity_at' => $now, 'updated_at' => $now]);
+        } catch (\Throwable $exception) {
+            Log::warning('WNCMS interactive activity metadata could not be updated.', [
+                'credential_id' => $token->token_id,
+                'session_id' => $session->session_id,
+                'exception' => $exception::class,
+            ]);
+        }
     }
 
     /**

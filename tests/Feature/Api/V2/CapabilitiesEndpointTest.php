@@ -32,6 +32,14 @@ class CapabilitiesEndpointTest extends TestCase
         auth()->forgetGuards();
         app(PermissionRegistrar::class)->registerPermissions(Gate::getFacadeRoot());
         config([
+            'wncms-api-v2.auth_security.security_event_correlation' => [
+                'active_key_version' => 'v1',
+                'keys' => ['v1' => [
+                    'ip' => 'capabilities-ip-correlation-key-1234567890',
+                    'login_identifier' => 'capabilities-login-correlation-key-1234567890',
+                    'user_agent' => 'capabilities-agent-correlation-key-1234567890',
+                ]],
+            ],
             'wncms.auth_security.legacy_personal_tokens_enabled' => true,
             'wncms.auth_security.legacy_personal_tokens_cutoff_at' => now('UTC')->addDay()->toIso8601String(),
         ]);

@@ -15,7 +15,9 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Wncms\Api\V2\ApiResponseFactory;
+use Wncms\Auth\Api\V2\TokenHasher;
 use Wncms\Http\Controllers\Api\V2\Backend\ApiV2Controller;
+use Wncms\Models\ApiSession;
 use Wncms\Models\User;
 use Wncms\Models\Website;
 use Wncms\Tests\TestCase;
@@ -177,15 +179,34 @@ class ApiEnvelopeContractTest extends TestCase
      */
     public function test_missing_website_returns_a_context_failure_envelope(): void
     {
-        $this->actingAs(User::firstOrFail());
+        $user = User::firstOrFail();
+        $user->givePermissionTo('link_index');
+        $session = ApiSession::create([
+            'session_id' => (string) Str::ulid(),
+            'user_id' => $user->id,
+            'refresh_transport' => 'json',
+            'remembered' => false,
+            'expires_at' => now()->addDay(),
+        ]);
+        $material = app(TokenHasher::class)->issue('wncms_at');
+        $accessModel = wncms()->getModelClass('api_access_token');
+        $accessModel::create([
+            'token_id' => $material['public_id'],
+            'token_hash' => $material['hash'],
+            'user_id' => $user->id,
+            'session_id' => $session->id,
+            'abilities' => ['links.read'],
+            'website_ids' => [],
+            'expires_at' => now()->addMinutes(15),
+        ]);
         Website::query()->delete();
         wncms()->cache()->flush(['websites']);
 
-        $response = $this->getJson('/api/v2/backend/links');
+        $response = $this->withToken($material['plain_text'])->getJson('/api/v2/backend/links');
 
         $response
-            ->assertStatus(409)
-            ->assertJsonPath('meta.error_code', 'website.context_missing');
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'website.scope_missing');
         $this->assertEnvelope($response);
     }
 

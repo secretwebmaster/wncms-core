@@ -5,6 +5,7 @@ namespace Wncms\Http\Middleware;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\ApiV2ResponseFinalizer;
@@ -39,11 +40,18 @@ class AssignApiV2RequestId
 
         try {
             $response = $next($request);
+        } catch (HttpResponseException $exception) {
+            $response = $exception->getResponse();
+            if ($response instanceof JsonResponse) {
+                $response->exception = null;
+            }
         } catch (\Throwable $exception) {
             $response = $this->responses->fromThrowable($exception);
         }
 
-        if ($response instanceof JsonResponse && $response->exception instanceof \Throwable) {
+        if ($response instanceof JsonResponse && $response->exception instanceof HttpResponseException) {
+            $response = $response->exception->getResponse();
+        } elseif ($response instanceof JsonResponse && $response->exception instanceof \Throwable) {
             $response = $this->responses->fromReportedThrowable($response->exception);
         }
 

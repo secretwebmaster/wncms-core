@@ -7,16 +7,23 @@ use Wncms\Http\Controllers\Api\V2\Backend\BridgeController;
 use Wncms\Http\Controllers\Api\V2\Backend\I18nController;
 use Wncms\Http\Controllers\Api\V2\Backend\OperationController;
 use Wncms\Http\Controllers\Api\V2\Backend\ResourceController;
+use Wncms\Http\Controllers\Api\V2\Backend\SessionController;
 
 Route::prefix('v2/backend')
     ->name('api.v2.backend.')
     ->middleware(['api', 'api_v2_whitelist'])
     ->group(function () {
-        Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login');
+        Route::post('/auth/login', [AuthController::class, 'login'])
+            ->middleware('throttle:api-v2-login')
+            ->name('auth.login');
+        Route::post('/auth/refresh', [AuthController::class, 'refresh'])->name('auth.refresh');
+        Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
         Route::middleware(['api_v2_token_auth'])->group(function () {
-            Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
+            Route::post('/auth/logout-all', [AuthController::class, 'logoutAll'])->name('auth.logout_all');
             Route::get('/auth/me', [AuthController::class, 'me'])->name('auth.me');
+            Route::get('/auth/sessions', [SessionController::class, 'index'])->name('auth.sessions.index');
+            Route::delete('/auth/sessions/{session_id}', [SessionController::class, 'destroy'])->name('auth.sessions.destroy');
             Route::get('/i18n/ui', [I18nController::class, 'ui'])->name('i18n.ui');
             Route::get('/translations', [I18nController::class, 'translations'])->name('translations');
             Route::get('/operations/{id}', [OperationController::class, 'show'])->name('operations.show');

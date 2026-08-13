@@ -32,6 +32,14 @@ class LinkApiV2ControllerTest extends TestCase
         auth()->forgetGuards();
         app(PermissionRegistrar::class)->registerPermissions(Gate::getFacadeRoot());
         config([
+            'wncms-api-v2.auth_security.security_event_correlation' => [
+                'active_key_version' => 'v1',
+                'keys' => ['v1' => [
+                    'ip' => 'links-ip-correlation-key-123456789012345',
+                    'login_identifier' => 'links-login-correlation-key-123456789012345',
+                    'user_agent' => 'links-agent-correlation-key-123456789012345',
+                ]],
+            ],
             'wncms.auth_security.legacy_personal_tokens_enabled' => true,
             'wncms.auth_security.legacy_personal_tokens_cutoff_at' => now('UTC')->addDay()->toIso8601String(),
         ]);

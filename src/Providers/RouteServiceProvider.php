@@ -5,8 +5,13 @@ namespace Wncms\Providers;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Wncms\Api\V2\ApiResponseFactory;
+use Wncms\Auth\Api\V2\LoginThrottleService;
+use Wncms\Services\Security\SecurityEventService;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -56,6 +61,52 @@ class RouteServiceProvider extends ServiceProvider
     {
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+        });
+
+        RateLimiter::for('api-v2-login', function (Request $request) {
+            $window = max(1, (int) config('wncms.auth_security.login_window_minutes', 15));
+            $response = function (Request $request, array $headers): Response {
+                try {
+                    app(SecurityEventService::class)->recordAggregate('auth.login.throttled', 'warning', 'denied', [
+                        'surface' => 'api_v2',
+                        'request_id' => $request->attributes->get('wncms_api_v2_request_id'),
+                        'ip' => (string) $request->ip(),
+                        'login_identifier' => mb_strtolower(trim((string) $request->input('email'))),
+                        'user_agent' => (string) ($request->userAgent() ?: 'unknown-client'),
+                        'error_code' => 'authentication.rate_limited',
+                        'http_status' => 429,
+                        'context' => ['reason' => 'login_throttled'],
+                    ]);
+                } catch (\Throwable $exception) {
+                    Log::warning('WNCMS login throttle event could not be persisted.', [
+                        'request_id' => $request->attributes->get('wncms_api_v2_request_id'),
+                        'exception' => $exception::class,
+                    ]);
+                }
+
+                $response = app(ApiResponseFactory::class)->failure(
+                    'authentication.rate_limited',
+                    'Too many login attempts',
+                    Response::HTTP_TOO_MANY_REQUESTS,
+                );
+                foreach ($headers as $name => $value) {
+                    $response->headers->set((string) $name, $value);
+                }
+
+                return $response;
+            };
+            $failed = static fn (Response $response): bool => $response->getStatusCode() === Response::HTTP_UNAUTHORIZED;
+
+            return [
+                Limit::perMinutes($window, max(1, (int) config('wncms.auth_security.login_account_attempts', 5)))
+                    ->by(LoginThrottleService::accountKey((string) $request->input('email')))
+                    ->after($failed)
+                    ->response($response),
+                Limit::perMinutes($window, max(1, (int) config('wncms.auth_security.login_ip_attempts', 30)))
+                    ->by(LoginThrottleService::ipKey((string) $request->ip()))
+                    ->after($failed)
+                    ->response($response),
+            ];
         });
     }
 }
