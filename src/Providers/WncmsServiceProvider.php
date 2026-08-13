@@ -4,14 +4,13 @@ namespace Wncms\Providers;
 
 use Exception;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\ServiceProvider;
-use Wncms\Exceptions\WncmsExceptionHandler;
-use Illuminate\Support\Facades\File;
 use Illuminate\Foundation\AliasLoader;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Wncms\Api\V2\ApiContractRegistry;
@@ -23,9 +22,9 @@ use Wncms\Api\V2\Contracts\IdempotencyStore;
 use Wncms\Api\V2\Contracts\OperationRepository;
 use Wncms\Api\V2\IdempotencyService;
 use Wncms\Api\V2\ModelPermissionResolver;
+use Wncms\Api\V2\OpenApiDocumentBuilder;
 use Wncms\Api\V2\OperationService;
 use Wncms\Api\V2\OperationValidator;
-use Wncms\Api\V2\OpenApiDocumentBuilder;
 use Wncms\Api\V2\ReplayResponseTrust;
 use Wncms\Api\V2\Repositories\CacheIdempotencyStore;
 use Wncms\Api\V2\Repositories\CacheOperationRepository;
@@ -36,12 +35,14 @@ use Wncms\Auth\Api\V2\CsrfTokenService;
 use Wncms\Auth\Api\V2\DummyPasswordHasher;
 use Wncms\Auth\Api\V2\LoginThrottleService;
 use Wncms\Auth\Api\V2\OriginPolicy;
-use Wncms\Auth\Api\V2\RefreshTokenService;
 use Wncms\Auth\Api\V2\RefreshTokenConsumer;
+use Wncms\Auth\Api\V2\RefreshTokenService;
 use Wncms\Auth\Api\V2\SessionService;
 use Wncms\Auth\Api\V2\TokenHasher;
 use Wncms\Auth\Api\V2\WebsiteScopeGuard;
+use Wncms\Exceptions\WncmsExceptionHandler;
 use Wncms\Http\Middleware\ApiV2TokenAuth;
+use Wncms\Http\Middleware\ApplyApiV2CookieCors;
 use Wncms\Http\Middleware\EnforceApiV2RefreshTransport;
 use Wncms\Http\Middleware\RequireApiV2Ability;
 use Wncms\Http\Middleware\RequireApiV2ModelPermission;
@@ -85,7 +86,7 @@ class WncmsServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (!defined('WNCMS_CORE_PATH')) {
+        if (! defined('WNCMS_CORE_PATH')) {
             define('WNCMS_CORE_PATH', base_path('vendor/secretwebmaster/wncms-core/'));
         }
         config('app.debug') ? error_reporting(E_ALL) : error_reporting(0);
@@ -119,6 +120,7 @@ class WncmsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('api_v2_refresh_csrf', ValidateApiV2RefreshCsrf::class);
 
         $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
+        $kernel->prependMiddleware(ApplyApiV2CookieCors::class);
         $kernel->prependToMiddlewarePriority(\Wncms\Http\Middleware\AssignApiV2RequestId::class);
         foreach ([
             EnforceApiV2RefreshTransport::class,
@@ -140,12 +142,12 @@ class WncmsServiceProvider extends ServiceProvider
         });
 
         // Core resources
-        $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
+        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
         // API routes are grouped and loaded once by RouteServiceProvider.
         $this->loadMcpRoutes();
-        $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'wncms');
-        $this->loadTranslationsFrom(__DIR__ . '/../../lang', 'wncms');
-        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'wncms');
+        $this->loadTranslationsFrom(__DIR__.'/../../lang', 'wncms');
+        $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
         $this->registerModels();
 
         // Publish mappings must be available for both CLI and wizard-triggered Artisan::call().
@@ -177,49 +179,49 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function defineConstants(): void
     {
-        if (!defined('WNCMS_START')) {
+        if (! defined('WNCMS_START')) {
             define('WNCMS_START', true);
         }
 
         // package root
-        if (!defined('WNCMS_ROOT')) {
-            $root = realpath(__DIR__ . '/../../');
-            define('WNCMS_ROOT', rtrim($root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR);
+        if (! defined('WNCMS_ROOT')) {
+            $root = realpath(__DIR__.'/../../');
+            define('WNCMS_ROOT', rtrim($root, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR);
         }
 
         // config path
-        if (!defined('WNCMS_CONFIG_PATH')) {
-            define('WNCMS_CONFIG_PATH', WNCMS_ROOT . 'config' . DIRECTORY_SEPARATOR);
+        if (! defined('WNCMS_CONFIG_PATH')) {
+            define('WNCMS_CONFIG_PATH', WNCMS_ROOT.'config'.DIRECTORY_SEPARATOR);
         }
 
         // database path
-        if (!defined('WNCMS_DATABASE_PATH')) {
-            define('WNCMS_DATABASE_PATH', WNCMS_ROOT . 'database' . DIRECTORY_SEPARATOR);
+        if (! defined('WNCMS_DATABASE_PATH')) {
+            define('WNCMS_DATABASE_PATH', WNCMS_ROOT.'database'.DIRECTORY_SEPARATOR);
         }
 
         // src path
-        if (!defined('WNCMS_APP_PATH')) {
-            define('WNCMS_APP_PATH', WNCMS_ROOT . 'src' . DIRECTORY_SEPARATOR);
+        if (! defined('WNCMS_APP_PATH')) {
+            define('WNCMS_APP_PATH', WNCMS_ROOT.'src'.DIRECTORY_SEPARATOR);
         }
 
         // resources path
-        if (!defined('WNCMS_RESOURCES_PATH')) {
-            define('WNCMS_RESOURCES_PATH', WNCMS_ROOT . 'resources' . DIRECTORY_SEPARATOR);
+        if (! defined('WNCMS_RESOURCES_PATH')) {
+            define('WNCMS_RESOURCES_PATH', WNCMS_ROOT.'resources'.DIRECTORY_SEPARATOR);
         }
 
         // lang path
-        if (!defined('WNCMS_LANG_PATH')) {
-            define('WNCMS_LANG_PATH', WNCMS_RESOURCES_PATH . 'lang' . DIRECTORY_SEPARATOR);
+        if (! defined('WNCMS_LANG_PATH')) {
+            define('WNCMS_LANG_PATH', WNCMS_RESOURCES_PATH.'lang'.DIRECTORY_SEPARATOR);
         }
 
         // route path
-        if (!defined('WNCMS_ROUTE_PATH')) {
-            define('WNCMS_ROUTE_PATH', WNCMS_ROOT . 'routes' . DIRECTORY_SEPARATOR);
+        if (! defined('WNCMS_ROUTE_PATH')) {
+            define('WNCMS_ROUTE_PATH', WNCMS_ROOT.'routes'.DIRECTORY_SEPARATOR);
         }
 
         // update path
-        if (!defined('WNCMS_UPDATE_PATH')) {
-            define('WNCMS_UPDATE_PATH', WNCMS_DATABASE_PATH . 'updates' . DIRECTORY_SEPARATOR);
+        if (! defined('WNCMS_UPDATE_PATH')) {
+            define('WNCMS_UPDATE_PATH', WNCMS_DATABASE_PATH.'updates'.DIRECTORY_SEPARATOR);
         }
     }
 
@@ -228,9 +230,9 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function loadFacades(): void
     {
-        $this->app->singleton('wncms', fn($app) => new \Wncms\Services\Wncms);
-        $this->app->singleton('macroable-models', fn($app) => new \Wncms\Services\MacroableModels\MacroableModels);
-        $this->app->singleton(\Wncms\Services\Managers\TagManager::class, fn($app) => new \Wncms\Services\Managers\TagManager);
+        $this->app->singleton('wncms', fn ($app) => new \Wncms\Services\Wncms);
+        $this->app->singleton('macroable-models', fn ($app) => new \Wncms\Services\MacroableModels\MacroableModels);
+        $this->app->singleton(\Wncms\Services\Managers\TagManager::class, fn ($app) => new \Wncms\Services\Managers\TagManager);
     }
 
     /**
@@ -261,14 +263,12 @@ class WncmsServiceProvider extends ServiceProvider
         ];
 
         foreach ($configs as $config) {
-            $this->mergeConfigFrom(__DIR__ . "/../../config/{$config}.php", $config);
+            $this->mergeConfigFrom(__DIR__."/../../config/{$config}.php", $config);
         }
     }
 
     /**
      * Register API v2 contract services.
-     *
-     * @return void
      */
     protected function registerApiV2ContractServices(): void
     {
@@ -277,11 +277,11 @@ class WncmsServiceProvider extends ServiceProvider
         $this->app->bind(AuthSecurityConfig::class, static fn () => AuthSecurityConfig::fromRuntime());
         $this->app->singleton(TokenHasher::class);
         $this->app->singleton(CredentialParser::class);
-        $this->app->bind(OriginPolicy::class);
+        $this->app->bind(OriginPolicy::class, static fn () => new OriginPolicy);
         $this->app->singleton(CsrfTokenService::class);
         $this->app->singleton(DummyPasswordHasher::class);
         $this->app->singleton(AccessTokenService::class);
-        $this->app->singleton(RefreshTokenService::class);
+        $this->app->bind(RefreshTokenService::class);
         $this->app->singleton(RefreshTokenConsumer::class);
         $this->app->singleton(SessionService::class);
         $this->app->singleton(LoginThrottleService::class);
@@ -380,11 +380,11 @@ class WncmsServiceProvider extends ServiceProvider
     {
         // Ensure media disk always exists
         $disks = config('filesystems.disks', []);
-        if (!isset($disks['media'])) {
+        if (! isset($disks['media'])) {
             $disks['media'] = [
                 'driver' => 'local',
                 'root' => public_path('media'),
-                'url' => env('APP_URL') . '/media',
+                'url' => env('APP_URL').'/media',
                 'visibility' => 'public',
             ];
         }
@@ -404,8 +404,6 @@ class WncmsServiceProvider extends ServiceProvider
 
     /**
      * Load the global mutation audit setting into runtime config.
-     *
-     * @return void
      */
     protected function loadMutationAuditSettings(): void
     {
@@ -416,8 +414,6 @@ class WncmsServiceProvider extends ServiceProvider
 
     /**
      * Load validated authentication security settings into runtime configuration.
-     *
-     * @return void
      */
     protected function loadAuthSecuritySettings(): void
     {
@@ -439,8 +435,9 @@ class WncmsServiceProvider extends ServiceProvider
         }
 
         $configuredAllowList = config('wncms.cache.serializable_classes', []);
-        if (is_array($configuredAllowList) && !empty($configuredAllowList)) {
+        if (is_array($configuredAllowList) && ! empty($configuredAllowList)) {
             config(['cache.serializable_classes' => $configuredAllowList]);
+
             return;
         }
 
@@ -452,8 +449,9 @@ class WncmsServiceProvider extends ServiceProvider
         $fallbackLifetime = (int) config('session.lifetime', 120);
         $configuredLifetime = gss('session_lifetime', $fallbackLifetime);
 
-        if (!is_numeric($configuredLifetime)) {
+        if (! is_numeric($configuredLifetime)) {
             config(['session.lifetime' => $fallbackLifetime]);
+
             return;
         }
 
@@ -501,6 +499,7 @@ class WncmsServiceProvider extends ServiceProvider
         foreach ($resolvedModes as $modelKey => $mode) {
             if (isset($models[$modelKey])) {
                 $models[$modelKey]['website_mode'] = $mode;
+
                 continue;
             }
 
@@ -521,16 +520,16 @@ class WncmsServiceProvider extends ServiceProvider
 
     protected function loadTranslationSettings(): void
     {
-        if (!function_exists('wncms_is_installed') || !wncms_is_installed()) {
+        if (! function_exists('wncms_is_installed') || ! wncms_is_installed()) {
             return;
         }
 
         // Ensure translator is bound before attempting to use translation features
-        if (!$this->app->bound('translator')) {
+        if (! $this->app->bound('translator')) {
             return;
         }
 
-        if (!gss('enable_translation', true)) {
+        if (! gss('enable_translation', true)) {
             return;
         }
 
@@ -538,7 +537,7 @@ class WncmsServiceProvider extends ServiceProvider
         $configuredSupportedLocaleKeys = $this->parseLocaleSettingList(gss('supported_locales', ''));
         $resolvedSupportedLocales = $baseSupportedLocales;
 
-        if (!empty($configuredSupportedLocaleKeys)) {
+        if (! empty($configuredSupportedLocaleKeys)) {
             $resolvedSupportedLocales = [];
             foreach ($configuredSupportedLocaleKeys as $localeKey) {
                 if (isset($baseSupportedLocales[$localeKey])) {
@@ -558,7 +557,7 @@ class WncmsServiceProvider extends ServiceProvider
 
         $configuredLocalesOrder = $this->parseLocaleSettingList(gss('locales_order', ''));
         $resolvedLocalesOrder = [];
-        if (!empty($configuredLocalesOrder)) {
+        if (! empty($configuredLocalesOrder)) {
             foreach ($configuredLocalesOrder as $localeKey) {
                 if (isset($resolvedSupportedLocales[$localeKey])) {
                     $resolvedLocalesOrder[] = $localeKey;
@@ -612,7 +611,7 @@ class WncmsServiceProvider extends ServiceProvider
         }
 
         return collect($candidates)
-            ->map(fn($item) => trim((string) $item))
+            ->map(fn ($item) => trim((string) $item))
             ->filter()
             ->unique()
             ->values()
@@ -621,8 +620,6 @@ class WncmsServiceProvider extends ServiceProvider
 
     /**
      * Setup shared view variables and composers.
-     *
-     * @return void
      */
     protected function loadGlobalVariables(): void
     {
@@ -647,34 +644,34 @@ class WncmsServiceProvider extends ServiceProvider
     {
         // Core assets
         $this->publishes([
-            __DIR__ . '/../../resources/core-assets' => public_path('wncms'),
-            __DIR__ . '/../../resources/views/errors' => resource_path('views/errors'),
-            __DIR__ . '/../../resources/views/layouts/error.blade.php' => resource_path('views/layouts/error.blade.php'),
+            __DIR__.'/../../resources/core-assets' => public_path('wncms'),
+            __DIR__.'/../../resources/views/errors' => resource_path('views/errors'),
+            __DIR__.'/../../resources/views/layouts/error.blade.php' => resource_path('views/layouts/error.blade.php'),
         ], 'wncms-core-assets');
 
         // Dedicated stub publish tag for updates/installers.
         $this->publishes([
-            __DIR__ . '/../../resources/stubs' => base_path('stubs'),
+            __DIR__.'/../../resources/stubs' => base_path('stubs'),
         ], 'wncms-stubs');
 
         // Agent files (AGENTS.md + skills) for host project root.
         $this->publishes([
-            __DIR__ . '/../../resources/agent-files/AGENTS.md' => base_path('AGENTS.md'),
-            __DIR__ . '/../../resources/agent-files/.github/skills' => base_path('.github/skills'),
+            __DIR__.'/../../resources/agent-files/AGENTS.md' => base_path('AGENTS.md'),
+            __DIR__.'/../../resources/agent-files/.github/skills' => base_path('.github/skills'),
         ], 'wncms-agent-files');
 
         // Theme assets (assets only)
-        $themesPath = __DIR__ . '/../../resources/themes';
+        $themesPath = __DIR__.'/../../resources/themes';
 
-        foreach (glob($themesPath . '/*', GLOB_ONLYDIR) as $themeDir) {
+        foreach (glob($themesPath.'/*', GLOB_ONLYDIR) as $themeDir) {
             $themeId = basename($themeDir);
 
-            if (!is_dir($themeDir . '/assets')) {
+            if (! is_dir($themeDir.'/assets')) {
                 continue;
             }
 
             $this->publishes([
-                $themeDir . '/assets' => public_path('themes/' . $themeId . '/assets'),
+                $themeDir.'/assets' => public_path('themes/'.$themeId.'/assets'),
             ], 'wncms-default-assets');
         }
     }
@@ -684,9 +681,9 @@ class WncmsServiceProvider extends ServiceProvider
      */
     protected function loadCommands(): void
     {
-        $commandsPath = __DIR__ . '/../Console/Commands';
+        $commandsPath = __DIR__.'/../Console/Commands';
 
-        if (!is_dir($commandsPath)) {
+        if (! is_dir($commandsPath)) {
             return;
         }
 
@@ -699,7 +696,7 @@ class WncmsServiceProvider extends ServiceProvider
             }
 
             // Example: ImportDemoCommand.php → Wncms\Console\Commands\ImportDemoCommand
-            $class = 'Wncms\\Console\\Commands\\' . $file->getFilenameWithoutExtension();
+            $class = 'Wncms\\Console\\Commands\\'.$file->getFilenameWithoutExtension();
 
             if (class_exists($class)) {
                 $reflection = new \ReflectionClass($class);
@@ -710,7 +707,7 @@ class WncmsServiceProvider extends ServiceProvider
             }
         }
 
-        if (!empty($commandClasses)) {
+        if (! empty($commandClasses)) {
             $this->commands($commandClasses);
         }
     }
@@ -725,9 +722,9 @@ class WncmsServiceProvider extends ServiceProvider
             \Wncms\Console\Commands\UpdateWebsite::class,
         ];
 
-        $commandClasses = array_values(array_filter($commandClasses, static fn($class) => class_exists($class)));
+        $commandClasses = array_values(array_filter($commandClasses, static fn ($class) => class_exists($class)));
 
-        if (!empty($commandClasses)) {
+        if (! empty($commandClasses)) {
             $this->commands($commandClasses);
         }
     }
@@ -735,8 +732,8 @@ class WncmsServiceProvider extends ServiceProvider
     protected function registerModels(): void
     {
         // 1. Register all WNCMS core models
-        foreach (glob(WNCMS_CORE_PATH . 'src/Models/*.php') as $file) {
-            $class = 'Wncms\\Models\\' . basename($file, '.php');
+        foreach (glob(WNCMS_CORE_PATH.'src/Models/*.php') as $file) {
+            $class = 'Wncms\\Models\\'.basename($file, '.php');
 
             if (class_exists($class)) {
                 wncms()->registerModel($class);
@@ -744,8 +741,8 @@ class WncmsServiceProvider extends ServiceProvider
         }
 
         // 2. Register all App\Models (user overrides)
-        foreach (glob(app_path('Models') . '/*.php') as $file) {
-            $class = 'App\\Models\\' . basename($file, '.php');
+        foreach (glob(app_path('Models').'/*.php') as $file) {
+            $class = 'App\\Models\\'.basename($file, '.php');
 
             if (class_exists($class)) {
                 wncms()->registerModel($class);
@@ -755,8 +752,6 @@ class WncmsServiceProvider extends ServiceProvider
 
     /**
      * Load the opt-in local MCP server registration.
-     *
-     * @return void
      */
     protected function loadMcpRoutes(): void
     {

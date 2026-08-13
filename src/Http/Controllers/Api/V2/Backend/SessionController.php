@@ -7,39 +7,29 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Auth\Api\V2\ApiCredential;
-use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\AuthenticationContext;
+use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\OriginPolicy;
 use Wncms\Auth\Api\V2\SessionService;
-use Wncms\Models\ApiSession;
 use Wncms\Models\User;
 
 class SessionController extends ApiV2Controller
 {
     /**
      * Create the session management controller.
-     *
-     * @param  \Wncms\Auth\Api\V2\SessionService  $sessions
-     * @param  \Wncms\Auth\Api\V2\AuthSecurityConfig  $securityConfig
-     * @param  \Wncms\Auth\Api\V2\OriginPolicy  $originPolicy
      */
     public function __construct(
         private SessionService $sessions,
-        private AuthSecurityConfig $securityConfig,
         private OriginPolicy $originPolicy,
-    ) {
-    }
+    ) {}
 
     /**
      * List the current actor's safe interactive-session metadata.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
         $context = $this->interactiveContext($request);
-        if (!$context instanceof AuthenticationContext || !$context->actor() instanceof User) {
+        if (! $context instanceof AuthenticationContext || ! $context->actor() instanceof User) {
             return $this->credentialTypeDenied();
         }
 
@@ -50,15 +40,11 @@ class SessionController extends ApiV2Controller
      * Revoke one session owned by the current actor.
      *
      * Unknown and cross-user public IDs return the same opaque 404 response.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  string  $sessionId
-     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(Request $request, string $sessionId): JsonResponse
     {
         $context = $this->interactiveContext($request);
-        if (!$context instanceof AuthenticationContext || !$context->actor() instanceof User) {
+        if (! $context instanceof AuthenticationContext || ! $context->actor() instanceof User) {
             return $this->credentialTypeDenied();
         }
 
@@ -67,7 +53,7 @@ class SessionController extends ApiV2Controller
             ->where('session_id', $sessionId)
             ->where('user_id', $context->actor()->getKey())
             ->first();
-        if (!$session instanceof $sessionModel) {
+        if (! $session instanceof $sessionModel) {
             return $this->responseFactory()->failure(
                 'resource.not_found',
                 'Resource not found',
@@ -82,8 +68,8 @@ class SessionController extends ApiV2Controller
         }
 
         $response = $this->ok(null, 'session_revoked');
-        if ($this->securityConfig->refreshTransport() !== 'cookie'
-            || !hash_equals((string) $session->session_id, (string) $context->sessionPublicId())) {
+        if (AuthSecurityConfig::fromRuntime()->refreshTransport() !== 'cookie'
+            || ! hash_equals((string) $session->session_id, (string) $context->sessionPublicId())) {
             return $response;
         }
 
@@ -107,9 +93,6 @@ class SessionController extends ApiV2Controller
 
     /**
      * Return an interactive context or null for non-interactive credentials.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Wncms\Auth\Api\V2\AuthenticationContext|null
      */
     private function interactiveContext(Request $request): ?AuthenticationContext
     {
@@ -123,8 +106,6 @@ class SessionController extends ApiV2Controller
 
     /**
      * Return the stable denial for credential types that cannot manage sessions.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
     private function credentialTypeDenied(): JsonResponse
     {

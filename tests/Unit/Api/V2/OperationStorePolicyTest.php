@@ -2,6 +2,7 @@
 
 namespace Wncms\Tests\Unit\Api\V2;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Cache\ApcStore;
 use Illuminate\Cache\ApcWrapper;
 use Illuminate\Cache\ArrayStore;
@@ -24,6 +25,18 @@ use Wncms\Tests\TestCase;
 class OperationStorePolicyTest extends TestCase
 {
     protected const OPERATION_ID = '123e4567-e89b-42d3-a456-426614174080';
+
+    /**
+     * Restore the wall clock after time-sensitive operation fixtures.
+     *
+     * @return void
+     */
+    protected function tearDown(): void
+    {
+        CarbonImmutable::setTestNow();
+
+        parent::tearDown();
+    }
 
     /**
      * Verify production rejects APC because it cannot provide the shared atomic lock contract.
@@ -139,6 +152,7 @@ class OperationStorePolicyTest extends TestCase
      */
     public function test_repository_uses_one_resolved_backend_for_records_and_atomic_locks(): void
     {
+        CarbonImmutable::setTestNow('2026-08-12 09:00:00 UTC');
         $store = new CustomSharedOperationStore();
         $cacheRepository = new IlluminateCacheRepository($store);
         $cache = Mockery::mock(CacheFactory::class);

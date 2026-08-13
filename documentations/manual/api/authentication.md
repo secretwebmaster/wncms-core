@@ -66,11 +66,28 @@ absent.
 
 For Cookie refresh and logout, copy `wncms_refresh_csrf` into the
 `X-WNCMS-CSRF` header. WNCMS compares both values and verifies their hash-only
-binding to the current session. Successful refresh rotates both cookies;
+binding to that exact refresh credential. This lets a replay with its original
+proof reach reuse detection, while random or stale proof values remain denied.
+Successful refresh rotates both cookies;
 logout and applicable session revocations expire both. A body/cookie channel
 mismatch returns `authentication.refresh_transport_mismatch`, while Origin and
 CSRF failures return `authentication.origin_denied` and
-`authentication.csrf_failed`.
+`authentication.csrf_failed`. Both denials write redacted security events.
+
+The host must enable credentialed CORS for the exact configured origins and
+the `api/v2/backend/auth/*` path. Do not use `*` origins with credentials. WNCMS
+adds exact `Access-Control-Allow-Origin`, `Access-Control-Allow-Credentials:
+true`, and `Vary: Origin` headers, and handles auth preflights. `SameSite=None`
+is rejected unless the application URL/cookies are HTTPS and host CORS has
+`supports_credentials = true`, an auth path, and every configured exact origin.
+Permanent remembered credentials still use a bounded 400-day persistent
+browser-cookie horizon; logout always expires the exact cookie scope.
+
+Changing refresh transport revokes all active interactive sessions. Changing
+Cookie domain, SameSite, allowed Origins, or Referer fallback revokes active
+Cookie sessions. The setting write, credential revocation, and mandatory
+`security.auth_policy.changed` event commit atomically; service tokens are not
+revoked.
 
 ```javascript
 const csrf = readCookie('wncms_refresh_csrf')

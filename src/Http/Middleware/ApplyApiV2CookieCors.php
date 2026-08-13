@@ -11,10 +11,14 @@ use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\OriginPolicy;
 use Wncms\Services\Security\SecurityEventService;
 
-final class ValidateApiV2RefreshOrigin
+final class ApplyApiV2CookieCors
 {
     /**
-     * Create the Cookie Origin guard.
+     * Create the narrow credentialed-CORS boundary for browser auth endpoints.
+     *
+     * @param  \Wncms\Auth\Api\V2\OriginPolicy  $origins
+     * @param  \Wncms\Api\V2\ApiResponseFactory  $responses
+     * @param  \Wncms\Services\Security\SecurityEventService  $events
      */
     public function __construct(
         private OriginPolicy $origins,
@@ -23,18 +27,33 @@ final class ValidateApiV2RefreshOrigin
     ) {}
 
     /**
-     * Enforce exact Origin policy only while Cookie refresh mode is active.
+     * Apply exact credentialed CORS and terminate valid browser preflights.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (AuthSecurityConfig::fromRuntime()->refreshTransport() !== 'cookie') {
+        if (! $request->is('api/v2/backend/auth/*')
+            || AuthSecurityConfig::fromRuntime()->refreshTransport() !== 'cookie') {
+            return $next($request);
+        }
+
+        $origin = trim((string) $request->headers->get('Origin', ''));
+        if ($origin === '') {
             return $next($request);
         }
 
         try {
             $this->origins->assertAllowed($request);
         } catch (\RuntimeException $exception) {
-            $this->recordDenial($request);
+            if (! $request->isMethod('OPTIONS')) {
+                return $next($request);
+            }
+
+            $this->recordOriginDenial($request);
 
             return $this->responses->failure(
                 'authentication.origin_denied',
@@ -43,13 +62,26 @@ final class ValidateApiV2RefreshOrigin
             );
         }
 
-        return $next($request);
+        $response = $request->isMethod('OPTIONS')
+            ? response()->noContent()
+            : $next($request);
+        $response->headers->set('Access-Control-Allow-Origin', $origin);
+        $response->headers->set('Access-Control-Allow-Credentials', 'true');
+        $response->headers->set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, X-WNCMS-CSRF');
+        $response->setVary('Origin', false);
+
+        return $response;
     }
 
     /**
-     * Persist an allowlisted Origin denial or emit a redacted fallback warning.
+     * Persist a preflight Origin denial or emit a redacted structured fallback.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     *
+     * @return void
      */
-    private function recordDenial(Request $request): void
+    private function recordOriginDenial(Request $request): void
     {
         try {
             $this->events->record('security.origin.denied', 'warning', 'denied', [

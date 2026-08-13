@@ -24,6 +24,7 @@ final class SecurityEventService
         'auth.legacy.accepted', 'auth.legacy.rejected', 'auth.legacy.cutoff_changed', 'auth.legacy.disabled',
         'risk.plan.created', 'risk.plan.confirmed', 'risk.plan.stale', 'risk.confirmation.reused',
         'security.csrf.denied', 'security.origin.denied', 'security.ability.denied',
+        'security.auth_policy.changed',
         'security.permission.denied', 'security.website_scope.denied', 'security.blade.enabled',
         'security.blade.disabled', 'security.blade.policy_unavailable', 'security.retention.completed',
     ];
@@ -50,47 +51,35 @@ final class SecurityEventService
     /**
      * Create the mandatory security-event service.
      *
-     * @param  \Wncms\Services\Security\SecurityCorrelationHasher  $correlationHasher
-     * @param  \Wncms\Services\Automation\MutationAuditService  $redactor
      *
      * @return void
      */
     public function __construct(
         protected SecurityCorrelationHasher $correlationHasher,
         protected MutationAuditService $redactor
-    ) {
-    }
+    ) {}
 
     /**
      * Record one allowlisted, redacted security event.
-     *
-     * @param  string  $type
-     * @param  string  $severity
-     * @param  string  $outcome
-     * @param  array  $context
-     *
-     * @return \Wncms\Models\ApiSecurityEvent
      */
     public function record(string $type, string $severity, string $outcome, array $context = []): ApiSecurityEvent
     {
         $this->validateCatalogValue($type, $severity, $outcome);
         $attributes = $this->buildAttributes($type, $severity, $outcome, $context);
+
         return $this->persist($attributes);
     }
 
     /**
      * Commit a security mutation and its mandatory event atomically.
      *
-     * @param  callable  $mutation
-     * @param  array  $event
      *
-     * @return mixed
      *
      * @throws \RuntimeException
      */
     public function withinTransaction(callable $mutation, array $event): mixed
     {
-        if (!$this->correlationHasher->isConfigured()) {
+        if (! $this->correlationHasher->isConfigured()) {
             throw new \RuntimeException('Security event correlation keys are unavailable.');
         }
 
@@ -112,17 +101,10 @@ final class SecurityEventService
      *
      * The correlation tuple is event catalog values, surface, HMAC correlations, and
      * configured key version. Aggregates deliberately update only count/timestamps.
-     *
-     * @param  string  $type
-     * @param  string  $severity
-     * @param  string  $outcome
-     * @param  array  $context
-     *
-     * @return \Wncms\Models\ApiSecurityEvent
      */
     public function recordAggregate(string $type, string $severity, string $outcome, array $context = []): ApiSecurityEvent
     {
-        if (!$this->correlationHasher->isConfigured()) {
+        if (! $this->correlationHasher->isConfigured()) {
             throw new \RuntimeException('Security event correlation keys are unavailable.');
         }
 
@@ -180,13 +162,6 @@ final class SecurityEventService
 
     /**
      * Build the persisted attributes from an allowlisted event context.
-     *
-     * @param  string  $type
-     * @param  string  $severity
-     * @param  string  $outcome
-     * @param  array  $context
-     *
-     * @return array
      */
     protected function buildAttributes(string $type, string $severity, string $outcome, array $context): array
     {
@@ -194,7 +169,7 @@ final class SecurityEventService
         $correlationVersion = null;
 
         foreach (['ip' => 'ip_hash', 'login_identifier' => 'login_identifier_hash', 'user_agent' => 'user_agent_hash'] as $input => $column) {
-            if (!isset($allowed[$input]) || !is_string($allowed[$input]) || $allowed[$input] === '') {
+            if (! isset($allowed[$input]) || ! is_string($allowed[$input]) || $allowed[$input] === '') {
                 continue;
             }
 
@@ -238,39 +213,31 @@ final class SecurityEventService
     /**
      * Validate stable catalog values before any mutation can commit.
      *
-     * @param  string  $type
-     * @param  string  $severity
-     * @param  string  $outcome
      *
-     * @return void
      *
      * @throws \InvalidArgumentException
      */
     protected function validateCatalogValue(string $type, string $severity, string $outcome): void
     {
-        if (!in_array($type, self::EVENT_TYPES, true)) {
+        if (! in_array($type, self::EVENT_TYPES, true)) {
             throw new \InvalidArgumentException('Unsupported security event type.');
         }
 
-        if (!in_array($severity, ['info', 'warning', 'critical'], true)) {
+        if (! in_array($severity, ['info', 'warning', 'critical'], true)) {
             throw new \InvalidArgumentException('Unsupported security event severity.');
         }
 
-        if (!in_array($outcome, ['succeeded', 'denied', 'failed'], true)) {
+        if (! in_array($outcome, ['succeeded', 'denied', 'failed'], true)) {
             throw new \InvalidArgumentException('Unsupported security event outcome.');
         }
     }
 
     /**
      * Build the compact allowlisted context and preserve aggregate counters.
-     *
-     * @param  mixed  $context
-     *
-     * @return array|null
      */
     protected function context(mixed $context): ?array
     {
-        if (!is_array($context)) {
+        if (! is_array($context)) {
             return null;
         }
 
@@ -282,14 +249,10 @@ final class SecurityEventService
 
     /**
      * Normalize allowlisted website identifiers.
-     *
-     * @param  mixed  $websiteIds
-     *
-     * @return array|null
      */
     protected function websiteIds(mixed $websiteIds): ?array
     {
-        if (!is_array($websiteIds)) {
+        if (! is_array($websiteIds)) {
             return null;
         }
 
@@ -303,15 +266,10 @@ final class SecurityEventService
 
     /**
      * Return a bounded nullable string.
-     *
-     * @param  mixed  $value
-     * @param  int  $length
-     *
-     * @return string|null
      */
     protected function nullableString(mixed $value, int $length): ?string
     {
-        if (!is_string($value) || $value === '') {
+        if (! is_string($value) || $value === '') {
             return null;
         }
 
@@ -320,10 +278,6 @@ final class SecurityEventService
 
     /**
      * Return a positive nullable integer.
-     *
-     * @param  mixed  $value
-     *
-     * @return int|null
      */
     protected function nullableInteger(mixed $value): ?int
     {
@@ -332,10 +286,6 @@ final class SecurityEventService
 
     /**
      * Persist one event and dispatch only its redacted observability payload.
-     *
-     * @param  array  $attributes
-     *
-     * @return \Wncms\Models\ApiSecurityEvent
      */
     protected function persist(array $attributes): ApiSecurityEvent
     {
@@ -347,10 +297,6 @@ final class SecurityEventService
 
     /**
      * Dispatch the redacted Laravel event and structured log entry.
-     *
-     * @param  \Wncms\Models\ApiSecurityEvent  $event
-     *
-     * @return void
      */
     protected function dispatch(ApiSecurityEvent $event): void
     {
@@ -362,18 +308,13 @@ final class SecurityEventService
 
     /**
      * Recursively keep only explicitly declared context keys.
-     *
-     * @param  array  $value
-     * @param  array  $schema
-     *
-     * @return array
      */
     protected function allowlistNested(array $value, array $schema): array
     {
         $allowed = [];
 
         foreach ($schema as $key => $children) {
-            if (!array_key_exists($key, $value)) {
+            if (! array_key_exists($key, $value)) {
                 continue;
             }
 
@@ -395,10 +336,6 @@ final class SecurityEventService
 
     /**
      * Reject aggregate requests without a complete correlation tuple.
-     *
-     * @param  array  $attributes
-     *
-     * @return void
      */
     protected function requireAggregateCorrelations(array $attributes): void
     {
@@ -411,14 +348,6 @@ final class SecurityEventService
 
     /**
      * Build allowlisted aggregate counter context.
-     *
-     * @param  array|null  $context
-     * @param  int  $count
-     * @param  \DateTimeInterface  $firstOccurredAt
-     * @param  string|null  $requestId
-     * @param  \DateTimeInterface|null  $lastOccurredAt
-     *
-     * @return array
      */
     protected function aggregateContext(?array $context, int $count, \DateTimeInterface $firstOccurredAt, ?string $requestId, ?\DateTimeInterface $lastOccurredAt = null): array
     {
@@ -435,10 +364,6 @@ final class SecurityEventService
 
     /**
      * Build the stable database-enforced identity for one aggregate tuple.
-     *
-     * @param  array  $attributes
-     *
-     * @return string
      */
     protected function aggregateKey(array $attributes): string
     {
@@ -456,10 +381,6 @@ final class SecurityEventService
 
     /**
      * Serialize model attributes for the service-owned aggregate insert.
-     *
-     * @param  array  $attributes
-     *
-     * @return array
      */
     protected function databaseAttributes(array $attributes): array
     {

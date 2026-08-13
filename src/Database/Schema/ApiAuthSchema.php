@@ -9,8 +9,6 @@ final class ApiAuthSchema
 {
     /**
      * Create the interactive session table.
-     *
-     * @return void
      */
     public static function createApiSessions(): void
     {
@@ -39,8 +37,6 @@ final class ApiAuthSchema
 
     /**
      * Create the short-lived interactive access token table.
-     *
-     * @return void
      */
     public static function createApiAccessTokens(): void
     {
@@ -68,8 +64,6 @@ final class ApiAuthSchema
 
     /**
      * Create the one-time refresh token table.
-     *
-     * @return void
      */
     public static function createApiRefreshTokens(): void
     {
@@ -86,6 +80,7 @@ final class ApiAuthSchema
             $table->string('family_id', 64)->index();
             $table->string('parent_token_id', 64)->nullable()->index();
             $table->string('replaced_by_token_id', 64)->nullable()->index();
+            $table->string('csrf_hash', 64)->nullable()->unique();
             $table->timestamp('consumed_at')->nullable()->index();
             $table->timestamp('expires_at')->nullable()->index();
             $table->timestamp('revoked_at')->nullable()->index();
@@ -98,8 +93,6 @@ final class ApiAuthSchema
 
     /**
      * Create the scoped service token table.
-     *
-     * @return void
      */
     public static function createApiServiceTokens(): void
     {
@@ -127,8 +120,6 @@ final class ApiAuthSchema
 
     /**
      * Create the append-only security event table.
-     *
-     * @return void
      */
     public static function createApiSecurityEvents(): void
     {
@@ -176,14 +167,13 @@ final class ApiAuthSchema
      *
      * Missing tables are valid because the authorized updater creates them after this preflight.
      *
-     * @return void
      *
      * @throws \RuntimeException
      */
     public static function assertCompatibleExistingTables(): void
     {
         foreach (array_keys(self::tableDefinitions()) as $table) {
-            if (!Schema::hasTable($table)) {
+            if (! Schema::hasTable($table)) {
                 continue;
             }
 
@@ -194,15 +184,13 @@ final class ApiAuthSchema
     /**
      * Determine whether a table is absent or fully compatible before creation.
      *
-     * @param  string  $table
      *
-     * @return bool
      *
      * @throws \RuntimeException
      */
     private static function hasCompatibleTable(string $table): bool
     {
-        if (!Schema::hasTable($table)) {
+        if (! Schema::hasTable($table)) {
             return false;
         }
 
@@ -214,9 +202,7 @@ final class ApiAuthSchema
     /**
      * Assert one WNCMS-owned table matches its canonical columns, indexes, and foreign keys.
      *
-     * @param  string  $table
      *
-     * @return void
      *
      * @throws \RuntimeException
      */
@@ -233,7 +219,7 @@ final class ApiAuthSchema
             }
 
             $type = strtolower((string) ($actual['type_name'] ?? $actual['type'] ?? ''));
-            if (!in_array($type, $expected['types'], true) || (bool) $actual['nullable'] !== $expected['nullable']) {
+            if (! in_array($type, $expected['types'], true) || (bool) $actual['nullable'] !== $expected['nullable']) {
                 throw new \RuntimeException("Existing {$table} table is incompatible; invalid column: {$column}");
             }
         }
@@ -243,8 +229,8 @@ final class ApiAuthSchema
         $primaryColumn = $columns->get($primaryKey[0]);
         $hasPrimaryKey = collect($indexes)->contains(fn (array $index): bool => $index['columns'] === $primaryKey && (bool) $index['primary']);
 
-        if (!$hasPrimaryKey || !(bool) $primaryColumn['auto_increment']) {
-            throw new \RuntimeException("Existing {$table} table is incompatible; invalid primary key: " . implode(',', $primaryKey));
+        if (! $hasPrimaryKey || ! (bool) $primaryColumn['auto_increment']) {
+            throw new \RuntimeException("Existing {$table} table is incompatible; invalid primary key: ".implode(',', $primaryKey));
         }
 
         foreach ($definition['indexes'] as $expected) {
@@ -252,8 +238,8 @@ final class ApiAuthSchema
                 return $index['columns'] === $expected['columns'] && (bool) $index['unique'] === $expected['unique'];
             });
 
-            if (!$found) {
-                throw new \RuntimeException("Existing {$table} table is incompatible; missing index: " . implode(',', $expected['columns']));
+            if (! $found) {
+                throw new \RuntimeException("Existing {$table} table is incompatible; missing index: ".implode(',', $expected['columns']));
             }
         }
 
@@ -266,7 +252,7 @@ final class ApiAuthSchema
                     && strtolower((string) $foreignKey['on_delete']) === 'cascade';
             });
 
-            if (!$found) {
+            if (! $found) {
                 throw new \RuntimeException("Existing {$table} table is incompatible; missing cascading foreign key: {$expected['column']}");
             }
         }
@@ -301,8 +287,8 @@ final class ApiAuthSchema
             ],
             'api_refresh_tokens' => [
                 'primary_key' => ['id'],
-                'columns' => ['id' => $column($integer, false), 'token_id' => $column($string, false), 'token_hash' => $column($string, false), 'user_id' => $column($integer, false), 'session_id' => $column($integer, false), 'family_id' => $column($string, false), 'parent_token_id' => $column($string, true), 'replaced_by_token_id' => $column($string, true), 'consumed_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, true), 'revoked_at' => $column($timestamp, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
-                'indexes' => [['columns' => ['token_id'], 'unique' => true], ['columns' => ['token_hash'], 'unique' => true], ['columns' => ['family_id'], 'unique' => false], ['columns' => ['parent_token_id'], 'unique' => false], ['columns' => ['replaced_by_token_id'], 'unique' => false], ['columns' => ['consumed_at'], 'unique' => false], ['columns' => ['expires_at'], 'unique' => false], ['columns' => ['revoked_at'], 'unique' => false], ['columns' => ['user_id', 'revoked_at'], 'unique' => false], ['columns' => ['session_id', 'family_id'], 'unique' => false]],
+                'columns' => ['id' => $column($integer, false), 'token_id' => $column($string, false), 'token_hash' => $column($string, false), 'user_id' => $column($integer, false), 'session_id' => $column($integer, false), 'family_id' => $column($string, false), 'parent_token_id' => $column($string, true), 'replaced_by_token_id' => $column($string, true), 'csrf_hash' => $column($string, true), 'consumed_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, true), 'revoked_at' => $column($timestamp, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
+                'indexes' => [['columns' => ['token_id'], 'unique' => true], ['columns' => ['token_hash'], 'unique' => true], ['columns' => ['csrf_hash'], 'unique' => true], ['columns' => ['family_id'], 'unique' => false], ['columns' => ['parent_token_id'], 'unique' => false], ['columns' => ['replaced_by_token_id'], 'unique' => false], ['columns' => ['consumed_at'], 'unique' => false], ['columns' => ['expires_at'], 'unique' => false], ['columns' => ['revoked_at'], 'unique' => false], ['columns' => ['user_id', 'revoked_at'], 'unique' => false], ['columns' => ['session_id', 'family_id'], 'unique' => false]],
                 'foreign_keys' => [['column' => 'user_id', 'table' => 'users'], ['column' => 'session_id', 'table' => 'api_sessions']],
             ],
             'api_service_tokens' => [

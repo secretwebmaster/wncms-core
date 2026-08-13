@@ -3,6 +3,8 @@
 namespace Wncms\Tests\Feature\Api\V2;
 
 use Illuminate\Auth\Middleware\Authorize;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Database\Seeders\RolesSeeder;
@@ -11,6 +13,8 @@ use Wncms\Tests\TestCase;
 
 class AuthSecuritySettingsTest extends TestCase
 {
+    use DatabaseTransactions;
+
     /**
      * Remove persisted authentication security settings after every request test.
      */
@@ -55,7 +59,7 @@ class AuthSecuritySettingsTest extends TestCase
             'blade_mode_manage',
         ];
 
-        $this->assertEmpty(array_diff($expected, (new RolesSeeder())->special_permissions()));
+        $this->assertEmpty(array_diff($expected, (new RolesSeeder)->special_permissions()));
     }
 
     /**
@@ -63,7 +67,7 @@ class AuthSecuritySettingsTest extends TestCase
      */
     public function test_roles_seeder_registers_each_security_permission_once(): void
     {
-        $permissions = (new RolesSeeder())->special_permissions();
+        $permissions = (new RolesSeeder)->special_permissions();
 
         $this->assertSame($permissions, array_values(array_unique($permissions)));
     }
@@ -160,7 +164,7 @@ class AuthSecuritySettingsTest extends TestCase
         });
 
         $save = $this->put(route('settings.update'), [
-            'settings' => array_map(static fn($value) => is_bool($value) ? ($value ? '1' : '0') : $value, AuthSecurityConfig::defaultSettings()),
+            'settings' => array_map(static fn ($value) => is_bool($value) ? ($value ? '1' : '0') : $value, AuthSecurityConfig::defaultSettings()),
         ]);
 
         $save->assertRedirect();
@@ -170,9 +174,166 @@ class AuthSecuritySettingsTest extends TestCase
     }
 
     /**
-     * Authenticate a user authorized to update settings.
+     * Verify a transport-boundary save atomically revokes interactive credentials only.
+     */
+    public function test_transport_boundary_setting_revokes_interactive_credentials_but_not_service_tokens(): void
+    {
+        $this->configureSecurityEventCorrelation();
+        $this->authenticateSettingsEditor();
+        uss('api_refresh_transport', 'json');
+        $ids = $this->seedBoundaryCredentials('setting-boundary-success');
+
+        $this->put(route('settings.update'), [
+            'settings' => [
+                'api_refresh_transport' => 'cookie',
+                'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+            ],
+        ])->assertRedirect()->assertSessionDoesntHaveErrors();
+
+        $this->assertSame('cookie', gss('api_refresh_transport'));
+        $this->assertNotNull(DB::table('api_sessions')->where('id', $ids['session'])->value('revoked_at'));
+        $this->assertNotNull(DB::table('api_access_tokens')->where('id', $ids['access'])->value('revoked_at'));
+        $this->assertNotNull(DB::table('api_refresh_tokens')->where('id', $ids['refresh'])->value('revoked_at'));
+        $this->assertNull(DB::table('api_service_tokens')->where('id', $ids['service'])->value('revoked_at'));
+        $this->assertDatabaseHas('api_security_events', [
+            'event_type' => 'security.auth_policy.changed',
+            'outcome' => 'succeeded',
+        ]);
+    }
+
+    /**
+     * Verify setting, revocation, and mandatory audit roll back together.
+     */
+    public function test_transport_boundary_setting_fails_closed_when_audit_persistence_fails(): void
+    {
+        $this->configureSecurityEventCorrelation();
+        $this->authenticateSettingsEditor();
+        uss('api_refresh_transport', 'json');
+        $ids = $this->seedBoundaryCredentials('setting-boundary-failure');
+        DB::unprepared("CREATE TEMP TRIGGER task7_setting_audit_failure BEFORE INSERT ON api_security_events BEGIN SELECT RAISE(FAIL, 'injected setting audit failure'); END");
+
+        try {
+            $this->put(route('settings.update'), [
+                'settings' => [
+                    'api_refresh_transport' => 'cookie',
+                    'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+                ],
+            ])->assertStatus(503);
+        } finally {
+            DB::unprepared('DROP TRIGGER IF EXISTS task7_setting_audit_failure');
+        }
+
+        $this->assertSame('json', gss('api_refresh_transport', null, false));
+        $this->assertNull(DB::table('api_sessions')->where('id', $ids['session'])->value('revoked_at'));
+        $this->assertNull(DB::table('api_access_tokens')->where('id', $ids['access'])->value('revoked_at'));
+        $this->assertNull(DB::table('api_refresh_tokens')->where('id', $ids['refresh'])->value('revoked_at'));
+        $this->assertNull(DB::table('api_service_tokens')->where('id', $ids['service'])->value('revoked_at'));
+    }
+
+    /**
+     * Verify a Cookie policy-only change revokes Cookie sessions but preserves JSON sessions.
+     */
+    public function test_cookie_policy_setting_change_revokes_only_cookie_sessions(): void
+    {
+        $this->configureSecurityEventCorrelation();
+        $this->authenticateSettingsEditor();
+        uss('api_refresh_transport', 'cookie');
+        uss('api_refresh_cookie_allowed_origins', 'https://admin.example.test');
+        uss('api_refresh_cookie_referer_fallback', '0');
+        $userId = User::where('email', 'admin@demo.com')->value('id');
+        $cookieSession = DB::table('api_sessions')->insertGetId([
+            'session_id' => 'setting-cookie-policy-cookie',
+            'user_id' => $userId,
+            'refresh_transport' => 'cookie',
+            'remembered' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $jsonSession = DB::table('api_sessions')->insertGetId([
+            'session_id' => 'setting-cookie-policy-json',
+            'user_id' => $userId,
+            'refresh_transport' => 'json',
+            'remembered' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->put(route('settings.update'), [
+            'settings' => ['api_refresh_cookie_referer_fallback' => '1'],
+        ])->assertRedirect()->assertSessionDoesntHaveErrors();
+
+        $this->assertNotNull(DB::table('api_sessions')->where('id', $cookieSession)->value('revoked_at'));
+        $this->assertNull(DB::table('api_sessions')->where('id', $jsonSession)->value('revoked_at'));
+    }
+
+    /**
+     * Seed one complete interactive family and one isolated service credential.
      *
-     * @return void
+     * @return array{session: int, access: int, refresh: int, service: int}
+     */
+    private function seedBoundaryCredentials(string $prefix): array
+    {
+        $userId = User::where('email', 'admin@demo.com')->value('id');
+        $session = DB::table('api_sessions')->insertGetId([
+            'session_id' => $prefix.'-session',
+            'user_id' => $userId,
+            'refresh_transport' => 'json',
+            'remembered' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $access = DB::table('api_access_tokens')->insertGetId([
+            'token_id' => $prefix.'-access',
+            'token_hash' => hash('sha256', $prefix.'-access-secret'),
+            'user_id' => $userId,
+            'session_id' => $session,
+            'abilities' => '[]',
+            'website_ids' => '[]',
+            'expires_at' => now()->addHour(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $refresh = DB::table('api_refresh_tokens')->insertGetId([
+            'token_id' => $prefix.'-refresh',
+            'token_hash' => hash('sha256', $prefix.'-refresh-secret'),
+            'user_id' => $userId,
+            'session_id' => $session,
+            'family_id' => $prefix.'-family',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $service = DB::table('api_service_tokens')->insertGetId([
+            'token_id' => $prefix.'-service',
+            'token_hash' => hash('sha256', $prefix.'-service-secret'),
+            'user_id' => $userId,
+            'name' => 'Task 7 boundary service token',
+            'ability_template' => 'read_only',
+            'abilities' => '[]',
+            'website_ids' => '[]',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return compact('session', 'access', 'refresh', 'service');
+    }
+
+    /**
+     * Configure deterministic test-only event-correlation keys.
+     */
+    private function configureSecurityEventCorrelation(): void
+    {
+        config(['wncms-api-v2.auth_security.security_event_correlation' => [
+            'active_key_version' => 'v1',
+            'keys' => ['v1' => [
+                'ip' => 'task7-settings-ip-correlation-key-1234567890',
+                'login_identifier' => 'task7-settings-login-correlation-key-1234567890',
+                'user_agent' => 'task7-settings-agent-correlation-key-1234567890',
+            ]],
+        ]]);
+    }
+
+    /**
+     * Authenticate a user authorized to update settings.
      */
     private function authenticateSettingsEditor(): void
     {

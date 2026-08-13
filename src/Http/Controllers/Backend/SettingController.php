@@ -2,14 +2,16 @@
 
 namespace Wncms\Http\Controllers\Backend;
 
-use Wncms\Http\Controllers\Controller;
-use Wncms\Mails\TestMail;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Wncms\Auth\Api\V2\AuthSecurityConfig;
+use Wncms\Http\Controllers\Controller;
+use Wncms\Mails\TestMail;
+use Wncms\Services\Security\SecurityEventService;
 
 class SettingController extends Controller
 {
@@ -18,15 +20,15 @@ class SettingController extends Controller
         if ($request->has('developer_mode') || $request->has('superadmin_mode')) {
 
             // if user has role admin
-            if(auth()->user()->hasRole('admin')) {
+            if (auth()->user()->hasRole('admin')) {
                 uss('developer_mode', $request->developer_mode === '1' ? '1' : '0');
             }
 
             // if user has role admin or superadmin
-            if(auth()->user()->hasRole(['admin', 'superadmin'])) {
+            if (auth()->user()->hasRole(['admin', 'superadmin'])) {
                 uss('superadmin_mode', $request->superadmin_mode === '1' ? '1' : '0');
             }
-            
+
             return redirect()->route('settings.index');
         }
 
@@ -49,7 +51,7 @@ class SettingController extends Controller
 
         // Determine active tab
         $firstTabName = collect($availableSettings)
-            ->firstWhere(fn($t) => !empty($t['tab_name']) && !empty($t['tab_content']))['tab_name'] ?? null;
+            ->firstWhere(fn ($t) => ! empty($t['tab_name']) && ! empty($t['tab_content']))['tab_name'] ?? null;
 
         $activeTab = $request->tab ?? old('active_tab') ?? $firstTabName;
 
@@ -59,7 +61,7 @@ class SettingController extends Controller
 
         foreach (wncms()->getModels() as $modelClass) {
 
-            if (!in_array(\Wncms\Interfaces\ApiModelInterface::class, class_implements($modelClass))) {
+            if (! in_array(\Wncms\Interfaces\ApiModelInterface::class, class_implements($modelClass))) {
                 continue;
             }
 
@@ -69,11 +71,12 @@ class SettingController extends Controller
                 : 'wncms';
 
             $routes = array_map(function ($route) use ($resolvedPackageId) {
-                if (!is_array($route)) {
+                if (! is_array($route)) {
                     return $route;
                 }
 
                 $route['package_id'] = $route['package_id'] ?? $resolvedPackageId;
+
                 return $route;
             }, $modelClass::getApiRoutes());
 
@@ -90,7 +93,7 @@ class SettingController extends Controller
 
         // Desired forced positions
         $forceFirst = 'index';
-        $forceLast  = 'delete';
+        $forceLast = 'delete';
 
         // Action ordering
         $commonActionsOriginal = ['index', 'show', 'store', 'update', 'delete'];
@@ -102,7 +105,7 @@ class SettingController extends Controller
         }
 
         foreach ($commonActionsOriginal as $action) {
-            if (!in_array($action, [$forceFirst, $forceLast])) {
+            if (! in_array($action, [$forceFirst, $forceLast])) {
                 $commonActions[] = $action;
             }
         }
@@ -118,9 +121,9 @@ class SettingController extends Controller
         $resolvedWebsiteModes = $this->getResolvedModelWebsiteModes($settings);
 
         $multisiteModels = collect($modelDisplayList)
-            ->filter(fn($modelData) => !empty($modelData['routes']))
+            ->filter(fn ($modelData) => ! empty($modelData['routes']))
             ->map(function ($modelData) use ($resolvedWebsiteModes) {
-                $modelKey = !empty($modelData['model_key'])
+                $modelKey = ! empty($modelData['model_key'])
                     ? Str::snake(Str::singular($modelData['model_key']))
                     : Str::snake(Str::singular($modelData['model_name']));
 
@@ -146,26 +149,38 @@ class SettingController extends Controller
         ]);
     }
 
-
+    /**
+     * Validate and persist settings, atomically revoking credentials at auth boundaries.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response
+     */
     public function update(Request $request)
     {
         $settings = (array) $request->settings;
         $securitySettings = array_intersect_key($settings, array_flip(AuthSecurityConfig::settingKeys()));
+        $currentSecuritySettings = array_replace(
+            AuthSecurityConfig::defaultSettings(),
+            wncms()->setting()->getList(AuthSecurityConfig::settingKeys()),
+        );
+        $currentSecurityConfig = AuthSecurityConfig::fromValues($currentSecuritySettings);
+        $candidateSecurityConfig = AuthSecurityConfig::fromValues(array_replace($currentSecuritySettings, $securitySettings));
 
         if ($securitySettings !== []) {
-            $currentSecuritySettings = wncms()->setting()->getList(AuthSecurityConfig::settingKeys());
-            $errors = AuthSecurityConfig::fromValues(array_replace($currentSecuritySettings, $securitySettings))->validate();
+            $errors = $candidateSecurityConfig->validate();
 
             if ($errors !== []) {
                 return redirect()->back()->withInput()->withErrors($errors);
             }
         }
 
+        $modes = null;
         if ($request->has('model_website_modes')) {
             $allowedModelKeys = collect(wncms()->getModelNames())
-                ->filter(fn($modelData) => !empty($modelData['routes']))
+                ->filter(fn ($modelData) => ! empty($modelData['routes']))
                 ->map(function ($modelData) {
-                    return !empty($modelData['model_key'])
+                    return ! empty($modelData['model_key'])
                         ? Str::snake(Str::singular($modelData['model_key']))
                         : Str::snake(Str::singular($modelData['model_name']));
                 })
@@ -177,25 +192,154 @@ class SettingController extends Controller
                 ->mapWithKeys(function ($mode, $modelKey) {
                     $normalizedKey = Str::snake(Str::singular($modelKey));
                     $normalizedMode = in_array($mode, ['global', 'single', 'multi'], true) ? $mode : 'global';
+
                     return [$normalizedKey => $normalizedMode];
                 })
                 ->only($allowedModelKeys)
                 ->toArray();
-            uss('model_website_modes', json_encode($modes));
         }
 
-        foreach ($settings as $key => $value) {
-            uss($key, $value);
+        $revocationScope = $this->authPolicyRevocationScope($currentSecurityConfig, $candidateSecurityConfig, $securitySettings);
+        $save = function () use ($request, $settings, $modes, $revocationScope): void {
+            if ($modes !== null) {
+                $this->persistSetting('model_website_modes', json_encode($modes, JSON_THROW_ON_ERROR));
+            }
+
+            foreach ($settings as $key => $value) {
+                $this->persistSetting($key, $value);
+            }
+
+            $this->persistSetting('active_models', $request->active_models
+                ? json_encode($request->active_models, JSON_THROW_ON_ERROR)
+                : '{}');
+
+            if ($revocationScope !== null) {
+                $this->revokeInteractiveCredentials($revocationScope);
+            }
+        };
+
+        if ($revocationScope === null) {
+            $save();
+
+            return redirect()->back();
         }
 
-        //特別處理項目
-        if ($request->active_models) {
-            uss('active_models', json_encode($request->active_models));
-        } else {
-            uss('active_models', "{}");
+        $actor = $request->user();
+        try {
+            app(SecurityEventService::class)->withinTransaction($save, [
+                'type' => 'security.auth_policy.changed',
+                'severity' => 'critical',
+                'outcome' => 'succeeded',
+                'context' => [
+                    'surface' => 'blade',
+                    'actor_type' => $actor?->getMorphClass(),
+                    'actor_id' => $actor?->getAuthIdentifier(),
+                    'ip' => (string) $request->ip(),
+                    'user_agent' => (string) $request->userAgent(),
+                    'context' => [
+                        'policy_state' => $revocationScope,
+                        'reason' => 'auth_policy_changed',
+                    ],
+                ],
+            ]);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return response('Authentication security policy update unavailable.', 503);
         }
 
         return redirect()->back();
+    }
+
+    /**
+     * Determine which interactive sessions a validated policy change invalidates.
+     *
+     * @param  \Wncms\Auth\Api\V2\AuthSecurityConfig  $current
+     * @param  \Wncms\Auth\Api\V2\AuthSecurityConfig  $candidate
+     * @param  array<string, mixed>  $submitted
+     *
+     * @return string|null
+     */
+    private function authPolicyRevocationScope(
+        AuthSecurityConfig $current,
+        AuthSecurityConfig $candidate,
+        array $submitted,
+    ): ?string {
+        if ($submitted === []) {
+            return null;
+        }
+
+        if ($current->refreshTransport() !== $candidate->refreshTransport()) {
+            return 'all';
+        }
+
+        $currentCookiePolicy = [
+            $current->refreshCookieDomain(),
+            $current->refreshCookieSameSite(),
+            $current->refreshCookieAllowedOrigins(),
+            $current->refreshCookieRefererFallback(),
+        ];
+        $candidateCookiePolicy = [
+            $candidate->refreshCookieDomain(),
+            $candidate->refreshCookieSameSite(),
+            $candidate->refreshCookieAllowedOrigins(),
+            $candidate->refreshCookieRefererFallback(),
+        ];
+
+        return $currentCookiePolicy === $candidateCookiePolicy ? null : 'cookie';
+    }
+
+    /**
+     * Persist one setting or fail the enclosing transaction.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     *
+     * @return void
+     */
+    private function persistSetting(string $key, mixed $value): void
+    {
+        if (! uss($key, $value)) {
+            throw new \RuntimeException("Setting [{$key}] could not be persisted.");
+        }
+    }
+
+    /**
+     * Revoke active interactive sessions and their access/refresh credentials.
+     *
+     * Service tokens are deliberately stored outside this session ownership graph.
+     *
+     * @param  string  $scope
+     *
+     * @return void
+     */
+    private function revokeInteractiveCredentials(string $scope): void
+    {
+        $sessionModel = wncms()->getModelClass('api_session');
+        $sessions = $sessionModel::query()->whereNull('revoked_at');
+        if ($scope === 'cookie') {
+            $sessions->where('refresh_transport', 'cookie');
+        }
+
+        $sessionIds = $sessions->pluck('id')->all();
+        if ($sessionIds === []) {
+            return;
+        }
+
+        $now = CarbonImmutable::now('UTC');
+        $sessionModel::query()->whereKey($sessionIds)->whereNull('revoked_at')->update([
+            'csrf_hash' => null,
+            'revoked_at' => $now,
+            'revocation_reason' => 'auth_policy_changed',
+            'updated_at' => $now,
+        ]);
+        foreach (['api_access_token', 'api_refresh_token'] as $modelKey) {
+            $credentialModel = wncms()->getModelClass($modelKey);
+            $credentialModel::query()->whereIn('session_id', $sessionIds)->whereNull('revoked_at')->update([
+                'revoked_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
     }
 
     public function smtp_test(Request $request)
@@ -216,17 +360,17 @@ class SettingController extends Controller
         }
 
         // dd(config('mail.mailers.smtp'));
-        Mail::to($request->recipient)->send(new TestMail());
+        Mail::to($request->recipient)->send(new TestMail);
 
         return response()->json([
             'status' => 'success',
-            'message' => __('wncms::word.smtp_test_mail_is_send_please_check_your_mailbox')  . " " . $request->recipient,
+            'message' => __('wncms::word.smtp_test_mail_is_send_please_check_your_mailbox').' '.$request->recipient,
         ]);
     }
 
     public function google_test()
     {
-        if (!$this->hasGoogleSettings()) {
+        if (! $this->hasGoogleSettings()) {
             return redirect()
                 ->route('settings.index', ['tab' => 'social_login'])
                 ->with([
@@ -250,7 +394,7 @@ class SettingController extends Controller
             'url' => (string) ($request->url ?: '/'),
         ];
 
-        if (!$this->quickLinkExists($quickLinks, $quickLinkData)) {
+        if (! $this->quickLinkExists($quickLinks, $quickLinkData)) {
             $quickLinks[] = $quickLinkData;
         }
 
@@ -269,11 +413,11 @@ class SettingController extends Controller
         ];
 
         $quickLinks = array_values(array_filter($quickLinks, function (array $quickLink) use ($quickLinkData) {
-            if (!empty($quickLinkData['url']) && ($quickLink['url'] ?? '') === $quickLinkData['url']) {
+            if (! empty($quickLinkData['url']) && ($quickLink['url'] ?? '') === $quickLinkData['url']) {
                 return false;
             }
 
-            if (!empty($quickLinkData['route']) && ($quickLink['route'] ?? null) === $quickLinkData['route']) {
+            if (! empty($quickLinkData['route']) && ($quickLink['route'] ?? null) === $quickLinkData['route']) {
                 return false;
             }
 
@@ -292,7 +436,7 @@ class SettingController extends Controller
                 return true;
             }
 
-            if (!empty($candidate['route']) && ($quickLink['route'] ?? null) === $candidate['route']) {
+            if (! empty($candidate['route']) && ($quickLink['route'] ?? null) === $candidate['route']) {
                 return true;
             }
         }
@@ -305,12 +449,12 @@ class SettingController extends Controller
         $normalized = [];
 
         foreach ($quickLinks as $quickLink) {
-            if (!is_array($quickLink)) {
+            if (! is_array($quickLink)) {
                 continue;
             }
 
             $url = (string) ($quickLink['url'] ?? '');
-            $route = !empty($quickLink['route']) ? (string) $quickLink['route'] : null;
+            $route = ! empty($quickLink['route']) ? (string) $quickLink['route'] : null;
             $name = (string) ($quickLink['name'] ?? ($url !== '' ? $url : ($route ?? '')));
 
             if ($url === '' && $route === null) {

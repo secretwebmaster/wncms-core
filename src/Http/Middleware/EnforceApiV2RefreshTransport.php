@@ -13,25 +13,16 @@ final class EnforceApiV2RefreshTransport
 {
     /**
      * Create the strict refresh-transport middleware.
-     *
-     * @param  \Wncms\Auth\Api\V2\AuthSecurityConfig  $config
-     * @param  \Wncms\Api\V2\ApiResponseFactory  $responses
      */
     public function __construct(
-        private AuthSecurityConfig $config,
         private ApiResponseFactory $responses,
-    ) {
-    }
+    ) {}
 
     /**
      * Reject refresh material submitted through the non-configured channel.
      *
      * Login has no incoming refresh credential, so stale browser cookies do not prevent
      * users from establishing a session after an administrator changes transport mode.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -39,7 +30,7 @@ final class EnforceApiV2RefreshTransport
             return $next($request);
         }
 
-        $cookieMode = $this->config->refreshTransport() === 'cookie';
+        $cookieMode = AuthSecurityConfig::fromRuntime()->refreshTransport() === 'cookie';
         $wrongChannel = $cookieMode
             ? $request->exists('refresh_token')
             : $request->cookies->has(OriginPolicy::REFRESH_COOKIE);

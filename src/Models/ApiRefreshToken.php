@@ -12,6 +12,7 @@ class ApiRefreshToken extends BaseModel
 
     protected $hidden = [
         'token_hash',
+        'csrf_hash',
     ];
 
     protected $casts = [
@@ -22,10 +23,6 @@ class ApiRefreshToken extends BaseModel
 
     /**
      * Scope refresh tokens that are unconsumed and usable for one rotation.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     *
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeActive(Builder $query): Builder
     {

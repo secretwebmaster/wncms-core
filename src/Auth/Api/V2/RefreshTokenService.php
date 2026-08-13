@@ -14,12 +14,6 @@ final class RefreshTokenService
 {
     /**
      * Create the refresh-token lifecycle service.
-     *
-     * @param  \Wncms\Auth\Api\V2\TokenHasher  $hasher
-     * @param  \Wncms\Auth\Api\V2\AccessTokenService  $accessTokens
-     * @param  \Wncms\Auth\Api\V2\RefreshTokenConsumer  $consumer
-     * @param  \Wncms\Services\Security\SecurityEventService  $events
-     * @param  \Wncms\Api\V2\ApiContractRegistry  $contracts
      */
     public function __construct(
         private TokenHasher $hasher,
@@ -27,17 +21,12 @@ final class RefreshTokenService
         private RefreshTokenConsumer $consumer,
         private SecurityEventService $events,
         private ApiContractRegistry $contracts,
-        private AuthSecurityConfig $config,
-    ) {
-    }
+    ) {}
 
     /**
      * Issue the initial one-time refresh credential for an active session.
      *
      * The caller owns the surrounding audited transaction used for login.
-     *
-     * @param  \Wncms\Models\ApiSession  $session
-     * @return \Wncms\Auth\Api\V2\IssuedRefreshToken
      */
     public function issue(ApiSession $session): IssuedRefreshToken
     {
@@ -50,11 +39,13 @@ final class RefreshTokenService
      * A lost conditional update is handled as replay and revokes only this session family.
      *
      * @param  \Wncms\Auth\Api\V2\ApiCredential  $credential
+     * @param  callable(\Wncms\Auth\Api\V2\RotatedCredentialPair, \Wncms\Models\ApiSession): void|null  $beforeSuccess
+     *
      * @return \Wncms\Auth\Api\V2\RotatedCredentialPair
      *
      * @throws \Wncms\Auth\Api\V2\RefreshTokenException
      */
-    public function rotate(ApiCredential $credential): RotatedCredentialPair
+    public function rotate(ApiCredential $credential, ?callable $beforeSuccess = null): RotatedCredentialPair
     {
         $token = $this->resolve($credential);
         $session = $this->activeSession($token);
@@ -67,13 +58,13 @@ final class RefreshTokenService
             throw new RefreshTokenException('authentication.session_revoked');
         }
 
-        if (($token->expires_at !== null && !$token->expires_at->isFuture())
-            || ($session->expires_at !== null && !$session->expires_at->isFuture())) {
+        if (($token->expires_at !== null && ! $token->expires_at->isFuture())
+            || ($session->expires_at !== null && ! $session->expires_at->isFuture())) {
             throw new RefreshTokenException('authentication.refresh_expired');
         }
 
         try {
-            return $this->events->withinTransaction(function () use ($token, $session): RotatedCredentialPair {
+            return $this->events->withinTransaction(function () use ($token, $session, $beforeSuccess): RotatedCredentialPair {
                 $now = CarbonImmutable::now('UTC');
                 $replacementMaterial = $this->hasher->issue('wncms_rt');
                 $refreshModel = wncms()->getModelClass('api_refresh_token');
@@ -98,7 +89,12 @@ final class RefreshTokenService
                     $this->websiteIds($user),
                 );
 
-                return new RotatedCredentialPair($access, $refresh);
+                $pair = new RotatedCredentialPair($access, $refresh);
+                if ($beforeSuccess !== null) {
+                    $beforeSuccess($pair, $session);
+                }
+
+                return $pair;
             }, [
                 'type' => 'auth.refresh.succeeded',
                 'severity' => 'info',
@@ -124,6 +120,7 @@ final class RefreshTokenService
      * Revoked and consumed credentials remain resolvable for logout only.
      *
      * @param  \Wncms\Auth\Api\V2\ApiCredential  $credential
+     *
      * @return \Wncms\Models\ApiSession|null
      */
     public function sessionForLogout(ApiCredential $credential): ?ApiSession
@@ -141,10 +138,27 @@ final class RefreshTokenService
     }
 
     /**
-     * Resolve and verify one typed refresh credential.
+     * Resolve a correctly hashed refresh credential for its Cookie CSRF guard.
+     *
+     * Consumed credentials remain resolvable so a valid old proof can reach replay
+     * detection, while arbitrary proof values still fail before rotation.
      *
      * @param  \Wncms\Auth\Api\V2\ApiCredential  $credential
-     * @return \Wncms\Models\ApiRefreshToken
+     *
+     * @return \Wncms\Models\ApiRefreshToken|null
+     */
+    public function refreshTokenForGuard(ApiCredential $credential): ?ApiRefreshToken
+    {
+        try {
+            return $this->resolve($credential);
+        } catch (RefreshTokenException $exception) {
+            return null;
+        }
+    }
+
+    /**
+     * Resolve and verify one typed refresh credential.
+     *
      *
      * @throws \Wncms\Auth\Api\V2\RefreshTokenException
      */
@@ -156,8 +170,8 @@ final class RefreshTokenService
 
         $refreshModel = wncms()->getModelClass('api_refresh_token');
         $token = $refreshModel::query()->where('token_id', $credential->publicId())->first();
-        if (!$token instanceof $refreshModel
-            || !$this->hasher->matches($credential->plainText(), (string) $token->token_hash)) {
+        if (! $token instanceof $refreshModel
+            || ! $this->hasher->matches($credential->plainText(), (string) $token->token_hash)) {
             throw new RefreshTokenException('authentication.refresh_invalid');
         }
 
@@ -167,8 +181,6 @@ final class RefreshTokenService
     /**
      * Resolve the token's exact session.
      *
-     * @param  \Wncms\Models\ApiRefreshToken  $token
-     * @return \Wncms\Models\ApiSession
      *
      * @throws \Wncms\Auth\Api\V2\RefreshTokenException
      */
@@ -176,8 +188,8 @@ final class RefreshTokenService
     {
         $sessionModel = wncms()->getModelClass('api_session');
         $session = $sessionModel::query()->whereKey($token->session_id)->where('user_id', $token->user_id)->first();
-        if (!$session instanceof $sessionModel
-            || $session->refresh_transport !== $this->config->refreshTransport()) {
+        if (! $session instanceof $sessionModel
+            || $session->refresh_transport !== AuthSecurityConfig::fromRuntime()->refreshTransport()) {
             throw new RefreshTokenException('authentication.refresh_invalid');
         }
 
@@ -186,10 +198,6 @@ final class RefreshTokenService
 
     /**
      * Revoke the replayed family/session atomically, then throw the typed reuse failure.
-     *
-     * @param  \Wncms\Models\ApiRefreshToken  $token
-     * @param  \Wncms\Models\ApiSession  $session
-     * @return never
      */
     private function revokeForReuse(ApiRefreshToken $token, ApiSession $session): never
     {
@@ -219,15 +227,11 @@ final class RefreshTokenService
             ],
         ]);
 
-        throw new RefreshTokenReuseException();
+        throw new RefreshTokenReuseException;
     }
 
     /**
      * Revoke access and refresh credentials belonging only to one session.
-     *
-     * @param  \Wncms\Models\ApiSession  $session
-     * @param  \Carbon\CarbonImmutable  $now
-     * @return void
      */
     private function revokeSessionCredentials(ApiSession $session, CarbonImmutable $now): void
     {
@@ -246,11 +250,7 @@ final class RefreshTokenService
     /**
      * Persist one issued refresh token from pre-generated material.
      *
-     * @param  \Wncms\Models\ApiSession  $session
-     * @param  string  $familyId
-     * @param  string|null  $parentTokenId
      * @param  array{plain_text: string, public_id: string, hash: string}  $material
-     * @return \Wncms\Auth\Api\V2\IssuedRefreshToken
      */
     private function persistIssued(ApiSession $session, string $familyId, ?string $parentTokenId, array $material): IssuedRefreshToken
     {
@@ -273,16 +273,11 @@ final class RefreshTokenService
 
     /**
      * Issue refresh material for one exact family.
-     *
-     * @param  \Wncms\Models\ApiSession  $session
-     * @param  string  $familyId
-     * @param  string|null  $parentTokenId
-     * @return \Wncms\Auth\Api\V2\IssuedRefreshToken
      */
     private function issueForFamily(ApiSession $session, string $familyId, ?string $parentTokenId): IssuedRefreshToken
     {
         if ($session->revoked_at !== null
-            || ($session->expires_at !== null && !$session->expires_at->isFuture())) {
+            || ($session->expires_at !== null && ! $session->expires_at->isFuture())) {
             throw new RefreshTokenException('authentication.session_revoked');
         }
 
@@ -291,15 +286,12 @@ final class RefreshTokenService
 
     /**
      * Resolve one active account.
-     *
-     * @param  mixed  $userId
-     * @return \Wncms\Models\User
      */
     private function activeUser(mixed $userId): User
     {
         $userModel = wncms()->getModelClass('user');
         $user = $userModel::query()->find($userId);
-        if (!$user instanceof $userModel || (method_exists($user, 'hasRole') && $user->hasRole('suspended'))) {
+        if (! $user instanceof $userModel || (method_exists($user, 'hasRole') && $user->hasRole('suspended'))) {
             throw new RefreshTokenException('authentication.refresh_invalid');
         }
 
@@ -324,7 +316,6 @@ final class RefreshTokenService
     /**
      * Return stable website IDs currently accessible to the actor.
      *
-     * @param  \Wncms\Models\User  $user
      * @return array<int, int>
      */
     private function websiteIds(User $user): array

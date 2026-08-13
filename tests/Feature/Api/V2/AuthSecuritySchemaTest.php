@@ -16,8 +16,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Verify fresh installations create only WNCMS-owned authentication tables.
-     *
-     * @return void
      */
     public function test_fresh_schema_contains_owned_auth_tables_without_altering_pat(): void
     {
@@ -31,8 +29,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Verify credential identifiers, hashes, scopes, and lifecycle fields are owned by WNCMS tables.
-     *
-     * @return void
      */
     public function test_owned_credential_schema_has_unique_secret_material_and_lifecycle_indexes(): void
     {
@@ -42,6 +38,7 @@ class AuthSecuritySchemaTest extends TestCase
         $this->assertUniqueIndex('api_access_tokens', 'token_hash');
         $this->assertUniqueIndex('api_refresh_tokens', 'token_id');
         $this->assertUniqueIndex('api_refresh_tokens', 'token_hash');
+        $this->assertUniqueIndex('api_refresh_tokens', 'csrf_hash');
         $this->assertUniqueIndex('api_service_tokens', 'token_id');
         $this->assertUniqueIndex('api_service_tokens', 'token_hash');
         $this->assertUniqueIndex('api_security_events', 'event_id');
@@ -87,8 +84,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Verify aggregate identity cannot produce duplicate security-event rows.
-     *
-     * @return void
      */
     public function test_security_event_aggregate_key_is_unique_when_present(): void
     {
@@ -114,8 +109,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Verify owned credentials cascade with their owner or session without involving host PAT rows.
-     *
-     * @return void
      */
     public function test_owned_credential_foreign_keys_cascade_for_users_and_sessions(): void
     {
@@ -240,8 +233,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Verify permanent refresh tokens remain active until explicitly revoked.
-     *
-     * @return void
      */
     public function test_permanent_refresh_token_is_active_until_revoked(): void
     {
@@ -288,8 +279,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Verify compatibility checks reject a same-name table that is missing required columns.
-     *
-     * @return void
      */
     public function test_schema_compatibility_rejects_same_name_table_with_missing_columns(): void
     {
@@ -305,8 +294,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Verify compatibility checks reject a same-name table that omits its primary key contract.
-     *
-     * @return void
      */
     public function test_schema_compatibility_rejects_same_name_table_without_id_primary_key(): void
     {
@@ -335,8 +322,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Verify compatibility checks reject a same-name table without its public-ID uniqueness constraint.
-     *
-     * @return void
      */
     public function test_schema_compatibility_rejects_same_name_table_without_unique_index(): void
     {
@@ -353,8 +338,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Verify a composite unique index cannot satisfy a required single-column unique contract.
-     *
-     * @return void
      */
     public function test_unique_index_assertion_rejects_composite_unique_index_for_single_column_contract(): void
     {
@@ -373,8 +356,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Verify compatibility checks reject a same-name table without a cascading owner foreign key.
-     *
-     * @return void
      */
     public function test_schema_compatibility_rejects_same_name_table_without_cascading_foreign_key(): void
     {
@@ -391,16 +372,14 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Verify rolling back owned migrations leaves the host PAT table untouched.
-     *
-     * @return void
      */
     public function test_owned_auth_migration_rollbacks_drop_only_wncms_tables(): void
     {
         $originalConnection = config('database.default');
         $connection = 'auth_schema_rollback_regression';
         config([
-            'database.connections.' . $connection => array_merge(
-                config('database.connections.' . $originalConnection),
+            'database.connections.'.$connection => array_merge(
+                config('database.connections.'.$originalConnection),
                 ['database' => ':memory:']
             ),
             'database.default' => $connection,
@@ -414,11 +393,11 @@ class AuthSecuritySchemaTest extends TestCase
             });
 
             $migrations = [
-                require __DIR__ . '/../../../../database/migrations/0001_01_01_000041_create_api_sessions_table.php',
-                require __DIR__ . '/../../../../database/migrations/0001_01_01_000042_create_api_access_tokens_table.php',
-                require __DIR__ . '/../../../../database/migrations/0001_01_01_000043_create_api_refresh_tokens_table.php',
-                require __DIR__ . '/../../../../database/migrations/0001_01_01_000044_create_api_service_tokens_table.php',
-                require __DIR__ . '/../../../../database/migrations/0001_01_01_000045_create_api_security_events_table.php',
+                require __DIR__.'/../../../../database/migrations/0001_01_01_000041_create_api_sessions_table.php',
+                require __DIR__.'/../../../../database/migrations/0001_01_01_000042_create_api_access_tokens_table.php',
+                require __DIR__.'/../../../../database/migrations/0001_01_01_000043_create_api_refresh_tokens_table.php',
+                require __DIR__.'/../../../../database/migrations/0001_01_01_000044_create_api_service_tokens_table.php',
+                require __DIR__.'/../../../../database/migrations/0001_01_01_000045_create_api_security_events_table.php',
             ];
 
             foreach ($migrations as $migration) {
@@ -444,10 +423,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Assert a column is covered by an index on SQLite prepared test databases.
-     *
-     * @param  string  $table
-     * @param  string  $column
-     * @return void
      */
     private function assertColumnIsIndexed(string $table, string $column): void
     {
@@ -459,6 +434,7 @@ class AuthSecuritySchemaTest extends TestCase
 
             if (in_array($column, array_map(fn ($item) => $item->name, $columns), true)) {
                 $this->addToAssertionCount(1);
+
                 return;
             }
         }
@@ -468,10 +444,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Assert a column has a unique index on SQLite prepared test databases.
-     *
-     * @param  string  $table
-     * @param  string  $column
-     * @return void
      */
     private function assertUniqueIndex(string $table, string $column): void
     {
@@ -487,6 +459,7 @@ class AuthSecuritySchemaTest extends TestCase
 
             if (array_map(fn ($item) => $item->name, $columns) === [$column]) {
                 $this->addToAssertionCount(1);
+
                 return;
             }
         }
@@ -496,10 +469,6 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Assert a JSON column retains its native declaration across supported drivers.
-     *
-     * @param  string  $table
-     * @param  string  $column
-     * @return void
      */
     private function assertJsonColumn(string $table, string $column): void
     {
@@ -523,17 +492,14 @@ class AuthSecuritySchemaTest extends TestCase
 
     /**
      * Run a compatibility fixture against an isolated SQLite database.
-     *
-     * @param  callable  $callback
-     * @return void
      */
     private function withCompatibilityDatabase(callable $callback): void
     {
         $originalConnection = config('database.default');
         $connection = 'auth_schema_compatibility_regression';
         config([
-            'database.connections.' . $connection => array_merge(
-                config('database.connections.' . $originalConnection),
+            'database.connections.'.$connection => array_merge(
+                config('database.connections.'.$originalConnection),
                 ['database' => ':memory:']
             ),
             'database.default' => $connection,

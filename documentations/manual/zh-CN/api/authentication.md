@@ -65,10 +65,25 @@ scheme、host 与有效 port。缺少、`null`、wildcard、格式错误或未�
 
 Cookie refresh 与 logout 必须将 `wncms_refresh_csrf` 复制到
 `X-WNCMS-CSRF` 标头。WNCMS 会比较两者，并验证它们与当前 session 的
-hash-only 绑定。成功 refresh 会轮换两个 cookie；logout 和适用的 session
+精确 refresh credential 之间的 hash-only 绑定。带原始 proof 的重放可进入
+reuse 检测，随机或过时 proof 仍会被拒绝。成功 refresh 会轮换两个 cookie；logout 和适用的 session
 撤销会让两个 cookie 过期。Body/cookie 通道不一致返回
 `authentication.refresh_transport_mismatch`，Origin 与 CSRF 失败分别返回
-`authentication.origin_denied` 和 `authentication.csrf_failed`。
+`authentication.origin_denied` 和 `authentication.csrf_failed`；两者都会写入
+已脱敏的 security event。
+
+Host 必须为完全匹配的配置 Origins 与 `api/v2/backend/auth/*` path 启用
+credentialed CORS；credentials 不可搭配 `*` Origin。WNCMS 会加入精确的
+`Access-Control-Allow-Origin`、`Access-Control-Allow-Credentials: true` 与
+`Vary: Origin`，并处理 auth preflight。除非应用 URL/cookie 均为 HTTPS，且
+host CORS 设置 `supports_credentials = true`、涵盖 auth path 与所有精确
+Origins，否则 `SameSite=None` 会被拒绝。永久 remember credential 的浏览器
+cookie 仍采用有界的 400 天持久期限，logout 始终按完全相同 scope 清除。
+
+切换 refresh transport 会撤销所有 active interactive sessions；更改 Cookie
+domain、SameSite、允许 Origins 或 Referer fallback 会撤销 active Cookie
+sessions。Setting 写入、credential 撤销与必要的
+`security.auth_policy.changed` event 会原子提交；service tokens 不受影响。
 
 ```javascript
 const csrf = readCookie('wncms_refresh_csrf')

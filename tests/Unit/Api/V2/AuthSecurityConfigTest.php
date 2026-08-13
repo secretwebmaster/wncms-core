@@ -99,7 +99,7 @@ class AuthSecurityConfigTest extends TestCase
         $errors = AuthSecurityConfig::fromRuntime()->validate();
 
         $this->assertSame(
-            'SameSite=None requires an HTTPS application URL and secure refresh cookies.',
+            'SameSite=None requires HTTPS, secure cookies, and exact host credentialed CORS for API auth paths.',
             $errors['api_refresh_cookie_same_site']
         );
     }

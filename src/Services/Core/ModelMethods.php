@@ -38,6 +38,13 @@ trait ModelMethods
         return $translatedAction;
     }
 
+    /**
+     * Discover concrete Eloquent models exposed by the host and core package.
+     *
+     * Support classes nested under Models are ignored before instantiation.
+     *
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     */
     public function getModelNames()
     {
         $appModelPath = app_path('Models');
@@ -83,6 +90,10 @@ trait ModelMethods
         return $appModels->merge($packageModels)
             ->map(function ($modelName) {
                 if (!class_exists($modelName)) {
+                    return null;
+                }
+
+                if (!is_subclass_of($modelName, Model::class)) {
                     return null;
                 }
 

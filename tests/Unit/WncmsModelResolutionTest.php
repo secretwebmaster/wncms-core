@@ -11,10 +11,26 @@ if (!class_exists(User::class, false)) {
 namespace Wncms\Tests\Unit;
 
 use Illuminate\Support\Facades\Config;
+use Wncms\Models\Builders\AppendOnlySecurityEventBuilder;
 use Wncms\Tests\TestCase;
 
 class WncmsModelResolutionTest extends TestCase
 {
+    /**
+     * Verify recursive model discovery ignores support classes with required constructors.
+     *
+     * @return void
+     */
+    public function test_model_discovery_skips_non_model_support_classes(): void
+    {
+        $models = wncms()->getModelNames();
+
+        $this->assertNotEmpty($models);
+        $this->assertFalse($models->contains(
+            static fn (array $model): bool => $model['model_name_with_namespace'] === AppendOnlySecurityEventBuilder::class,
+        ));
+    }
+
     public function test_it_prefers_auth_user_model_over_app_user_model_fallback(): void
     {
         Config::set('auth.providers.users.model', \Wncms\Models\User::class);

@@ -12,12 +12,6 @@ class OriginPolicyTest extends TestCase
 {
     /**
      * Verify Origin comparison uses the exact scheme, host, and effective port.
-     *
-     * @param  string|null  $origin
-     * @param  string|null  $referer
-     * @param  bool  $refererFallback
-     * @param  bool  $allowed
-     * @return void
      */
     #[DataProvider('originMatrix')]
     public function test_origin_policy_matches_only_an_exact_allowed_origin(
@@ -75,8 +69,6 @@ class OriginPolicyTest extends TestCase
 
     /**
      * Verify cookie options preserve host-only and validated shared-domain policies.
-     *
-     * @return void
      */
     public function test_cookie_options_are_secure_host_only_by_default_and_allow_a_validated_shared_domain(): void
     {
@@ -100,8 +92,6 @@ class OriginPolicyTest extends TestCase
 
     /**
      * Verify invalid Cookie settings resolve to conservative values.
-     *
-     * @return void
      */
     public function test_invalid_cookie_options_are_never_used_loosely(): void
     {
@@ -118,10 +108,40 @@ class OriginPolicyTest extends TestCase
     }
 
     /**
+     * Verify SameSite=None fails closed when host credentialed CORS is unavailable.
+     */
+    public function test_same_site_none_requires_exact_host_credentialed_cors_configuration(): void
+    {
+        config([
+            'app.url' => 'https://api.example.test',
+            'session.secure' => true,
+            'cors.paths' => ['api/v2/backend/auth/*'],
+            'cors.allowed_origins' => [],
+            'cors.supports_credentials' => false,
+        ]);
+        $values = [
+            'api_refresh_transport' => 'cookie',
+            'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+            'api_refresh_cookie_same_site' => 'none',
+        ];
+
+        $missing = AuthSecurityConfig::fromValues($values);
+        $this->assertSame('json', $missing->refreshTransport());
+        $this->assertArrayHasKey('api_refresh_cookie_same_site', $missing->validate());
+
+        config([
+            'cors.allowed_origins' => ['https://admin.example.test'],
+            'cors.supports_credentials' => true,
+        ]);
+        $ready = AuthSecurityConfig::fromValues($values);
+        $this->assertSame('cookie', $ready->refreshTransport());
+        $this->assertArrayNotHasKey('api_refresh_cookie_same_site', $ready->validate());
+    }
+
+    /**
      * Build a policy from typed security configuration values.
      *
      * @param  array<string, mixed>  $overrides
-     * @return \Wncms\Auth\Api\V2\OriginPolicy
      */
     private function policy(array $overrides = []): OriginPolicy
     {

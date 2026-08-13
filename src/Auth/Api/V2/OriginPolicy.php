@@ -12,14 +12,12 @@ final class OriginPolicy
 
     public const COOKIE_PATH = '/api/v2/backend/auth';
 
+    public const PERMANENT_COOKIE_LIFETIME_DAYS = 400;
+
     /**
      * Create the exact browser-Origin policy.
-     *
-     * @param  \Wncms\Auth\Api\V2\AuthSecurityConfig  $config
      */
-    public function __construct(private AuthSecurityConfig $config)
-    {
-    }
+    public function __construct(private ?AuthSecurityConfig $config = null) {}
 
     /**
      * Assert that a request came from one configured exact Origin.
@@ -27,8 +25,6 @@ final class OriginPolicy
      * Referer is considered only when Origin is absent and the explicit compatibility
      * fallback is enabled. Comparison includes scheme, host, and effective port.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return void
      *
      * @throws \RuntimeException
      */
@@ -39,7 +35,7 @@ final class OriginPolicy
 
         if (is_string($originHeader) && trim($originHeader) !== '') {
             $candidate = $this->canonicalOrigin($originHeader, false);
-        } elseif ($originHeader === null && $this->config->refreshCookieRefererFallback()) {
+        } elseif ($originHeader === null && $this->securityConfig()->refreshCookieRefererFallback()) {
             $referer = $request->headers->get('Referer');
             $candidate = is_string($referer) ? $this->canonicalOrigin($referer, true) : null;
         }
@@ -48,7 +44,7 @@ final class OriginPolicy
             throw new \RuntimeException('authentication.origin_denied');
         }
 
-        foreach ($this->config->refreshCookieAllowedOrigins() as $allowedOrigin) {
+        foreach ($this->securityConfig()->refreshCookieAllowedOrigins() as $allowedOrigin) {
             $allowed = $this->canonicalOrigin($allowedOrigin, false);
             if ($allowed !== null && hash_equals($allowed, $candidate)) {
                 return;
@@ -67,18 +63,22 @@ final class OriginPolicy
     {
         return [
             'path' => self::COOKIE_PATH,
-            'domain' => $this->config->refreshCookieDomain(),
+            'domain' => $this->securityConfig()->refreshCookieDomain(),
             'secure' => true,
-            'same_site' => $this->config->refreshCookieSameSite(),
+            'same_site' => $this->securityConfig()->refreshCookieSameSite(),
         ];
     }
 
     /**
+     * Resolve explicit test configuration or a fresh runtime snapshot.
+     */
+    private function securityConfig(): AuthSecurityConfig
+    {
+        return $this->config ?? AuthSecurityConfig::fromRuntime();
+    }
+
+    /**
      * Canonicalize a URL to an exact scheme, host, and effective port.
-     *
-     * @param  string  $value
-     * @param  bool  $allowPath
-     * @return string|null
      */
     private function canonicalOrigin(string $value, bool $allowPath): ?string
     {
@@ -88,24 +88,24 @@ final class OriginPolicy
         }
 
         $parts = parse_url($value);
-        if (!is_array($parts)
-            || !isset($parts['scheme'], $parts['host'])
+        if (! is_array($parts)
+            || ! isset($parts['scheme'], $parts['host'])
             || isset($parts['user'], $parts['pass'], $parts['fragment'])
-            || (!$allowPath && isset($parts['path']))
-            || (!$allowPath && isset($parts['query']))) {
+            || (! $allowPath && isset($parts['path']))
+            || (! $allowPath && isset($parts['query']))) {
             return null;
         }
 
         $scheme = strtolower((string) $parts['scheme']);
         $host = strtolower((string) $parts['host']);
-        if (!in_array($scheme, ['http', 'https'], true)
+        if (! in_array($scheme, ['http', 'https'], true)
             || $host === ''
             || str_contains($host, '*')) {
             return null;
         }
 
         $port = $parts['port'] ?? ($scheme === 'https' ? 443 : 80);
-        if (!is_int($port) || $port < 1 || $port > 65535) {
+        if (! is_int($port) || $port < 1 || $port > 65535) {
             return null;
         }
 

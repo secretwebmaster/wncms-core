@@ -3,6 +3,7 @@
 namespace Wncms\Auth\Api\V2;
 
 use DateTimeImmutable;
+use Illuminate\Support\Str;
 
 final class AuthSecurityConfig
 {
@@ -32,8 +33,6 @@ final class AuthSecurityConfig
 
     /**
      * Create a configuration value object from package defaults and system settings.
-     *
-     * @return self
      */
     public static function fromRuntime(): self
     {
@@ -41,7 +40,7 @@ final class AuthSecurityConfig
         $values = [];
 
         foreach (self::SETTING_KEYS as $settingKey) {
-            $values[$settingKey] = gss($settingKey, self::defaultFor($defaults, $settingKey));
+            $values[$settingKey] = gss($settingKey, self::runtimeDefault($defaults, $settingKey));
         }
 
         return self::fromValues($values);
@@ -51,7 +50,6 @@ final class AuthSecurityConfig
      * Create a configuration value object from candidate system-setting values.
      *
      * @param  array<string, mixed>  $values
-     * @return self
      */
     public static function fromValues(array $values): self
     {
@@ -96,8 +94,7 @@ final class AuthSecurityConfig
     private function __construct(
         private readonly array $values,
         private readonly array $defaults,
-    ) {
-    }
+    ) {}
 
     /**
      * Validate all configured stable settings.
@@ -174,8 +171,6 @@ final class AuthSecurityConfig
 
     /**
      * Return the access token lifetime in minutes.
-     *
-     * @return int
      */
     public function accessLifetimeMinutes(): int
     {
@@ -184,8 +179,6 @@ final class AuthSecurityConfig
 
     /**
      * Return the refresh token lifetime in days.
-     *
-     * @return int
      */
     public function refreshLifetimeDays(): int
     {
@@ -194,8 +187,6 @@ final class AuthSecurityConfig
 
     /**
      * Return the configured refresh transport.
-     *
-     * @return string
      */
     public function refreshTransport(): string
     {
@@ -210,8 +201,6 @@ final class AuthSecurityConfig
 
     /**
      * Return whether permanent remember-me sessions are enabled.
-     *
-     * @return bool
      */
     public function permanentRememberEnabled(): bool
     {
@@ -220,20 +209,16 @@ final class AuthSecurityConfig
 
     /**
      * Return the optional shared refresh cookie domain.
-     *
-     * @return string|null
      */
     public function refreshCookieDomain(): ?string
     {
         $value = trim((string) $this->values['api_refresh_cookie_domain']);
 
-        return $value === '' || !$this->isValidCookieDomain($value) ? null : $value;
+        return $value === '' || ! $this->isValidCookieDomain($value) ? null : $value;
     }
 
     /**
      * Return the configured refresh cookie SameSite policy.
-     *
-     * @return string
      */
     public function refreshCookieSameSite(): string
     {
@@ -252,8 +237,6 @@ final class AuthSecurityConfig
 
     /**
      * Return whether Referer fallback is enabled for cookie requests.
-     *
-     * @return bool
      */
     public function refreshCookieRefererFallback(): bool
     {
@@ -262,8 +245,6 @@ final class AuthSecurityConfig
 
     /**
      * Return the account login attempt limit.
-     *
-     * @return int
      */
     public function loginAccountAttempts(): int
     {
@@ -272,8 +253,6 @@ final class AuthSecurityConfig
 
     /**
      * Return the IP login attempt limit.
-     *
-     * @return int
      */
     public function loginIpAttempts(): int
     {
@@ -282,8 +261,6 @@ final class AuthSecurityConfig
 
     /**
      * Return the login throttle window in minutes.
-     *
-     * @return int
      */
     public function loginWindowMinutes(): int
     {
@@ -298,14 +275,12 @@ final class AuthSecurityConfig
     public function loginProgressiveDelaySeconds(): array
     {
         return $this->isValidProgressiveDelay()
-            ? array_map(static fn($delay) => (int) trim($delay), explode(',', (string) $this->values['api_login_progressive_delay_seconds']))
+            ? array_map(static fn ($delay) => (int) trim($delay), explode(',', (string) $this->values['api_login_progressive_delay_seconds']))
             : $this->defaultProgressiveDelays();
     }
 
     /**
      * Return the high-risk action mode.
-     *
-     * @return string
      */
     public function highRiskMode(): string
     {
@@ -314,8 +289,6 @@ final class AuthSecurityConfig
 
     /**
      * Return the action-plan lifetime in seconds.
-     *
-     * @return int
      */
     public function actionPlanLifetimeSeconds(): int
     {
@@ -324,8 +297,6 @@ final class AuthSecurityConfig
 
     /**
      * Return the step-up proof lifetime in seconds.
-     *
-     * @return int
      */
     public function stepUpLifetimeSeconds(): int
     {
@@ -334,8 +305,6 @@ final class AuthSecurityConfig
 
     /**
      * Return whether WNCMS Blade routes are enabled.
-     *
-     * @return bool
      */
     public function bladeEnabled(): bool
     {
@@ -344,8 +313,6 @@ final class AuthSecurityConfig
 
     /**
      * Return whether legacy personal tokens are enabled.
-     *
-     * @return bool
      */
     public function legacyPersonalTokensEnabled(): bool
     {
@@ -354,8 +321,6 @@ final class AuthSecurityConfig
 
     /**
      * Return the optional legacy personal token cutoff in UTC.
-     *
-     * @return string|null
      */
     public function legacyPersonalTokensCutoffAt(): ?string
     {
@@ -374,8 +339,6 @@ final class AuthSecurityConfig
 
     /**
      * Return the security event retention period in days.
-     *
-     * @return int
      */
     public function securityEventRetentionDays(): int
     {
@@ -386,8 +349,6 @@ final class AuthSecurityConfig
      * Return one configured default value.
      *
      * @param  array<string, mixed>  $defaults
-     * @param  string  $settingKey
-     * @return mixed
      */
     private static function defaultFor(array $defaults, string $settingKey): mixed
     {
@@ -400,11 +361,23 @@ final class AuthSecurityConfig
     }
 
     /**
+     * Return the loaded runtime value before falling back to package defaults.
+     *
+     * @param  array<string, mixed>  $defaults
+     */
+    private static function runtimeDefault(array $defaults, string $settingKey): mixed
+    {
+        $configKey = $settingKey === 'blade_enabled'
+            ? 'blade_enabled'
+            : str_replace('api_', '', $settingKey);
+
+        return config('wncms.auth_security.'.$configKey, self::defaultFor($defaults, $settingKey));
+    }
+
+    /**
      * Return one raw enum value when it is valid.
      *
-     * @param  string  $settingKey
      * @param  array<int, string>  $allowedValues
-     * @return string|null
      */
     private function rawEnumValue(string $settingKey, array $allowedValues): ?string
     {
@@ -421,16 +394,14 @@ final class AuthSecurityConfig
     private function rawAllowedOrigins(): array
     {
         $origins = preg_split('/\r\n|\r|\n/', (string) $this->values['api_refresh_cookie_allowed_origins']) ?: [];
-        $origins = array_map(static fn($origin) => trim((string) $origin), $origins);
-        $origins = array_filter($origins, static fn($origin) => $origin !== '');
+        $origins = array_map(static fn ($origin) => trim((string) $origin), $origins);
+        $origins = array_filter($origins, static fn ($origin) => $origin !== '');
 
         return array_values(array_unique($origins));
     }
 
     /**
      * Determine whether every configured Origin is exact and valid.
-     *
-     * @return bool
      */
     private function hasExactAllowedOrigins(): bool
     {
@@ -444,11 +415,11 @@ final class AuthSecurityConfig
             $isExactOrigin = is_array($parsed)
                 && isset($parsed['scheme'], $parsed['host'])
                 && in_array(strtolower($parsed['scheme']), ['http', 'https'], true)
-                && !isset($parsed['path'], $parsed['query'], $parsed['fragment'], $parsed['user'], $parsed['pass'])
-                && !str_contains($parsed['host'], '*')
+                && ! isset($parsed['path'], $parsed['query'], $parsed['fragment'], $parsed['user'], $parsed['pass'])
+                && ! str_contains($parsed['host'], '*')
                 && strtolower($origin) !== 'null';
 
-            if (!$isExactOrigin) {
+            if (! $isExactOrigin) {
                 return false;
             }
         }
@@ -458,9 +429,6 @@ final class AuthSecurityConfig
 
     /**
      * Determine whether an optional cookie domain is a valid application parent.
-     *
-     * @param  string  $domain
-     * @return bool
      */
     private function isValidCookieDomain(string $domain): bool
     {
@@ -468,13 +436,11 @@ final class AuthSecurityConfig
         $appHost = strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
         $isDomain = preg_match('/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/', $normalizedDomain) === 1;
 
-        return $isDomain && $appHost !== '' && str_ends_with($appHost, '.' . $normalizedDomain);
+        return $isDomain && $appHost !== '' && str_ends_with($appHost, '.'.$normalizedDomain);
     }
 
     /**
      * Determine whether SameSite=None has a secure application and origin boundary.
-     *
-     * @return bool
      */
     private function hasSecureSameSiteNoneConfiguration(): bool
     {
@@ -486,15 +452,44 @@ final class AuthSecurityConfig
         $appScheme = strtolower((string) parse_url((string) config('app.url'), PHP_URL_SCHEME));
         $secureCookies = $this->parseBoolean(config('session.secure')) === true;
         $hasSecureOrigins = $this->hasExactAllowedOrigins()
-            && count(array_filter($origins, static fn($origin) => str_starts_with(strtolower($origin), 'https://'))) === count($origins);
+            && count(array_filter($origins, static fn ($origin) => str_starts_with(strtolower($origin), 'https://'))) === count($origins);
 
-        return $appScheme === 'https' && $secureCookies && $hasSecureOrigins;
+        return $appScheme === 'https'
+            && $secureCookies
+            && $hasSecureOrigins
+            && $this->hasCredentialedHostCorsConfiguration();
+    }
+
+    /**
+     * Determine whether host CORS covers auth endpoints with exact credentialed origins.
+     */
+    private function hasCredentialedHostCorsConfiguration(): bool
+    {
+        if (config('cors.supports_credentials') !== true) {
+            return false;
+        }
+
+        $allowedOrigins = array_values(array_filter(
+            (array) config('cors.allowed_origins', []),
+            static fn ($origin): bool => is_string($origin) && $origin !== '*',
+        ));
+        foreach ($this->rawAllowedOrigins() as $origin) {
+            if (! in_array($origin, $allowedOrigins, true)) {
+                return false;
+            }
+        }
+
+        foreach ((array) config('cors.paths', []) as $path) {
+            if (is_string($path) && Str::is($path, 'api/v2/backend/auth/refresh')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
      * Determine whether configured progressive delays are valid and ascending.
-     *
-     * @return bool
      */
     private function isValidProgressiveDelay(): bool
     {
@@ -522,10 +517,6 @@ final class AuthSecurityConfig
      * Validate one integer setting range.
      *
      * @param  array<string, string>  $errors
-     * @param  string  $settingKey
-     * @param  int  $minimum
-     * @param  int  $maximum
-     * @return void
      */
     private function validateInteger(array &$errors, string $settingKey, int $minimum, int $maximum): void
     {
@@ -539,15 +530,13 @@ final class AuthSecurityConfig
      * Validate one enum setting.
      *
      * @param  array<string, string>  $errors
-     * @param  string  $settingKey
      * @param  array<int, string>  $allowedValues
-     * @return void
      */
     private function validateEnum(array &$errors, string $settingKey, array $allowedValues): void
     {
         $value = strtolower(trim((string) $this->values[$settingKey]));
-        if (!in_array($value, $allowedValues, true)) {
-            $errors[$settingKey] = 'Must be one of: ' . implode(', ', $allowedValues) . '.';
+        if (! in_array($value, $allowedValues, true)) {
+            $errors[$settingKey] = 'Must be one of: '.implode(', ', $allowedValues).'.';
         }
     }
 
@@ -555,8 +544,6 @@ final class AuthSecurityConfig
      * Validate one boolean setting.
      *
      * @param  array<string, string>  $errors
-     * @param  string  $settingKey
-     * @return void
      */
     private function validateBoolean(array &$errors, string $settingKey): void
     {
@@ -569,7 +556,6 @@ final class AuthSecurityConfig
      * Validate the optional shared refresh cookie domain.
      *
      * @param  array<string, string>  $errors
-     * @return void
      */
     private function validateCookieDomain(array &$errors): void
     {
@@ -578,7 +564,7 @@ final class AuthSecurityConfig
             return;
         }
 
-        if (!$this->isValidCookieDomain($domain)) {
+        if (! $this->isValidCookieDomain($domain)) {
             $errors['api_refresh_cookie_domain'] = 'Must be empty or a valid parent domain for the application host.';
         }
     }
@@ -587,11 +573,10 @@ final class AuthSecurityConfig
      * Validate exact configured origins.
      *
      * @param  array<string, string>  $errors
-     * @return void
      */
     private function validateAllowedOrigins(array &$errors): void
     {
-        if (!$this->hasExactAllowedOrigins() && $this->rawAllowedOrigins() !== []) {
+        if (! $this->hasExactAllowedOrigins() && $this->rawAllowedOrigins() !== []) {
             $errors['api_refresh_cookie_allowed_origins'] = 'Must contain newline-separated exact HTTP or HTTPS origins.';
         }
     }
@@ -600,11 +585,10 @@ final class AuthSecurityConfig
      * Validate progressive login failure delays.
      *
      * @param  array<string, string>  $errors
-     * @return void
      */
     private function validateProgressiveDelay(array &$errors): void
     {
-        if (!$this->isValidProgressiveDelay()) {
+        if (! $this->isValidProgressiveDelay()) {
             $errors['api_login_progressive_delay_seconds'] = 'Must be ascending comma-separated integers between 0 and 300.';
         }
     }
@@ -613,7 +597,6 @@ final class AuthSecurityConfig
      * Validate the optional UTC cutoff timestamp.
      *
      * @param  array<string, string>  $errors
-     * @return void
      */
     private function validateLegacyCutoff(array &$errors): void
     {
@@ -636,14 +619,13 @@ final class AuthSecurityConfig
      * Validate cookie mode boundary requirements.
      *
      * @param  array<string, string>  $errors
-     * @return void
      */
     private function validateCookieCompatibility(array &$errors): void
     {
         $transport = $this->rawEnumValue('api_refresh_transport', ['json', 'cookie']);
         $sameSite = $this->rawEnumValue('api_refresh_cookie_same_site', ['strict', 'lax', 'none']);
 
-        if ($transport === 'cookie' && !$this->hasExactAllowedOrigins()) {
+        if ($transport === 'cookie' && ! $this->hasExactAllowedOrigins()) {
             $errors['api_refresh_cookie_allowed_origins'] = 'At least one exact allowed origin is required when Cookie refresh transport is enabled.';
         }
 
@@ -651,16 +633,13 @@ final class AuthSecurityConfig
             return;
         }
 
-        if (!$this->hasSecureSameSiteNoneConfiguration()) {
-            $errors['api_refresh_cookie_same_site'] = 'SameSite=None requires an HTTPS application URL and secure refresh cookies.';
+        if (! $this->hasSecureSameSiteNoneConfiguration()) {
+            $errors['api_refresh_cookie_same_site'] = 'SameSite=None requires HTTPS, secure cookies, and exact host credentialed CORS for API auth paths.';
         }
     }
 
     /**
      * Return a validated integer value or its stable default.
-     *
-     * @param  string  $settingKey
-     * @return int
      */
     private function integerValue(string $settingKey): int
     {
@@ -677,7 +656,7 @@ final class AuthSecurityConfig
             'api_security_event_retention_days' => [30, 365],
         ];
 
-        if ($value === false || !isset($ranges[$settingKey]) || $value < $ranges[$settingKey][0] || $value > $ranges[$settingKey][1]) {
+        if ($value === false || ! isset($ranges[$settingKey]) || $value < $ranges[$settingKey][0] || $value > $ranges[$settingKey][1]) {
             return (int) self::defaultFor($this->defaults, $settingKey);
         }
 
@@ -687,9 +666,7 @@ final class AuthSecurityConfig
     /**
      * Return a validated enum value or its stable default.
      *
-     * @param  string  $settingKey
      * @param  array<int, string>  $allowedValues
-     * @return string
      */
     private function enumValue(string $settingKey, array $allowedValues): string
     {
@@ -703,9 +680,6 @@ final class AuthSecurityConfig
 
     /**
      * Return a validated boolean value or its stable default.
-     *
-     * @param  string  $settingKey
-     * @return bool
      */
     private function booleanValue(string $settingKey): bool
     {
@@ -719,9 +693,6 @@ final class AuthSecurityConfig
 
     /**
      * Parse a strict persisted boolean value.
-     *
-     * @param  mixed  $value
-     * @return bool|null
      */
     private static function parseBoolean(mixed $value): ?bool
     {
@@ -753,6 +724,6 @@ final class AuthSecurityConfig
     {
         $value = (string) self::defaultFor($this->defaults, 'api_login_progressive_delay_seconds');
 
-        return array_map(static fn($delay) => (int) trim($delay), explode(',', $value));
+        return array_map(static fn ($delay) => (int) trim($delay), explode(',', $value));
     }
 }

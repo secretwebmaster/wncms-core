@@ -5,7 +5,6 @@ namespace Wncms\Http\Controllers\Api\V2\Backend;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -14,8 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Auth\Api\V2\AccessTokenService;
 use Wncms\Auth\Api\V2\ApiCredential;
-use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\AuthenticationContext;
+use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\CredentialParser;
 use Wncms\Auth\Api\V2\CsrfTokenService;
 use Wncms\Auth\Api\V2\DummyPasswordHasher;
@@ -24,6 +23,7 @@ use Wncms\Auth\Api\V2\LoginThrottleService;
 use Wncms\Auth\Api\V2\OriginPolicy;
 use Wncms\Auth\Api\V2\RefreshTokenException;
 use Wncms\Auth\Api\V2\RefreshTokenService;
+use Wncms\Auth\Api\V2\RotatedCredentialPair;
 use Wncms\Auth\Api\V2\SessionService;
 use Wncms\Models\ApiSession;
 use Wncms\Models\User;
@@ -33,18 +33,6 @@ class AuthController extends ApiV2Controller
 {
     /**
      * Create the interactive authentication controller.
-     *
-     * @param  \Wncms\Auth\Api\V2\AccessTokenService  $accessTokens
-     * @param  \Wncms\Auth\Api\V2\RefreshTokenService  $refreshTokens
-     * @param  \Wncms\Auth\Api\V2\SessionService  $sessions
-     * @param  \Wncms\Auth\Api\V2\CredentialParser  $credentials
-     * @param  \Wncms\Auth\Api\V2\DummyPasswordHasher  $dummyPasswords
-     * @param  \Wncms\Auth\Api\V2\LoginThrottleService  $loginThrottle
-     * @param  \Wncms\Services\Security\SecurityEventService  $events
-     * @param  \Wncms\Api\V2\ApiContractRegistry  $contracts
-     * @param  \Wncms\Auth\Api\V2\AuthSecurityConfig  $securityConfig
-     * @param  \Wncms\Auth\Api\V2\OriginPolicy  $originPolicy
-     * @param  \Wncms\Auth\Api\V2\CsrfTokenService  $csrfTokens
      */
     public function __construct(
         private AccessTokenService $accessTokens,
@@ -55,19 +43,14 @@ class AuthController extends ApiV2Controller
         private LoginThrottleService $loginThrottle,
         private SecurityEventService $events,
         private ApiContractRegistry $contracts,
-        private AuthSecurityConfig $securityConfig,
         private OriginPolicy $originPolicy,
         private CsrfTokenService $csrfTokens,
-    ) {
-    }
+    ) {}
 
     /**
      * Authenticate an account and atomically issue one JSON interactive session.
      *
      * Unknown accounts execute the same password hash verification and return the same failure.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function login(Request $request): JsonResponse
     {
@@ -83,7 +66,7 @@ class AuthController extends ApiV2Controller
         $passwordHash = $user instanceof $userModel ? (string) $user->password : $this->dummyPasswords->material();
         $valid = Hash::check((string) $validated['password'], $passwordHash);
 
-        if (!$valid || !$user instanceof $userModel || $this->userIsDisabled($user)) {
+        if (! $valid || ! $user instanceof $userModel || $this->userIsDisabled($user)) {
             $this->loginThrottle->recordFailure($identifier);
             $this->recordLoginFailure($request, $identifier);
 
@@ -95,14 +78,14 @@ class AuthController extends ApiV2Controller
         }
 
         $remembered = (bool) ($validated['remember_me'] ?? false)
-            && (bool) config('wncms.auth_security.permanent_remember_enabled', false);
+            && $this->securityConfig()->permanentRememberEnabled();
         $now = CarbonImmutable::now('UTC');
         $expiresAt = $remembered
             ? null
             : $now->addDays((int) config('wncms.auth_security.refresh_token_lifetime_days', 30));
         $deviceName = trim((string) ($validated['device_name'] ?? 'nextjs-admin')) ?: 'nextjs-admin';
         $sessionId = (string) Str::ulid();
-        $transport = $this->securityConfig->refreshTransport();
+        $transport = $this->securityConfig()->refreshTransport();
 
         try {
             $issued = $this->events->withinTransaction(function () use ($user, $remembered, $expiresAt, $deviceName, $now, $sessionId, $transport): array {
@@ -123,7 +106,7 @@ class AuthController extends ApiV2Controller
                     $this->websiteIds($user),
                 );
                 $refresh = $this->refreshTokens->issue($session);
-                $csrf = $transport === 'cookie' ? $this->csrfTokens->issue($session) : null;
+                $csrf = $transport === 'cookie' ? $this->csrfTokens->issue($session, $refresh->model) : null;
 
                 return compact('session', 'access', 'refresh', 'csrf');
             }, [
@@ -152,9 +135,6 @@ class AuthController extends ApiV2Controller
 
     /**
      * Rotate one JSON refresh credential into a new access/refresh pair.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function refresh(Request $request): JsonResponse
     {
@@ -170,21 +150,22 @@ class AuthController extends ApiV2Controller
         $credential = $this->credentials->parse($refreshToken);
 
         try {
-            $rotate = function () use ($credential): array {
-                $pair = $this->refreshTokens->rotate($credential);
+            $csrf = null;
+            $beforeSuccess = $this->securityConfig()->refreshTransport() === 'cookie'
+                ? function (RotatedCredentialPair $pair, ApiSession $session) use (&$csrf): void {
+                    $csrf = $this->csrfTokens->issue($session, $pair->refresh->model);
+                }
+            : null;
+            $rotate = function () use ($credential, $beforeSuccess, &$csrf): array {
+                $pair = $this->refreshTokens->rotate($credential, $beforeSuccess);
                 $sessionModel = wncms()->getModelClass('api_session');
                 $userModel = wncms()->getModelClass('user');
                 $session = $sessionModel::query()->findOrFail($pair->refresh->model->session_id);
                 $user = $userModel::query()->findOrFail($pair->refresh->model->user_id);
-                $csrf = $this->securityConfig->refreshTransport() === 'cookie'
-                    ? $this->csrfTokens->issue($session)
-                    : null;
 
                 return compact('pair', 'session', 'user', 'csrf');
             };
-            $rotated = $this->securityConfig->refreshTransport() === 'cookie'
-                ? DB::transaction($rotate)
-                : $rotate();
+            $rotated = $rotate();
             $response = $this->ok($this->credentialResponse(
                 $rotated['pair']->access,
                 $rotated['pair']->refresh,
@@ -192,7 +173,7 @@ class AuthController extends ApiV2Controller
                 $rotated['user'],
             ));
 
-            if ($this->securityConfig->refreshTransport() !== 'cookie') {
+            if ($this->securityConfig()->refreshTransport() !== 'cookie') {
                 return $response;
             }
 
@@ -216,9 +197,6 @@ class AuthController extends ApiV2Controller
 
     /**
      * Idempotently revoke the interactive session identified by a JSON refresh token.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function logout(Request $request): JsonResponse
     {
@@ -244,23 +222,20 @@ class AuthController extends ApiV2Controller
 
         $response = $this->ok(null, 'logout_success');
 
-        return $this->securityConfig->refreshTransport() === 'cookie'
+        return $this->securityConfig()->refreshTransport() === 'cookie'
             ? $this->clearRefreshCookies($response)
             : $response;
     }
 
     /**
      * Revoke every interactive session for the current actor without touching service tokens.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function logoutAll(Request $request): JsonResponse
     {
         $context = $this->authenticationContext($request);
-        if (!$context instanceof AuthenticationContext
+        if (! $context instanceof AuthenticationContext
             || $context->credentialType() !== ApiCredential::TYPE_INTERACTIVE_ACCESS
-            || !$context->actor() instanceof User) {
+            || ! $context->actor() instanceof User) {
             return $this->responseFactory()->failure(
                 'risk.credential_type_denied',
                 'Interactive authentication is required',
@@ -282,21 +257,18 @@ class AuthController extends ApiV2Controller
 
         $response = $this->ok(['revoked_sessions' => $count], 'logout_all_success');
 
-        return $this->securityConfig->refreshTransport() === 'cookie'
+        return $this->securityConfig()->refreshTransport() === 'cookie'
             ? $this->clearRefreshCookies($response)
             : $response;
     }
 
     /**
      * Return the current actor and safe interactive-session metadata.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
-        if (!$user instanceof User) {
+        if (! $user instanceof User) {
             return $this->responseFactory()->failure(
                 'authentication.invalid_token',
                 __('wncms::auth.unauthenticated'),
@@ -315,9 +287,6 @@ class AuthController extends ApiV2Controller
 
     /**
      * Return the request-scoped immutable authentication context.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Wncms\Auth\Api\V2\AuthenticationContext|null
      */
     private function authenticationContext(Request $request): ?AuthenticationContext
     {
@@ -333,9 +302,6 @@ class AuthController extends ApiV2Controller
      * access credential; it never restores the former PAT behavior.
      *
      * @param  array{token: string, expires_at: \Carbon\CarbonImmutable, model: \Wncms\Models\ApiAccessToken}  $access
-     * @param  \Wncms\Auth\Api\V2\IssuedRefreshToken  $refresh
-     * @param  \Wncms\Models\ApiSession  $session
-     * @param  \Wncms\Models\User  $user
      * @return array<string, mixed>
      */
     private function credentialResponse(array $access, IssuedRefreshToken $refresh, ApiSession $session, User $user): array
@@ -350,7 +316,7 @@ class AuthController extends ApiV2Controller
             'user' => $this->userResponse($user),
         ];
 
-        if ($this->securityConfig->refreshTransport() === 'json') {
+        if ($this->securityConfig()->refreshTransport() === 'json') {
             $response['refresh_token'] = $refresh->token;
         }
 
@@ -359,13 +325,10 @@ class AuthController extends ApiV2Controller
 
     /**
      * Resolve a refresh credential exclusively from the configured transport.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return string|null
      */
     private function refreshCredential(Request $request): ?string
     {
-        if ($this->securityConfig->refreshTransport() === 'cookie') {
+        if ($this->securityConfig()->refreshTransport() === 'cookie') {
             $token = trim((string) $request->cookie(OriginPolicy::REFRESH_COOKIE, ''));
 
             return $token === '' ? null : $token;
@@ -379,16 +342,12 @@ class AuthController extends ApiV2Controller
 
     /**
      * Attach exact refresh and readable CSRF cookies to a response.
-     *
-     * @param  \Illuminate\Http\JsonResponse  $response
-     * @param  \Wncms\Auth\Api\V2\IssuedRefreshToken  $refresh
-     * @param  string  $csrf
-     * @return \Illuminate\Http\JsonResponse
      */
     private function withRefreshCookies(JsonResponse $response, IssuedRefreshToken $refresh, string $csrf): JsonResponse
     {
         $options = $this->originPolicy->cookieOptions();
-        $expiresAt = $refresh->expiresAt ?? 0;
+        $expiresAt = $refresh->expiresAt
+            ?? CarbonImmutable::now('UTC')->addDays(OriginPolicy::PERMANENT_COOKIE_LIFETIME_DAYS);
         $response->headers->setCookie(Cookie::create(
             OriginPolicy::REFRESH_COOKIE,
             $refresh->token,
@@ -417,9 +376,6 @@ class AuthController extends ApiV2Controller
 
     /**
      * Expire both Cookie-mode browser credentials with their configured scope.
-     *
-     * @param  \Illuminate\Http\JsonResponse  $response
-     * @return \Illuminate\Http\JsonResponse
      */
     private function clearRefreshCookies(JsonResponse $response): JsonResponse
     {
@@ -442,9 +398,16 @@ class AuthController extends ApiV2Controller
     }
 
     /**
+     * Resolve a fresh authentication-security snapshot for the current operation.
+     */
+    private function securityConfig(): AuthSecurityConfig
+    {
+        return AuthSecurityConfig::fromRuntime();
+    }
+
+    /**
      * Return safe session response metadata.
      *
-     * @param  \Wncms\Models\ApiSession  $session
      * @return array<string, mixed>
      */
     private function sessionResponse(ApiSession $session): array
@@ -461,7 +424,6 @@ class AuthController extends ApiV2Controller
     /**
      * Return safe actor response metadata.
      *
-     * @param  \Wncms\Models\User  $user
      * @return array<string, mixed>
      */
     private function userResponse(User $user): array
@@ -493,7 +455,6 @@ class AuthController extends ApiV2Controller
     /**
      * Return stable website IDs currently accessible to the actor.
      *
-     * @param  \Wncms\Models\User  $user
      * @return array<int, int>
      */
     private function websiteIds(User $user): array
@@ -503,9 +464,6 @@ class AuthController extends ApiV2Controller
 
     /**
      * Determine whether an actor is disabled by current account policy.
-     *
-     * @param  \Wncms\Models\User  $user
-     * @return bool
      */
     private function userIsDisabled(User $user): bool
     {
@@ -515,10 +473,6 @@ class AuthController extends ApiV2Controller
     /**
      * Build allowlisted login event context.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  string  $identifier
-     * @param  \Wncms\Models\User  $user
-     * @param  string  $sessionId
      * @return array<string, mixed>
      */
     private function loginEventContext(Request $request, string $identifier, User $user, string $sessionId): array
@@ -537,10 +491,6 @@ class AuthController extends ApiV2Controller
 
     /**
      * Record a generic login failure without changing the external response.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  string  $identifier
-     * @return void
      */
     private function recordLoginFailure(Request $request, string $identifier): void
     {
@@ -565,11 +515,6 @@ class AuthController extends ApiV2Controller
 
     /**
      * Record a non-mutating refresh failure without credential plaintext.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Wncms\Auth\Api\V2\ApiCredential  $credential
-     * @param  \Wncms\Auth\Api\V2\RefreshTokenException  $exception
-     * @return void
      */
     private function recordRefreshFailure(Request $request, ApiCredential $credential, RefreshTokenException $exception): void
     {
