@@ -31,6 +31,10 @@ class LinkApiV2ControllerTest extends TestCase
 
         auth()->forgetGuards();
         app(PermissionRegistrar::class)->registerPermissions(Gate::getFacadeRoot());
+        config([
+            'wncms.auth_security.legacy_personal_tokens_enabled' => true,
+            'wncms.auth_security.legacy_personal_tokens_cutoff_at' => now('UTC')->addDay()->toIso8601String(),
+        ]);
         uss('enable_api_access', 1);
         uss('api_access_whitelist', '');
         config(['wncms.models.link.website_mode' => 'multi']);
@@ -176,7 +180,7 @@ class LinkApiV2ControllerTest extends TestCase
         $deniedList
             ->assertForbidden()
             ->assertJsonPath('code', 403)
-            ->assertJsonPath('errors.website_ids.0', $otherWebsite->id);
+            ->assertJsonPath('meta.error_code', 'website.scope_denied');
         $this->assertAutomationEnvelope($deniedList);
 
         $deniedInspect = $this->withToken($token)
@@ -184,21 +188,21 @@ class LinkApiV2ControllerTest extends TestCase
         $deniedInspect
             ->assertForbidden()
             ->assertJsonPath('code', 403)
-            ->assertJsonPath('errors.website_ids.0', $otherWebsite->id);
+            ->assertJsonPath('meta.error_code', 'website.scope_denied');
         $this->assertAutomationEnvelope($deniedInspect);
 
         $unknownWebsiteId = (int) Website::max('id') + 1000;
         $unknownWebsite = $this->withToken($token)
             ->getJson("/api/v2/backend/links?website_id={$unknownWebsiteId}");
         $unknownWebsite
-            ->assertUnprocessable()
-            ->assertJsonPath('code', 422)
-            ->assertJsonPath('errors.website_ids.0', $unknownWebsiteId);
+            ->assertForbidden()
+            ->assertJsonPath('code', 403)
+            ->assertJsonPath('meta.error_code', 'website.scope_denied');
         $this->assertAutomationEnvelope($unknownWebsite);
     }
 
     /**
-     * Verify Links API v2 reports a stable conflict without a current website.
+     * Verify Links API v2 requires one explicit stable website selector.
      *
      * @return void
      */
@@ -212,9 +216,9 @@ class LinkApiV2ControllerTest extends TestCase
 
         $missingContext = $this->withToken($token)->getJson('/api/v2/backend/links');
         $missingContext
-            ->assertStatus(409)
-            ->assertJsonPath('code', 409)
-            ->assertJsonPath('message', 'Website context is not available');
+            ->assertForbidden()
+            ->assertJsonPath('code', 403)
+            ->assertJsonPath('meta.error_code', 'website.scope_missing');
         $this->assertAutomationEnvelope($missingContext);
     }
 

@@ -239,7 +239,7 @@ return [
         ['name' => 'cache.clear.tag', 'method' => 'post', 'uri' => 'cache/clear/{tag}/{key}', 'controller' => CacheController::class, 'action' => 'clear', 'permission' => 'cache_clear'],
 
         // Dashboard
-        ['name' => 'dashboard.switch_website', 'method' => 'post', 'uri' => 'dashboard/switch_website', 'controller' => DashboardController::class, 'action' => 'switch_website'],
+        ['name' => 'dashboard.switch_website', 'method' => 'post', 'uri' => 'dashboard/switch_website', 'controller' => DashboardController::class, 'action' => 'switch_website', 'permission' => 'website_index'],
 
         // Tools
         ['name' => 'install_default_theme', 'method' => 'post', 'uri' => 'tools/install_default_theme', 'controller' => ToolController::class, 'action' => 'install_default_theme', 'permission' => 'theme_upload'],
@@ -252,9 +252,9 @@ return [
         ['name' => 'menus.clone', 'method' => 'post', 'uri' => 'menus/clone', 'controller' => MenuController::class, 'action' => 'clone', 'permission' => 'menu_create'],
 
         // Models
-        ['name' => 'models.update', 'method' => 'post', 'uri' => 'models/update', 'controller' => ModelController::class, 'action' => 'update'],
-        ['name' => 'models.bulk_delete', 'method' => 'post', 'uri' => 'models/bulk_delete', 'controller' => ModelController::class, 'action' => 'bulk_delete'],
-        ['name' => 'models.bulk_force_delete', 'method' => 'post', 'uri' => 'models/bulk_force_delete', 'controller' => ModelController::class, 'action' => 'bulk_force_delete'],
+        ['name' => 'models.update', 'method' => 'post', 'uri' => 'models/update', 'controller' => ModelController::class, 'action' => 'update', 'permission' => 'setting_edit'],
+        ['name' => 'models.bulk_delete', 'method' => 'post', 'uri' => 'models/bulk_delete', 'controller' => ModelController::class, 'action' => 'bulk_delete', 'permission' => 'setting_edit'],
+        ['name' => 'models.bulk_force_delete', 'method' => 'post', 'uri' => 'models/bulk_force_delete', 'controller' => ModelController::class, 'action' => 'bulk_force_delete', 'permission' => 'setting_edit'],
 
         // Page builder + extra page actions
         ['name' => 'pages.builder.load', 'method' => 'get', 'uri' => 'pages/{id}/builder/load', 'controller' => ApiV2PageBuilderController::class, 'action' => 'load', 'permission' => 'page_edit'],
@@ -284,7 +284,7 @@ return [
 
         // Posts
         ['name' => 'posts.meta', 'method' => 'get', 'uri' => 'posts/meta/load', 'controller' => ApiV2PostController::class, 'action' => 'meta', 'permission' => 'post_index'],
-        ['name' => 'posts.restore', 'method' => 'post', 'uri' => 'posts/restore/{id}', 'controller' => ApiV2PostController::class, 'action' => 'restore'],
+        ['name' => 'posts.restore', 'method' => 'post', 'uri' => 'posts/restore/{id}', 'controller' => ApiV2PostController::class, 'action' => 'restore', 'permission' => 'post_edit'],
         ['name' => 'posts.bulk_delete', 'method' => 'post', 'uri' => 'posts/bulk_delete', 'controller' => ApiV2PostController::class, 'action' => 'bulkDelete', 'permission' => 'post_bulk_delete'],
         ['name' => 'posts.delete_post', 'method' => 'post', 'uri' => 'posts/{id}/delete', 'controller' => ApiV2PostController::class, 'action' => 'deleteViaPost', 'permission' => 'post_delete'],
         ['name' => 'posts.translations', 'method' => 'get', 'uri' => 'posts/{id}/translations', 'controller' => ApiV2PostController::class, 'action' => 'translations', 'permission' => 'post_show'],
@@ -315,7 +315,7 @@ return [
         ['name' => 'advertisements.manage.update', 'method' => 'post', 'uri' => 'advertisements/{id}/manage/update', 'controller' => ApiV2AdvertisementController::class, 'action' => 'updateViaPost', 'permission' => 'advertisement_edit'],
         ['name' => 'advertisements.manage.destroy', 'method' => 'post', 'uri' => 'advertisements/{id}/manage/delete', 'controller' => ApiV2AdvertisementController::class, 'action' => 'destroyViaPost', 'permission' => 'advertisement_delete'],
         ['name' => 'uploads.image', 'method' => 'post', 'uri' => 'uploads/image', 'controller' => UploadController::class, 'action' => 'upload_image', 'permission' => 'upload_image'],
-        ['name' => 'updates.check', 'method' => 'post', 'uri' => 'updates/check', 'controller' => UpdateController::class, 'action' => 'check'],
+        ['name' => 'updates.check', 'method' => 'post', 'uri' => 'updates/check', 'controller' => UpdateController::class, 'action' => 'check', 'permission' => 'setting_index'],
         ['name' => 'records.bulk_delete', 'method' => 'post', 'uri' => 'records/bulk_delete', 'controller' => RecordController::class, 'action' => 'bulk_delete', 'permission' => 'record_bulk_delete'],
         ['name' => 'records.destroy', 'method' => 'delete', 'uri' => 'records/{id}', 'controller' => RecordController::class, 'action' => 'destroy', 'permission' => 'record_delete'],
         ['name' => 'clicks.destroy', 'method' => 'delete', 'uri' => 'clicks/{id}', 'controller' => ClickController::class, 'action' => 'destroy', 'permission' => 'click_delete'],

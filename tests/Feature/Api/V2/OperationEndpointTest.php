@@ -17,6 +17,9 @@ use Wncms\Api\V2\Contracts\AtomicOperationRepository;
 use Wncms\Api\V2\Contracts\OperationRepository;
 use Wncms\Api\V2\Enums\AsyncOperationStatus;
 use Wncms\Api\V2\OperationService;
+use Wncms\Auth\Api\V2\TokenHasher;
+use Wncms\Http\Middleware\ApiV2TokenAuth;
+use Wncms\Models\ApiSession;
 use Wncms\Models\User;
 use Wncms\Models\Website;
 use Wncms\Tests\TestCase;
@@ -132,7 +135,8 @@ class OperationEndpointTest extends TestCase
         $user = Mockery::mock(User::class)->makePartial();
         $user->shouldReceive('getAuthIdentifier')->andReturn($actorId);
 
-        $response = $this->actingAs($user)
+        $response = $this->withoutMiddleware(ApiV2TokenAuth::class)
+            ->actingAs($user)
             ->getJson('/api/v2/backend/operations/missing');
 
         $response
@@ -150,7 +154,8 @@ class OperationEndpointTest extends TestCase
         $user = Mockery::mock(User::class)->makePartial();
         $user->shouldReceive('getAuthIdentifier')->andReturn('42');
 
-        $response = $this->actingAs($user)
+        $response = $this->withoutMiddleware(ApiV2TokenAuth::class)
+            ->actingAs($user)
             ->getJson("/api/v2/backend/operations/{$operation->id}");
 
         $response
@@ -193,7 +198,7 @@ class OperationEndpointTest extends TestCase
         wncms()->cache()->flush(['websites']);
 
         $requestId = '123e4567-e89b-42d3-a456-426614174081';
-        $response = $this->actingAs($user)
+        $response = $this->withToken($this->accessToken($user))
             ->withHeader('X-Request-ID', $requestId)
             ->getJson("/api/v2/backend/operations/{$operation->id}");
 
@@ -223,15 +228,16 @@ class OperationEndpointTest extends TestCase
         $other = $this->newUser('other');
         $service = app(OperationService::class);
         $operation = $service->queue('plugins.upgrade', (int) $owner->getAuthIdentifier(), [], true);
+        $token = $this->accessToken($other);
 
-        $show = $this->actingAs($other)
+        $show = $this->withToken($token)
             ->getJson("/api/v2/backend/operations/{$operation->id}");
         $show
             ->assertNotFound()
             ->assertJsonPath('meta.error_code', 'resource.not_found');
         $this->assertEnvelope($show);
 
-        $cancel = $this->actingAs($other)
+        $cancel = $this->withToken($token)
             ->withHeader('Idempotency-Key', 'cross-actor-cancel-0001')
             ->postJson("/api/v2/backend/operations/{$operation->id}/cancel");
         $cancel
@@ -261,7 +267,7 @@ class OperationEndpointTest extends TestCase
         );
         CarbonImmutable::setTestNow('2026-08-13 08:00:01 UTC');
 
-        $response = $this->actingAs($user)
+        $response = $this->withToken($this->accessToken($user))
             ->getJson("/api/v2/backend/operations/{$operation->id}");
 
         $response
@@ -287,14 +293,15 @@ class OperationEndpointTest extends TestCase
         $key = 'operation-cancel-key-0001';
         $firstRequestId = '123e4567-e89b-42d3-a456-426614174082';
         $retryRequestId = '123e4567-e89b-42d3-a456-426614174083';
+        $token = $this->accessToken($user);
 
-        $first = $this->actingAs($user)
+        $first = $this->withToken($token)
             ->withHeaders([
                 'Idempotency-Key' => $key,
                 'X-Request-ID' => $firstRequestId,
             ])
             ->postJson("/api/v2/backend/operations/{$operation->id}/cancel");
-        $replayed = $this->actingAs($user)
+        $replayed = $this->withToken($token)
             ->withHeaders([
                 'Idempotency-Key' => $key,
                 'X-Request-ID' => $retryRequestId,
@@ -334,7 +341,7 @@ class OperationEndpointTest extends TestCase
             true
         );
 
-        $response = $this->actingAs($user)
+        $response = $this->withToken($this->accessToken($user))
             ->postJson("/api/v2/backend/operations/{$operation->id}/cancel");
 
         $response
@@ -361,7 +368,7 @@ class OperationEndpointTest extends TestCase
             (int) $user->getAuthIdentifier()
         );
 
-        $response = $this->actingAs($user)
+        $response = $this->withToken($this->accessToken($user))
             ->withHeader('Idempotency-Key', 'non-cancellable-key-0001')
             ->postJson("/api/v2/backend/operations/{$operation->id}/cancel");
 
@@ -392,7 +399,7 @@ class OperationEndpointTest extends TestCase
             true
         );
 
-        $response = $this->actingAs($user)
+        $response = $this->withToken($this->accessToken($user))
             ->withHeader('Idempotency-Key', 'permission-denied-key-0001')
             ->postJson("/api/v2/backend/operations/{$operation->id}/cancel");
 
@@ -423,6 +430,36 @@ class OperationEndpointTest extends TestCase
             'password' => Hash::make('operation-password'),
             'email_verified_at' => now(),
         ]);
+    }
+
+    /**
+     * Issue one owned access-token fixture for production operation routes.
+     *
+     * @param  \Wncms\Models\User  $user
+     * @return string
+     */
+    protected function accessToken(User $user): string
+    {
+        $session = ApiSession::create([
+            'session_id' => 'operation-session-'.Str::lower(Str::random(20)),
+            'user_id' => $user->getKey(),
+            'refresh_transport' => 'json',
+            'remembered' => false,
+            'expires_at' => now()->addDay(),
+        ]);
+        $material = app(TokenHasher::class)->issue('wncms_at');
+        $modelClass = wncms()->getModelClass('api_access_token');
+        $modelClass::create([
+            'token_id' => $material['public_id'],
+            'token_hash' => $material['hash'],
+            'user_id' => $user->getKey(),
+            'session_id' => $session->getKey(),
+            'abilities' => [],
+            'website_ids' => [],
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        return $material['plain_text'];
     }
 
     /**

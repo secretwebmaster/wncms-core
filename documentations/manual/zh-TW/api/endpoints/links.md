@@ -13,30 +13,31 @@ curl "https://your-domain.com/api/v2/backend/links?website_id=1" \
   -H "Accept: application/json"
 ```
 
-Token 使用者就是 mutation actor。未驗證請求回傳 `401`；actor 缺少路由權限時回傳 `403`。
+Token 使用者就是 mutation actor。未驗證請求回傳 `401`。隨後每條路由依序檢查
+read/write ability、WNCMS permission 與明確的網站範圍。
 
 ## 路由與權限
 
-| Method | URL | 路由名稱 | 權限 |
-| --- | --- | --- | --- |
-| GET | `/api/v2/backend/links` | `api.v2.backend.links.index` | `link_index` |
-| GET | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.show` | `link_edit` |
-| POST | `/api/v2/backend/links` | `api.v2.backend.links.store` | `link_create` |
-| PATCH | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.update` | `link_edit` |
-| DELETE | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.destroy` | `link_delete` |
-| POST | `/api/v2/backend/links/bulk_update` | `api.v2.backend.links.bulk_update` | `link_edit` |
-| POST | `/api/v2/backend/links/bulk_sync_tags` | `api.v2.backend.links.bulk_sync_tags` | `link_edit` |
+| Method | URL | 路由名稱 | Ability | 權限 |
+| --- | --- | --- | --- | --- |
+| GET | `/api/v2/backend/links` | `api.v2.backend.links.index` | `links.read` | `link_index` |
+| GET | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.show` | `links.read` | `link_edit` |
+| POST | `/api/v2/backend/links` | `api.v2.backend.links.store` | `links.write` | `link_create` |
+| PATCH | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.update` | `links.write` | `link_edit` |
+| DELETE | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.destroy` | `links.write` | `link_delete` |
+| POST | `/api/v2/backend/links/bulk_update` | `api.v2.backend.links.bulk_update` | `links.write` | `link_edit` |
+| POST | `/api/v2/backend/links/bulk_sync_tags` | `api.v2.backend.links.bulk_sync_tags` | `links.write` | `link_edit` |
 
 受保護的批次刪除尚未實作，因此沒有 `api.v2.backend.links.bulk_delete`
 路由，用戶端不得呼叫 `POST /api/v2/backend/links/bulk_delete`。
 
 ## 網站範圍
 
-可透過 `website_id` 明確選擇網站；省略時使用目前請求網站。Link 的 website mode
-為 `single` 或 `multi` 時，列表、查看、更新、刪除與批次目標查詢都限制在該網站。
+可透過 `website_id` 或規範的 `website_key=website:{id}` 明確選擇網站。Link 的
+website mode 為 `single` 或 `multi` 時，列表、查看、更新、刪除與批次目標查詢都限制在該網站。
 
-- 缺少目前網站上下文時回傳 `409`。
-- 不存在的網站 ID 回傳 `422`。
+- 缺少 selector 或 selector 格式錯誤時回傳 `403 website.scope_missing`。
+- 明確指定不存在或未授權的網站時回傳 `403 website.scope_denied`。
 - 讀取會驗證 token 使用者能否存取所選網站。非管理員使用者必須在其 `websites`
   關係中擁有該網站；`admin` 與 `superadmin` 角色可選擇任一存在的網站。拒絕存取時回傳 `403`。
 - 目標不屬於所選網站時依未找到處理。
@@ -48,7 +49,8 @@ Token 使用者就是 mutation actor。未驗證請求回傳 `401`；actor 缺�
 | --- | --- | --- |
 | `status` | `active`、`inactive`、`all` | `active` |
 | `keyword` | Link 名稱文字 | 無 |
-| `website_id` | 正整數網站 ID | 目前網站 |
+| `website_id` | 正整數網站 ID | 使用 `website_key` 時可省略，否則必填 |
+| `website_key` | 規範的 `website:{id}` key | 使用 `website_id` 時可省略，否則必填 |
 | `page` | 最小為 `1` 的整數 | `1` |
 | `per_page` | `1` 至 `100` | `20` |
 | `sort` | `id`、`sort`、`name`、`clicks`、`created_at`、`updated_at` | `id` |

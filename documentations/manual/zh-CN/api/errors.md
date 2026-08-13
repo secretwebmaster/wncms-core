@@ -26,7 +26,13 @@ WNCMS API 错误代码的完整指南以及如何处理它们。
 | --- | --- | --- |
 | `authentication.missing_token` | `401` | 没有已验证 session 或 bearer token |
 | `authentication.invalid_token` | `401` | Token 无效或 token user 不存在 |
-| `authorization.denied` | `403` | API gate、whitelist、ability 或 permission 拒绝请求 |
+| `authentication.access_token_expired` | `401` | Access token 或有明确期限的 service token 已过期 |
+| `authentication.token_revoked` | `401` | Token 或 interactive session 已撤销 |
+| `authorization.ability_denied` | `403` | Credential 未授予路由所需 ability |
+| `authorization.permission_denied` | `403` | Actor 当前没有 WNCMS permission |
+| `authorization.denied` | `403` | Legacy API gate 或 policy 拒绝请求 |
+| `website.scope_missing` | `403` | 稳定的网站 selector 缺少或格式错误 |
+| `website.scope_denied` | `403` | 明确指定的网站超出 token 或 actor scope |
 | `resource.not_found` | `404` | Resource 不存在或刻意对该 actor 隐藏 |
 | `website.context_missing` | `409` | Website-scoped operation 没有当前 website |
 | `request.conflict` | `409` | Stale revision、无效状态转换或并发变更 |

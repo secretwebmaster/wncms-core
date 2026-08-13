@@ -4,6 +4,7 @@ namespace Wncms\Api\V2\Providers;
 
 use Illuminate\Support\Str;
 use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Api\V2\LegacyOperationSecurity;
 use Wncms\Api\V2\Contracts\ApiContractProvider;
 use Wncms\Api\V2\Data\ApiDomainContract;
 use Wncms\Api\V2\Data\ApiOperationContract;
@@ -74,7 +75,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                     path: sprintf($path, $resource),
                     routeName: "api.v2.backend.{$resource}.{$action}",
                     permission: $resourceConfig['permissions'][$action] ?? null,
-                    ability: null,
+                    ability: LegacyOperationSecurity::resourceAbility($resource, $action),
                     websiteScoped: true,
                     risk: $method === 'GET' ? 'read' : 'write',
                     implementation: $this->resourceImplementation($resource, $resourceConfig, $referenceDomain),
@@ -114,7 +115,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                 path: "/api/v2/backend/{$uri}",
                 routeName: "api.v2.backend.{$name}",
                 permission: $action['permission'] ?? null,
-                ability: null,
+                ability: LegacyOperationSecurity::actionAbility($name, $method),
                 websiteScoped: true,
                 risk: $method === 'GET' ? 'read' : 'write',
                 implementation: 'legacy_bridge',

@@ -3,6 +3,7 @@
 namespace Wncms\Tests\Unit\Api\V2;
 
 use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Api\V2\LegacyOperationSecurity;
 use Wncms\Api\V2\Providers\LegacyBackendContractProvider;
 use Wncms\Http\Controllers\Api\V2\Backend\ResourceController;
 use Wncms\Tests\TestCase;
@@ -52,6 +53,7 @@ class LegacyBackendContractProviderTest extends TestCase
                 $this->assertSame(sprintf($path, $resource), $operation->path);
                 $this->assertSame("api.v2.backend.{$resource}.{$action}", $operation->routeName);
                 $this->assertSame($resourceConfig['permissions'][$action] ?? null, $operation->permission);
+                $this->assertSame(LegacyOperationSecurity::resourceAbility($resource, $action), $operation->ability);
                 $this->assertTrue($operation->websiteScoped);
 
                 if (! in_array($operationId, $bridgeOperationIds, true)) {
@@ -77,6 +79,10 @@ class LegacyBackendContractProviderTest extends TestCase
             $this->assertSame('/api/v2/backend/' . $action['uri'], $operation->path);
             $this->assertSame("api.v2.backend.{$action['name']}", $operation->routeName);
             $this->assertSame($action['permission'] ?? null, $operation->permission);
+            $this->assertSame(
+                LegacyOperationSecurity::actionAbility((string) $action['name'], (string) $action['method']),
+                $operation->ability,
+            );
             $this->assertTrue($operation->websiteScoped);
             $this->assertSame('legacy_bridge', $operation->implementation);
             $expectedOperationIds[] = $operationId;

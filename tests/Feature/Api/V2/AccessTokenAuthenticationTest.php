@@ -4,6 +4,7 @@ namespace Wncms\Tests\Feature\Api\V2;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -96,6 +97,71 @@ class AccessTokenAuthenticationTest extends TestCase
     }
 
     /**
+     * Verify access tokens cannot be issued across user/session ownership boundaries.
+     *
+     * @return void
+     */
+    public function test_issue_rejects_a_session_owned_by_another_user_without_creating_a_token(): void
+    {
+        $otherUser = User::create([
+            'username' => 'access-token-other-'.uniqid(),
+            'email' => 'access-token-other-'.uniqid().'@example.test',
+            'password' => 'not-a-real-password',
+            'email_verified_at' => now(),
+        ]);
+        $before = DB::table('api_access_tokens')->count();
+
+        try {
+            app(AccessTokenService::class)->issue($otherUser, $this->session, [], []);
+            $this->fail('Cross-user session issuance should be rejected.');
+        } catch (AuthenticationException $exception) {
+            $this->assertSame('authentication.invalid_token', $exception->getMessage());
+        }
+
+        $this->assertSame($before, DB::table('api_access_tokens')->count());
+    }
+
+    /**
+     * Verify access tokens cannot be issued from a revoked session.
+     *
+     * @return void
+     */
+    public function test_issue_rejects_a_revoked_session_without_creating_a_token(): void
+    {
+        $this->session->update(['revoked_at' => now()]);
+        $before = DB::table('api_access_tokens')->count();
+
+        try {
+            app(AccessTokenService::class)->issue($this->user, $this->session, [], []);
+            $this->fail('Revoked session issuance should be rejected.');
+        } catch (AuthenticationException $exception) {
+            $this->assertSame('authentication.token_revoked', $exception->getMessage());
+        }
+
+        $this->assertSame($before, DB::table('api_access_tokens')->count());
+    }
+
+    /**
+     * Verify access tokens cannot be issued from an expired session.
+     *
+     * @return void
+     */
+    public function test_issue_rejects_an_expired_session_without_creating_a_token(): void
+    {
+        $this->session->update(['expires_at' => now()->subSecond()]);
+        $before = DB::table('api_access_tokens')->count();
+
+        try {
+            app(AccessTokenService::class)->issue($this->user, $this->session, [], []);
+            $this->fail('Expired session issuance should be rejected.');
+        } catch (AuthenticationException $exception) {
+            $this->assertSame('authentication.invalid_token', $exception->getMessage());
+        }
+
+        $this->assertSame($before, DB::table('api_access_tokens')->count());
+    }
+
+    /**
      * Verify valid access credentials establish both Laravel actor and immutable context.
      *
      * @return void
@@ -138,6 +204,26 @@ class AccessTokenAuthenticationTest extends TestCase
         $this->requestWithToken($revoked['token'])
             ->assertUnauthorized()
             ->assertJsonPath('meta.error_code', 'authentication.token_revoked');
+    }
+
+    /**
+     * Verify existing service tokens may be permanent while an explicit past expiry is rejected.
+     *
+     * @return void
+     */
+    public function test_service_token_validation_accepts_null_expiry_and_rejects_past_expiry(): void
+    {
+        $permanent = $this->issueServiceToken(['expires_at' => null]);
+
+        $this->requestWithToken($permanent['token'])
+            ->assertOk()
+            ->assertJsonPath('data.credential_type', ApiCredential::TYPE_SERVICE_TOKEN);
+
+        $expired = $this->issueServiceToken(['expires_at' => now()->subSecond()]);
+
+        $this->requestWithToken($expired['token'])
+            ->assertUnauthorized()
+            ->assertJsonPath('meta.error_code', 'authentication.access_token_expired');
     }
 
     /**
@@ -228,6 +314,30 @@ class AccessTokenAuthenticationTest extends TestCase
             'abilities' => ['links.read'],
             'website_ids' => [$this->website->id],
             'expires_at' => now()->addMinutes(15),
+        ], $overrides));
+
+        return ['token' => $material['plain_text'], 'model' => $model];
+    }
+
+    /**
+     * Create a service-token fixture without exercising its later lifecycle implementation.
+     *
+     * @param  array<string, mixed>  $overrides
+     * @return array{token: string, model: \Wncms\Models\ApiServiceToken}
+     */
+    private function issueServiceToken(array $overrides = []): array
+    {
+        $material = app(TokenHasher::class)->issue('wncms_st');
+        $modelClass = wncms()->getModelClass('api_service_token');
+        $model = $modelClass::create(array_merge([
+            'token_id' => $material['public_id'],
+            'token_hash' => $material['hash'],
+            'user_id' => $this->user->id,
+            'name' => 'Validation fixture',
+            'ability_template' => 'read_only',
+            'abilities' => ['links.read'],
+            'website_ids' => [$this->website->id],
+            'expires_at' => now()->addDay(),
         ], $overrides));
 
         return ['token' => $material['plain_text'], 'model' => $model];

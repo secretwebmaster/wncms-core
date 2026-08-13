@@ -41,10 +41,13 @@ final class ResolveApiV2WebsiteScope
             );
         }
 
-        if ($this->guard->resolve($request, $context) === null) {
+        $resolution = $this->guard->resolve($request, $context);
+        if (! $resolution->isAllowed()) {
+            $errorCode = $resolution->errorCode() ?? 'website.scope_denied';
+
             return $this->responses->failure(
-                'website.scope_denied',
-                'Website scope denied',
+                $errorCode,
+                $errorCode === 'website.scope_missing' ? 'Website scope is required' : 'Website scope denied',
                 Response::HTTP_FORBIDDEN
             );
         }

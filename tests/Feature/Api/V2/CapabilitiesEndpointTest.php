@@ -30,6 +30,10 @@ class CapabilitiesEndpointTest extends TestCase
 
         auth()->forgetGuards();
         app(PermissionRegistrar::class)->registerPermissions(Gate::getFacadeRoot());
+        config([
+            'wncms.auth_security.legacy_personal_tokens_enabled' => true,
+            'wncms.auth_security.legacy_personal_tokens_cutoff_at' => now('UTC')->addDay()->toIso8601String(),
+        ]);
         uss('enable_api_access', 1);
         uss('api_access_whitelist', '');
     }

@@ -14,20 +14,21 @@ curl "https://your-domain.com/api/v2/backend/links?website_id=1" \
   -H "Accept: application/json"
 ```
 
-The token user is the mutation actor. An unauthenticated request returns `401`;
-an actor without the route permission returns `403`.
+The token user is the mutation actor. An unauthenticated request returns `401`.
+Each route then requires its read/write ability, WNCMS permission, and explicit
+website scope in that order.
 
 ## Routes and Permissions
 
-| Method | URL | Route name | Permission |
-| --- | --- | --- | --- |
-| GET | `/api/v2/backend/links` | `api.v2.backend.links.index` | `link_index` |
-| GET | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.show` | `link_edit` |
-| POST | `/api/v2/backend/links` | `api.v2.backend.links.store` | `link_create` |
-| PATCH | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.update` | `link_edit` |
-| DELETE | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.destroy` | `link_delete` |
-| POST | `/api/v2/backend/links/bulk_update` | `api.v2.backend.links.bulk_update` | `link_edit` |
-| POST | `/api/v2/backend/links/bulk_sync_tags` | `api.v2.backend.links.bulk_sync_tags` | `link_edit` |
+| Method | URL | Route name | Ability | Permission |
+| --- | --- | --- | --- | --- |
+| GET | `/api/v2/backend/links` | `api.v2.backend.links.index` | `links.read` | `link_index` |
+| GET | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.show` | `links.read` | `link_edit` |
+| POST | `/api/v2/backend/links` | `api.v2.backend.links.store` | `links.write` | `link_create` |
+| PATCH | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.update` | `links.write` | `link_edit` |
+| DELETE | `/api/v2/backend/links/{id-or-slug}` | `api.v2.backend.links.destroy` | `links.write` | `link_delete` |
+| POST | `/api/v2/backend/links/bulk_update` | `api.v2.backend.links.bulk_update` | `links.write` | `link_edit` |
+| POST | `/api/v2/backend/links/bulk_sync_tags` | `api.v2.backend.links.bulk_sync_tags` | `links.write` | `link_edit` |
 
 Guarded bulk delete is not implemented. There is no
 `api.v2.backend.links.bulk_delete` route, and clients must not call
@@ -35,12 +36,12 @@ Guarded bulk delete is not implemented. There is no
 
 ## Website Scope
 
-Pass `website_id` to select a website explicitly. When omitted, WNCMS uses the
-current request website. List, inspect, update, delete, and bulk target lookups
-are limited to that website when Link website mode is `single` or `multi`.
+Pass `website_id` or canonical `website_key=website:{id}` to select one website
+explicitly. List, inspect, update, delete, and bulk target lookups are limited to
+that website when Link website mode is `single` or `multi`.
 
-- A missing current website context returns `409`.
-- An unknown website ID returns `422`.
+- An absent or malformed selector returns `403 website.scope_missing`.
+- An explicit unknown or unauthorized website returns `403 website.scope_denied`.
 - Reads verify the selected website against the token user. Non-admin users must
   have it in their `websites` relationship; `admin` and `superadmin` roles may
   select any existing website. A denied website returns `403`.
@@ -55,7 +56,8 @@ Supported query parameters:
 | --- | --- | --- |
 | `status` | `active`, `inactive`, `all` | `active` |
 | `keyword` | Link name text | none |
-| `website_id` | Positive website ID | current website |
+| `website_id` | Positive website ID | required unless `website_key` is used |
+| `website_key` | Canonical `website:{id}` key | required unless `website_id` is used |
 | `page` | Integer, minimum `1` | `1` |
 | `per_page` | Integer from `1` to `100` | `20` |
 | `sort` | `id`, `sort`, `name`, `clicks`, `created_at`, `updated_at` | `id` |

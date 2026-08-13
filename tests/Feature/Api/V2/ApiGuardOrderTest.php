@@ -4,10 +4,12 @@ namespace Wncms\Tests\Feature\Api\V2;
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 use Wncms\Api\V2\ApiResponseFactory;
+use Wncms\Api\V2\LegacyOperationSecurity;
 use Wncms\Auth\Api\V2\TokenHasher;
 use Wncms\Models\ApiSession;
 use Wncms\Models\User;
@@ -36,6 +38,7 @@ class ApiGuardOrderTest extends TestCase
         parent::setUp();
 
         auth()->forgetGuards();
+        app(PermissionRegistrar::class)->registerPermissions(Gate::getFacadeRoot());
         app(PermissionRegistrar::class)->forgetCachedPermissions();
         Permission::findOrCreate('guarded_domain_read', 'web');
 
@@ -136,6 +139,135 @@ class ApiGuardOrderTest extends TestCase
             ->assertForbidden()
             ->assertJsonPath('meta.error_code', 'website.scope_denied');
         $this->assertSame(0, $this->domainExecutions);
+    }
+
+    /**
+     * Verify an absent or malformed selector has a stable missing-scope failure.
+     *
+     * @return void
+     */
+    public function test_absent_and_malformed_website_selectors_return_scope_missing(): void
+    {
+        $this->user->givePermissionTo('guarded_domain_read');
+        $token = $this->token(['links.read'], [$this->website->id]);
+
+        $this->guardedRequest($token, [])
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'website.scope_missing');
+
+        $this->guardedRequest($token, ['website_key' => 'not-a-canonical-key'])
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'website.scope_missing');
+
+        $this->assertSame(0, $this->domainExecutions);
+    }
+
+    /**
+     * Verify a production resource route enforces credential, ability, permission, and scope in order.
+     *
+     * @return void
+     */
+    public function test_links_index_route_enforces_the_production_guard_chain_before_domain_execution(): void
+    {
+        uss('enable_api_access', 1);
+        uss('api_access_whitelist', '');
+        Permission::findOrCreate('link_index', 'web');
+
+        $withoutAbility = $this->token([], [$this->website->id]);
+        $this->withToken($withoutAbility)
+            ->getJson('/api/v2/backend/links?website_id='.PHP_INT_MAX)
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'authorization.ability_denied');
+
+        $withAbility = $this->token(['links.read'], [$this->website->id]);
+        $this->withToken($withAbility)
+            ->getJson('/api/v2/backend/links?website_id='.PHP_INT_MAX)
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'authorization.permission_denied');
+
+        $this->user->givePermissionTo('link_index');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->withToken($withAbility)
+            ->getJson('/api/v2/backend/links')
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'website.scope_missing');
+
+        $otherWebsite = Website::create([
+            'user_id' => $this->user->id,
+            'domain' => 'production-guard-other-'.uniqid().'.test',
+            'site_name' => 'Production Guard Other Website',
+            'theme' => 'default',
+        ]);
+        $this->user->websites()->syncWithoutDetaching([$otherWebsite->id]);
+
+        $this->withToken($withAbility)
+            ->getJson('/api/v2/backend/links?website_id='.$otherWebsite->id)
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'website.scope_denied');
+
+        $this->withToken($withAbility)
+            ->getJson('/api/v2/backend/links?website_id='.$this->website->id)
+            ->assertOk();
+    }
+
+    /**
+     * Verify production route declarations retain parameterized guards in execution order.
+     *
+     * @return void
+     */
+    public function test_production_resource_route_declares_parameterized_guards_in_order(): void
+    {
+        $route = Route::getRoutes()->getByName('api.v2.backend.links.index');
+
+        $this->assertNotNull($route);
+        $this->assertMiddlewareOrder($route->gatherMiddleware(), [
+            'api_v2_token_auth',
+            'api_v2_ability:links.read',
+            'api_v2_permission:link_index',
+            'api_v2_website_scope',
+        ]);
+        $this->assertNotContains('api_v2_has_website', $route->gatherMiddleware());
+    }
+
+    /**
+     * Verify every configured resource and bridge operation declares its own ordered guards.
+     *
+     * @return void
+     */
+    public function test_every_production_resource_and_bridge_route_declares_operation_specific_guards(): void
+    {
+        foreach (config('wncms-backend-api-v2.resources', []) as $resource => $resourceConfig) {
+            $enabledActions = $resourceConfig['enabled_actions'] ?? ['index', 'show', 'store', 'update', 'destroy', 'bulk_delete'];
+
+            foreach ($enabledActions as $action) {
+                if ($action === 'bulk_delete' && ($resourceConfig['enable_bulk_delete'] ?? true) !== true) {
+                    continue;
+                }
+
+                $route = Route::getRoutes()->getByName("api.v2.backend.{$resource}.{$action}");
+                if ($route === null) {
+                    continue;
+                }
+
+                $this->assertMiddlewareOrder(
+                    $route->gatherMiddleware(),
+                    array_merge(['api_v2_token_auth'], LegacyOperationSecurity::resourceMiddleware($resource, $action, $resourceConfig)),
+                );
+                $this->assertNotContains('api_v2_has_website', $route->gatherMiddleware());
+            }
+        }
+
+        foreach (config('wncms-backend-api-v2.actions', []) as $action) {
+            $route = Route::getRoutes()->getByName('api.v2.backend.'.(string) $action['name']);
+
+            $this->assertNotNull($route);
+            $this->assertMiddlewareOrder(
+                $route->gatherMiddleware(),
+                array_merge(['api_v2_token_auth'], LegacyOperationSecurity::actionMiddleware($action)),
+            );
+            $this->assertNotContains('api_v2_has_website', $route->gatherMiddleware());
+        }
     }
 
     /**
@@ -258,5 +390,29 @@ class ApiGuardOrderTest extends TestCase
         auth()->forgetGuards();
 
         return $this->withToken($token)->getJson('/api/v2/_test/ordered-guards?'.http_build_query($query));
+    }
+
+    /**
+     * Assert middleware identities occur in the expected relative order.
+     *
+     * @param  array<int, string>  $middleware
+     * @param  array<int, string>  $expected
+     * @return void
+     */
+    private function assertMiddlewareOrder(array $middleware, array $expected): void
+    {
+        $positions = array_map(
+            static fn (string $name): int|false => array_search($name, $middleware, true),
+            $expected,
+        );
+
+        foreach ($positions as $position) {
+            $this->assertNotFalse($position);
+        }
+
+        $this->assertSame($positions, array_values($positions));
+        $sorted = $positions;
+        sort($sorted);
+        $this->assertSame($sorted, $positions);
     }
 }

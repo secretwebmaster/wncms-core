@@ -18,25 +18,29 @@ final class WebsiteScopeGuard
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Wncms\Auth\Api\V2\AuthenticationContext  $context
-     * @return \Wncms\Models\Website|null
+     * @return \Wncms\Auth\Api\V2\WebsiteScopeResolution
      */
-    public function resolve(Request $request, AuthenticationContext $context): ?Website
+    public function resolve(Request $request, AuthenticationContext $context): WebsiteScopeResolution
     {
         $websiteId = $this->requestedWebsiteId($request);
-        if ($websiteId === null || ! $context->hasWebsite($websiteId)) {
-            return null;
+        if ($websiteId === null) {
+            return WebsiteScopeResolution::rejected('website.scope_missing');
+        }
+
+        if (! $context->hasWebsite($websiteId)) {
+            return WebsiteScopeResolution::rejected('website.scope_denied');
         }
 
         $websiteModel = wncms()->getModelClass('website');
         $website = $websiteModel::query()->find($websiteId);
         if (! $website instanceof Website || ! $this->actorCanAccess($context, $website)) {
-            return null;
+            return WebsiteScopeResolution::rejected('website.scope_denied');
         }
 
         $request->attributes->set(self::WEBSITE_ATTRIBUTE, $website);
         $request->attributes->set(self::WEBSITE_IDENTITY_ATTRIBUTE, self::identity($website));
 
-        return $website;
+        return WebsiteScopeResolution::allowed($website);
     }
 
     /**

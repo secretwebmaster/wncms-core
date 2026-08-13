@@ -99,7 +99,7 @@ class ApiV2TokenAuth
             throw new AuthenticationException('authentication.token_revoked');
         }
 
-        if ($token->expires_at === null || ! $token->expires_at->isFuture()) {
+        if ($token->expires_at !== null && ! $token->expires_at->isFuture()) {
             throw new AuthenticationException('authentication.access_token_expired');
         }
 

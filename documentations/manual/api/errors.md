@@ -26,7 +26,13 @@ stable code in `meta.error_code`. `meta.request_id` always matches the
 | --- | --- | --- |
 | `authentication.missing_token` | `401` | No authenticated session or bearer token |
 | `authentication.invalid_token` | `401` | Token is invalid or its user is unavailable |
-| `authorization.denied` | `403` | API gate, whitelist, ability, or permission denied the request |
+| `authentication.access_token_expired` | `401` | Access or explicitly expiring service token has expired |
+| `authentication.token_revoked` | `401` | Token or interactive session has been revoked |
+| `authorization.ability_denied` | `403` | Credential does not grant the route ability |
+| `authorization.permission_denied` | `403` | Actor does not currently hold the WNCMS permission |
+| `authorization.denied` | `403` | A legacy API gate or policy denied the request |
+| `website.scope_missing` | `403` | Stable website selector is absent or malformed |
+| `website.scope_denied` | `403` | Explicit website is outside token or actor scope |
 | `resource.not_found` | `404` | Resource is absent or intentionally hidden from this actor |
 | `website.context_missing` | `409` | A website-scoped operation has no current website |
 | `request.conflict` | `409` | Stale revision, illegal state transition, or concurrent change |

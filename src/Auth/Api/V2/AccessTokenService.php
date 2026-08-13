@@ -32,6 +32,18 @@ final class AccessTokenService
      */
     public function issue(User $user, ApiSession $session, array $abilities, array $websiteIds): array
     {
+        if ((string) $session->user_id !== (string) $user->getKey()) {
+            throw new AuthenticationException('authentication.invalid_token');
+        }
+
+        if ($session->revoked_at !== null) {
+            throw new AuthenticationException('authentication.token_revoked');
+        }
+
+        if ($session->expires_at !== null && ! $session->expires_at->isFuture()) {
+            throw new AuthenticationException('authentication.invalid_token');
+        }
+
         $material = $this->hasher->issue('wncms_at');
         $expiresAt = CarbonImmutable::now('UTC')->addMinutes(
             (int) config('wncms.auth_security.access_token_lifetime_minutes', 15)
