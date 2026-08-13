@@ -19,7 +19,7 @@ class AuthSecuritySchemaTest extends TestCase
      */
     public function test_fresh_schema_contains_owned_auth_tables_without_altering_pat(): void
     {
-        foreach (['api_sessions', 'api_access_tokens', 'api_refresh_tokens', 'api_service_tokens', 'api_security_events'] as $table) {
+        foreach (['api_sessions', 'api_access_tokens', 'api_refresh_tokens', 'api_service_tokens', 'api_security_events', 'api_step_up_proofs', 'api_action_plans'] as $table) {
             $this->assertTrue(Schema::hasTable($table), $table);
         }
 
@@ -49,6 +49,10 @@ class AuthSecuritySchemaTest extends TestCase
         $this->assertUniqueIndex('api_service_tokens', 'token_hash');
         $this->assertUniqueIndex('api_security_events', 'event_id');
         $this->assertUniqueIndex('api_security_events', 'aggregate_key');
+        $this->assertUniqueIndex('api_step_up_proofs', 'proof_id');
+        $this->assertUniqueIndex('api_step_up_proofs', 'proof_hash');
+        $this->assertUniqueIndex('api_action_plans', 'plan_id');
+        $this->assertUniqueIndex('api_action_plans', 'confirmation_hash');
 
         foreach (['api_access_tokens', 'api_service_tokens'] as $table) {
             $this->assertTrue(Schema::hasColumn($table, 'abilities'), "{$table}.abilities");
@@ -62,6 +66,8 @@ class AuthSecuritySchemaTest extends TestCase
             ['api_service_tokens', 'website_ids'],
             ['api_security_events', 'website_ids'],
             ['api_security_events', 'context'],
+            ['api_step_up_proofs', 'purposes'],
+            ['api_action_plans', 'website_ids'],
         ] as [$table, $column]) {
             $this->assertJsonColumn($table, $column);
         }
@@ -83,6 +89,16 @@ class AuthSecuritySchemaTest extends TestCase
             ['api_service_tokens', 'expires_at'],
             ['api_service_tokens', 'revoked_at'],
             ['api_security_events', 'occurred_at'],
+            ['api_step_up_proofs', 'user_id'],
+            ['api_step_up_proofs', 'session_id'],
+            ['api_step_up_proofs', 'expires_at'],
+            ['api_step_up_proofs', 'consumed_at'],
+            ['api_step_up_proofs', 'reservation_id'],
+            ['api_action_plans', 'actor_id'],
+            ['api_action_plans', 'operation_id'],
+            ['api_action_plans', 'reservation_id'],
+            ['api_action_plans', 'expires_at'],
+            ['api_action_plans', 'consumed_at'],
         ] as [$table, $column]) {
             $this->assertColumnIsIndexed($table, $column);
         }
@@ -442,6 +458,8 @@ class AuthSecuritySchemaTest extends TestCase
                 require __DIR__.'/../../../../database/migrations/0001_01_01_000043_create_api_refresh_tokens_table.php',
                 require __DIR__.'/../../../../database/migrations/0001_01_01_000044_create_api_service_tokens_table.php',
                 require __DIR__.'/../../../../database/migrations/0001_01_01_000045_create_api_security_events_table.php',
+                require __DIR__.'/../../../../database/migrations/0001_01_01_000046_create_api_step_up_proofs_table.php',
+                require __DIR__.'/../../../../database/migrations/0001_01_01_000047_create_api_action_plans_table.php',
             ];
 
             foreach ($migrations as $migration) {
@@ -455,7 +473,7 @@ class AuthSecuritySchemaTest extends TestCase
             $this->assertTrue(Schema::hasTable('personal_access_tokens'));
             $this->assertTrue(Schema::hasColumn('personal_access_tokens', 'host_marker'));
 
-            foreach (['api_sessions', 'api_access_tokens', 'api_refresh_tokens', 'api_service_tokens', 'api_security_events'] as $table) {
+            foreach (['api_sessions', 'api_access_tokens', 'api_refresh_tokens', 'api_service_tokens', 'api_security_events', 'api_step_up_proofs', 'api_action_plans'] as $table) {
                 $this->assertFalse(Schema::hasTable($table), $table);
             }
         } finally {

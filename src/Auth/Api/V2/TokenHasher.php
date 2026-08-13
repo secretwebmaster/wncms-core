@@ -11,6 +11,8 @@ class TokenHasher
         'wncms_at',
         'wncms_rt',
         'wncms_st',
+        'wncms_su',
+        'wncms_cp',
     ];
 
     /**

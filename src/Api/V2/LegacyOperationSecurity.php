@@ -145,6 +145,7 @@ final class LegacyOperationSecurity
             'api_v2_ability:'.$ability,
             $permissionMiddleware,
             'api_v2_website_scope',
+            'api_v2_risk',
         ];
     }
 }

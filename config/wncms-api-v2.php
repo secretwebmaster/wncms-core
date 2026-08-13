@@ -75,6 +75,8 @@ return [
             'api.v2.backend.auth.me',
             'api.v2.backend.auth.sessions.index',
             'api.v2.backend.auth.sessions.destroy',
+            'api.v2.backend.auth.reauthenticate',
+            'api.v2.backend.action_plans.store',
             'api.v2.backend.i18n.ui',
             'api.v2.backend.translations',
         ],

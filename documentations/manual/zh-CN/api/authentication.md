@@ -134,6 +134,27 @@ await fetch('https://api.example.test/api/v2/backend/auth/refresh', {
 `link_delete`，强制写入也会把使用者 ID 记录在 `mutation_audits`。
 Token 不会绕过网站范围。
 
+### Step-up proof 与高风险 action plan
+
+正式 v2 operation 的 security risk 独立于资料 mutation risk。Effective risk
+取 operation 声明、normalized input 与当前 environment 的最高值。永久
+credential 为 critical；跨站或 broad/full-admin grant 至少为 high。
+
+Credential 与 security operation 使用
+`POST /api/v2/backend/auth/reauthenticate`。它接受当前密码、正式 operation ID
+及该 operation 声明的一个 purpose。只有 interactive session 能取得五分钟
+proof。将 proof 一次性放入 `X-WNCMS-Step-Up`；WNCMS 只保存 hash，并绑定 actor、
+精确 session、purpose、expiry 以及之后发生的密码或 session security event。
+
+当 `api_high_risk_action_mode=planned` 时，符合资格的 high 与 critical
+operation 先以 `operation`、normalized `input` 和 `target_state` 调用
+`POST /api/v2/backend/action-plans`。响应包含 opaque plan ID 与只显示一次的
+confirmation；五分钟内将 confirmation 放入 `X-WNCMS-Confirmation`。它以原子
+方式 single-use，并绑定 actor、credential public ID、适用的 interactive
+session、operation、input、target state、website scope、ability/permission
+结果与 effective risk。缺少 proof 或 plan 返回 `428`；expired、stale 或 reused
+plan 返回稳定 `409`。Async operation 只有 enqueue 成功后才消费 plan。
+
 ## 简易验证（建议）
 
 使用 API token 的最常见身份验证方法。

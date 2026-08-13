@@ -1,0 +1,48 @@
+<?php
+
+namespace Wncms\Http\Controllers\Api\V2\Backend;
+
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Api\V2\Risk\ActionPlanException;
+use Wncms\Api\V2\Risk\ActionPlanService;
+use Wncms\Auth\Api\V2\AuthenticationContext;
+use Wncms\Http\Middleware\ApiV2TokenAuth;
+
+final class ActionPlanController extends ApiV2Controller
+{
+    public function __construct(
+        private ApiContractRegistry $contracts,
+        private ActionPlanService $plans,
+    ) {}
+
+    /**
+     * Create one short-lived action plan for a formal eligible operation.
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'operation' => ['required', 'string'],
+            'input' => ['present', 'array'],
+            'target_state' => ['present', 'array'],
+        ]);
+        $context = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
+        $operation = $this->contracts->operation($validated['operation']);
+        if (! $context instanceof AuthenticationContext || $operation === null) {
+            return $this->responseFactory()->failure('risk.plan_invalid', 'Action plan request is not valid', Response::HTTP_CONFLICT);
+        }
+
+        try {
+            $plan = $this->plans->create($context, $operation, $validated['input'], $validated['target_state']);
+        } catch (ActionPlanException $exception) {
+            return $this->responseFactory()->failure($exception->errorCode, 'Action plan request is not valid', $exception->httpStatus);
+        } catch (\Throwable $exception) {
+            return $this->securityAuditUnavailable($exception);
+        }
+
+        return $this->ok($plan, 'action_plan_created', Response::HTTP_CREATED)
+            ->header('Cache-Control', 'private, no-store');
+    }
+}

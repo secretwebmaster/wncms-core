@@ -26,6 +26,11 @@ final class ApiOperationContract
      * @param  array<int, string>  $fields
      * @param  bool  $idempotent
      * @param  string  $permissionMode
+     * @param  string  $securityRisk
+     * @param  array<int, string>  $acceptedCredentialTypes
+     * @param  bool  $requiresStepUp
+     * @param  array<int, string>  $stepUpPurposes
+     * @param  bool  $actionPlanEligible
      * @return void
      */
     public function __construct(
@@ -48,8 +53,12 @@ final class ApiOperationContract
         public readonly array $fields = [],
         public readonly bool $idempotent = false,
         public readonly string $permissionMode = 'static',
-    ) {
-    }
+        public readonly string $securityRisk = 'normal',
+        public readonly array $acceptedCredentialTypes = ['interactive_access', 'service_token'],
+        public readonly bool $requiresStepUp = false,
+        public readonly array $stepUpPurposes = [],
+        public readonly bool $actionPlanEligible = false,
+    ) {}
 
     /**
      * Export the operation contract.
@@ -78,6 +87,11 @@ final class ApiOperationContract
             'includes' => $this->includes,
             'fields' => $this->fields,
             'idempotent' => $this->idempotent,
+            'security_risk' => $this->securityRisk,
+            'accepted_credential_types' => $this->acceptedCredentialTypes,
+            'requires_step_up' => $this->requiresStepUp,
+            'step_up_purposes' => $this->stepUpPurposes,
+            'action_plan_eligible' => $this->actionPlanEligible,
         ];
     }
 }

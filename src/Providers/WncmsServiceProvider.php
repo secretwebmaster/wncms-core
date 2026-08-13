@@ -44,6 +44,7 @@ use Wncms\Exceptions\WncmsExceptionHandler;
 use Wncms\Http\Middleware\ApiV2TokenAuth;
 use Wncms\Http\Middleware\ApplyApiV2CookieCors;
 use Wncms\Http\Middleware\EnforceApiV2RefreshTransport;
+use Wncms\Http\Middleware\EnforceApiV2RiskPolicy;
 use Wncms\Http\Middleware\RequireApiV2Ability;
 use Wncms\Http\Middleware\RequireApiV2ModelPermission;
 use Wncms\Http\Middleware\RequireApiV2Permission;
@@ -115,6 +116,7 @@ class WncmsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('api_v2_model_permission', RequireApiV2ModelPermission::class);
         $router->aliasMiddleware('api_v2_website_scope', ResolveApiV2WebsiteScope::class);
         $router->aliasMiddleware('api_v2_idempotency', \Wncms\Http\Middleware\EnforceApiV2Idempotency::class);
+        $router->aliasMiddleware('api_v2_risk', EnforceApiV2RiskPolicy::class);
         $router->aliasMiddleware('api_v2_refresh_transport', EnforceApiV2RefreshTransport::class);
         $router->aliasMiddleware('api_v2_refresh_origin', ValidateApiV2RefreshOrigin::class);
         $router->aliasMiddleware('api_v2_refresh_csrf', ValidateApiV2RefreshCsrf::class);
@@ -131,6 +133,7 @@ class WncmsServiceProvider extends ServiceProvider
             RequireApiV2Permission::class,
             RequireApiV2ModelPermission::class,
             ResolveApiV2WebsiteScope::class,
+            EnforceApiV2RiskPolicy::class,
         ] as $middleware) {
             $kernel->appendToMiddlewarePriority($middleware);
         }

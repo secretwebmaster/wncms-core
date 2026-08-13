@@ -143,6 +143,30 @@ automation actor. Route permissions (`link_index`, `link_create`, `link_edit`,
 or `link_delete`) are checked against that user, and forced writes record the
 user ID in `mutation_audits`. The token does not bypass website scope.
 
+### Step-up proofs and high-risk action plans
+
+Formal v2 operations declare a security risk independently from their data
+mutation risk. Effective risk is the maximum of the operation declaration,
+normalized input, and current environment. Permanent credentials are critical;
+cross-site or broad/full-admin grants are at least high.
+
+Credential and security operations use `POST /api/v2/backend/auth/reauthenticate`.
+It accepts the current password, formal operation ID, and one purpose declared
+by that operation. Only an interactive session can receive the returned
+five-minute proof. Send it once in `X-WNCMS-Step-Up`; WNCMS stores only its hash
+and binds it to the actor, exact session, purpose, expiry, and later password or
+session security events.
+
+When `api_high_risk_action_mode=planned`, eligible high and critical operations
+first call `POST /api/v2/backend/action-plans` with `operation`, normalized
+`input`, and `target_state`. The response includes an opaque plan ID and a
+plaintext-once confirmation. Send the confirmation in `X-WNCMS-Confirmation`
+within five minutes. It is atomically single-use and binds actor, credential
+public ID, interactive session when present, operation, input, target state,
+website scope, ability/permission result, and effective risk. Missing proof or
+plan returns `428`; expired, stale, or reused plans return stable `409` errors.
+Async operations consume a plan only after enqueue succeeds.
+
 ## Simple Authentication (Recommended)
 
 The most common authentication method using API tokens.

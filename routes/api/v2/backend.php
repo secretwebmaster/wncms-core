@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Wncms\Api\V2\LegacyOperationSecurity;
+use Wncms\Http\Controllers\Api\V2\Backend\ActionPlanController;
 use Wncms\Http\Controllers\Api\V2\Backend\AuthController;
 use Wncms\Http\Controllers\Api\V2\Backend\BridgeController;
 use Wncms\Http\Controllers\Api\V2\Backend\I18nController;
@@ -24,6 +25,10 @@ Route::prefix('v2/backend')
             ->name('auth.logout');
 
         Route::middleware(['api_v2_token_auth'])->group(function () {
+            Route::post('/auth/reauthenticate', [AuthController::class, 'reauthenticate'])
+                ->name('auth.reauthenticate');
+            Route::post('/action-plans', [ActionPlanController::class, 'store'])
+                ->name('action_plans.store');
             Route::post('/auth/logout-all', [AuthController::class, 'logoutAll'])
                 ->defaults('api_operation_id', 'backend.auth.logout_all')
                 ->defaults('api_website_identity', 'global:interactive-sessions')

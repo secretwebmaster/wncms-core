@@ -25,6 +25,7 @@ use Wncms\Auth\Api\V2\RefreshTokenException;
 use Wncms\Auth\Api\V2\RefreshTokenService;
 use Wncms\Auth\Api\V2\RotatedCredentialPair;
 use Wncms\Auth\Api\V2\SessionService;
+use Wncms\Auth\Api\V2\StepUpService;
 use Wncms\Models\ApiSession;
 use Wncms\Models\User;
 use Wncms\Services\Security\SecurityEventService;
@@ -45,7 +46,56 @@ class AuthController extends ApiV2Controller
         private ApiContractRegistry $contracts,
         private OriginPolicy $originPolicy,
         private CsrfTokenService $csrfTokens,
+        private StepUpService $stepUp,
     ) {}
+
+    /**
+     * Verify the current password and issue a purpose-bound recent-authentication proof.
+     */
+    public function reauthenticate(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'password' => ['required', 'string'],
+            'operation' => ['required', 'string'],
+            'purpose' => ['required', 'string'],
+        ]);
+        $context = $this->authenticationContext($request);
+        $operation = $this->contracts->operation($validated['operation']);
+        if (! $context instanceof AuthenticationContext
+            || $context->credentialType() !== ApiCredential::TYPE_INTERACTIVE_ACCESS
+            || ! $context->actor() instanceof User
+            || $operation === null
+            || ! $operation->requiresStepUp
+            || ! in_array($validated['purpose'], $operation->stepUpPurposes, true)
+            || ! Hash::check($validated['password'], (string) $context->actor()->password)) {
+            return $this->responseFactory()->failure(
+                'authentication.invalid_credentials',
+                'Current credentials are not valid',
+                Response::HTTP_UNAUTHORIZED,
+            );
+        }
+
+        $sessionModel = wncms()->getModelClass('api_session');
+        $session = $sessionModel::query()
+            ->where('session_id', $context->sessionPublicId())
+            ->where('user_id', $context->actorId())
+            ->first();
+        if (! $session instanceof ApiSession) {
+            return $this->responseFactory()->failure('risk.step_up_invalid', 'Interactive session is not valid', Response::HTTP_UNAUTHORIZED);
+        }
+
+        try {
+            $proof = $this->stepUp->issue($session, [$validated['purpose']]);
+        } catch (\Throwable $exception) {
+            return $this->securityAuditUnavailable($exception);
+        }
+
+        return $this->ok([
+            'proof' => $proof,
+            'purpose' => $validated['purpose'],
+            'expires_in' => $this->securityConfig()->stepUpLifetimeSeconds(),
+        ], 'step_up_succeeded')->header('Cache-Control', 'private, no-store');
+    }
 
     /**
      * Authenticate an account and atomically issue one JSON interactive session.
