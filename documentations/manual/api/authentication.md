@@ -68,6 +68,9 @@ For Cookie refresh and logout, copy `wncms_refresh_csrf` into the
 `X-WNCMS-CSRF` header. WNCMS compares both values and verifies their hash-only
 binding to that exact refresh credential. This lets a replay with its original
 proof reach reuse detection, while random or stale proof values remain denied.
+JSON-mode sessions and refresh credentials keep this proof nullable without a
+database unique index for SQL Server portability. Cookie-mode proofs remain
+unguessable random values stored only as hashes and compared with `hash_equals`.
 Successful refresh rotates both cookies;
 logout and applicable session revocations expire both. A body/cookie channel
 mismatch returns `authentication.refresh_transport_mismatch`, while Origin and
@@ -83,7 +86,8 @@ is rejected unless the application URL/cookies are HTTPS and host CORS has
 origin. Host `allowed_origins` must contain no `*`, and
 `allowed_origins_patterns` must be empty; mixed exact/wildcard configurations
 fail closed. Denied actual and preflight requests never reflect CORS permission
-headers.
+headers. Coverage includes every auth route, including `auth/me`; Laravel-style
+leading/trailing slashes and host-keyed `cors.paths` are supported.
 Permanent remembered credentials still use a bounded 400-day persistent
 browser-cookie horizon; logout always expires the exact cookie scope.
 
@@ -93,12 +97,16 @@ Cookie sessions. The setting write, credential revocation, and mandatory
 `security.auth_policy.changed` event commit atomically; service tokens are not
 revoked.
 
-Origin and CSRF denials are HMAC-correlated and aggregated into one persisted
-row per attacker tuple. Repeated denials increment the bounded aggregate rather
-than creating a row or info log per request. If event persistence is unavailable,
-the redacted warning fallback is limited per tuple and globally. Mandatory
+Origin and CSRF denials retain a bounded HMAC sample and aggregate all attacker
+tuples into one persisted row per event type and UTC hour. Repeated denials
+increment that aggregate rather than creating a row or info log per request. If
+event persistence is unavailable, the redacted warning fallback is limited per
+tuple and globally; database, cache, and logger failures cannot change the 403.
+Mandatory
 success event notifications and structured success logs are emitted only after
-the outermost database transaction commits; an outer rollback emits neither.
+the outermost transaction on the event model's actual database connection
+commits; an outer rollback emits neither. Listener and logging failures after
+commit are isolated and cannot turn an already committed request into a failure.
 
 ```javascript
 const csrf = readCookie('wncms_refresh_csrf')

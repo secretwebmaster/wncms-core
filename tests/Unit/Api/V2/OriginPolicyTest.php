@@ -203,6 +203,65 @@ class OriginPolicyTest extends TestCase
     }
 
     /**
+     * Verify Laravel-style leading slashes and host-keyed CORS paths are accepted.
+     */
+    public function test_cookie_transport_accepts_laravel_style_and_host_keyed_auth_paths(): void
+    {
+        config([
+            'app.url' => 'https://api.example.test',
+            'session.secure' => true,
+            'cors.allowed_origins' => ['https://admin.example.test'],
+            'cors.allowed_origins_patterns' => [],
+            'cors.supports_credentials' => true,
+            'cors.paths' => ['/api/v2/backend/auth/*/'],
+        ]);
+        $values = [
+            'api_refresh_transport' => 'cookie',
+            'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+        ];
+
+        $leadingSlash = AuthSecurityConfig::fromValues($values);
+        $this->assertSame('cookie', $leadingSlash->refreshTransport());
+
+        config(['cors.paths' => [
+            'api.example.test' => ['/api/v2/backend/auth/*/'],
+            'other.example.test' => ['unrelated/*'],
+        ]]);
+        $hostKeyed = AuthSecurityConfig::fromValues($values);
+        $this->assertSame('cookie', $hostKeyed->refreshTransport());
+        $this->assertArrayNotHasKey('api_refresh_cookie_allowed_origins', $hostKeyed->validate());
+    }
+
+    /**
+     * Verify Cookie CORS coverage rejects a configuration that omits auth me.
+     */
+    public function test_cookie_transport_rejects_host_cors_that_omits_auth_me(): void
+    {
+        config([
+            'app.url' => 'https://api.example.test',
+            'session.secure' => true,
+            'cors.allowed_origins' => ['https://admin.example.test'],
+            'cors.allowed_origins_patterns' => [],
+            'cors.supports_credentials' => true,
+            'cors.paths' => [
+                'api/v2/backend/auth/login',
+                'api/v2/backend/auth/refresh',
+                'api/v2/backend/auth/logout',
+                'api/v2/backend/auth/logout-all',
+                'api/v2/backend/auth/sessions',
+                'api/v2/backend/auth/sessions/*',
+            ],
+        ]);
+        $config = AuthSecurityConfig::fromValues([
+            'api_refresh_transport' => 'cookie',
+            'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
+        ]);
+
+        $this->assertSame('json', $config->refreshTransport());
+        $this->assertArrayHasKey('api_refresh_cookie_allowed_origins', $config->validate());
+    }
+
+    /**
      * Build a policy from typed security configuration values.
      *
      * @param  array<string, mixed>  $overrides

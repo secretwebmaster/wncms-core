@@ -2,6 +2,7 @@
 
 namespace Wncms\Tests\Feature\Api\V2;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -33,10 +34,11 @@ class SecurityDenialRecorderTest extends TestCase
     }
 
     /**
-     * Verify repeated denials use one row per redacted attacker tuple.
+     * Verify all attacker tuples share one bounded row per event time bucket.
      */
-    public function test_repeated_same_and_different_denial_tuples_remain_aggregated(): void
+    public function test_repeated_same_and_different_denial_tuples_share_one_time_bucket(): void
     {
+        CarbonImmutable::setTestNow('2026-08-14 08:05:00 UTC');
         $recorder = app(SecurityDenialRecorder::class);
         $same = $this->request('203.0.113.10', 'Task7 same attacker');
         foreach (range(1, 20) as $attempt) {
@@ -56,7 +58,19 @@ class SecurityDenialRecorderTest extends TestCase
             );
         }
 
-        $this->assertSame(5, ApiSecurityEvent::query()->where('event_type', 'security.csrf.denied')->count());
+        $csrfEvent = ApiSecurityEvent::query()->where('event_type', 'security.csrf.denied')->firstOrFail();
+        $this->assertSame(1, ApiSecurityEvent::query()->where('event_type', 'security.csrf.denied')->count());
+        $this->assertSame(5, $csrfEvent->context['aggregate']['count']);
+
+        CarbonImmutable::setTestNow('2026-08-14 09:00:00 UTC');
+        $recorder->record(
+            $this->request('192.0.2.99', 'Task7 next bucket attacker'),
+            'security.csrf.denied',
+            'authentication.csrf_failed',
+        );
+
+        $this->assertSame(2, ApiSecurityEvent::query()->where('event_type', 'security.csrf.denied')->count());
+        CarbonImmutable::setTestNow();
     }
 
     /**
@@ -80,6 +94,31 @@ class SecurityDenialRecorderTest extends TestCase
                 && ($context['error_code'] ?? null) === 'authentication.origin_denied'
                 && ! str_contains(json_encode($context, JSON_THROW_ON_ERROR), 'CANARY-ATTACKER');
         })->times(10);
+    }
+
+    /**
+     * Verify a failed cache limiter permits only one emergency fallback per minute.
+     */
+    public function test_cache_failure_has_a_process_bounded_redacted_emergency_fallback(): void
+    {
+        CarbonImmutable::setTestNow('2040-01-01 12:34:00 UTC');
+        config(['wncms-api-v2.auth_security.security_event_correlation' => []]);
+        RateLimiter::shouldReceive('attempt')->times(5)->andThrow(new \RuntimeException('CANARY-CACHE-SECRET'));
+        Log::partialMock()->shouldReceive('warning')->once()->withArgs(static function (string $message, array $context): bool {
+            return $message === 'WNCMS Cookie security denial event could not be persisted.'
+                && ! str_contains(json_encode($context, JSON_THROW_ON_ERROR), 'CANARY-CACHE-SECRET');
+        });
+        $recorder = app(SecurityDenialRecorder::class);
+
+        foreach (range(1, 5) as $attempt) {
+            $recorder->record(
+                $this->request("192.0.2.{$attempt}", "CANARY-CACHE-AGENT-{$attempt}"),
+                'security.origin.denied',
+                'authentication.origin_denied',
+            );
+        }
+
+        CarbonImmutable::setTestNow();
     }
 
     /**

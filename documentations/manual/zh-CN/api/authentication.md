@@ -66,7 +66,10 @@ scheme、host 与有效 port。缺少、`null`、wildcard、格式错误或未�
 Cookie refresh 与 logout 必须将 `wncms_refresh_csrf` 复制到
 `X-WNCMS-CSRF` 标头。WNCMS 会比较两者，并验证它们与当前 session 的
 精确 refresh credential 之间的 hash-only 绑定。带原始 proof 的重放可进入
-reuse 检测，随机或过时 proof 仍会被拒绝。成功 refresh 会轮换两个 cookie；logout 和适用的 session
+reuse 检测，随机或过时 proof 仍会被拒绝。为兼容 SQL Server，JSON mode 的
+session 与 refresh credential 允许 nullable proof 且不建立 database unique
+index；Cookie proof 仍使用不可猜测的随机值、仅储存 hash 并以 `hash_equals`
+比较。成功 refresh 会轮换两个 cookie；logout 和适用的 session
 撤销会让两个 cookie 过期。Body/cookie 通道不一致返回
 `authentication.refresh_transport_mismatch`，Origin 与 CSRF 失败分别返回
 `authentication.origin_denied` 和 `authentication.csrf_failed`；两者都会写入
@@ -80,18 +83,23 @@ host CORS 设置 `supports_credentials = true`、涵盖 auth path 与所有精�
 Origins，否则 `SameSite=None` 会被拒绝。Host `allowed_origins` 不可包含
 `*`，`allowed_origins_patterns` 必须为空；精确值与 wildcard 混用会 fail
 closed。被拒绝的 actual 与 preflight 请求绝不会反射 CORS 许可标头。永久 remember credential 的浏览器
-cookie 仍采用有界的 400 天持久期限，logout 始终按完全相同 scope 清除。
+cookie 仍采用有界的 400 天持久期限，logout 始终按完全相同 scope 清除。覆盖范围包含
+`auth/me` 在内的所有 auth routes，并支持 Laravel 风格的前后 slash 与
+host-keyed `cors.paths`。
 
 切换 refresh transport 会撤销所有 active interactive sessions；更改 Cookie
 domain、SameSite、允许 Origins 或 Referer fallback 会撤销 active Cookie
 sessions。Setting 写入、credential 撤销与必要的
 `security.auth_policy.changed` event 会原子提交；service tokens 不受影响。
 
-Origin 与 CSRF denial 会按 HMAC correlation tuple 聚合为每个 attacker tuple
-一行；重复 denial 只增加有界 aggregate，不会为每个请求新增 row 或 info
-log。Event persistence 不可用时，已脱敏 warning fallback 会同时按 tuple 与
-全局限流。必要的 success event notification 与 structured success log 只会在
-最外层 database transaction commit 后发出；outer rollback 不会发出任何一项。
+Origin 与 CSRF denial 会保留有限的 HMAC sample，并按 event type 与 UTC hour
+将所有 attacker tuples 聚合为一行；重复 denial 只增加 aggregate，不会为每个
+请求新增 row 或 info log。Event persistence 不可用时，已脱敏 warning fallback
+会同时按 tuple 与全局限流；database、cache 与 logger 故障都不会改变 403。
+必要的 success event notification 与 structured success log 只会在 event model
+实际 database connection 的最外层 transaction commit 后发出；outer rollback
+不会发出任何一项。Commit 后的 listener 或 logging 故障会被隔离，不能让已提交
+请求失败。
 
 ```javascript
 const csrf = readCookie('wncms_refresh_csrf')

@@ -3,7 +3,7 @@
 namespace Wncms\Services\Security;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -61,35 +61,40 @@ final class SecurityEventService
 
     /**
      * Record one allowlisted, redacted security event.
+     *
+     * @param  array<string, mixed>  $context
      */
-    public function record(string $type, string $severity, string $outcome, array $context = []): ApiSecurityEvent
+    public function record(string $type, string $severity, string $outcome, array $context = [], ?string $connectionName = null): ApiSecurityEvent
     {
         $this->validateCatalogValue($type, $severity, $outcome);
         $attributes = $this->buildAttributes($type, $severity, $outcome, $context);
 
-        return $this->persist($attributes);
+        return $this->persist($attributes, $connectionName);
     }
 
     /**
      * Commit a security mutation and its mandatory event atomically.
      *
-     *
+     * @param  array<string, mixed>  $event
      *
      * @throws \RuntimeException
      */
-    public function withinTransaction(callable $mutation, array $event): mixed
+    public function withinTransaction(callable $mutation, array $event, ?string $connectionName = null): mixed
     {
         if (! $this->correlationHasher->isConfigured()) {
             throw new \RuntimeException('Security event correlation keys are unavailable.');
         }
 
-        return DB::transaction(function () use ($mutation, $event): mixed {
+        $connection = $this->eventConnection($connectionName);
+
+        return $connection->transaction(function () use ($mutation, $event, $connection): mixed {
             $result = $mutation();
             $this->record(
                 (string) ($event['type'] ?? ''),
                 (string) ($event['severity'] ?? ''),
                 (string) ($event['outcome'] ?? ''),
-                (array) ($event['context'] ?? [])
+                (array) ($event['context'] ?? []),
+                $connection->getName(),
             );
 
             return $result;
@@ -99,21 +104,31 @@ final class SecurityEventService
     /**
      * Record or atomically increment a high-volume event aggregate.
      *
-     * The correlation tuple is event catalog values, surface, HMAC correlations, and
-     * configured key version. Aggregates deliberately update only count/timestamps.
+     * Default aggregates use the correlation tuple. Supplying a bucket start uses a
+     * bounded event/surface/time identity while retaining only the first HMAC sample.
+     *
+     * @param  array<string, mixed>  $context
      */
-    public function recordAggregate(string $type, string $severity, string $outcome, array $context = []): ApiSecurityEvent
-    {
+    public function recordAggregate(
+        string $type,
+        string $severity,
+        string $outcome,
+        array $context = [],
+        ?string $connectionName = null,
+        ?\DateTimeInterface $bucketStartsAt = null,
+    ): ApiSecurityEvent {
         if (! $this->correlationHasher->isConfigured()) {
             throw new \RuntimeException('Security event correlation keys are unavailable.');
         }
 
-        return DB::transaction(function () use ($type, $severity, $outcome, $context): ApiSecurityEvent {
+        $connection = $this->eventConnection($connectionName);
+
+        return $connection->transaction(function () use ($type, $severity, $outcome, $context, $connection, $bucketStartsAt): ApiSecurityEvent {
             $this->validateCatalogValue($type, $severity, $outcome);
             $attributes = $this->buildAttributes($type, $severity, $outcome, $context);
             $this->requireAggregateCorrelations($attributes);
-            $attributes['aggregate_key'] = $this->aggregateKey($attributes);
-            $event = DB::table('api_security_events')
+            $attributes['aggregate_key'] = $this->aggregateKey($attributes, $bucketStartsAt);
+            $event = $connection->table('api_security_events')
                 ->where('aggregate_key', $attributes['aggregate_key'])
                 ->lockForUpdate()
                 ->first();
@@ -121,15 +136,17 @@ final class SecurityEventService
             if ($event === null) {
                 $attributes['context'] = $this->aggregateContext($attributes['context'], 1, $attributes['occurred_at'], $attributes['request_id']);
 
-                $inserted = DB::table('api_security_events')->insertOrIgnore($this->databaseAttributes($attributes));
+                $inserted = $connection->table('api_security_events')->insertOrIgnore($this->databaseAttributes($attributes));
 
-                $event = DB::table('api_security_events')
+                $event = $connection->table('api_security_events')
                     ->where('aggregate_key', $attributes['aggregate_key'])
                     ->lockForUpdate()
                     ->first();
 
                 if ($inserted === 1 && $event !== null) {
-                    $created = ApiSecurityEvent::query()->where('aggregate_key', $attributes['aggregate_key'])->firstOrFail();
+                    $created = $this->eventModel($connection->getName())->newQuery()
+                        ->where('aggregate_key', $attributes['aggregate_key'])
+                        ->firstOrFail();
                     $this->dispatchAfterCommit($created);
 
                     return $created;
@@ -149,11 +166,11 @@ final class SecurityEventService
                 $attributes['request_id'],
                 $attributes['occurred_at']
             );
-            DB::table('api_security_events')->where('id', $event->id)->update([
+            $connection->table('api_security_events')->where('id', $event->id)->update([
                 'context' => json_encode($aggregateContext, JSON_THROW_ON_ERROR),
                 'updated_at' => CarbonImmutable::now('UTC'),
             ]);
-            $updated = ApiSecurityEvent::query()->findOrFail($event->id);
+            $updated = $this->eventModel($connection->getName())->newQuery()->findOrFail($event->id);
 
             return $updated;
         });
@@ -285,10 +302,12 @@ final class SecurityEventService
 
     /**
      * Persist one event and dispatch only its redacted observability payload.
+     *
+     * @param  array<string, mixed>  $attributes
      */
-    protected function persist(array $attributes): ApiSecurityEvent
+    protected function persist(array $attributes, ?string $connectionName = null): ApiSecurityEvent
     {
-        $event = ApiSecurityEvent::create($attributes);
+        $event = $this->eventModel($connectionName)->newQuery()->create($attributes);
         $this->dispatchAfterCommit($event);
 
         return $event;
@@ -302,7 +321,7 @@ final class SecurityEventService
      */
     protected function dispatchAfterCommit(ApiSecurityEvent $event): void
     {
-        DB::connection()->afterCommit(function () use ($event): void {
+        $event->getConnection()->afterCommit(function () use ($event): void {
             $this->dispatch($event);
         });
     }
@@ -314,8 +333,54 @@ final class SecurityEventService
     {
         $safePayload = $event->makeHidden(['ip_hash', 'login_identifier_hash', 'user_agent_hash', 'aggregate_key']);
 
-        Event::dispatch(new ApiSecurityEventRecorded($safePayload));
-        Log::info('WNCMS security event recorded.', ['event' => $safePayload->toArray()]);
+        try {
+            Event::dispatch(new ApiSecurityEventRecorded($safePayload));
+        } catch (\Throwable $exception) {
+            $this->observabilityFallback('event_dispatch_failed', $exception);
+        }
+
+        try {
+            Log::info('WNCMS security event recorded.', ['event' => $safePayload->toArray()]);
+        } catch (\Throwable $exception) {
+            $this->observabilityFallback('structured_log_failed', $exception);
+        }
+    }
+
+    /**
+     * Resolve the model-owned database connection for event persistence.
+     */
+    protected function eventConnection(?string $connectionName = null): Connection
+    {
+        return $this->eventModel($connectionName)->getConnection();
+    }
+
+    /**
+     * Build an event model bound to the requested or model-default connection.
+     */
+    protected function eventModel(?string $connectionName = null): ApiSecurityEvent
+    {
+        $model = new ApiSecurityEvent;
+        if ($connectionName !== null) {
+            $model->setConnection($connectionName);
+        }
+
+        return $model;
+    }
+
+    /**
+     * Emit a non-recursive redacted fallback without involving Laravel logging.
+     */
+    protected function observabilityFallback(string $stage, \Throwable $exception): void
+    {
+        try {
+            error_log(json_encode([
+                'message' => 'WNCMS security event observability failed.',
+                'stage' => $stage,
+                'exception' => $exception::class,
+            ], JSON_THROW_ON_ERROR));
+        } catch (\Throwable) {
+            // Observability must never change the outcome of an already committed mutation.
+        }
     }
 
     /**
@@ -376,9 +441,21 @@ final class SecurityEventService
 
     /**
      * Build the stable database-enforced identity for one aggregate tuple.
+     *
+     * @param  array<string, mixed>  $attributes
      */
-    protected function aggregateKey(array $attributes): string
+    protected function aggregateKey(array $attributes, ?\DateTimeInterface $bucketStartsAt = null): string
     {
+        if ($bucketStartsAt !== null) {
+            return hash('sha256', implode("\n", [
+                $attributes['event_type'],
+                $attributes['severity'],
+                $attributes['outcome'],
+                $attributes['surface'],
+                CarbonImmutable::instance($bucketStartsAt)->utc()->startOfHour()->toAtomString(),
+            ]));
+        }
+
         return hash('sha256', implode("\n", [
             $attributes['event_type'],
             $attributes['severity'],

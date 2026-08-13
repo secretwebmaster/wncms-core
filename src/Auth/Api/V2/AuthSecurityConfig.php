@@ -492,9 +492,12 @@ final class AuthSecurityConfig
             }
         }
 
-        $paths = array_values(array_filter((array) config('cors.paths', []), 'is_string'));
-        foreach (self::cookieCorsSurfacePaths() as $surfacePath) {
-            if (! collect($paths)->contains(static fn (string $path): bool => Str::is($path, $surfacePath))) {
+        $paths = $this->hostCorsPaths();
+        foreach (AuthRouteSurface::corsPaths() as $surfacePath) {
+            if (! collect($paths)->contains(static fn (string $path): bool => Str::is(
+                $path === '/' ? $path : trim($path, '/'),
+                $surfacePath,
+            ))) {
                 return false;
             }
         }
@@ -503,20 +506,17 @@ final class AuthSecurityConfig
     }
 
     /**
-     * Return representative paths for the complete Cookie authentication surface.
+     * Return host-applicable paths using Laravel HandleCors configuration semantics.
      *
      * @return array<int, string>
      */
-    private static function cookieCorsSurfacePaths(): array
+    private function hostCorsPaths(): array
     {
-        return [
-            'api/v2/backend/auth/login',
-            'api/v2/backend/auth/refresh',
-            'api/v2/backend/auth/logout',
-            'api/v2/backend/auth/logout-all',
-            'api/v2/backend/auth/sessions',
-            'api/v2/backend/auth/sessions/example-session-id',
-        ];
+        $paths = (array) config('cors.paths', []);
+        $appHost = (string) parse_url((string) config('app.url'), PHP_URL_HOST);
+        $appPaths = $paths[$appHost] ?? array_filter($paths, 'is_string');
+
+        return array_values(array_filter((array) $appPaths, 'is_string'));
     }
 
     /**

@@ -13,6 +13,10 @@ use Wncms\Tests\TestCase;
 
 class SecurityEventPostCommitTest extends TestCase
 {
+    private const SECOND_CONNECTION = 'task7_security_events_second';
+
+    private bool $secondConnectionConfigured = false;
+
     /**
      * Configure mandatory correlation keys and clear test-owned events.
      */
@@ -38,6 +42,14 @@ class SecurityEventPostCommitTest extends TestCase
     {
         while (DB::transactionLevel() > 0) {
             DB::rollBack();
+        }
+        if ($this->secondConnectionConfigured) {
+            $connection = DB::connection(self::SECOND_CONNECTION);
+            while ($connection->transactionLevel() > 0) {
+                $connection->rollBack();
+            }
+            $connection->disconnect();
+            DB::purge(self::SECOND_CONNECTION);
         }
         DB::table('api_security_events')->where('request_id', 'like', 'task7-post-commit-%')->delete();
 
@@ -138,11 +150,87 @@ class SecurityEventPostCommitTest extends TestCase
     }
 
     /**
+     * Verify a named-connection outer rollback discards its event and callback.
+     */
+    public function test_named_connection_outer_rollback_discards_event_and_notification(): void
+    {
+        $connection = $this->configureSecondConnection();
+        Event::fake([ApiSecurityEventRecorded::class]);
+        Log::spy();
+        $connection->beginTransaction();
+
+        $this->recordInsideServiceTransaction('task7-post-commit-named-rollback', self::SECOND_CONNECTION);
+
+        Event::assertNotDispatched(ApiSecurityEventRecorded::class);
+        Log::shouldNotHaveReceived('info');
+        $this->assertSame(1, $connection->table('api_security_events')->where('request_id', 'task7-post-commit-named-rollback')->count());
+        $connection->rollBack();
+
+        Event::assertNotDispatched(ApiSecurityEventRecorded::class);
+        Log::shouldNotHaveReceived('info');
+        $this->assertSame(0, $connection->table('api_security_events')->where('request_id', 'task7-post-commit-named-rollback')->count());
+        $this->assertDatabaseMissing('api_security_events', ['request_id' => 'task7-post-commit-named-rollback']);
+    }
+
+    /**
+     * Verify a named-connection outer commit persists and notifies exactly once.
+     */
+    public function test_named_connection_outer_commit_persists_and_notifies_exactly_once(): void
+    {
+        $connection = $this->configureSecondConnection();
+        Event::fake([ApiSecurityEventRecorded::class]);
+        Log::spy();
+        $connection->beginTransaction();
+
+        $this->recordInsideServiceTransaction('task7-post-commit-named-success', self::SECOND_CONNECTION);
+        Event::assertNotDispatched(ApiSecurityEventRecorded::class);
+        Log::shouldNotHaveReceived('info');
+        $connection->commit();
+
+        Event::assertDispatchedTimes(ApiSecurityEventRecorded::class, 1);
+        Event::assertDispatched(ApiSecurityEventRecorded::class, static fn (ApiSecurityEventRecorded $event): bool => $event->event->getConnectionName() === self::SECOND_CONNECTION);
+        Log::shouldHaveReceived('info')->once();
+        $this->assertSame(1, $connection->table('api_security_events')->where('request_id', 'task7-post-commit-named-success')->count());
+    }
+
+    /**
+     * Verify a failing event listener cannot fail an already committed caller.
+     */
+    public function test_event_listener_failure_after_commit_is_non_fatal_and_redacted(): void
+    {
+        Log::spy();
+        Event::listen(ApiSecurityEventRecorded::class, static function (): never {
+            throw new \RuntimeException('CANARY-EVENT-LISTENER-CONTEXT');
+        });
+
+        $result = $this->recordInsideServiceTransaction('task7-post-commit-event-listener-failure');
+
+        $this->assertNull($result);
+        $this->assertDatabaseHas('api_security_events', ['request_id' => 'task7-post-commit-event-listener-failure']);
+        Log::shouldHaveReceived('info')->once();
+    }
+
+    /**
+     * Verify a failing log driver cannot fail an already committed caller.
+     */
+    public function test_log_driver_failure_after_commit_is_non_fatal_and_redacted(): void
+    {
+        Event::fake([ApiSecurityEventRecorded::class]);
+        Log::shouldReceive('info')->once()->andThrow(new \RuntimeException('CANARY-LOG-DRIVER-CONTEXT'));
+
+        $result = $this->recordInsideServiceTransaction('task7-post-commit-log-driver-failure');
+
+        $this->assertNull($result);
+        $this->assertDatabaseHas('api_security_events', ['request_id' => 'task7-post-commit-log-driver-failure']);
+        Event::assertDispatchedTimes(ApiSecurityEventRecorded::class, 1);
+    }
+
+    /**
      * Persist one mandatory event from a nested service transaction.
      */
-    private function recordInsideServiceTransaction(string $requestId): void
+    private function recordInsideServiceTransaction(string $requestId, ?string $connectionName = null): mixed
     {
-        app(SecurityEventService::class)->withinTransaction(static fn (): null => null, [
+        return app(SecurityEventService::class)->withinTransaction(static fn (): null => null, [
             'type' => 'auth.refresh.succeeded',
             'severity' => 'info',
             'outcome' => 'succeeded',
@@ -150,6 +238,21 @@ class SecurityEventPostCommitTest extends TestCase
                 'surface' => 'api_v2',
                 'request_id' => $requestId,
             ],
-        ]);
+        ], $connectionName);
+    }
+
+    /**
+     * Configure an isolated named SQLite connection with the prepared schema.
+     */
+    private function configureSecondConnection(): \Illuminate\Database\Connection
+    {
+        $this->secondConnectionConfigured = true;
+        config(['database.connections.'.self::SECOND_CONNECTION => [
+            ...config('database.connections.sqlite'),
+            'database' => config('database.connections.sqlite.database'),
+        ]]);
+        DB::purge(self::SECOND_CONNECTION);
+
+        return DB::connection(self::SECOND_CONNECTION);
     }
 }

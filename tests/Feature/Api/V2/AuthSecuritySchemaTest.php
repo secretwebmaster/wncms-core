@@ -33,7 +33,10 @@ class AuthSecuritySchemaTest extends TestCase
     public function test_owned_credential_schema_has_unique_secret_material_and_lifecycle_indexes(): void
     {
         $this->assertUniqueIndex('api_sessions', 'session_id');
-        $this->assertUniqueIndex('api_sessions', 'csrf_hash');
+        $this->assertFalse(collect(Schema::getIndexes('api_sessions'))->contains(
+            static fn (array $index): bool => ($index['unique'] ?? false)
+                && ($index['columns'] ?? []) === ['csrf_hash'],
+        ));
         $this->assertUniqueIndex('api_access_tokens', 'token_id');
         $this->assertUniqueIndex('api_access_tokens', 'token_hash');
         $this->assertUniqueIndex('api_refresh_tokens', 'token_id');
@@ -113,7 +116,7 @@ class AuthSecuritySchemaTest extends TestCase
     /**
      * Verify JSON refresh credentials can persist multiple portable nullable CSRF proofs.
      */
-    public function test_multiple_json_refresh_rows_allow_null_csrf_proofs(): void
+    public function test_multiple_json_sessions_and_refresh_rows_allow_null_csrf_proofs(): void
     {
         $userId = DB::table('users')->insertGetId([
             'username' => 'nullable-csrf-owner',
@@ -122,16 +125,16 @@ class AuthSecuritySchemaTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        $sessionId = DB::table('api_sessions')->insertGetId([
-            'session_id' => 'nullable-csrf-session',
-            'user_id' => $userId,
-            'refresh_transport' => 'json',
-            'remembered' => false,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
         foreach ([1, 2] as $suffix) {
+            $sessionId = DB::table('api_sessions')->insertGetId([
+                'session_id' => "nullable-csrf-session-{$suffix}",
+                'csrf_hash' => null,
+                'user_id' => $userId,
+                'refresh_transport' => 'json',
+                'remembered' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
             DB::table('api_refresh_tokens')->insert([
                 'token_id' => "nullable-csrf-token-{$suffix}",
                 'token_hash' => hash('sha256', "nullable-csrf-secret-{$suffix}"),
@@ -144,7 +147,8 @@ class AuthSecuritySchemaTest extends TestCase
             ]);
         }
 
-        $this->assertSame(2, DB::table('api_refresh_tokens')->where('session_id', $sessionId)->whereNull('csrf_hash')->count());
+        $this->assertSame(2, DB::table('api_sessions')->where('user_id', $userId)->whereNull('csrf_hash')->count());
+        $this->assertSame(2, DB::table('api_refresh_tokens')->where('user_id', $userId)->whereNull('csrf_hash')->count());
     }
 
     /**

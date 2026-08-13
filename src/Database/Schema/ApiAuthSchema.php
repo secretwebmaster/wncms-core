@@ -23,7 +23,7 @@ final class ApiAuthSchema
             $table->string('device_name', 120)->nullable();
             $table->string('refresh_transport', 16)->default('json');
             $table->boolean('remembered')->default(false);
-            $table->string('csrf_hash', 64)->nullable()->unique();
+            $table->string('csrf_hash', 64)->nullable();
             $table->timestamp('last_activity_at')->nullable();
             $table->timestamp('last_step_up_at')->nullable();
             $table->timestamp('expires_at')->nullable()->index();
@@ -276,7 +276,7 @@ final class ApiAuthSchema
             'api_sessions' => [
                 'primary_key' => ['id'],
                 'columns' => ['id' => $column($integer, false), 'session_id' => $column($string, false), 'user_id' => $column($integer, false), 'device_name' => $column($string, true), 'refresh_transport' => $column($string, false), 'remembered' => $column($boolean, false), 'csrf_hash' => $column($string, true), 'last_activity_at' => $column($timestamp, true), 'last_step_up_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, true), 'revoked_at' => $column($timestamp, true), 'revocation_reason' => $column($string, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
-                'indexes' => [['columns' => ['session_id'], 'unique' => true], ['columns' => ['csrf_hash'], 'unique' => true], ['columns' => ['expires_at'], 'unique' => false], ['columns' => ['revoked_at'], 'unique' => false], ['columns' => ['user_id', 'revoked_at'], 'unique' => false]],
+                'indexes' => [['columns' => ['session_id'], 'unique' => true], ['columns' => ['expires_at'], 'unique' => false], ['columns' => ['revoked_at'], 'unique' => false], ['columns' => ['user_id', 'revoked_at'], 'unique' => false]],
                 'foreign_keys' => [['column' => 'user_id', 'table' => 'users']],
             ],
             'api_access_tokens' => [

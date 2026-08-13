@@ -282,6 +282,27 @@ class CookieAuthenticationFlowTest extends TestCase
     }
 
     /**
+     * Verify database, cache, and logger failures cannot turn an Origin denial into a 500.
+     */
+    public function test_cookie_origin_denial_survives_database_cache_and_logger_failure(): void
+    {
+        DB::unprepared("CREATE TEMP TRIGGER task7_denial_cascade_failure BEFORE INSERT ON api_security_events BEGIN SELECT RAISE(FAIL, 'CANARY-DATABASE-CONTEXT'); END");
+        RateLimiter::shouldReceive('attempt')->once()->andThrow(new \RuntimeException('CANARY-CACHE-CONTEXT'));
+        Log::partialMock()->shouldReceive('warning')->once()->andThrow(new \RuntimeException('CANARY-LOGGER-CONTEXT'));
+
+        try {
+            $this->withHeader('Origin', 'https://CANARY-CASCADE.attacker.test')
+                ->postJson('/api/v2/backend/auth/login', $this->loginPayload(['device_name' => 'cascade-failure']))
+                ->assertForbidden()
+                ->assertJsonPath('meta.error_code', 'authentication.origin_denied')
+                ->assertHeaderMissing('Access-Control-Allow-Origin')
+                ->assertHeaderMissing('Access-Control-Allow-Credentials');
+        } finally {
+            DB::unprepared('DROP TRIGGER IF EXISTS task7_denial_cascade_failure');
+        }
+    }
+
+    /**
      * Verify refresh rotates both credentials and updates the session-bound CSRF hash.
      */
     public function test_cookie_refresh_requires_double_submit_csrf_and_rotates_both_cookies(): void
