@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Wncms\Models\ApiSecurityEvent;
 use Wncms\Services\Security\SecurityEventRetentionService;
 use Wncms\Services\Security\SecurityEventService;
@@ -307,6 +308,71 @@ class SecurityEventServiceTest extends TestCase
         $this->assertDatabaseMissing('api_service_tokens', ['token_id' => 'atomic-aggregate-service-token']);
     }
 
+    #[DataProvider('aggregateInsertQueryProvider')]
+    public function test_aggregate_insert_query_matcher_is_driver_neutral_and_exact(
+        string $query,
+        array $bindings,
+        string $aggregateKey,
+        bool $expected
+    ): void {
+        $this->assertSame($expected, self::isAggregateInsertQuery($query, $bindings, $aggregateKey));
+    }
+
+    /**
+     * Provide aggregate insert queries from each supported database grammar.
+     *
+     * @return array<string, array{string, array<int, string>, string, bool}>
+     */
+    public static function aggregateInsertQueryProvider(): array
+    {
+        $aggregateKey = str_repeat('a', 64);
+
+        return [
+            'sqlite insert or ignore' => [
+                'insert or ignore into "api_security_events" ("event_id", "aggregate_key") values (?, ?)',
+                ['event-id', $aggregateKey],
+                $aggregateKey,
+                true,
+            ],
+            'mysql insert ignore' => [
+                'insert ignore into `api_security_events` (`event_id`, `aggregate_key`) values (?, ?)',
+                ['event-id', $aggregateKey],
+                $aggregateKey,
+                true,
+            ],
+            'postgresql on conflict do nothing' => [
+                "insert into \"api_security_events\" (\"event_id\", \"aggregate_key\")\nvalues (?, ?) on conflict do nothing",
+                ['event-id', $aggregateKey],
+                $aggregateKey,
+                true,
+            ],
+            'ordinary insert into target table' => [
+                'insert into "api_security_events" ("event_id", "aggregate_key") values (?, ?)',
+                ['event-id', $aggregateKey],
+                $aggregateKey,
+                false,
+            ],
+            'postgresql conflict update' => [
+                'insert into "api_security_events" ("event_id", "aggregate_key") values (?, ?) on conflict ("aggregate_key") do update set "event_id" = excluded."event_id"',
+                ['event-id', $aggregateKey],
+                $aggregateKey,
+                false,
+            ],
+            'insert-or-ignore into another table' => [
+                'insert or ignore into "api_service_tokens" ("token_id", "aggregate_key") values (?, ?)',
+                ['token-id', $aggregateKey],
+                $aggregateKey,
+                false,
+            ],
+            'aggregate table without expected key binding' => [
+                'insert or ignore into "api_security_events" ("event_id", "aggregate_key") values (?, ?)',
+                ['event-id', str_repeat('b', 64)],
+                $aggregateKey,
+                false,
+            ],
+        ];
+    }
+
     public function test_aggregate_insert_conflict_is_ignored_and_updates_the_existing_event(): void
     {
         $injected = false;
@@ -323,7 +389,7 @@ class SecurityEventServiceTest extends TestCase
         ]));
         CarbonImmutable::setTestNow('2026-08-13 00:00:00 UTC');
         DB::connection()->beforeExecuting(function (string $query, array $bindings, $connection) use (&$injected, &$firstOccurredAt, $aggregateKey): void {
-            if ($injected || !str_contains(strtolower($query), 'insert or ignore into "api_security_events"')) {
+            if ($injected || !self::isAggregateInsertQuery($query, $bindings, $aggregateKey)) {
                 return;
             }
 
@@ -373,5 +439,31 @@ class SecurityEventServiceTest extends TestCase
         $this->assertSame('2026-08-13T00:01:00+00:00', $event->context['aggregate']['last_occurred_at']);
         $this->assertSame('aggregate-request-2', $event->context['aggregate']['latest_request_id']);
         CarbonImmutable::setTestNow();
+    }
+
+    /**
+     * Determine whether a database query is the expected aggregate insert-or-ignore operation.
+     *
+     * @param  string  $query
+     * @param  array  $bindings
+     * @param  string  $aggregateKey
+     *
+     * @return bool
+     */
+    private static function isAggregateInsertQuery(string $query, array $bindings, string $aggregateKey): bool
+    {
+        if (!in_array($aggregateKey, $bindings, true)) {
+            return false;
+        }
+
+        $normalized = strtolower((string) preg_replace('/\s+/', ' ', trim($query)));
+        $table = '(?:"api_security_events"|`api_security_events`|\[api_security_events\]|api_security_events)';
+
+        if (preg_match('/^insert (?:or ignore|ignore) into '.$table.'\s*\(/', $normalized) === 1) {
+            return true;
+        }
+
+        return preg_match('/^insert into '.$table.'\s*\(/', $normalized) === 1
+            && preg_match('/\bon conflict\s+do nothing(?:\s+returning\b.*)?$/', $normalized) === 1;
     }
 }
