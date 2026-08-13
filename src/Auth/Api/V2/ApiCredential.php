@@ -3,6 +3,7 @@
 namespace Wncms\Auth\Api\V2;
 
 use JsonSerializable;
+use LogicException;
 use Stringable;
 
 final readonly class ApiCredential implements JsonSerializable, Stringable
@@ -93,6 +94,29 @@ final readonly class ApiCredential implements JsonSerializable, Stringable
     public function jsonSerialize(): array
     {
         return $this->toArray();
+    }
+
+    /**
+     * Serialize only safe credential metadata.
+     *
+     * @return array{type: string, public_id: string|null, legacy_candidate: bool}
+     */
+    public function __serialize(): array
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * Reject credential restoration because serialized data cannot contain plaintext material.
+     *
+     * @param  array<string, mixed>  $data
+     * @return void
+     *
+     * @throws \LogicException
+     */
+    public function __unserialize(array $data): void
+    {
+        throw new LogicException('Serialized API credentials cannot be restored.');
     }
 
     /**

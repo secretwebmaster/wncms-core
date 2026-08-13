@@ -22,7 +22,7 @@ final class CredentialParser
     public function parse(string $token): ApiCredential
     {
         foreach (self::PREFIX_TYPES as $prefix => $type) {
-            if (str_starts_with($token, $prefix.'_')) {
+            if ($token === $prefix || str_starts_with($token, $prefix.'_')) {
                 return new ApiCredential($type, $this->publicIdFor($token, $prefix), $token);
             }
         }

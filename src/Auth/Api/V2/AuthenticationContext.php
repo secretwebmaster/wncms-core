@@ -6,6 +6,8 @@ use Illuminate\Contracts\Auth\Authenticatable;
 
 final readonly class AuthenticationContext
 {
+    private int|string|null $actorId;
+
     /**
      * Create immutable request authentication state for authorization, audit, and idempotency consumers.
      *
@@ -24,6 +26,8 @@ final readonly class AuthenticationContext
         private array $abilities,
         private array $websiteIds,
     ) {
+        $identifier = $actor->getAuthIdentifier();
+        $this->actorId = is_int($identifier) || is_string($identifier) ? $identifier : null;
     }
 
     /**
@@ -43,9 +47,7 @@ final readonly class AuthenticationContext
      */
     public function actorId(): int|string|null
     {
-        $identifier = $this->actor()->getAuthIdentifier();
-
-        return is_int($identifier) || is_string($identifier) ? $identifier : null;
+        return $this->actorId;
     }
 
     /**

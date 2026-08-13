@@ -88,6 +88,59 @@ Output:
 OK (8 tests, 55 assertions)
 ```
 
+## Fix Round 1: Serialization, Context Snapshot, And Prefix Isolation
+
+### RED
+
+Command:
+
+```bash
+vendor/bin/phpunit tests/Unit/Api/V2/CredentialParserTest.php tests/Unit/Api/V2/TokenHasherTest.php
+```
+
+Output summary:
+
+```text
+..F..F.F...                                                       11 / 11 (100%)
+
+There were 3 failures:
+1) malformed `wncms_at` was classified as `legacy_personal_access_token`
+   instead of `interactive_access`.
+2) native PHP serialization contained `wncms_st_public-id.secret-value`.
+3) AuthenticationContext actorId() changed from 42 to 99 after its actor
+   model changed.
+
+FAILURES!
+Tests: 11, Assertions: 58, Failures: 3.
+```
+
+### GREEN
+
+Command:
+
+```bash
+vendor/bin/phpunit tests/Unit/Api/V2/CredentialParserTest.php tests/Unit/Api/V2/TokenHasherTest.php
+```
+
+Output:
+
+```text
+...........                                                       11 / 11 (100%)
+
+OK (11 tests, 78 assertions)
+```
+
+Changes in this round:
+
+- `ApiCredential::__serialize()` now emits only metadata, and
+  `__unserialize()` rejects restoration so plaintext cannot be reconstructed
+  from a serialized payload.
+- `AuthenticationContext` snapshots the actor identifier at construction while
+  retaining the actor reference only for framework-auth interoperability.
+- `CredentialParser` treats the exact truncated `wncms_at`, `wncms_rt`, and
+  `wncms_st` prefixes, plus their malformed partial forms, as isolated new
+  credential types rather than legacy candidates.
+
 ## Changes
 
 - Added immutable `ApiCredential`, including safe array, JSON, and string

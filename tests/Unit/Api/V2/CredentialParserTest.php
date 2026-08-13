@@ -2,6 +2,7 @@
 
 namespace Wncms\Tests\Unit\Api\V2;
 
+use LogicException;
 use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\CredentialParser;
@@ -66,6 +67,31 @@ class CredentialParserTest extends TestCase
     }
 
     /**
+     * Verify malformed and partial forms of every new prefix remain isolated from legacy authentication.
+     *
+     * @return void
+     */
+    public function test_malformed_and_partial_new_prefixes_never_fall_back_to_legacy(): void
+    {
+        foreach ([
+            ['wncms_at', ApiCredential::TYPE_INTERACTIVE_ACCESS],
+            ['wncms_at_', ApiCredential::TYPE_INTERACTIVE_ACCESS],
+            ['wncms_at_public', ApiCredential::TYPE_INTERACTIVE_ACCESS],
+            ['wncms_rt', ApiCredential::TYPE_REFRESH],
+            ['wncms_rt_', ApiCredential::TYPE_REFRESH],
+            ['wncms_rt_public', ApiCredential::TYPE_REFRESH],
+            ['wncms_st', ApiCredential::TYPE_SERVICE_TOKEN],
+            ['wncms_st_', ApiCredential::TYPE_SERVICE_TOKEN],
+            ['wncms_st_public', ApiCredential::TYPE_SERVICE_TOKEN],
+        ] as [$plainText, $type]) {
+            $credential = $this->parser->parse($plainText);
+
+            $this->assertSame($type, $credential->type());
+            $this->assertFalse($credential->isLegacyCandidate());
+        }
+    }
+
+    /**
      * Verify only supported legacy forms are eligible for legacy authentication.
      *
      * @return void
@@ -104,6 +130,28 @@ class CredentialParserTest extends TestCase
     }
 
     /**
+     * Verify native PHP serialization cannot disclose or reconstruct credential plaintext.
+     *
+     * @return void
+     */
+    public function test_native_credential_serialization_cannot_expose_or_restore_plaintext(): void
+    {
+        $plainText = 'wncms_st_public-id.secret-value';
+        $credential = $this->parser->parse($plainText);
+        $serialized = serialize($credential);
+
+        $this->assertStringNotContainsString($plainText, $serialized);
+        $this->assertStringNotContainsString('secret-value', $serialized);
+
+        try {
+            unserialize($serialized, ['allowed_classes' => [ApiCredential::class]]);
+            $this->fail('Expected serialized credentials to be rejected.');
+        } catch (LogicException $exception) {
+            $this->assertStringNotContainsString($plainText, $exception->getMessage());
+        }
+    }
+
+    /**
      * Verify an authentication context retains immutable actor, capability, and scope information.
      *
      * @return void
@@ -136,5 +184,28 @@ class CredentialParserTest extends TestCase
         $this->assertFalse($context->hasAbility('links.write'));
         $this->assertTrue($context->hasWebsite(7));
         $this->assertFalse($context->hasWebsite(8));
+    }
+
+    /**
+     * Verify the authentication context preserves its actor identifier after the actor object changes.
+     *
+     * @return void
+     */
+    public function test_authentication_context_snapshots_the_actor_identifier(): void
+    {
+        $actor = new User;
+        $actor->setRawAttributes(['id' => 42], true);
+        $context = new AuthenticationContext(
+            $actor,
+            ApiCredential::TYPE_INTERACTIVE_ACCESS,
+            'credential-public-id',
+            'session-public-id',
+            [],
+            [],
+        );
+        $actor->setRawAttributes(['id' => 99], true);
+
+        $this->assertSame(42, $context->actorId());
+        $this->assertSame(99, $context->actor()->getAuthIdentifier());
     }
 }
