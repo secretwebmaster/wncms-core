@@ -19,6 +19,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\ApiV2ResponseFinalizer;
 use Wncms\Api\V2\Contracts\IdempotencyStore;
+use Wncms\Auth\Api\V2\TokenHasher;
+use Wncms\Models\ApiAccessToken;
+use Wncms\Models\ApiSession;
 use Wncms\Models\User;
 use Wncms\Models\Website;
 use Wncms\Tests\TestCase;
@@ -836,6 +839,48 @@ class IdempotencyMiddlewareTest extends TestCase
     }
 
     /**
+     * Verify idempotency uses only a new credential's public ID, never its plaintext secret.
+     *
+     * Rotating test plaintext under one controlled public ID must replay the existing response,
+     * while a different public ID must execute an isolated mutation.
+     *
+     * @return void
+     */
+    public function test_access_token_scope_uses_public_credential_id_without_secret_material(): void
+    {
+        $user = User::firstOrFail();
+        [$firstPlainText, $firstToken] = $this->createAccessToken($user);
+        $key = 'public-credential-key-01';
+        $payload = ['title' => 'One'];
+
+        auth()->forgetGuards();
+        $this->withToken($firstPlainText)
+            ->postMutation('/api/v2/_test/idempotent-token/alpha', $payload, $key)
+            ->assertJsonPath('data.execution', 1);
+
+        $replacement = app(TokenHasher::class)->issue('wncms_at');
+        $replacementPlainText = 'wncms_at_'.$firstToken->token_id.'.'.explode('.', $replacement['plain_text'], 2)[1];
+        $firstToken->update(['token_hash' => hash('sha256', $replacementPlainText)]);
+
+        auth()->forgetGuards();
+        $this->withToken($replacementPlainText)
+            ->postMutation('/api/v2/_test/idempotent-token/alpha', $payload, $key)
+            ->assertHeader('Idempotency-Replayed', 'true')
+            ->assertJsonPath('data.execution', 1);
+
+        [$secondPlainText] = $this->createAccessToken($user);
+        auth()->forgetGuards();
+        $this->withToken($secondPlainText)
+            ->postMutation('/api/v2/_test/idempotent-token/alpha', $payload, $key)
+            ->assertJsonPath('data.execution', 2);
+
+        $this->assertSame(2, $this->executions);
+        $cachePayload = json_encode(Cache::getStore()->all(false), JSON_THROW_ON_ERROR);
+        $this->assertStringNotContainsString($firstPlainText, $cachePayload);
+        $this->assertStringNotContainsString($replacementPlainText, $cachePayload);
+    }
+
+    /**
      * Verify trusted website identity isolates scopes without trusting the raw Host value.
      *
      * Omitting the resolved website ID would replay across the sentinel and secondary website.
@@ -1518,6 +1563,10 @@ class IdempotencyMiddlewareTest extends TestCase
      */
     protected function createToken(User $user, string $plainTextToken): string
     {
+        config([
+            'wncms.auth_security.legacy_personal_tokens_enabled' => true,
+            'wncms.auth_security.legacy_personal_tokens_cutoff_at' => now()->addDay()->toIso8601String(),
+        ]);
         $tokenId = DB::table('personal_access_tokens')->insertGetId([
             'tokenable_type' => get_class($user),
             'tokenable_id' => $user->id,
@@ -1531,6 +1580,35 @@ class IdempotencyMiddlewareTest extends TestCase
         ]);
 
         return $tokenId.'|'.$plainTextToken;
+    }
+
+    /**
+     * Create a short-lived owned access-token fixture for idempotency identity checks.
+     *
+     * @param  \Wncms\Models\User  $user
+     * @return array{0: string, 1: \Wncms\Models\ApiAccessToken}
+     */
+    protected function createAccessToken(User $user): array
+    {
+        $material = app(TokenHasher::class)->issue('wncms_at');
+        $session = ApiSession::create([
+            'session_id' => 'idempotency-session-'.uniqid(),
+            'user_id' => $user->id,
+            'refresh_transport' => 'json',
+            'remembered' => false,
+            'expires_at' => now()->addDay(),
+        ]);
+        $token = ApiAccessToken::create([
+            'token_id' => $material['public_id'],
+            'token_hash' => $material['hash'],
+            'user_id' => $user->id,
+            'session_id' => $session->id,
+            'abilities' => ['test.write'],
+            'website_ids' => [],
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        return [$material['plain_text'], $token];
     }
 
     /**

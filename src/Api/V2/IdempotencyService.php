@@ -15,6 +15,9 @@ use Stringable;
 use Symfony\Component\HttpFoundation\Response;
 use UnitEnum;
 use Wncms\Api\V2\Contracts\IdempotencyStore;
+use Wncms\Auth\Api\V2\AuthenticationContext;
+use Wncms\Auth\Api\V2\WebsiteScopeGuard;
+use Wncms\Http\Middleware\ApiV2TokenAuth;
 
 class IdempotencyService
 {
@@ -66,7 +69,10 @@ class IdempotencyService
             );
         }
 
-        $actorId = $request->user()?->getAuthIdentifier();
+        $context = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
+        $actorId = $context instanceof AuthenticationContext
+            ? $context->actorId()
+            : $request->user()?->getAuthIdentifier();
         if ($actorId === null || $actorId === '') {
             return $this->responses->failure(
                 'authentication.missing_token',
@@ -211,7 +217,7 @@ class IdempotencyService
     }
 
     /**
-     * Resolve the access-token identity or the isolated session sentinel.
+     * Resolve the public credential identity or the isolated session sentinel.
      *
      * @param  \Illuminate\Http\Request  $request
      *
@@ -219,6 +225,15 @@ class IdempotencyService
      */
     protected function tokenIdentity(Request $request): string
     {
+        $context = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
+        if ($context instanceof AuthenticationContext) {
+            $publicId = $context->credentialPublicId();
+
+            return $publicId === null || $publicId === ''
+                ? 'session'
+                : 'credential:'.$context->credentialType().':'.$publicId;
+        }
+
         $tokenId = $request->attributes->get('api_v2_token_id');
 
         return $tokenId === null || $tokenId === '' ? 'session' : (string) $tokenId;
@@ -235,6 +250,11 @@ class IdempotencyService
      */
     protected function websiteIdentity(Request $request): string
     {
+        $identity = $request->attributes->get(WebsiteScopeGuard::WEBSITE_IDENTITY_ATTRIBUTE);
+        if (is_string($identity) && preg_match('/^website:[1-9][0-9]*$/D', $identity) === 1) {
+            return $identity;
+        }
+
         $website = $request->attributes->get(self::WEBSITE_CONTEXT_ATTRIBUTE);
         if ($website === null) {
             return 'website:none';
