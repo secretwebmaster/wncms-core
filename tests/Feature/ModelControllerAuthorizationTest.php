@@ -2,9 +2,12 @@
 
 namespace Wncms\Tests\Feature;
 
+use Wncms\Auth\Api\V2\AccessTokenService;
 use Wncms\Http\Middleware\HasWebsite;
 use Wncms\Http\Middleware\IsInstalled;
+use Wncms\Models\ApiSession;
 use Wncms\Models\User;
+use Wncms\Models\Website;
 use Wncms\Tests\TestCase;
 
 class ModelControllerAuthorizationTest extends TestCase
@@ -70,21 +73,27 @@ class ModelControllerAuthorizationTest extends TestCase
 
         $member = User::factory()->create();
         $member->assignRole('member');
+        $website = Website::firstOrFail();
+        $member->websites()->syncWithoutDetaching([$website->id]);
+        $session = ApiSession::create([
+            'session_id' => 'model-guard-session-'.uniqid(),
+            'user_id' => $member->id,
+            'refresh_transport' => 'json',
+            'remembered' => false,
+            'expires_at' => now()->addDay(),
+        ]);
 
         $target = User::factory()->create([
             'api_token' => uniqid('model_guard_original_token_', true),
         ]);
         $attemptedToken = uniqid('model_guard_owned_token_', true);
 
-        $loginResponse = $this->postJson('/api/v2/backend/auth/login', [
-            'email' => $member->email,
-            'password' => 'password',
-            'device_name' => 'model-guard-test',
-        ]);
-
-        $loginResponse->assertOk();
-        $token = $loginResponse->json('data.token');
-        $this->assertNotEmpty($token);
+        $token = app(AccessTokenService::class)->issue(
+            $member,
+            $session,
+            ['models.write'],
+            [$website->id],
+        )['token'];
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
             ->postJson('/api/v2/backend/models/update', [
@@ -92,10 +101,12 @@ class ModelControllerAuthorizationTest extends TestCase
                 'model_id' => $target->id,
                 'column' => 'api_token',
                 'value' => $attemptedToken,
+                'website_id' => $website->id,
             ]);
 
         $response->assertForbidden();
         $response->assertJsonPath('status', 'fail');
+        $response->assertJsonPath('meta.error_code', 'authorization.permission_denied');
         $this->assertNotSame($attemptedToken, $target->fresh()->api_token);
     }
 

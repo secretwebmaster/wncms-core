@@ -144,10 +144,6 @@ class CapabilitiesEndpointTest extends TestCase
             'backend.models.update',
             $invalid->json('data.domains.models.operations'),
         );
-        $this->assertArrayNotHasKey(
-            'plugin.invalid_dynamic.inspect',
-            $invalid->json('data.domains.invalid_dynamic.operations'),
-        );
 
         [, $allowedToken] = $this->tokenUser(['user_edit'], $website);
         $allowed = $this->withToken($allowedToken)->getJson('/api/v2/capabilities');
@@ -458,24 +454,6 @@ class CapabilitiesEndpointTestProvider implements ApiContractProvider
                 ],
             ]),
             response: ApiSchema::object(),
-        ));
-
-        $registry->registerDomain(new ApiDomainContract('invalid_dynamic', 'Invalid Dynamic'));
-        $registry->registerOperation(new ApiOperationContract(
-            id: 'plugin.invalid_dynamic.inspect',
-            domain: 'invalid_dynamic',
-            surface: 'frontend',
-            method: 'GET',
-            path: '/api/v2/invalid-dynamic',
-            routeName: 'api.v2.invalid_dynamic.inspect',
-            permission: null,
-            ability: null,
-            websiteScoped: false,
-            risk: 'read',
-            implementation: 'domain',
-            request: ApiSchema::object(),
-            response: ApiSchema::object(),
-            permissionMode: 'model_template',
         ));
     }
 }

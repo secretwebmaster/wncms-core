@@ -113,6 +113,10 @@ dynamically in the same response.
 `permission_mode` is `static` for literal WNCMS permissions and
 `model_template` only for the validated generic model operations. Consumers
 must use this field instead of inferring mode from permission text.
+Contract providers may use `model_template` only for `backend.models.update`
+with `{model}_edit`, and `backend.models.bulk_delete` or
+`backend.models.bulk_force_delete` with `{model}_bulk_delete`; the registry
+rejects every other mode, operation, or template pairing before publication.
 
 ## Parity Interpretation
 

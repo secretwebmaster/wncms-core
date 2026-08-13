@@ -107,6 +107,10 @@ map 會序列化為 JSON object，而不是 array。
 Literal WNCMS permission 的 `permission_mode` 是 `static`；只有已驗證的通用
 model operation 使用 `model_template`。Consumer 必須讀取此 field，不得從
 permission 文字推斷 mode。
+Contract provider 僅可為 `backend.models.update` 搭配 `{model}_edit`，以及為
+`backend.models.bulk_delete` 或 `backend.models.bulk_force_delete` 搭配
+`{model}_bulk_delete` 使用 `model_template`；registry 會在發布前拒絕其他 mode、
+operation 或 template 組合。
 
 ## Parity 判讀
 

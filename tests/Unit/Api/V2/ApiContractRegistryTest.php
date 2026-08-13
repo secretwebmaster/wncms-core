@@ -5,10 +5,14 @@ namespace Wncms\Tests\Unit\Api\V2;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
 use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Api\V2\CapabilityResolver;
 use Wncms\Api\V2\Data\ApiDomainContract;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Api\V2\Data\ApiSchema;
 use Wncms\Api\V2\Exceptions\ApiContractException;
+use Wncms\Api\V2\ModelPermissionResolver;
+use Wncms\Api\V2\OpenApiDocumentBuilder;
+use Wncms\Models\User;
 use Wncms\Tests\TestCase;
 
 class ApiContractRegistryTest extends TestCase
@@ -52,6 +56,92 @@ class ApiContractRegistryTest extends TestCase
 
         $this->expectException(ApiContractException::class);
         $registry->registerOperation($this->operation('backend.links.index', 'links'));
+    }
+
+    /**
+     * Verify arbitrary providers cannot publish unsupported permission contracts.
+     *
+     * @param  string  $id
+     * @param  string|null  $permission
+     * @param  string  $permissionMode
+     * @return void
+     */
+    #[DataProvider('invalidPermissionContracts')]
+    public function test_it_rejects_invalid_permission_contracts_before_capability_or_openapi_publication(
+        string $id,
+        ?string $permission,
+        string $permissionMode,
+    ): void {
+        $registry = new ApiContractRegistry();
+        $registry->registerDomain(new ApiDomainContract('models', 'Models'));
+
+        try {
+            $registry->registerOperation($this->permissionOperation($id, $permission, $permissionMode));
+            $this->fail('Invalid permission contracts must be rejected during registry registration.');
+        } catch (ApiContractException) {
+            $this->assertNull($registry->operation($id));
+        }
+
+        $capabilities = (new CapabilityResolver($registry, new ModelPermissionResolver()))->resolve(new User());
+        $this->assertSame([], get_object_vars($capabilities['domains']['models']['operations']));
+        $this->assertSame([], (new OpenApiDocumentBuilder($registry))->build()['paths']);
+    }
+
+    /**
+     * Provide invalid provider-supplied permission contracts.
+     *
+     * @return array<string, array{string, string|null, string}>
+     */
+    public static function invalidPermissionContracts(): array
+    {
+        return [
+            'unapproved model-template operation' => ['backend.models.inspect', '{model}_edit', 'model_template'],
+            'update with bulk-delete template' => ['backend.models.update', '{model}_bulk_delete', 'model_template'],
+            'bulk delete with edit template' => ['backend.models.bulk_delete', '{model}_edit', 'model_template'],
+            'bulk force delete with edit template' => ['backend.models.bulk_force_delete', '{model}_edit', 'model_template'],
+            'model template without a permission' => ['backend.models.update', null, 'model_template'],
+            'model update with a static permission' => ['backend.models.update', 'setting_edit', 'static'],
+            'static permission containing a model placeholder' => ['backend.models.inspect', '{model}_inspect', 'static'],
+            'unknown permission mode' => ['backend.models.inspect', 'model_inspect', 'dynamic'],
+        ];
+    }
+
+    /**
+     * Verify the prescribed templates and public static contracts remain supported.
+     *
+     * @param  string  $id
+     * @param  string|null  $permission
+     * @param  string  $permissionMode
+     * @return void
+     */
+    #[DataProvider('validPermissionContracts')]
+    public function test_it_registers_supported_permission_contracts(
+        string $id,
+        ?string $permission,
+        string $permissionMode,
+    ): void {
+        $registry = new ApiContractRegistry();
+        $registry->registerDomain(new ApiDomainContract('models', 'Models'));
+        $registry->registerOperation($this->permissionOperation($id, $permission, $permissionMode));
+
+        $this->assertSame($permission, $registry->operation($id)?->permission);
+        $this->assertSame($permissionMode, $registry->operation($id)?->permissionMode);
+    }
+
+    /**
+     * Provide valid permission contracts.
+     *
+     * @return array<string, array{string, string|null, string}>
+     */
+    public static function validPermissionContracts(): array
+    {
+        return [
+            'model update template' => ['backend.models.update', '{model}_edit', 'model_template'],
+            'model bulk-delete template' => ['backend.models.bulk_delete', '{model}_bulk_delete', 'model_template'],
+            'model bulk-force-delete template' => ['backend.models.bulk_force_delete', '{model}_bulk_delete', 'model_template'],
+            'static permission' => ['backend.models.inspect', 'model_inspect', 'static'],
+            'public operation without permission' => ['backend.models.public', null, 'static'],
+        ];
     }
 
     public function test_it_exports_an_immutable_array_snapshot(): void
@@ -392,6 +482,39 @@ class ApiContractRegistryTest extends TestCase
             sorts: ['id', 'created_at'],
             includes: ['tags', 'websites'],
             fields: ['id', 'name', 'url', 'status'],
+        );
+    }
+
+    /**
+     * Create an operation with an explicit permission contract.
+     *
+     * @param  string  $id
+     * @param  string|null  $permission
+     * @param  string  $permissionMode
+     * @return \Wncms\Api\V2\Data\ApiOperationContract
+     */
+    private function permissionOperation(
+        string $id,
+        ?string $permission,
+        string $permissionMode,
+    ): ApiOperationContract {
+        $action = substr($id, strrpos($id, '.') + 1);
+
+        return new ApiOperationContract(
+            id: $id,
+            domain: 'models',
+            surface: 'backend',
+            method: 'POST',
+            path: '/api/v2/backend/models/'.$action,
+            routeName: 'api.v2.backend.models.'.$action,
+            permission: $permission,
+            ability: 'models.write',
+            websiteScoped: true,
+            risk: 'write',
+            implementation: 'legacy_bridge',
+            request: ApiSchema::object(),
+            response: ApiSchema::object(),
+            permissionMode: $permissionMode,
         );
     }
 

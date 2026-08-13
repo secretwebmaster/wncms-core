@@ -47,6 +47,9 @@ validated template such as `{model}_edit` or `{model}_bulk_delete`; the runtime
 resolves it only against eligible model keys in the configured backend resource
 catalog. Consumers must read `x-wncms-permission-mode`; literal permissions that
 contain `{model}` are rejected and are never interpreted as templates.
+The registry accepts this mode only for `backend.models.update` with
+`{model}_edit`, and `backend.models.bulk_delete` or
+`backend.models.bulk_force_delete` with `{model}_bulk_delete`.
 
 ```json
 {

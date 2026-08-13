@@ -8,6 +8,12 @@ use Wncms\Api\V2\Exceptions\ApiContractException;
 
 final class ApiContractRegistry
 {
+    private const MODEL_PERMISSION_TEMPLATES = [
+        'backend.models.update' => '{model}_edit',
+        'backend.models.bulk_delete' => '{model}_bulk_delete',
+        'backend.models.bulk_force_delete' => '{model}_bulk_delete',
+    ];
+
     private array $domains = [];
 
     private array $operations = [];
@@ -47,7 +53,49 @@ final class ApiContractRegistry
             throw new ApiContractException("API operation '{$operation->id}' is already registered.");
         }
 
+        $this->validatePermissionContract($operation);
+
         $this->operations[$operation->id] = $operation;
+    }
+
+    /**
+     * Validate the permission mode and exact model-template operation mapping.
+     *
+     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
+     * @return void
+     *
+     * @throws \Wncms\Api\V2\Exceptions\ApiContractException
+     */
+    private function validatePermissionContract(ApiOperationContract $operation): void
+    {
+        if (! in_array($operation->permissionMode, ['static', 'model_template'], true)) {
+            throw new ApiContractException(
+                "API operation '{$operation->id}' declares an unsupported permission mode."
+            );
+        }
+
+        $expected = self::MODEL_PERMISSION_TEMPLATES[$operation->id] ?? null;
+        if ($operation->permissionMode === 'static') {
+            if ($expected !== null) {
+                throw new ApiContractException(
+                    "API operation '{$operation->id}' must use its prescribed model permission template."
+                );
+            }
+
+            if ($operation->permission !== null && str_contains($operation->permission, '{model}')) {
+                throw new ApiContractException(
+                    "API operation '{$operation->id}' cannot use a model template as a static permission."
+                );
+            }
+
+            return;
+        }
+
+        if ($expected === null || $operation->permission !== $expected) {
+            throw new ApiContractException(
+                "API operation '{$operation->id}' declares an unsupported model permission template."
+            );
+        }
     }
 
     /**

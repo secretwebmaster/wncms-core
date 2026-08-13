@@ -46,6 +46,9 @@ capabilities 使用的同一個 registry。
 後台 resource catalog 中的 eligible model key 解析它。Consumer 必須讀取
 `x-wncms-permission-mode`；含有 `{model}` 的 literal permission 會被拒絕，
 不會被解釋成 template。
+Registry 僅接受 `backend.models.update` 搭配 `{model}_edit`，以及
+`backend.models.bulk_delete` 或 `backend.models.bulk_force_delete` 搭配
+`{model}_bulk_delete` 使用此 mode。
 
 ```json
 {
