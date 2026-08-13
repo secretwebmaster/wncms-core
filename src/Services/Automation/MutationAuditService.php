@@ -85,7 +85,7 @@ class MutationAuditService
 
         $attributes = (array) ($plan['audit']['attributes'] ?? $this->previewFromPlan($plan)['attributes']);
 
-        return MutationAudit::create(array_merge($attributes, $overrides));
+        return MutationAudit::create($this->redact(array_merge($attributes, $overrides)));
     }
 
     /**
@@ -181,7 +181,7 @@ class MutationAuditService
      * @param string|null $key
      * @return mixed
      */
-    protected function redact(mixed $value, ?string $key = null): mixed
+    public function redact(mixed $value, ?string $key = null): mixed
     {
         if ($key !== null && $this->isSensitiveKey($key)) {
             return '[redacted]';
@@ -209,7 +209,7 @@ class MutationAuditService
     {
         $key = strtolower($key);
 
-        foreach (['password', 'token', 'secret', 'api_key', 'authorization', 'cookie'] as $needle) {
+        foreach (['password', 'token', 'secret', 'proof', 'confirmation', 'authorization', 'cookie', 'csrf', 'api_key', 'api-key'] as $needle) {
             if (str_contains($key, $needle)) {
                 return true;
             }

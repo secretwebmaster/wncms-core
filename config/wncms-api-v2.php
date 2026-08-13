@@ -26,6 +26,16 @@ return [
         'legacy_personal_tokens_enabled' => false,
         'legacy_personal_tokens_cutoff_at' => null,
         'security_event_retention_days' => 90,
+        'security_event_correlation' => [
+            'active_key_version' => env('WNCMS_API_SECURITY_EVENT_CORRELATION_KEY_VERSION'),
+            'keys' => [
+                'v1' => [
+                    'ip' => env('WNCMS_API_SECURITY_EVENT_IP_HMAC_KEY'),
+                    'login_identifier' => env('WNCMS_API_SECURITY_EVENT_LOGIN_IDENTIFIER_HMAC_KEY'),
+                    'user_agent' => env('WNCMS_API_SECURITY_EVENT_USER_AGENT_HMAC_KEY'),
+                ],
+            ],
+        ],
     ],
     'idempotency' => [
         'store' => env('WNCMS_API_V2_IDEMPOTENCY_STORE'),
