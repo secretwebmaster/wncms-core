@@ -28,6 +28,7 @@ use Wncms\Api\V2\OperationValidator;
 use Wncms\Api\V2\ReplayResponseTrust;
 use Wncms\Api\V2\Repositories\CacheIdempotencyStore;
 use Wncms\Api\V2\Repositories\CacheOperationRepository;
+use Wncms\Api\V2\Risk\OperationRiskContextResolver;
 use Wncms\Auth\Api\V2\AccessTokenService;
 use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\CredentialParser;
@@ -48,6 +49,7 @@ use Wncms\Http\Middleware\EnforceApiV2RiskPolicy;
 use Wncms\Http\Middleware\RequireApiV2Ability;
 use Wncms\Http\Middleware\RequireApiV2ModelPermission;
 use Wncms\Http\Middleware\RequireApiV2Permission;
+use Wncms\Http\Middleware\ResolveApiV2RiskContext;
 use Wncms\Http\Middleware\ResolveApiV2WebsiteScope;
 use Wncms\Http\Middleware\ValidateApiV2RefreshCsrf;
 use Wncms\Http\Middleware\ValidateApiV2RefreshOrigin;
@@ -117,6 +119,7 @@ class WncmsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('api_v2_website_scope', ResolveApiV2WebsiteScope::class);
         $router->aliasMiddleware('api_v2_idempotency', \Wncms\Http\Middleware\EnforceApiV2Idempotency::class);
         $router->aliasMiddleware('api_v2_risk', EnforceApiV2RiskPolicy::class);
+        $router->aliasMiddleware('api_v2_risk_context', ResolveApiV2RiskContext::class);
         $router->aliasMiddleware('api_v2_refresh_transport', EnforceApiV2RefreshTransport::class);
         $router->aliasMiddleware('api_v2_refresh_origin', ValidateApiV2RefreshOrigin::class);
         $router->aliasMiddleware('api_v2_refresh_csrf', ValidateApiV2RefreshCsrf::class);
@@ -133,6 +136,8 @@ class WncmsServiceProvider extends ServiceProvider
             RequireApiV2Permission::class,
             RequireApiV2ModelPermission::class,
             ResolveApiV2WebsiteScope::class,
+            ResolveApiV2RiskContext::class,
+            \Wncms\Http\Middleware\EnforceApiV2Idempotency::class,
             EnforceApiV2RiskPolicy::class,
         ] as $middleware) {
             $kernel->appendToMiddlewarePriority($middleware);
@@ -290,6 +295,7 @@ class WncmsServiceProvider extends ServiceProvider
         $this->app->singleton(LoginThrottleService::class);
         $this->app->singleton(WebsiteScopeGuard::class);
         $this->app->singleton(ModelPermissionResolver::class);
+        $this->app->singleton(OperationRiskContextResolver::class);
 
         $this->app->singleton(ApiV2ResponseFinalizer::class, function ($app) use ($replayResponseTrust) {
             return new ApiV2ResponseFinalizer(

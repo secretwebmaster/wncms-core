@@ -23,6 +23,7 @@ class RouteServiceProvider extends ServiceProvider
      * @var string
      */
     public const HOME = '/';
+
     public const DASHBOARD = '/panel/dashboard';
 
     /**
@@ -45,10 +46,10 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->routes(function () {
             Route::prefix('api')
-                ->group(__DIR__ . '/../../routes/api.php');
+                ->group(__DIR__.'/../../routes/api.php');
 
             Route::middleware('web')
-                ->group(__DIR__ . '/../../routes/web.php');
+                ->group(__DIR__.'/../../routes/web.php');
         });
     }
 
@@ -106,6 +107,22 @@ class RouteServiceProvider extends ServiceProvider
                     ->by(LoginThrottleService::ipKey((string) $request->ip()))
                     ->after($failed)
                     ->response($response),
+            ];
+        });
+
+        RateLimiter::for('api-v2-reauthenticate', function (Request $request) {
+            $window = max(1, (int) config('wncms.auth_security.login_window_minutes', 15));
+            $failed = static fn (Response $response): bool => $response->getStatusCode() === Response::HTTP_UNAUTHORIZED;
+            $response = static fn (Request $request, array $headers): Response => app(ApiResponseFactory::class)
+                ->failure('authentication.rate_limited', 'Too many reauthentication attempts', Response::HTTP_TOO_MANY_REQUESTS)
+                ->withHeaders($headers);
+            $actorId = (string) ($request->user()?->getAuthIdentifier() ?? 'unknown');
+
+            return [
+                Limit::perMinutes($window, max(1, (int) config('wncms.auth_security.login_account_attempts', 5)))
+                    ->by(LoginThrottleService::accountKey('user:'.$actorId))->after($failed)->response($response),
+                Limit::perMinutes($window, max(1, (int) config('wncms.auth_security.login_ip_attempts', 30)))
+                    ->by(LoginThrottleService::ipKey((string) $request->ip()))->after($failed)->response($response),
             ];
         });
     }

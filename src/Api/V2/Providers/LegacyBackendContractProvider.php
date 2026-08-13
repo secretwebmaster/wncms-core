@@ -4,11 +4,11 @@ namespace Wncms\Api\V2\Providers;
 
 use Illuminate\Support\Str;
 use Wncms\Api\V2\ApiContractRegistry;
-use Wncms\Api\V2\LegacyOperationSecurity;
 use Wncms\Api\V2\Contracts\ApiContractProvider;
 use Wncms\Api\V2\Data\ApiDomainContract;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Api\V2\Data\ApiSchema;
+use Wncms\Api\V2\LegacyOperationSecurity;
 use Wncms\Http\Controllers\Api\V2\Backend\ResourceController;
 
 class LegacyBackendContractProvider implements ApiContractProvider
@@ -23,7 +23,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
     {
         $actions = config('wncms-backend-api-v2.actions', []);
         $bridgeOperationIds = array_map(
-            fn (array $action): string => 'backend.' . ($action['name'] ?? ''),
+            fn (array $action): string => 'backend.'.($action['name'] ?? ''),
             $actions,
         );
 
@@ -84,6 +84,11 @@ class LegacyBackendContractProvider implements ApiContractProvider
                     request: ApiSchema::object(),
                     response: ApiSchema::object(),
                     permissionMode: $security['permission_mode'],
+                    securityRisk: $security['security_risk'],
+                    acceptedCredentialTypes: $security['accepted_credential_types'],
+                    requiresStepUp: $security['requires_step_up'],
+                    stepUpPurposes: $security['step_up_purposes'],
+                    actionPlanEligible: $security['action_plan_eligible'],
                 ));
             }
         }
@@ -126,6 +131,11 @@ class LegacyBackendContractProvider implements ApiContractProvider
                 request: ApiSchema::object(),
                 response: ApiSchema::object(),
                 permissionMode: $security['permission_mode'],
+                securityRisk: $security['security_risk'],
+                acceptedCredentialTypes: $security['accepted_credential_types'],
+                requiresStepUp: $security['requires_step_up'],
+                stepUpPurposes: $security['step_up_purposes'],
+                actionPlanEligible: $security['action_plan_eligible'],
             ));
         }
     }

@@ -155,17 +155,30 @@ It accepts the current password, formal operation ID, and one purpose declared
 by that operation. Only an interactive session can receive the returned
 five-minute proof. Send it once in `X-WNCMS-Step-Up`; WNCMS stores only its hash
 and binds it to the actor, exact session, purpose, expiry, and later password or
-session security events.
+session security events, including a completed password reset. Failed password
+checks are audited and limited independently by account and IP. If an operation
+declares several purposes, send the selected declared purpose in
+`X-WNCMS-Step-Up-Purpose` when executing it.
 
 When `api_high_risk_action_mode=planned`, eligible high and critical operations
-first call `POST /api/v2/backend/action-plans` with `operation`, normalized
-`input`, and `target_state`. The response includes an opaque plan ID and a
+first call `POST /api/v2/backend/action-plans` with `operation`, raw `input`,
+and any route `parameters` needed to identify the target. Clients must not
+provide a target fingerprint or environment assertion. WNCMS applies the
+operation schema's types/defaults and resolves the current target fingerprint
+and environment on the server. The response includes an opaque plan ID and a
 plaintext-once confirmation. Send the confirmation in `X-WNCMS-Confirmation`
 within five minutes. It is atomically single-use and binds actor, credential
 public ID, interactive session when present, operation, input, target state,
 website scope, ability/permission result, and effective risk. Missing proof or
 plan returns `428`; expired, stale, or reused plans return stable `409` errors.
-Async operations consume a plan only after enqueue succeeds.
+Non-credential high/critical operations may accept service tokens when their
+formal credential types and normal guards allow them; legacy credentials may
+not execute critical operations. Domain/outbox mutation, proof/plan consumption,
+and mandatory audit commit on one named database connection. Async execution is
+supported only through a same-database transactional outbox; direct network or
+external queue enqueue is rejected before execution because it cannot share
+that atomic boundary. Idempotent retries replay the committed result before
+rechecking a consumed confirmation.
 
 ## Simple Authentication (Recommended)
 

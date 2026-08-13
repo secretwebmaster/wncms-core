@@ -53,6 +53,7 @@ class AuthSecuritySchemaTest extends TestCase
         $this->assertUniqueIndex('api_step_up_proofs', 'proof_hash');
         $this->assertUniqueIndex('api_action_plans', 'plan_id');
         $this->assertUniqueIndex('api_action_plans', 'confirmation_hash');
+        $this->assertTrue(Schema::hasColumn('api_action_plans', 'environment_hash'));
 
         foreach (['api_access_tokens', 'api_service_tokens'] as $table) {
             $this->assertTrue(Schema::hasColumn($table, 'abilities'), "{$table}.abilities");

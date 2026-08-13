@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\ApiResponseFactory;
-use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Api\V2\Risk\ActionPlanException;
 use Wncms\Api\V2\Risk\ActionPlanService;
+use Wncms\Api\V2\Risk\RiskContext;
 use Wncms\Api\V2\Risk\RiskPolicy;
 use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
@@ -56,111 +56,79 @@ final class EnforceApiV2RiskPolicy
             return $this->responses->failure('risk.credential_type_denied', 'Credential type is not allowed', 403);
         }
 
-        $input = (array) $request->input('input', $request->all());
-        $targetState = (array) $request->input('target_state', []);
-        $risk = $this->policy->effective($operation, $input, []);
-        if ($risk === 'critical' && $context->credentialType() !== ApiCredential::TYPE_INTERACTIVE_ACCESS) {
+        $riskContext = $request->attributes->get(ResolveApiV2RiskContext::ATTRIBUTE);
+        if (! $riskContext instanceof RiskContext) {
+            return $this->responses->failure('risk.policy_unavailable', 'Risk policy is unavailable', 503);
+        }
+        $risk = $this->policy->effective($operation, $riskContext->normalizedInput, $riskContext->environment);
+        if ($risk === 'critical' && $context->credentialType() === ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN) {
             return $this->responses->failure('risk.credential_type_denied', 'Credential type is not allowed', 403);
         }
 
-        $stepReservation = null;
-        if ($operation->requiresStepUp) {
-            $proof = trim((string) $request->headers->get('X-WNCMS-Step-Up', ''));
-            if ($proof === '') {
-                return $this->responses->failure('risk.step_up_required', 'Step-up proof is required', 428);
-            }
-
-            try {
-                $purpose = (string) ($operation->stepUpPurposes[0] ?? '');
-                $stepReservation = $this->stepUp->reserve($context, $proof, $purpose);
-            } catch (StepUpException $exception) {
-                return $this->responses->failure($exception->errorCode, 'Step-up proof is not valid', $exception->httpStatus);
-            } catch (\Throwable $exception) {
-                report($exception);
-
-                return $this->responses->failure('security.audit_unavailable', 'Security audit is unavailable', 503);
-            }
+        $requiresPlan = $this->policy->requiresPlan($operation, $risk, AuthSecurityConfig::fromRuntime()->highRiskMode());
+        $proof = trim((string) $request->headers->get('X-WNCMS-Step-Up', ''));
+        if ($operation->requiresStepUp && $proof === '') {
+            return $this->responses->failure('risk.step_up_required', 'Step-up proof is required', 428);
         }
-
-        if (! $this->policy->requiresPlan($operation, $risk, AuthSecurityConfig::fromRuntime()->highRiskMode())) {
-            if ($stepReservation === null) {
-                return $next($request);
-            }
-
-            return $this->executeReserved($request, $next, $context, $operation, $risk, $stepReservation, null);
-        }
-
         $confirmation = trim((string) $request->headers->get('X-WNCMS-Confirmation', ''));
-        if ($confirmation === '') {
-            if ($stepReservation !== null) {
-                $this->stepUp->releaseReservation($stepReservation);
-            }
-
+        if ($requiresPlan && $confirmation === '') {
             return $this->responses->failure('risk.plan_required', 'Action plan confirmation is required', 428);
         }
 
-        try {
-            $planReservation = $this->plans->reserve($context, $operation, $confirmation, $input, $targetState);
-        } catch (ActionPlanException $exception) {
-            if ($stepReservation !== null) {
-                $this->stepUp->releaseReservation($stepReservation);
-            }
-
-            return $this->responses->failure($exception->errorCode, 'Action plan confirmation is not valid', $exception->httpStatus);
-        } catch (\Throwable $exception) {
-            if ($stepReservation !== null) {
-                $this->stepUp->releaseReservation($stepReservation);
-            }
-            report($exception);
-
-            return $this->responses->failure('security.audit_unavailable', 'Security audit is unavailable', 503);
+        if (! $operation->requiresStepUp && ! $requiresPlan) {
+            return $next($request);
         }
 
-        return $this->executeReserved($request, $next, $context, $operation, $risk, $stepReservation, $planReservation);
-    }
-
-    private function executeReserved(Request $request, Closure $next, AuthenticationContext $context, ApiOperationContract $operation, string $risk, ?string $stepReservation, ?string $planReservation): Response
-    {
-        try {
-            $response = $next($request);
-        } catch (\Throwable $exception) {
-            $this->releaseReservations($stepReservation, $planReservation);
-            throw $exception;
+        $route = $request->route();
+        $async = $route instanceof Route && (bool) ($route->defaults['api_async_enqueue'] ?? false);
+        $outboxModelKeys = $route instanceof Route ? (array) ($route->defaults['api_transactional_outbox_model_keys'] ?? []) : [];
+        if ($async && $outboxModelKeys === []) {
+            return $this->responses->failure('risk.policy_unavailable', 'Transactional outbox is required', 503);
         }
-
-        if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
-            try {
-                $this->releaseReservations($stepReservation, $planReservation);
-            } catch (\Throwable $exception) {
-                report($exception);
-
-                return $this->responses->failure('security.audit_unavailable', 'Security audit is unavailable', 503);
-            }
-
-            return $response;
+        if ($requiresPlan && $riskContext->modelKeys === [] && $outboxModelKeys === []) {
+            return $this->responses->failure('risk.policy_unavailable', 'Transactional domain boundary is required', 503);
         }
+        $modelKeys = array_values(array_unique(array_merge(
+            ['api_security_event'],
+            $riskContext->modelKeys,
+            $outboxModelKeys,
+            $operation->requiresStepUp ? ['api_step_up_proof', 'api_session'] : [],
+            $requiresPlan ? ['api_action_plan'] : [],
+        )));
 
         try {
-            $modelKeys = ['api_security_event'];
-            if ($stepReservation !== null) {
-                array_push($modelKeys, 'api_step_up_proof', 'api_session');
-            }
-            if ($planReservation !== null) {
-                $modelKeys[] = 'api_action_plan';
-            }
             $connections = $this->events->modelConnectionNames($modelKeys);
             if (count($connections) !== 1) {
-                throw new \RuntimeException('Security mutation and event connections must match.');
+                throw new \RuntimeException('Domain, outbox, security mutation, and event connections must match.');
             }
 
-            DB::connection($connections[0])->transaction(function () use ($stepReservation, $planReservation, $context, $operation, $risk): void {
+            return DB::connection($connections[0])->transaction(function () use ($request, $next, $context, $operation, $riskContext, $risk, $requiresPlan, $proof, $confirmation): Response {
+                $stepReservation = null;
+                if ($operation->requiresStepUp) {
+                    $selectedPurpose = count($operation->stepUpPurposes) === 1
+                        ? (string) $operation->stepUpPurposes[0]
+                        : trim((string) $request->headers->get('X-WNCMS-Step-Up-Purpose', ''));
+                    $stepReservation = $this->stepUp->reserveAny($context, $proof, $operation->stepUpPurposes, $selectedPurpose);
+                }
+                $planReservation = $requiresPlan
+                    ? $this->plans->reserveResolved($context, $operation, $confirmation, $riskContext)
+                    : null;
+
+                $response = $next($request);
+                if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
+                    throw new RiskExecutionRollback($response);
+                }
                 if ($planReservation !== null) {
                     $this->plans->confirmReservation($planReservation, $context, $operation, $risk);
                 }
                 if ($stepReservation !== null) {
                     $this->stepUp->confirmReservation($stepReservation, $context);
                 }
+
+                return $response;
             });
+        } catch (RiskExecutionRollback $rollback) {
+            return $rollback->response;
         } catch (ActionPlanException|StepUpException $exception) {
             return $this->responses->failure($exception->errorCode, 'Security confirmation is not valid', $exception->httpStatus);
         } catch (\Throwable $exception) {
@@ -168,17 +136,13 @@ final class EnforceApiV2RiskPolicy
 
             return $this->responses->failure('security.audit_unavailable', 'Security audit is unavailable', 503);
         }
-
-        return $response;
     }
+}
 
-    private function releaseReservations(?string $stepReservation, ?string $planReservation): void
+final class RiskExecutionRollback extends \RuntimeException
+{
+    public function __construct(public readonly Response $response)
     {
-        if ($planReservation !== null) {
-            $this->plans->releaseReservation($planReservation);
-        }
-        if ($stepReservation !== null) {
-            $this->stepUp->releaseReservation($stepReservation);
-        }
+        parent::__construct('Risk execution rolled back.');
     }
 }

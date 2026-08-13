@@ -15,6 +15,8 @@ class LegacyOperationSecurityTest extends TestCase
      * @param  string  $action
      * @param  string  $ability
      * @param  string  $permission
+     * @param  string  $risk
+     * @param  bool  $planEligible
      * @return void
      */
     #[DataProvider('resourceRequirementProvider')]
@@ -22,6 +24,8 @@ class LegacyOperationSecurityTest extends TestCase
         string $action,
         string $ability,
         string $permission,
+        string $risk,
+        bool $planEligible,
     ): void {
         $requirements = LegacyOperationSecurity::resourceRequirements('links', $action, [
             'permissions' => [$action => $permission],
@@ -30,27 +34,39 @@ class LegacyOperationSecurityTest extends TestCase
         $this->assertSame($ability, $requirements['ability']);
         $this->assertSame($permission, $requirements['permission']);
         $this->assertSame('static', $requirements['permission_mode']);
-        $this->assertSame([
+        $this->assertSame($risk, $requirements['security_risk']);
+        $this->assertSame(['interactive_access', 'service_token'], $requirements['accepted_credential_types']);
+        $this->assertFalse($requirements['requires_step_up']);
+        $this->assertSame([], $requirements['step_up_purposes']);
+        $this->assertSame($planEligible, $requirements['action_plan_eligible']);
+        $middleware = [
             'api_v2_ability:'.$ability,
             'api_v2_permission:'.$permission,
             'api_v2_website_scope',
-        ], $requirements['middleware']);
+            'api_v2_risk_context',
+        ];
+        if ($planEligible) {
+            $middleware[] = 'api_v2_idempotency';
+        }
+        $middleware[] = 'api_v2_risk';
+
+        $this->assertSame($middleware, $requirements['middleware']);
     }
 
     /**
      * Provide literal resource security expectations.
      *
-     * @return array<string, array{string, string, string}>
+     * @return array<string, array{string, string, string, string, bool}>
      */
     public static function resourceRequirementProvider(): array
     {
         return [
-            'index reads' => ['index', 'links.read', 'link_index'],
-            'show reads' => ['show', 'links.read', 'link_edit'],
-            'store writes' => ['store', 'links.write', 'link_create'],
-            'update writes' => ['update', 'links.write', 'link_edit'],
-            'destroy writes' => ['destroy', 'links.write', 'link_delete'],
-            'bulk delete writes' => ['bulk_delete', 'links.write', 'link_bulk_delete'],
+            'index reads' => ['index', 'links.read', 'link_index', 'normal', false],
+            'show reads' => ['show', 'links.read', 'link_edit', 'normal', false],
+            'store writes' => ['store', 'links.write', 'link_create', 'sensitive', false],
+            'update writes' => ['update', 'links.write', 'link_edit', 'high', true],
+            'destroy writes' => ['destroy', 'links.write', 'link_delete', 'high', true],
+            'bulk delete writes' => ['bulk_delete', 'links.write', 'link_bulk_delete', 'critical', true],
         ];
     }
 
@@ -83,10 +99,17 @@ class LegacyOperationSecurityTest extends TestCase
                 'ability' => 'pages.read',
                 'permission' => 'page_edit',
                 'permission_mode' => 'static',
+                'security_risk' => 'normal',
+                'accepted_credential_types' => ['interactive_access', 'service_token'],
+                'requires_step_up' => false,
+                'step_up_purposes' => [],
+                'action_plan_eligible' => false,
                 'middleware' => [
                     'api_v2_ability:pages.read',
                     'api_v2_permission:page_edit',
                     'api_v2_website_scope',
+                    'api_v2_risk_context',
+                    'api_v2_risk',
                 ],
             ]],
             'static write' => [[
@@ -97,10 +120,18 @@ class LegacyOperationSecurityTest extends TestCase
                 'ability' => 'pages.write',
                 'permission' => 'page_edit',
                 'permission_mode' => 'static',
+                'security_risk' => 'high',
+                'accepted_credential_types' => ['interactive_access', 'service_token'],
+                'requires_step_up' => false,
+                'step_up_purposes' => [],
+                'action_plan_eligible' => true,
                 'middleware' => [
                     'api_v2_ability:pages.write',
                     'api_v2_permission:page_edit',
                     'api_v2_website_scope',
+                    'api_v2_risk_context',
+                    'api_v2_idempotency',
+                    'api_v2_risk',
                 ],
             ]],
             'model-target write' => [[
@@ -111,10 +142,18 @@ class LegacyOperationSecurityTest extends TestCase
                 'ability' => 'models.write',
                 'permission' => '{model}_edit',
                 'permission_mode' => 'model_template',
+                'security_risk' => 'high',
+                'accepted_credential_types' => ['interactive_access', 'service_token'],
+                'requires_step_up' => false,
+                'step_up_purposes' => [],
+                'action_plan_eligible' => true,
                 'middleware' => [
                     'api_v2_ability:models.write',
                     'api_v2_model_permission:edit',
                     'api_v2_website_scope',
+                    'api_v2_risk_context',
+                    'api_v2_idempotency',
+                    'api_v2_risk',
                 ],
             ]],
         ];

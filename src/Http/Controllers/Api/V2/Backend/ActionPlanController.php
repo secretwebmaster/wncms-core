@@ -8,6 +8,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\Risk\ActionPlanException;
 use Wncms\Api\V2\Risk\ActionPlanService;
+use Wncms\Api\V2\Risk\OperationRiskContextResolver;
+use Wncms\Api\V2\Risk\RiskContextException;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Http\Middleware\ApiV2TokenAuth;
 
@@ -16,6 +18,7 @@ final class ActionPlanController extends ApiV2Controller
     public function __construct(
         private ApiContractRegistry $contracts,
         private ActionPlanService $plans,
+        private OperationRiskContextResolver $riskContexts,
     ) {}
 
     /**
@@ -26,7 +29,7 @@ final class ActionPlanController extends ApiV2Controller
         $validated = $request->validate([
             'operation' => ['required', 'string'],
             'input' => ['present', 'array'],
-            'target_state' => ['present', 'array'],
+            'parameters' => ['sometimes', 'array'],
         ]);
         $context = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
         $operation = $this->contracts->operation($validated['operation']);
@@ -35,7 +38,13 @@ final class ActionPlanController extends ApiV2Controller
         }
 
         try {
-            $plan = $this->plans->create($context, $operation, $validated['input'], $validated['target_state']);
+            $riskContext = $this->riskContexts->resolve($operation, $validated['input'], (array) ($validated['parameters'] ?? []));
+            if ($riskContext->modelKeys === []) {
+                return $this->responseFactory()->failure('risk.policy_unavailable', 'Transactional domain boundary is required', 503);
+            }
+            $plan = $this->plans->createResolved($context, $operation, $riskContext);
+        } catch (RiskContextException $exception) {
+            return $this->responseFactory()->failure($exception->errorCode, 'Action plan request is not valid', $exception->httpStatus);
         } catch (ActionPlanException $exception) {
             return $this->responseFactory()->failure($exception->errorCode, 'Action plan request is not valid', $exception->httpStatus);
         } catch (\Throwable $exception) {

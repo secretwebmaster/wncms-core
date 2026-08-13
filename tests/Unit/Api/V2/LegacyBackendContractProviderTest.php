@@ -57,6 +57,14 @@ class LegacyBackendContractProviderTest extends TestCase
                 $this->assertSame('static', $operation->permissionMode);
                 $this->assertSame(LegacyOperationSecurity::resourceAbility($resource, $action), $operation->ability);
                 $this->assertTrue($operation->websiteScoped);
+                $expectedSecurityRisk = match ($action) {
+                    'bulk_delete' => 'critical',
+                    'update', 'destroy' => 'high',
+                    'store' => 'sensitive',
+                    default => 'normal',
+                };
+                $this->assertSame($expectedSecurityRisk, $operation->securityRisk);
+                $this->assertSame(in_array($action, ['update', 'destroy', 'bulk_delete'], true), $operation->actionPlanEligible);
 
                 if (! in_array($operationId, $bridgeOperationIds, true)) {
                     $expectedImplementation = $resource === $referenceDomain
@@ -78,7 +86,7 @@ class LegacyBackendContractProviderTest extends TestCase
 
             $this->assertNotNull($operation, "Missing bridge operation {$operationId}.");
             $this->assertSame(strtoupper($action['method']), $operation->method);
-            $this->assertSame('/api/v2/backend/' . $action['uri'], $operation->path);
+            $this->assertSame('/api/v2/backend/'.$action['uri'], $operation->path);
             $this->assertSame("api.v2.backend.{$action['name']}", $operation->routeName);
             $this->assertSame($action['permission_template'] ?? $action['permission'] ?? null, $operation->permission);
             $this->assertSame(isset($action['permission_template']) ? 'model_template' : 'static', $operation->permissionMode);
@@ -87,6 +95,13 @@ class LegacyBackendContractProviderTest extends TestCase
             $this->assertSame($expectedAbility, $operation->ability);
             $this->assertTrue($operation->websiteScoped);
             $this->assertSame('legacy_bridge', $operation->implementation);
+            if (strtoupper((string) $action['method']) === 'GET') {
+                $this->assertSame('normal', $operation->securityRisk);
+                $this->assertFalse($operation->actionPlanEligible);
+            } else {
+                $this->assertNotSame('normal', $operation->securityRisk, "Mutation bridge {$operationId} must declare security risk.");
+                $this->assertTrue($operation->actionPlanEligible, "Mutation bridge {$operationId} must be plan eligible.");
+            }
             $expectedOperationIds[] = $operationId;
         }
 

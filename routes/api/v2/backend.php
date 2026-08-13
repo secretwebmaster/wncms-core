@@ -26,6 +26,7 @@ Route::prefix('v2/backend')
 
         Route::middleware(['api_v2_token_auth'])->group(function () {
             Route::post('/auth/reauthenticate', [AuthController::class, 'reauthenticate'])
+                ->middleware('throttle:api-v2-reauthenticate')
                 ->name('auth.reauthenticate');
             Route::post('/action-plans', [ActionPlanController::class, 'store'])
                 ->name('action_plans.store');
@@ -58,6 +59,7 @@ Route::prefix('v2/backend')
                 if (in_array('index', $enabledActions, true)) {
                     Route::get("/{$resource}", [$controller, 'index'])
                         ->defaults('resource', $resource)
+                        ->defaults('api_operation_id', "backend.{$resource}.index")
                         ->middleware(LegacyOperationSecurity::resourceMiddleware($resource, 'index', $resourceConfig))
                         ->name("{$resource}.index");
                 }
@@ -65,6 +67,7 @@ Route::prefix('v2/backend')
                 if (in_array('show', $enabledActions, true)) {
                     Route::get("/{$resource}/{id}", [$controller, 'show'])
                         ->defaults('resource', $resource)
+                        ->defaults('api_operation_id', "backend.{$resource}.show")
                         ->middleware(LegacyOperationSecurity::resourceMiddleware($resource, 'show', $resourceConfig))
                         ->name("{$resource}.show");
                 }
@@ -72,6 +75,7 @@ Route::prefix('v2/backend')
                 if (in_array('store', $enabledActions, true)) {
                     Route::post("/{$resource}", [$controller, 'store'])
                         ->defaults('resource', $resource)
+                        ->defaults('api_operation_id', "backend.{$resource}.store")
                         ->middleware(LegacyOperationSecurity::resourceMiddleware($resource, 'store', $resourceConfig))
                         ->name("{$resource}.store");
                 }
@@ -79,6 +83,7 @@ Route::prefix('v2/backend')
                 if (in_array('update', $enabledActions, true)) {
                     Route::patch("/{$resource}/{id}", [$controller, 'update'])
                         ->defaults('resource', $resource)
+                        ->defaults('api_operation_id', "backend.{$resource}.update")
                         ->middleware(LegacyOperationSecurity::resourceMiddleware($resource, 'update', $resourceConfig))
                         ->name("{$resource}.update");
                 }
@@ -86,6 +91,7 @@ Route::prefix('v2/backend')
                 if (in_array('destroy', $enabledActions, true)) {
                     Route::delete("/{$resource}/{id}", [$controller, 'destroy'])
                         ->defaults('resource', $resource)
+                        ->defaults('api_operation_id', "backend.{$resource}.destroy")
                         ->middleware(LegacyOperationSecurity::resourceMiddleware($resource, 'destroy', $resourceConfig))
                         ->name("{$resource}.destroy");
                 }
@@ -93,6 +99,7 @@ Route::prefix('v2/backend')
                 if (($resourceConfig['enable_bulk_delete'] ?? true) === true && in_array('bulk_delete', $enabledActions, true)) {
                     Route::post("/{$resource}/bulk_delete", [$controller, 'bulkDelete'])
                         ->defaults('resource', $resource)
+                        ->defaults('api_operation_id', "backend.{$resource}.bulk_delete")
                         ->middleware(LegacyOperationSecurity::resourceMiddleware($resource, 'bulk_delete', $resourceConfig))
                         ->name("{$resource}.bulk_delete");
                 }
@@ -108,6 +115,7 @@ Route::prefix('v2/backend')
 
                 Route::match([$method], "/{$uri}", [BridgeController::class, 'dispatch'])
                     ->defaults('name', $name)
+                    ->defaults('api_operation_id', "backend.{$name}")
                     ->middleware(LegacyOperationSecurity::actionMiddleware($action))
                     ->name($name);
             }

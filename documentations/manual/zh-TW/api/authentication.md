@@ -144,16 +144,25 @@ Credential 與 security operation 使用
 `POST /api/v2/backend/auth/reauthenticate`。它接受目前密碼、正式 operation ID
 及該 operation 宣告的一個 purpose。只有 interactive session 能取得五分鐘
 proof。將 proof 一次性放入 `X-WNCMS-Step-Up`；WNCMS 只儲存 hash，並綁定 actor、
-精確 session、purpose、expiry，以及之後發生的密碼或 session security event。
+精確 session、purpose、expiry，以及之後發生的密碼或 session security event，
+包括完成密碼重設。密碼檢查失敗會記錄 audit，並按 account 與 IP 獨立限流。若
+operation 宣告多個 purpose，執行時須以 `X-WNCMS-Step-Up-Purpose` 指定其中一個。
 
 當 `api_high_risk_action_mode=planned` 時，符合資格的 high 與 critical
-operation 先以 `operation`、normalized `input` 和 `target_state` 呼叫
-`POST /api/v2/backend/action-plans`。回應包含 opaque plan ID 與只顯示一次的
+operation 先以 `operation`、原始 `input` 及識別目標所需的 route `parameters`
+呼叫 `POST /api/v2/backend/action-plans`。client 不可提交 target fingerprint 或
+environment assertion；WNCMS 會依 operation schema 套用 type/default，並在 server
+解析目前 target fingerprint 與 environment。回應包含 opaque plan ID 與只顯示一次的
 confirmation；五分鐘內將 confirmation 放入 `X-WNCMS-Confirmation`。它以原子
 方式 single-use，並綁定 actor、credential public ID、適用的 interactive
 session、operation、input、target state、website scope、ability/permission
 結果與 effective risk。缺少 proof 或 plan 回傳 `428`；expired、stale 或 reused
-plan 回傳穩定 `409`。Async operation 只有 enqueue 成功後才消耗 plan。
+plan 回傳穩定 `409`。正式 credential types 與一般 guard 允許時，service token 可
+執行非 credential 的 high/critical operation；legacy credential 不可執行 critical
+operation。Domain/outbox mutation、proof/plan 消耗與 mandatory audit 必須在同一 named
+database connection 原子提交。Async 只支援同 database 的 transactional outbox；直接
+network 或外部 queue enqueue 會在執行前 fail closed。Idempotent retry 會在重新檢查已
+消耗 confirmation 前 replay 已提交結果。
 
 ## 簡易驗證（建議）
 

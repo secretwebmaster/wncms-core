@@ -210,6 +210,7 @@ final class ApiAuthSchema
             $table->string('operation_id')->index();
             $table->string('input_hash', 64);
             $table->string('target_hash', 64);
+            $table->string('environment_hash', 64);
             $table->string('scope_hash', 64);
             $table->json('website_ids');
             $table->string('authorization_hash', 64);
@@ -373,7 +374,7 @@ final class ApiAuthSchema
             ],
             'api_action_plans' => [
                 'primary_key' => ['id'],
-                'columns' => ['id' => $column($integer, false), 'plan_id' => $column($string, false), 'confirmation_hash' => $column($string, false), 'actor_type' => $column($string, false), 'actor_id' => $column($string, false), 'credential_type' => $column($string, false), 'credential_id' => $column($string, false), 'session_id' => $column($string, true), 'operation_id' => $column($string, false), 'input_hash' => $column($string, false), 'target_hash' => $column($string, false), 'scope_hash' => $column($string, false), 'website_ids' => $column($json, false), 'authorization_hash' => $column($string, false), 'effective_risk' => $column($string, false), 'reservation_id' => $column($string, true), 'reserved_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, false), 'consumed_at' => $column($timestamp, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
+                'columns' => ['id' => $column($integer, false), 'plan_id' => $column($string, false), 'confirmation_hash' => $column($string, false), 'actor_type' => $column($string, false), 'actor_id' => $column($string, false), 'credential_type' => $column($string, false), 'credential_id' => $column($string, false), 'session_id' => $column($string, true), 'operation_id' => $column($string, false), 'input_hash' => $column($string, false), 'target_hash' => $column($string, false), 'environment_hash' => $column($string, false), 'scope_hash' => $column($string, false), 'website_ids' => $column($json, false), 'authorization_hash' => $column($string, false), 'effective_risk' => $column($string, false), 'reservation_id' => $column($string, true), 'reserved_at' => $column($timestamp, true), 'expires_at' => $column($timestamp, false), 'consumed_at' => $column($timestamp, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
                 'indexes' => [['columns' => ['plan_id'], 'unique' => true], ['columns' => ['confirmation_hash'], 'unique' => true], ['columns' => ['actor_id'], 'unique' => false], ['columns' => ['operation_id'], 'unique' => false], ['columns' => ['reservation_id'], 'unique' => false], ['columns' => ['expires_at'], 'unique' => false], ['columns' => ['consumed_at'], 'unique' => false], ['columns' => ['actor_type', 'actor_id'], 'unique' => false]],
                 'foreign_keys' => [],
             ],

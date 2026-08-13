@@ -68,6 +68,14 @@ class AuthController extends ApiV2Controller
             || ! $operation->requiresStepUp
             || ! in_array($validated['purpose'], $operation->stepUpPurposes, true)
             || ! Hash::check($validated['password'], (string) $context->actor()->password)) {
+            if ($context instanceof AuthenticationContext) {
+                try {
+                    $this->stepUp->reject($context, 'authentication.invalid_credentials');
+                } catch (\Throwable $exception) {
+                    return $this->securityAuditUnavailable($exception);
+                }
+            }
+
             return $this->responseFactory()->failure(
                 'authentication.invalid_credentials',
                 'Current credentials are not valid',

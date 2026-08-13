@@ -27,11 +27,11 @@ use Wncms\Auth\Api\V2\TokenHasher;
 use Wncms\Models\ApiSession;
 use Wncms\Models\User;
 use Wncms\Models\Website;
-use Wncms\Tests\TestCase;
 use Wncms\Tests\Fixtures\Api\V2\MismatchedModelKey;
 use Wncms\Tests\Fixtures\Api\V2\NonStaticModelKey;
-use Wncms\Tests\Fixtures\Api\V2\PrivateModelKey;
 use Wncms\Tests\Fixtures\Api\V2\Overrides\TrustedWidget as TrustedWidgetOverride;
+use Wncms\Tests\Fixtures\Api\V2\PrivateModelKey;
+use Wncms\Tests\TestCase;
 
 class ApiGuardOrderTest extends TestCase
 {
@@ -53,6 +53,8 @@ class ApiGuardOrderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        uss('api_high_risk_action_mode', 'direct');
 
         auth()->forgetGuards();
         app(PermissionRegistrar::class)->registerPermissions(Gate::getFacadeRoot());
@@ -256,8 +258,31 @@ class ApiGuardOrderTest extends TestCase
             'api_v2_ability:links.read',
             'api_v2_permission:link_index',
             'api_v2_website_scope',
+            'api_v2_risk_context',
+            'api_v2_risk',
         ]);
         $this->assertNotContains('api_v2_has_website', $route->gatherMiddleware());
+    }
+
+    /**
+     * Verify high-risk routes resolve context before idempotency and risk confirmation.
+     *
+     * @return void
+     */
+    public function test_high_risk_route_resolves_context_then_idempotency_before_confirmation(): void
+    {
+        $route = Route::getRoutes()->getByName('api.v2.backend.channels.destroy');
+
+        $this->assertNotNull($route);
+        $this->assertMiddlewareOrder($route->gatherMiddleware(), [
+            'api_v2_token_auth',
+            'api_v2_ability:channels.write',
+            'api_v2_permission:channel_delete',
+            'api_v2_website_scope',
+            'api_v2_risk_context',
+            'api_v2_idempotency',
+            'api_v2_risk',
+        ]);
     }
 
     /**
@@ -282,7 +307,7 @@ class ApiGuardOrderTest extends TestCase
 
         $this->user->givePermissionTo('link_edit');
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        $this->withToken($token)->postJson('/api/v2/backend/models/update', [
+        $this->withToken($token)->withHeader('Idempotency-Key', 'guard-model-update-allowed')->postJson('/api/v2/backend/models/update', [
             'model' => 'user',
             'model_id' => $target->id,
             'column' => 'username',
@@ -295,7 +320,7 @@ class ApiGuardOrderTest extends TestCase
 
         $this->user->givePermissionTo('user_edit');
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        $this->withToken($token)->postJson('/api/v2/backend/models/update', [
+        $this->withToken($token)->withHeader('Idempotency-Key', 'guard-trusted-update-allowed')->postJson('/api/v2/backend/models/update', [
             'model' => 'users',
             'model_id' => $target->id,
             'column' => 'username',
@@ -342,7 +367,7 @@ class ApiGuardOrderTest extends TestCase
         $newTimestamp = '2025-01-02 03:04:05';
         $token = $this->token(['models.write'], [$this->website->id]);
 
-        $this->withToken($token)->postJson('/api/v2/backend/models/update', [
+        $this->withToken($token)->withHeader('Idempotency-Key', 'guard-trusted-override-update')->postJson('/api/v2/backend/models/update', [
             'model' => 'trusted_widgets',
             'model_id' => $target->id,
             'column' => 'updated_at',

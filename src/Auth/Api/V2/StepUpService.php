@@ -9,10 +9,9 @@ use Wncms\Services\Security\SecurityEventService;
 
 final class StepUpService
 {
-    private const RESERVATION_LEASE_SECONDS = 30;
-
     private const INVALIDATING_EVENTS = [
         'auth.password.changed',
+        'auth.password.reset_succeeded',
         'auth.session.revoked',
         'auth.logout_all.succeeded',
     ];
@@ -148,11 +147,7 @@ final class StepUpService
         $updated = $proofModel::query()
             ->whereKey($row->getKey())
             ->whereNull('consumed_at')
-            ->where(function ($query) use ($now): void {
-                $query->whereNull('reservation_id')
-                    ->orWhereNull('reserved_at')
-                    ->orWhere('reserved_at', '<=', $now->subSeconds(self::RESERVATION_LEASE_SECONDS));
-            })
+            ->whereNull('reservation_id')
             ->update([
                 'reservation_id' => $reservationId,
                 'reserved_at' => $now,
@@ -164,6 +159,29 @@ final class StepUpService
         }
 
         return $reservationId;
+    }
+
+    /**
+     * Reserve a proof for one explicitly selected purpose declared by an operation.
+     *
+     * @param  array<int, string>  $allowedPurposes
+     */
+    public function reserveAny(AuthenticationContext $context, string $proof, array $allowedPurposes, string $selectedPurpose): string
+    {
+        if ($selectedPurpose === '' || ! in_array($selectedPurpose, $allowedPurposes, true)) {
+            $this->recordFailure($context, 'risk.step_up_invalid');
+            throw new StepUpException('risk.step_up_invalid', 401);
+        }
+
+        return $this->reserve($context, $proof, $selectedPurpose);
+    }
+
+    /**
+     * Persist a mandatory failed reauthentication event.
+     */
+    public function reject(AuthenticationContext $context, string $reason): void
+    {
+        $this->recordFailure($context, $reason);
     }
 
     /**
