@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 use Wncms\Api\V2\ApiResponseFactory;
-use Wncms\Api\V2\LegacyOperationSecurity;
 use Wncms\Auth\Api\V2\TokenHasher;
 use Wncms\Models\ApiSession;
 use Wncms\Models\User;
@@ -159,6 +158,19 @@ class ApiGuardOrderTest extends TestCase
             ->assertForbidden()
             ->assertJsonPath('meta.error_code', 'website.scope_missing');
 
+        $otherWebsite = Website::create([
+            'user_id' => $this->user->id,
+            'domain' => 'guard-contradictory-'.uniqid().'.test',
+            'site_name' => 'Guard Contradictory Website',
+            'theme' => 'default',
+        ]);
+        $this->guardedRequest($token, [
+            'website_id' => $this->website->id,
+            'website_key' => 'website:'.$otherWebsite->id,
+        ])
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'website.scope_missing');
+
         $this->assertSame(0, $this->domainExecutions);
     }
 
@@ -231,6 +243,105 @@ class ApiGuardOrderTest extends TestCase
     }
 
     /**
+     * Verify generic model mutations require the selected model's permission before website scope.
+     *
+     * @return void
+     */
+    public function test_generic_model_update_enforces_the_validated_target_permission(): void
+    {
+        uss('enable_api_access', 1);
+        uss('api_access_whitelist', '');
+        foreach (['link_edit', 'user_edit'] as $permission) {
+            Permission::findOrCreate($permission, 'web');
+        }
+        $target = User::create([
+            'username' => 'generic-target-before-'.uniqid(),
+            'email' => 'generic-target-'.uniqid().'@example.test',
+            'password' => 'not-a-real-password',
+            'email_verified_at' => now(),
+        ]);
+        $token = $this->token(['models.write'], [$this->website->id]);
+
+        $this->user->givePermissionTo('link_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $this->withToken($token)->postJson('/api/v2/backend/models/update', [
+            'model' => 'user',
+            'model_id' => $target->id,
+            'column' => 'username',
+            'value' => 'generic-target-denied',
+            'website_id' => $this->website->id,
+        ])
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'authorization.permission_denied');
+        $this->assertNotSame('generic-target-denied', $target->fresh()->username);
+
+        $this->user->givePermissionTo('user_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $this->withToken($token)->postJson('/api/v2/backend/models/update', [
+            'model' => 'users',
+            'model_id' => $target->id,
+            'column' => 'username',
+            'value' => 'generic-target-allowed',
+            'website_id' => $this->website->id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('status', 'success');
+        $this->assertSame('generic-target-allowed', $target->fresh()->username);
+    }
+
+    /**
+     * Verify unknown generic model selectors fail before website resolution.
+     *
+     * @return void
+     */
+    public function test_generic_model_update_rejects_an_unknown_model_selector_before_scope(): void
+    {
+        uss('enable_api_access', 1);
+        uss('api_access_whitelist', '');
+        Permission::findOrCreate('setting_edit', 'web');
+        $this->user->givePermissionTo('setting_edit');
+        $token = $this->token(['models.write'], [$this->website->id]);
+
+        $this->withToken($token)->postJson('/api/v2/backend/models/update', [
+            'model' => 'App\\Models\\User',
+            'model_id' => $this->user->id,
+            'column' => 'username',
+            'value' => 'must-not-change',
+        ])
+            ->assertForbidden()
+            ->assertJsonPath('meta.error_code', 'authorization.permission_denied');
+    }
+
+    /**
+     * Verify generic model routes advertise their dynamic permission templates and middleware.
+     *
+     * @return void
+     */
+    public function test_generic_model_routes_declare_dynamic_target_permission_before_scope(): void
+    {
+        $expectations = [
+            'models.update' => ['{model}_edit', 'api_v2_model_permission:edit'],
+            'models.bulk_delete' => ['{model}_bulk_delete', 'api_v2_model_permission:bulk_delete'],
+            'models.bulk_force_delete' => ['{model}_bulk_delete', 'api_v2_model_permission:bulk_delete'],
+        ];
+
+        foreach ($expectations as $name => [$permission, $permissionMiddleware]) {
+            $route = Route::getRoutes()->getByName('api.v2.backend.'.$name);
+            $this->assertNotNull($route);
+            $this->assertMiddlewareOrder($route->gatherMiddleware(), [
+                'api_v2_token_auth',
+                'api_v2_ability:models.write',
+                $permissionMiddleware,
+                'api_v2_website_scope',
+            ]);
+            $this->assertSame(
+                $permission,
+                app(\Wncms\Api\V2\ApiContractRegistry::class)->operation('backend.'.$name)?->permission,
+            );
+        }
+    }
+
+    /**
      * Verify every configured resource and bridge operation declares its own ordered guards.
      *
      * @return void
@@ -246,14 +357,16 @@ class ApiGuardOrderTest extends TestCase
                 }
 
                 $route = Route::getRoutes()->getByName("api.v2.backend.{$resource}.{$action}");
-                if ($route === null) {
-                    continue;
-                }
-
-                $this->assertMiddlewareOrder(
-                    $route->gatherMiddleware(),
-                    array_merge(['api_v2_token_auth'], LegacyOperationSecurity::resourceMiddleware($resource, $action, $resourceConfig)),
-                );
+                $this->assertNotNull($route, "Missing configured route api.v2.backend.{$resource}.{$action}.");
+                $ability = $resource.'.'.(in_array($action, ['index', 'show'], true) ? 'read' : 'write');
+                $permission = (string) ($resourceConfig['permissions'][$action] ?? '');
+                $this->assertNotSame('', $permission, "Missing fixture permission for {$resource}.{$action}.");
+                $this->assertMiddlewareOrder($route->gatherMiddleware(), [
+                    'api_v2_token_auth',
+                    'api_v2_ability:'.$ability,
+                    'api_v2_permission:'.$permission,
+                    'api_v2_website_scope',
+                ]);
                 $this->assertNotContains('api_v2_has_website', $route->gatherMiddleware());
             }
         }
@@ -261,11 +374,18 @@ class ApiGuardOrderTest extends TestCase
         foreach (config('wncms-backend-api-v2.actions', []) as $action) {
             $route = Route::getRoutes()->getByName('api.v2.backend.'.(string) $action['name']);
 
-            $this->assertNotNull($route);
-            $this->assertMiddlewareOrder(
-                $route->gatherMiddleware(),
-                array_merge(['api_v2_token_auth'], LegacyOperationSecurity::actionMiddleware($action)),
-            );
+            $this->assertNotNull($route, 'Missing configured route api.v2.backend.'.(string) $action['name'].'.');
+            $domain = explode('.', (string) $action['name'], 2)[0];
+            $ability = $domain.'.'.(strtoupper((string) $action['method']) === 'GET' ? 'read' : 'write');
+            $permissionMiddleware = isset($action['permission_template'])
+                ? 'api_v2_model_permission:'.str_replace(['{model}_', '{model}'], '', (string) $action['permission_template'])
+                : 'api_v2_permission:'.(string) ($action['permission'] ?? '');
+            $this->assertMiddlewareOrder($route->gatherMiddleware(), [
+                'api_v2_token_auth',
+                'api_v2_ability:'.$ability,
+                $permissionMiddleware,
+                'api_v2_website_scope',
+            ]);
             $this->assertNotContains('api_v2_has_website', $route->gatherMiddleware());
         }
     }

@@ -22,6 +22,7 @@ use Wncms\Api\V2\Contracts\AtomicOperationRepository;
 use Wncms\Api\V2\Contracts\IdempotencyStore;
 use Wncms\Api\V2\Contracts\OperationRepository;
 use Wncms\Api\V2\IdempotencyService;
+use Wncms\Api\V2\ModelPermissionResolver;
 use Wncms\Api\V2\OperationService;
 use Wncms\Api\V2\OperationValidator;
 use Wncms\Api\V2\OpenApiDocumentBuilder;
@@ -35,6 +36,7 @@ use Wncms\Auth\Api\V2\TokenHasher;
 use Wncms\Auth\Api\V2\WebsiteScopeGuard;
 use Wncms\Http\Middleware\ApiV2TokenAuth;
 use Wncms\Http\Middleware\RequireApiV2Ability;
+use Wncms\Http\Middleware\RequireApiV2ModelPermission;
 use Wncms\Http\Middleware\RequireApiV2Permission;
 use Wncms\Http\Middleware\ResolveApiV2WebsiteScope;
 
@@ -99,6 +101,7 @@ class WncmsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('api_v2_token_auth', ApiV2TokenAuth::class);
         $router->aliasMiddleware('api_v2_ability', RequireApiV2Ability::class);
         $router->aliasMiddleware('api_v2_permission', RequireApiV2Permission::class);
+        $router->aliasMiddleware('api_v2_model_permission', RequireApiV2ModelPermission::class);
         $router->aliasMiddleware('api_v2_website_scope', ResolveApiV2WebsiteScope::class);
         $router->aliasMiddleware('api_v2_idempotency', \Wncms\Http\Middleware\EnforceApiV2Idempotency::class);
 
@@ -107,6 +110,7 @@ class WncmsServiceProvider extends ServiceProvider
             ApiV2TokenAuth::class,
             RequireApiV2Ability::class,
             RequireApiV2Permission::class,
+            RequireApiV2ModelPermission::class,
             ResolveApiV2WebsiteScope::class,
         ] as $middleware) {
             $kernel->appendToMiddlewarePriority($middleware);
@@ -257,6 +261,7 @@ class WncmsServiceProvider extends ServiceProvider
         $this->app->singleton(CredentialParser::class);
         $this->app->singleton(AccessTokenService::class);
         $this->app->singleton(WebsiteScopeGuard::class);
+        $this->app->singleton(ModelPermissionResolver::class);
 
         $this->app->singleton(ApiV2ResponseFinalizer::class, function ($app) use ($replayResponseTrust) {
             return new ApiV2ResponseFinalizer(

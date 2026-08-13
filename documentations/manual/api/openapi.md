@@ -41,6 +41,10 @@ Every operation includes exactly these five WNCMS extension fields:
 | `x-wncms-risk` | Declared risk classification such as `read`, `write`, or `destructive` |
 | `x-wncms-implementation` | `domain` or a legacy implementation classification |
 
+For target-specific generic model operations, `x-wncms-permission` contains a
+validated template such as `{model}_edit` or `{model}_bulk_delete`; the runtime
+resolves it only against model keys in the configured backend resource catalog.
+
 ```json
 {
   "operationId": "backend.operations.cancel",

@@ -40,6 +40,10 @@ capabilities 使用的同一个 registry。
 | `x-wncms-risk` | `read`、`write`、`destructive` 等风险分类 |
 | `x-wncms-implementation` | `domain` 或 legacy implementation 分类 |
 
+对于指定目标的通用 model operation，`x-wncms-permission` 会包含
+`{model}_edit` 或 `{model}_bulk_delete` 等已验证 template；runtime 只会使用
+后台 resource catalog 中的 model key 解析它。
+
 ```json
 {
   "operationId": "backend.operations.cancel",

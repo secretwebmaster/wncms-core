@@ -2,6 +2,7 @@
 
 namespace Wncms\Tests\Unit\Api\V2;
 
+use InvalidArgumentException;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\LegacyOperationSecurity;
 use Wncms\Api\V2\Providers\LegacyBackendContractProvider;
@@ -78,11 +79,10 @@ class LegacyBackendContractProviderTest extends TestCase
             $this->assertSame(strtoupper($action['method']), $operation->method);
             $this->assertSame('/api/v2/backend/' . $action['uri'], $operation->path);
             $this->assertSame("api.v2.backend.{$action['name']}", $operation->routeName);
-            $this->assertSame($action['permission'] ?? null, $operation->permission);
-            $this->assertSame(
-                LegacyOperationSecurity::actionAbility((string) $action['name'], (string) $action['method']),
-                $operation->ability,
-            );
+            $this->assertSame($action['permission_template'] ?? $action['permission'] ?? null, $operation->permission);
+            $domain = explode('.', (string) $action['name'], 2)[0];
+            $expectedAbility = $domain.'.'.(strtoupper((string) $action['method']) === 'GET' ? 'read' : 'write');
+            $this->assertSame($expectedAbility, $operation->ability);
             $this->assertTrue($operation->websiteScoped);
             $this->assertSame('legacy_bridge', $operation->implementation);
             $expectedOperationIds[] = $operationId;
@@ -93,5 +93,45 @@ class LegacyBackendContractProviderTest extends TestCase
 
         $this->assertCount(count($expectedOperationIds), $operations);
         $this->assertSame($expectedOperationIds, array_values(array_intersect($expectedOperationIds, array_keys($operations))));
+    }
+
+    /**
+     * Verify an enabled resource operation without a permission is never published.
+     *
+     * @return void
+     */
+    public function test_it_rejects_a_resource_operation_without_a_permission(): void
+    {
+        config(['wncms-backend-api-v2.resources.unsafe_widgets' => [
+            'model_key' => 'widget',
+            'enabled_actions' => ['index'],
+            'permissions' => [],
+        ]]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('unsafe_widgets.index');
+
+        (new LegacyBackendContractProvider)->register(new ApiContractRegistry);
+    }
+
+    /**
+     * Verify a bridge operation without static or validated dynamic permission is never published.
+     *
+     * @return void
+     */
+    public function test_it_rejects_a_bridge_operation_without_a_permission(): void
+    {
+        $actions = config('wncms-backend-api-v2.actions', []);
+        $actions[] = [
+            'name' => 'unsafe.run',
+            'method' => 'post',
+            'uri' => 'unsafe/run',
+        ];
+        config(['wncms-backend-api-v2.actions' => $actions]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('name and permission');
+
+        (new LegacyBackendContractProvider)->register(new ApiContractRegistry);
     }
 }

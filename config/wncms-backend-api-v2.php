@@ -252,9 +252,9 @@ return [
         ['name' => 'menus.clone', 'method' => 'post', 'uri' => 'menus/clone', 'controller' => MenuController::class, 'action' => 'clone', 'permission' => 'menu_create'],
 
         // Models
-        ['name' => 'models.update', 'method' => 'post', 'uri' => 'models/update', 'controller' => ModelController::class, 'action' => 'update', 'permission' => 'setting_edit'],
-        ['name' => 'models.bulk_delete', 'method' => 'post', 'uri' => 'models/bulk_delete', 'controller' => ModelController::class, 'action' => 'bulk_delete', 'permission' => 'setting_edit'],
-        ['name' => 'models.bulk_force_delete', 'method' => 'post', 'uri' => 'models/bulk_force_delete', 'controller' => ModelController::class, 'action' => 'bulk_force_delete', 'permission' => 'setting_edit'],
+        ['name' => 'models.update', 'method' => 'post', 'uri' => 'models/update', 'controller' => ModelController::class, 'action' => 'update', 'permission_template' => '{model}_edit'],
+        ['name' => 'models.bulk_delete', 'method' => 'post', 'uri' => 'models/bulk_delete', 'controller' => ModelController::class, 'action' => 'bulk_delete', 'permission_template' => '{model}_bulk_delete'],
+        ['name' => 'models.bulk_force_delete', 'method' => 'post', 'uri' => 'models/bulk_force_delete', 'controller' => ModelController::class, 'action' => 'bulk_force_delete', 'permission_template' => '{model}_bulk_delete'],
 
         // Page builder + extra page actions
         ['name' => 'pages.builder.load', 'method' => 'get', 'uri' => 'pages/{id}/builder/load', 'controller' => ApiV2PageBuilderController::class, 'action' => 'load', 'permission' => 'page_edit'],

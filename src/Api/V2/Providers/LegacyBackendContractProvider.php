@@ -67,6 +67,8 @@ class LegacyBackendContractProvider implements ApiContractProvider
                     continue;
                 }
 
+                $security = LegacyOperationSecurity::resourceRequirements($resource, $action, $resourceConfig);
+
                 $registry->registerOperation(new ApiOperationContract(
                     id: $operationId,
                     domain: $resource,
@@ -74,8 +76,8 @@ class LegacyBackendContractProvider implements ApiContractProvider
                     method: $method,
                     path: sprintf($path, $resource),
                     routeName: "api.v2.backend.{$resource}.{$action}",
-                    permission: $resourceConfig['permissions'][$action] ?? null,
-                    ability: LegacyOperationSecurity::resourceAbility($resource, $action),
+                    permission: $security['permission'],
+                    ability: $security['ability'],
                     websiteScoped: true,
                     risk: $method === 'GET' ? 'read' : 'write',
                     implementation: $this->resourceImplementation($resource, $resourceConfig, $referenceDomain),
@@ -105,6 +107,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
 
             $domain = explode('.', $name)[0];
             $method = strtoupper((string) ($action['method'] ?? 'post'));
+            $security = LegacyOperationSecurity::actionRequirements($action);
 
             $this->registerDomain($registry, $domain);
             $registry->registerOperation(new ApiOperationContract(
@@ -114,8 +117,8 @@ class LegacyBackendContractProvider implements ApiContractProvider
                 method: $method,
                 path: "/api/v2/backend/{$uri}",
                 routeName: "api.v2.backend.{$name}",
-                permission: $action['permission'] ?? null,
-                ability: LegacyOperationSecurity::actionAbility($name, $method),
+                permission: $security['permission'],
+                ability: $security['ability'],
                 websiteScoped: true,
                 risk: $method === 'GET' ? 'read' : 'write',
                 implementation: 'legacy_bridge',

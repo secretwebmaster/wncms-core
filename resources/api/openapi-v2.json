@@ -2922,8 +2922,8 @@
                         "bearerAuth": []
                     }
                 ],
-                "x-wncms-permission": null,
-                "x-wncms-ability": null,
+                "x-wncms-permission": "{model}_bulk_delete",
+                "x-wncms-ability": "models.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -2982,8 +2982,8 @@
                         "bearerAuth": []
                     }
                 ],
-                "x-wncms-permission": null,
-                "x-wncms-ability": null,
+                "x-wncms-permission": "{model}_bulk_delete",
+                "x-wncms-ability": "models.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",
@@ -3042,8 +3042,8 @@
                         "bearerAuth": []
                     }
                 ],
-                "x-wncms-permission": null,
-                "x-wncms-ability": null,
+                "x-wncms-permission": "{model}_edit",
+                "x-wncms-ability": "models.write",
                 "x-wncms-website-scoped": true,
                 "x-wncms-risk": "write",
                 "x-wncms-implementation": "legacy_bridge",

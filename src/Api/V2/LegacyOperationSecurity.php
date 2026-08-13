@@ -6,6 +6,12 @@ use InvalidArgumentException;
 
 final class LegacyOperationSecurity
 {
+    private const MODEL_PERMISSION_OPERATIONS = [
+        'models.update' => ['{model}_edit', 'edit'],
+        'models.bulk_delete' => ['{model}_bulk_delete', 'bulk_delete'],
+        'models.bulk_force_delete' => ['{model}_bulk_delete', 'bulk_delete'],
+    ];
+
     /**
      * Build the ordered middleware catalog entry for one resource operation.
      *
@@ -16,12 +22,31 @@ final class LegacyOperationSecurity
      */
     public static function resourceMiddleware(string $resource, string $action, array $resourceConfig): array
     {
+        return self::resourceRequirements($resource, $action, $resourceConfig)['middleware'];
+    }
+
+    /**
+     * Resolve the validated security contract for one resource operation.
+     *
+     * @param  string  $resource
+     * @param  string  $action
+     * @param  array<string, mixed>  $resourceConfig
+     * @return array{ability: string, permission: string, middleware: array<int, string>}
+     */
+    public static function resourceRequirements(string $resource, string $action, array $resourceConfig): array
+    {
         $permission = trim((string) ($resourceConfig['permissions'][$action] ?? ''));
         if ($permission === '') {
             throw new InvalidArgumentException("Backend API resource [{$resource}.{$action}] must declare a permission.");
         }
 
-        return self::middleware(self::resourceAbility($resource, $action), $permission);
+        $ability = self::resourceAbility($resource, $action);
+
+        return [
+            'ability' => $ability,
+            'permission' => $permission,
+            'middleware' => self::middleware($ability, 'api_v2_permission:'.$permission),
+        ];
     }
 
     /**
@@ -32,13 +57,44 @@ final class LegacyOperationSecurity
      */
     public static function actionMiddleware(array $action): array
     {
+        return self::actionRequirements($action)['middleware'];
+    }
+
+    /**
+     * Resolve the validated security contract for one bridge operation.
+     *
+     * @param  array<string, mixed>  $action
+     * @return array{ability: string, permission: string, middleware: array<int, string>}
+     */
+    public static function actionRequirements(array $action): array
+    {
         $name = trim((string) ($action['name'] ?? ''));
         $permission = trim((string) ($action['permission'] ?? ''));
-        if ($name === '' || $permission === '') {
+        $template = trim((string) ($action['permission_template'] ?? ''));
+        if ($name === '' || ($permission === '' && $template === '')) {
             throw new InvalidArgumentException('Backend API bridge operations must declare a name and permission.');
         }
 
-        return self::middleware(self::actionAbility($name, (string) ($action['method'] ?? 'post')), $permission);
+        if ($permission !== '' && $template !== '') {
+            throw new InvalidArgumentException("Backend API bridge operation [{$name}] cannot declare two permission modes.");
+        }
+
+        $modelPermission = self::MODEL_PERMISSION_OPERATIONS[$name] ?? null;
+        if ($template !== '' && ($modelPermission === null || $modelPermission[0] !== $template)) {
+            throw new InvalidArgumentException("Backend API bridge operation [{$name}] has an unsupported permission template.");
+        }
+
+        $ability = self::actionAbility($name, (string) ($action['method'] ?? 'post'));
+        $permissionIdentity = $template !== '' ? $template : $permission;
+        $permissionMiddleware = $template !== ''
+            ? 'api_v2_model_permission:'.$modelPermission[1]
+            : 'api_v2_permission:'.$permission;
+
+        return [
+            'ability' => $ability,
+            'permission' => $permissionIdentity,
+            'middleware' => self::middleware($ability, $permissionMiddleware),
+        ];
     }
 
     /**
@@ -71,14 +127,14 @@ final class LegacyOperationSecurity
      * Return the mandatory ordered authorization middleware chain.
      *
      * @param  string  $ability
-     * @param  string  $permission
+     * @param  string  $permissionMiddleware
      * @return array<int, string>
      */
-    private static function middleware(string $ability, string $permission): array
+    private static function middleware(string $ability, string $permissionMiddleware): array
     {
         return [
             'api_v2_ability:'.$ability,
-            'api_v2_permission:'.$permission,
+            $permissionMiddleware,
             'api_v2_website_scope',
         ];
     }

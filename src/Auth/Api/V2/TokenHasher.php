@@ -5,7 +5,7 @@ namespace Wncms\Auth\Api\V2;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
-final class TokenHasher
+class TokenHasher
 {
     private const SUPPORTED_PREFIXES = [
         'wncms_at',

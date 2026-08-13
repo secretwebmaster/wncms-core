@@ -105,6 +105,33 @@ class CapabilitiesEndpointTest extends TestCase
     }
 
     /**
+     * Verify target-specific generic operations advertise a permission template only to eligible actors.
+     *
+     * @return void
+     */
+    public function test_capabilities_filter_dynamic_model_permissions_against_the_supported_catalog(): void
+    {
+        $website = Website::firstOrFail();
+        [, $deniedToken] = $this->tokenUser(['link_index'], $website);
+
+        $denied = $this->withToken($deniedToken)->getJson('/api/v2/capabilities');
+
+        $denied->assertOk();
+        $this->assertArrayNotHasKey(
+            'backend.models.update',
+            $denied->json('data.domains.models.operations'),
+        );
+
+        [, $allowedToken] = $this->tokenUser(['user_edit'], $website);
+        $allowed = $this->withToken($allowedToken)->getJson('/api/v2/capabilities');
+
+        $allowed->assertOk();
+        $operation = $allowed->json('data.domains.models.operations')['backend.models.update'];
+        $this->assertSame('{model}_edit', $operation['permission']);
+        $this->assertSame('models.write', $operation['ability']);
+    }
+
+    /**
      * Verify the declared cancellation permission controls runtime discovery.
      *
      * @return void

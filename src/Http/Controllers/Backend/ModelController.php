@@ -8,9 +8,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
+use Wncms\Api\V2\ModelPermissionResolver;
+use Wncms\Auth\Api\V2\AuthenticationContext;
+use Wncms\Http\Middleware\ApiV2TokenAuth;
 
 class ModelController extends Controller
 {
+    /**
+     * Create the generic model controller.
+     *
+     * @param  \Wncms\Api\V2\ModelPermissionResolver  $modelPermissions
+     */
+    public function __construct(private ModelPermissionResolver $modelPermissions)
+    {
+    }
+
     /**
      * Resolve model class from request input.
      */
@@ -37,11 +49,12 @@ class ModelController extends Controller
 
     public function update(Request $request)
     {
-        if ($response = $this->authorizeAdminModelMutation($request)) {
+        if ($response = $this->authorizeAdminModelMutation($request, 'edit')) {
             return $response;
         }
 
-        $modelClass = $this->resolveModelClass($request->model);
+        $modelKey = $request->attributes->get('wncms_api_v2_model_key', $request->model);
+        $modelClass = $this->resolveModelClass($modelKey);
 
         if (!$modelClass) {
             return response()->json([
@@ -93,11 +106,12 @@ class ModelController extends Controller
 
     public function bulk_delete(Request $request)
     {
-        if ($response = $this->authorizeAdminModelMutation($request)) {
+        if ($response = $this->authorizeAdminModelMutation($request, 'bulk_delete')) {
             return $response;
         }
 
-        $modelClass = $this->resolveModelClass($request->model);
+        $modelKey = $request->attributes->get('wncms_api_v2_model_key', $request->model);
+        $modelClass = $this->resolveModelClass($modelKey);
 
         if (!$modelClass) {
             return response()->json([
@@ -148,11 +162,12 @@ class ModelController extends Controller
 
     public function bulk_force_delete(Request $request)
     {
-        if ($response = $this->authorizeAdminModelMutation($request)) {
+        if ($response = $this->authorizeAdminModelMutation($request, 'bulk_delete')) {
             return $response;
         }
 
-        $modelClass = $this->resolveModelClass($request->model);
+        $modelKey = $request->attributes->get('wncms_api_v2_model_key', $request->model);
+        $modelClass = $this->resolveModelClass($modelKey);
 
         if (!$modelClass) {
             return response()->json([
@@ -203,12 +218,28 @@ class ModelController extends Controller
             ?? [];
     }
 
-    protected function authorizeAdminModelMutation(Request $request): ?JsonResponse
+    protected function authorizeAdminModelMutation(Request $request, string $permissionSuffix): ?JsonResponse
     {
-        $user = $request->user();
+        $context = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
+        if ($context instanceof AuthenticationContext) {
+            $requirement = $this->modelPermissions->resolve($request->input('model'), $permissionSuffix);
+            $user = $context->actor();
 
-        if ($user && method_exists($user, 'hasRole') && $user->hasRole(['admin', 'superadmin'])) {
-            return null;
+            if (
+                $requirement !== null
+                && method_exists($user, 'checkPermissionTo')
+                && $user->checkPermissionTo($requirement['permission'])
+            ) {
+                $request->attributes->set('wncms_api_v2_model_key', $requirement['model_key']);
+
+                return null;
+            }
+        } else {
+            $user = $request->user();
+
+            if ($user && method_exists($user, 'hasRole') && $user->hasRole(['admin', 'superadmin'])) {
+                return null;
+            }
         }
 
         return response()->json([

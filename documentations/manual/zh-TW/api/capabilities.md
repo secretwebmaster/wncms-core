@@ -25,6 +25,11 @@ Permission 過濾採用 fail-closed：
 
 - 沒有 permission 的 operation 對已驗證 actor 可見。
 - 有 permission 的 operation 若 `user->can(...)` 拒絕，會從回應中完全省略。
+- 通用 model operation 會公開 `{model}_edit` 或 `{model}_bulk_delete` 等目標
+  template。只有 actor 對後台 resource catalog 中至少一個 model 擁有相符
+  permission 時才會顯示。請求執行時，`model` selector 會先透過該 allowlist
+  正規化，並在解析 website scope 前檢查具體目標 permission。任意 class name
+  與未知 model key 都會被拒絕。
 - 已授權且 website-scoped 的 operation 在沒有目前 website 時仍然可見，
   但會標記 `available: false` 與
   `disabled_reasons: ["website.context_missing"]`。

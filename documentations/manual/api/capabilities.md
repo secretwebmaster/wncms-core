@@ -27,6 +27,12 @@ Permission filtering is fail-closed:
 - An operation with no permission is visible to an authenticated actor.
 - An operation with a permission is omitted completely when `user->can(...)`
   denies it.
+- Generic model operations publish a target template such as `{model}_edit` or
+  `{model}_bulk_delete`. They are visible only when the actor has at least one
+  matching permission for a model in the configured backend resource catalog.
+  At request time, the `model` selector is normalized through that allowlist and
+  the concrete target permission is checked before website scope resolution.
+  Arbitrary class names and unknown model keys are rejected.
 - An authorized website-scoped operation remains visible when there is no
   current website, but has `available: false` and
   `disabled_reasons: ["website.context_missing"]`.

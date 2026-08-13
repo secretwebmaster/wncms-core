@@ -11,9 +11,12 @@ final class CapabilityResolver
      * Create the runtime capability resolver.
      *
      * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
+     * @param  \Wncms\Api\V2\ModelPermissionResolver  $modelPermissions
      */
-    public function __construct(private readonly ApiContractRegistry $registry)
-    {
+    public function __construct(
+        private readonly ApiContractRegistry $registry,
+        private readonly ModelPermissionResolver $modelPermissions,
+    ) {
     }
 
     /**
@@ -77,6 +80,10 @@ final class CapabilityResolver
     {
         if ($operation->permission === null || trim($operation->permission) === '') {
             return true;
+        }
+
+        if (str_starts_with($operation->permission, '{model}_')) {
+            return $this->modelPermissions->actorCanAny($user, $operation->permission);
         }
 
         return method_exists($user, 'can') && $user->can($operation->permission);

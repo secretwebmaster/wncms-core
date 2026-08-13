@@ -8,6 +8,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Mockery;
 use Spatie\Permission\Models\Role;
 use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Auth\Api\V2\AccessTokenService;
@@ -110,9 +111,11 @@ class AccessTokenAuthenticationTest extends TestCase
             'email_verified_at' => now(),
         ]);
         $before = DB::table('api_access_tokens')->count();
+        $hasher = Mockery::mock(TokenHasher::class);
+        $hasher->shouldNotReceive('issue');
 
         try {
-            app(AccessTokenService::class)->issue($otherUser, $this->session, [], []);
+            (new AccessTokenService($hasher))->issue($otherUser, $this->session, [], []);
             $this->fail('Cross-user session issuance should be rejected.');
         } catch (AuthenticationException $exception) {
             $this->assertSame('authentication.invalid_token', $exception->getMessage());
@@ -130,9 +133,11 @@ class AccessTokenAuthenticationTest extends TestCase
     {
         $this->session->update(['revoked_at' => now()]);
         $before = DB::table('api_access_tokens')->count();
+        $hasher = Mockery::mock(TokenHasher::class);
+        $hasher->shouldNotReceive('issue');
 
         try {
-            app(AccessTokenService::class)->issue($this->user, $this->session, [], []);
+            (new AccessTokenService($hasher))->issue($this->user, $this->session, [], []);
             $this->fail('Revoked session issuance should be rejected.');
         } catch (AuthenticationException $exception) {
             $this->assertSame('authentication.token_revoked', $exception->getMessage());
@@ -150,15 +155,44 @@ class AccessTokenAuthenticationTest extends TestCase
     {
         $this->session->update(['expires_at' => now()->subSecond()]);
         $before = DB::table('api_access_tokens')->count();
+        $hasher = Mockery::mock(TokenHasher::class);
+        $hasher->shouldNotReceive('issue');
 
         try {
-            app(AccessTokenService::class)->issue($this->user, $this->session, [], []);
+            (new AccessTokenService($hasher))->issue($this->user, $this->session, [], []);
             $this->fail('Expired session issuance should be rejected.');
         } catch (AuthenticationException $exception) {
             $this->assertSame('authentication.invalid_token', $exception->getMessage());
         }
 
         $this->assertSame($before, DB::table('api_access_tokens')->count());
+    }
+
+    /**
+     * Verify a session without an expiry may issue an access token.
+     *
+     * @return void
+     */
+    public function test_issue_accepts_a_session_without_an_expiry(): void
+    {
+        $this->session->update(['expires_at' => null]);
+        $plainText = 'wncms_at_01J00000000000000000000000.'.str_repeat('a', 43);
+        $hasher = Mockery::mock(TokenHasher::class);
+        $hasher->shouldReceive('issue')->once()->with('wncms_at')->andReturn([
+            'plain_text' => $plainText,
+            'public_id' => '01J00000000000000000000000',
+            'hash' => hash('sha256', $plainText),
+        ]);
+
+        $issued = (new AccessTokenService($hasher))->issue(
+            $this->user,
+            $this->session,
+            ['links.read'],
+            [$this->website->id],
+        );
+
+        $this->assertSame($plainText, $issued['token']);
+        $this->assertSame($this->session->id, $issued['model']->session_id);
     }
 
     /**
