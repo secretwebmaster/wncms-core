@@ -3,8 +3,11 @@
 namespace Wncms\Http\Controllers\Api\V2\Backend;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
+use Wncms\Api\V2\Risk\WebsiteBinding;
+use Wncms\Api\V2\Risk\WebsiteBindingResolver;
 
 class ResourceController extends ApiV2Controller
 {
@@ -121,12 +124,11 @@ class ResourceController extends ApiV2Controller
                 return $this->error('model_not_found', Response::HTTP_NOT_FOUND);
             }
 
-            $websiteIds = $this->mutationWebsiteIds($request, $modelClass);
+            $binding = $this->mutationWebsiteBinding($request, $modelClass, 'store');
             $model = $modelClass::query()->create($this->buildMutationPayload($request));
-            $this->syncModelWebsites(
-                $model,
-                $websiteIds,
-            );
+            if ($binding->shouldSync) {
+                $this->syncModelWebsites($model, $binding->websiteIds);
+            }
 
             return $this->ok($model, 'successfully_created', Response::HTTP_CREATED);
         } catch (\Throwable $e) {
@@ -154,12 +156,11 @@ class ResourceController extends ApiV2Controller
                 return $this->error('model_not_found', Response::HTTP_NOT_FOUND);
             }
 
-            $websiteIds = $this->mutationWebsiteIds($request, $modelClass);
+            $binding = $this->mutationWebsiteBinding($request, $modelClass, 'update', $model);
             $model->update($this->buildMutationPayload($request));
-            $this->syncModelWebsites(
-                $model,
-                $websiteIds,
-            );
+            if ($binding->shouldSync) {
+                $this->syncModelWebsites($model, $binding->websiteIds);
+            }
 
             return $this->ok($model, 'successfully_updated');
         } catch (\Throwable $e) {
@@ -218,8 +219,19 @@ class ResourceController extends ApiV2Controller
             if (! is_array($modelIds)) {
                 $modelIds = array_filter(explode(',', (string) $modelIds));
             }
+            $modelIds = array_values(array_unique(array_map('intval', $modelIds)));
+            if ($modelIds === [] || in_array(0, $modelIds, true)) {
+                throw ValidationException::withMessages(['model_ids' => ['Every target must be a positive identifier.']]);
+            }
+            $model = new $modelClass;
+            $count = DB::connection($model->getConnectionName())->transaction(function () use ($modelClass, $modelIds): int {
+                $models = $modelClass::query()->whereKey($modelIds)->orderBy((new $modelClass)->getKeyName())->lockForUpdate()->get();
+                if ($models->count() !== count($modelIds)) {
+                    throw ValidationException::withMessages(['model_ids' => ['Every requested target must exist.']]);
+                }
 
-            $count = $modelClass::query()->whereIn('id', $modelIds)->delete();
+                return $modelClass::query()->whereKey($modelIds)->delete();
+            });
 
             return $this->ok(['deleted' => $count], 'successfully_deleted');
         } catch (\Throwable $e) {
@@ -234,17 +246,12 @@ class ResourceController extends ApiV2Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    private function mutationWebsiteIds(Request $request, string $modelClass): array
+    private function mutationWebsiteBinding(Request $request, string $modelClass, string $action, ?\Illuminate\Database\Eloquent\Model $model = null): WebsiteBinding
     {
-        $websiteScoped = method_exists($modelClass, 'isWebsiteScopedModel') && $modelClass::isWebsiteScopedModel();
-        if ($websiteScoped && $request->has('website_ids') && $request->input('website_ids') === []) {
-            throw ValidationException::withMessages(['website_ids' => ['A website binding is required.']]);
+        try {
+            return app(WebsiteBindingResolver::class)->resolve($request->all(), $modelClass, $action, $model);
+        } catch (\Wncms\Api\V2\Risk\RiskContextException) {
+            throw ValidationException::withMessages(['website_ids' => ['A valid website binding is required.']]);
         }
-        $ids = $this->resolveModelWebsiteIds($modelClass, $this->extractWebsiteBindingInput($request));
-        if ($websiteScoped && $ids === []) {
-            throw ValidationException::withMessages(['website_ids' => ['A website binding is required.']]);
-        }
-
-        return $ids;
     }
 }

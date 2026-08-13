@@ -2,38 +2,28 @@
 
 namespace Wncms\Auth\Api\V2;
 
-use Wncms\Models\Website;
+use Illuminate\Database\Eloquent\Model;
 
 final class WebsiteScopeResolution
 {
     /**
      * Create one typed website-scope result.
-     *
-     * @param  \Wncms\Models\Website|null  $website
-     * @param  string|null  $errorCode
      */
     private function __construct(
-        private ?Website $website,
+        private ?Model $website,
         private ?string $errorCode,
-    ) {
-    }
+    ) {}
 
     /**
      * Create an allowed website-scope result.
-     *
-     * @param  \Wncms\Models\Website  $website
-     * @return self
      */
-    public static function allowed(Website $website): self
+    public static function allowed(Model $website): self
     {
         return new self($website, null);
     }
 
     /**
      * Create a rejected website-scope result.
-     *
-     * @param  string  $errorCode
-     * @return self
      */
     public static function rejected(string $errorCode): self
     {
@@ -42,18 +32,14 @@ final class WebsiteScopeResolution
 
     /**
      * Return the authorized website, when present.
-     *
-     * @return \Wncms\Models\Website|null
      */
-    public function website(): ?Website
+    public function website(): ?Model
     {
         return $this->website;
     }
 
     /**
      * Return the stable rejection reason, when rejected.
-     *
-     * @return string|null
      */
     public function errorCode(): ?string
     {
@@ -62,8 +48,6 @@ final class WebsiteScopeResolution
 
     /**
      * Determine whether website scope was authorized.
-     *
-     * @return bool
      */
     public function isAllowed(): bool
     {

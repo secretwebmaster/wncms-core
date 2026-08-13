@@ -23,6 +23,7 @@ use Wncms\Api\V2\Risk\RiskContext;
 use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Events\ApiSecurityEventRecorded;
+use Wncms\Http\Controllers\Api\V2\Backend\ActionPlanController;
 use Wncms\Http\Middleware\ApiV2TokenAuth;
 use Wncms\Http\Middleware\AssignApiV2RequestId;
 use Wncms\Http\Middleware\EnforceApiV2Idempotency;
@@ -70,6 +71,68 @@ class ActionPlanPolicyTest extends TestCase
 
         app(ActionPlanService::class)->consume($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]);
         $this->expectPlanCode('risk.confirmation_reused', fn () => app(ActionPlanService::class)->consume($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]));
+    }
+
+    /**
+     * Verify direct service callers cannot bypass the authoritative permission snapshot.
+     */
+    public function test_direct_service_create_rejects_unauthorized_callers_without_plan_or_event(): void
+    {
+        [$context, $operation] = $this->fixture();
+        $context->actor()->revokePermissionTo('api_token_create');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $beforePlans = DB::table('api_action_plans')->count();
+        $beforeEvents = DB::table('api_security_events')->where('event_type', 'risk.plan.created')->count();
+
+        try {
+            app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
+            $this->fail('Expected authoritative permission denial.');
+        } catch (\Wncms\Api\V2\Risk\RiskContextException $exception) {
+            $this->assertSame('authorization.permission_denied', $exception->errorCode);
+            $this->assertSame(403, $exception->httpStatus);
+        }
+
+        $this->assertSame($beforePlans, DB::table('api_action_plans')->count());
+        $this->assertSame($beforeEvents, DB::table('api_security_events')->where('event_type', 'risk.plan.created')->count());
+    }
+
+    /**
+     * Verify permission storage on another connection fails before plan persistence.
+     */
+    public function test_action_plan_permission_connection_mismatch_returns_503_before_persistence(): void
+    {
+        $database = tempnam(sys_get_temp_dir(), 'wncms-permission-cross-');
+        try {
+            config(['database.connections.task8_permission_cross_connection' => array_merge(
+                config('database.connections.sqlite'),
+                ['database' => $database],
+            )]);
+            $actor = Task8CrossConnectionPermissionUser::create([
+                'username' => 'permission-cross-'.uniqid(),
+                'email' => 'permission-cross-'.uniqid().'@example.test',
+                'password' => 'unused-hash',
+                'email_verified_at' => now(),
+            ]);
+            $operation = $this->operation();
+            $this->registerOperation($operation);
+            $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'permission-cross', 'permission-session', ['tokens.create'], []);
+            $request = Request::create('/api/v2/backend/action-plans', 'POST', [
+                'operation' => $operation->id,
+                'input' => ['name' => 'exact'],
+                'parameters' => [],
+            ]);
+            $request->attributes->set(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE, $context);
+            $before = DB::table('api_action_plans')->count();
+
+            $response = app(ActionPlanController::class)->store($request);
+
+            $this->assertSame(503, $response->getStatusCode());
+            $this->assertSame('security.audit_unavailable', $response->getData(true)['meta']['error_code']);
+            $this->assertSame($before, DB::table('api_action_plans')->count());
+        } finally {
+            DB::purge('task8_permission_cross_connection');
+            @unlink($database);
+        }
     }
 
     public function test_changed_input_target_scope_or_authorization_makes_plan_stale(): void
@@ -528,6 +591,7 @@ class ActionPlanPolicyTest extends TestCase
             permission: $permission, ability: 'tokens.create', websiteScoped: true,
             risk: 'write', implementation: 'domain', request: ApiSchema::object(), response: ApiSchema::object(),
             securityRisk: 'high', actionPlanEligible: true, domainModelKeys: ['setting'],
+            sideEffectKind: 'database', idempotent: true,
         );
 
     }
@@ -582,4 +646,25 @@ class Task8CrossConnectionModel extends \Wncms\Models\BaseModel
     protected $connection = 'task8_cross_connection';
 
     protected $table = 'settings';
+}
+
+class Task8CrossConnectionPermission extends Permission
+{
+    protected $connection = 'task8_permission_cross_connection';
+}
+
+class Task8CrossConnectionPermissionUser extends User
+{
+    protected $table = 'users';
+
+    public function permissions(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->morphToMany(
+            Task8CrossConnectionPermission::class,
+            'model',
+            config('permission.table_names.model_has_permissions'),
+            config('permission.column_names.model_morph_key'),
+            app(PermissionRegistrar::class)->pivotPermission,
+        );
+    }
 }

@@ -3,11 +3,14 @@
 namespace Wncms\Api\V2\Risk;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\TokenHasher;
+use Wncms\Auth\Api\V2\WebsiteScopeGuard;
 use Wncms\Services\Security\SecurityEventService;
 
 final class ActionPlanService
@@ -16,7 +19,45 @@ final class ActionPlanService
         private TokenHasher $hasher,
         private RiskPolicy $policy,
         private SecurityEventService $events,
+        private TargetOperationAuthorizer $authorizer,
+        private WebsiteScopeGuard $websiteScope,
+        private OperationRiskContextResolver $riskContexts,
     ) {}
+
+    /**
+     * Resolve, authorize, lock, and create a request-bound plan in one transaction.
+     *
+     * @param  array<string, mixed>  $parameters
+     * @return array{id: string, confirmation: string, operation: string, effective_risk: string, expires_at: string}
+     */
+    public function createForRequest(AuthenticationContext $context, ApiOperationContract $operation, Request $request, array $parameters = []): array
+    {
+        if (! $operation->actionPlanEligible) {
+            throw new ActionPlanException('risk.plan_invalid', 409);
+        }
+        $connections = array_values(array_unique(array_merge(
+            $this->events->modelConnectionNames(array_merge(
+                ['api_action_plan', 'api_security_event'],
+                $operation->domainModelKeys,
+                $operation->transactionalOutboxModelKeys,
+            )),
+            $this->authorizer->connectionNames($context, $operation),
+            $this->websiteScope->authorizationConnectionNames($context),
+        )));
+        if (count($connections) !== 1) {
+            throw new \RuntimeException('Plan, authorization, domain, and event connections must match.');
+        }
+
+        return DB::connection($connections[0])->transaction(function () use ($context, $operation, $request, $parameters, $connections): array {
+            $this->authorizer->authorizePreTarget($context, $operation);
+            $riskContext = $this->riskContexts->resolveExecution($request, $operation, $parameters);
+            if (array_diff(array_unique($riskContext->connectionNames), $connections) !== []) {
+                throw new \RuntimeException('Target relationship connections must match.');
+            }
+
+            return $this->persistResolved($context, $operation, $riskContext);
+        });
+    }
 
     /** @return array{id: string, confirmation: string, operation: string, effective_risk: string, expires_at: string} */
     public function create(AuthenticationContext $context, ApiOperationContract $operation, array $input, array $targetState): array
@@ -32,6 +73,36 @@ final class ActionPlanService
         if (! $operation->actionPlanEligible) {
             throw new ActionPlanException('risk.plan_invalid', 409);
         }
+
+        $connections = array_values(array_unique(array_merge(
+            $this->events->modelConnectionNames(array_merge(
+                ['api_action_plan', 'api_security_event'],
+                $operation->domainModelKeys,
+                $operation->transactionalOutboxModelKeys,
+            )),
+            $this->authorizer->connectionNames($context, $operation),
+            $this->websiteScope->authorizationConnectionNames($context),
+            $riskContext->connectionNames,
+        )));
+        if (count($connections) !== 1) {
+            throw new \RuntimeException('Plan, authorization, domain, and event connections must match.');
+        }
+
+        return DB::connection($connections[0])->transaction(function () use ($context, $operation, $riskContext): array {
+            $this->authorizer->authorizePreTarget($context, $operation);
+            $this->websiteScope->assertResolvedScope($context, $riskContext, true);
+
+            return $this->persistResolved($context, $operation, $riskContext);
+        });
+    }
+
+    /**
+     * Persist a plan after the public service boundary has authorized its snapshot.
+     *
+     * @return array{id: string, confirmation: string, operation: string, effective_risk: string, expires_at: string}
+     */
+    private function persistResolved(AuthenticationContext $context, ApiOperationContract $operation, RiskContext $riskContext): array
+    {
 
         $material = $this->hasher->issue('wncms_cp');
         $expiresAt = CarbonImmutable::now('UTC')->addSeconds(AuthSecurityConfig::fromRuntime()->actionPlanLifetimeSeconds());
@@ -54,6 +125,42 @@ final class ActionPlanService
             'effective_risk' => $risk,
             'expires_at' => $expiresAt->toAtomString(),
         ];
+    }
+
+    /**
+     * Validate and lock a confirmation reference before stale-target resolution.
+     *
+     * This deliberately validates only immutable pre-target bindings. The complete
+     * input, target, environment, scope, and permission snapshot is checked during
+     * reservation after fresh target resolution.
+     */
+    public function assertUsableReference(AuthenticationContext $context, ApiOperationContract $operation, string $confirmation): void
+    {
+        $publicId = $this->publicId($confirmation);
+        if ($publicId === null) {
+            throw new ActionPlanException('risk.plan_invalid', 409);
+        }
+        $planModel = wncms()->getModelClass('api_action_plan');
+        $plan = $planModel::query()->where('plan_id', $publicId)->lockForUpdate()->first();
+        if ($plan === null || ! $this->hasher->matches($confirmation, (string) $plan->confirmation_hash)) {
+            throw new ActionPlanException('risk.plan_invalid', 409);
+        }
+        if ($plan->consumed_at !== null || $plan->reservation_id !== null) {
+            throw new ActionPlanException('risk.confirmation_reused', 409);
+        }
+        if (! $plan->expires_at->isFuture()) {
+            throw new ActionPlanException('risk.plan_expired', 409);
+        }
+        if (
+            (string) $plan->actor_type !== $context->actor()::class
+            || (string) $plan->actor_id !== (string) $context->actorId()
+            || (string) $plan->credential_type !== $context->credentialType()
+            || (string) $plan->credential_id !== (string) ($context->credentialPublicId() ?? '')
+            || (string) ($plan->session_id ?? '') !== (string) ($context->sessionPublicId() ?? '')
+            || (string) $plan->operation_id !== $operation->id
+        ) {
+            throw new ActionPlanException('risk.plan_stale', 409);
+        }
     }
 
     public function consume(AuthenticationContext $context, ApiOperationContract $operation, string $confirmation, array $input, array $targetState): void
@@ -216,10 +323,6 @@ final class ActionPlanService
     {
         $websiteIds = array_values(array_unique(array_map('intval', $context->websiteIds())));
         sort($websiteIds);
-        $actor = $context->actor();
-        if (method_exists($actor, 'newQuery') && $context->actorId() !== null) {
-            $actor = $actor->newQuery()->find($context->actorId()) ?? $actor;
-        }
 
         return [
             'actor_type' => $context->actor()::class,
@@ -238,7 +341,7 @@ final class ActionPlanService
                 'ability_granted' => $operation->ability === null || $context->hasAbility($operation->ability) || $context->hasAbility('*'),
                 'permission' => $operation->permission,
                 'permission_granted' => $operation->permission === null
-                    || (method_exists($actor, 'checkPermissionTo') && $actor->checkPermissionTo($operation->permission)),
+                    || $this->authorizer->permissionGranted($context, $operation->permission),
             ]),
             'effective_risk' => $risk,
         ];

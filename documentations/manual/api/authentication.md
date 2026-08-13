@@ -203,9 +203,12 @@ target model's actual `websites` pivot membership. Every `website_id` and
 `website_ids` value must be inside both the credential scope and the actor's
 current access. A Website resource's route or bulk target IDs are themselves
 authoritative website scope, even though Website is otherwise a global model.
-Website-scoped creates and updates require a non-empty binding; `website_key`
-is resolved to its canonical ID, and an explicit empty `website_ids` list never
-silently detaches all websites or overrides `website_id`. Website-scoped targets
+Website-scoped creates require a non-empty binding. Updates preserve the current
+pivot membership when every website selector is omitted. When a selector is
+present, `website_key` is resolved to its canonical ID; explicit empty, `null`,
+or blank selectors and conflicts between `website_id`, `website_ids`, and
+`website_key` are rejected. Planning and mutation consume this same canonical
+binding. Website-scoped targets
 with no membership are denied. The fresh actor row, actor-to-website membership,
 website ownership, target rows, website rows, and pivots are locked and checked
 again inside execution. Losing current actor access is denied before execution;
@@ -218,10 +221,18 @@ websites pass normal scope authorization.
 
 Action-plan creation applies the target operation's accepted credential type,
 ability, current permission, website scope, and current actor access before it
-creates a plan. It locks and resolves that authorization and target snapshot,
+creates a plan. Credential, ability, and the authoritative direct/role permission
+snapshot are checked before target or website resolution, so denied callers do
+not learn target existence from later errors. Permission models and direct,
+role, and role-permission pivots must share the named connection. It locks and
+resolves that authorization and target snapshot,
 then inserts the hash-only plan and mandatory `risk.plan.created` event in the
 same named transaction. An unauthorized request creates neither row, and an
 audit failure rolls back the plan without returning its plaintext confirmation.
+The public `ActionPlanService` creation methods enforce this boundary as well;
+direct package callers cannot bypass authorization or mandatory audit. Bulk
+operations require every requested target to exist at direct execution and plan
+creation; disappearance after a valid plan returns `risk.plan_stale`.
 
 Descriptor `ability` and data `risk` are semantic declarations, not deductions
 from the HTTP method. Registry startup rejects resource/bridge operation-ID

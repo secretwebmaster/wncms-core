@@ -23,6 +23,7 @@ final class OperationRiskContextResolver
     public function __construct(
         private RiskEnvironmentProvider $environment,
         private WebsiteScopeGuard $websiteScope,
+        private WebsiteBindingResolver $websiteBindings,
     ) {}
 
     /**
@@ -67,7 +68,7 @@ final class OperationRiskContextResolver
             : $this->resolveLegacy($operation, $normalized, $parameters, false);
 
         return new RiskContext(
-            $normalized,
+            $this->normalize((array) ($resolved['normalized_input'] ?? $normalized)),
             $this->normalize((array) ($resolved['target_state'] ?? [])),
             $this->normalize((array) ($resolved['environment'] ?? $this->environment->resolve())),
             array_values(array_unique(array_filter((array) ($resolved['model_keys'] ?? []), 'is_string'))),
@@ -99,7 +100,7 @@ final class OperationRiskContextResolver
      *
      * @param  array<string, mixed>  $parameters
      */
-    public function resolveExecution(Request $request, ApiOperationContract $operation, array $parameters = []): RiskContext
+    public function resolveExecution(Request $request, ApiOperationContract $operation, array $parameters = [], bool $allowMissingForStalePlan = false): RiskContext
     {
         $input = $this->requestInput($request);
         $normalized = $this->normalizeInput($operation, $input);
@@ -107,10 +108,10 @@ final class OperationRiskContextResolver
             $resolved = ($this->resolvers[$operation->id])($normalized, $parameters, true);
             $resolved['environment'] = $resolved['environment'] ?? $this->environment->resolve($request);
 
-            return $this->scopedContext($request, $operation, $input, $resolved, true);
+            return $this->scopedContext($request, $operation, $input, $resolved, true, $allowMissingForStalePlan);
         }
 
-        return $this->scopedContext($request, $operation, $input, $this->resolveLegacy($operation, $normalized, $parameters, true, $request), true);
+        return $this->scopedContext($request, $operation, $input, $this->resolveLegacy($operation, $normalized, $parameters, true, $request, $allowMissingForStalePlan), true, $allowMissingForStalePlan);
     }
 
     /**
@@ -121,7 +122,7 @@ final class OperationRiskContextResolver
      */
     private function context(ApiOperationContract $operation, array $input, array $resolved): RiskContext
     {
-        $normalized = $this->normalizeInput($operation, $input);
+        $normalized = $this->normalize((array) ($resolved['normalized_input'] ?? $this->normalizeInput($operation, $input)));
 
         return new RiskContext(
             $normalized,
@@ -138,7 +139,7 @@ final class OperationRiskContextResolver
      * @param  array<string, mixed>  $input
      * @param  array<string, mixed>  $resolved
      */
-    private function scopedContext(Request $request, ApiOperationContract $operation, array $input, array $resolved, bool $lock): RiskContext
+    private function scopedContext(Request $request, ApiOperationContract $operation, array $input, array $resolved, bool $lock, bool $allowMissingForStalePlan = false): RiskContext
     {
         $context = $this->context($operation, $input, $resolved);
         $authentication = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
@@ -154,7 +155,7 @@ final class OperationRiskContextResolver
                 $authentication,
                 $context,
                 $lock,
-                $lock && trim((string) $request->headers->get('X-WNCMS-Confirmation', '')) !== '',
+                $allowMissingForStalePlan,
             );
         }
 
@@ -168,7 +169,7 @@ final class OperationRiskContextResolver
      * @param  array<string, mixed>  $parameters
      * @return array<string, mixed>
      */
-    private function resolveLegacy(ApiOperationContract $operation, array $input, array $parameters, bool $lock, ?Request $request = null): array
+    private function resolveLegacy(ApiOperationContract $operation, array $input, array $parameters, bool $lock, ?Request $request = null, bool $allowMissingForStalePlan = false): array
     {
         $parts = explode('.', $operation->id);
         $resource = $parts[1] ?? '';
@@ -190,6 +191,9 @@ final class OperationRiskContextResolver
             $model = ($lock ? $query->lockForUpdate() : $query)->first();
             $target['record'] = $model?->getAttributes();
             $models = $model === null ? new Collection : new Collection([$model]);
+            if ($model === null && ! $allowMissingForStalePlan) {
+                throw new RiskContextException('resource_not_found', 404);
+            }
         } elseif (is_string($modelClass) && $action === 'bulk_delete') {
             $ids = $this->ids($input['model_ids'] ?? []);
             sort($ids);
@@ -197,8 +201,16 @@ final class OperationRiskContextResolver
             $target['requested_ids'] = $ids;
             $models = ($lock ? $query->lockForUpdate() : $query)->get();
             $target['records'] = $models->map->getAttributes()->all();
+            if ($models->count() !== count($ids) && ! $allowMissingForStalePlan) {
+                throw new RiskContextException('validation.failed', 422);
+            }
         } else {
             $target['record'] = null;
+        }
+        if (is_string($modelClass) && $operation->canonicalizer === 'resource' && in_array($action, ['store', 'update'], true)) {
+            $binding = $this->websiteBindings->resolve($input, $modelClass, $action, $models->first());
+            unset($input['website_id'], $input['website_key']);
+            $input['website_ids'] = $binding->websiteIds;
         }
         $websiteState = $this->websiteState($operation, $modelClass, $models, $input, $lock);
         if ($websiteState !== null) {
@@ -207,6 +219,7 @@ final class OperationRiskContextResolver
 
         return [
             'target_state' => $target,
+            'normalized_input' => $input,
             'environment' => $this->environment->resolve($request),
             'model_keys' => $operation->domainModelKeys,
             'connection_names' => $websiteState['connection_names'] ?? [],
@@ -329,31 +342,6 @@ final class OperationRiskContextResolver
         $action = explode('.', $operation->id)[2] ?? '';
         if ($action === 'bulk_delete') {
             $input['model_ids'] = $this->ids($input['model_ids'] ?? []);
-        }
-        if (array_key_exists('website_id', $input) && $input['website_id'] !== null && $input['website_id'] !== '') {
-            $input['website_id'] = (int) $input['website_id'];
-        }
-        if (array_key_exists('website_key', $input)) {
-            if (preg_match('/^website:([1-9][0-9]*)$/D', (string) $input['website_key'], $matches) !== 1) {
-                throw new RiskContextException('validation.failed', 422);
-            }
-            $keyId = (int) $matches[1];
-            if (isset($input['website_id']) && (int) $input['website_id'] !== $keyId) {
-                throw new RiskContextException('validation.failed', 422);
-            }
-            $input['website_id'] = $keyId;
-            unset($input['website_key']);
-        }
-        if (array_key_exists('website_ids', $input)) {
-            $input['website_ids'] = $this->ids($input['website_ids']);
-            $modelKey = (string) ($operation->domainModelKeys[0] ?? '');
-            $modelClass = $modelKey !== '' ? wncms()->getModelClass($modelKey) : null;
-            $websiteScoped = is_string($modelClass)
-                && method_exists($modelClass, 'isWebsiteScopedModel')
-                && $modelClass::isWebsiteScopedModel();
-            if ($websiteScoped && $input['website_ids'] === [] && isset($input['website_id'])) {
-                throw new RiskContextException('validation.failed', 422);
-            }
         }
 
         return $this->normalize($input);

@@ -44,10 +44,8 @@ class OperationRiskContextResolverTest extends TestCase
 
     /**
      * Verify generic resource bulk inputs and target membership have stable semantics.
-     *
-     * @return void
      */
-    public function test_resource_bulk_input_sorts_ids_and_preserves_missing_target_membership(): void
+    public function test_resource_bulk_input_rejects_missing_target_membership(): void
     {
         $operation = new ApiOperationContract(
             id: 'backend.channels.bulk_delete', domain: 'channels', surface: 'backend', method: 'POST',
@@ -60,13 +58,15 @@ class OperationRiskContextResolverTest extends TestCase
         $existing = \Wncms\Models\Channel::create(['name' => 'Existing', 'slug' => 'resolver-'.uniqid()]);
         $missing = $existing->id + 10000;
 
-        $context = app(OperationRiskContextResolver::class)->resolve($operation, [
-            'model_ids' => [(string) $missing, (string) $existing->id, $existing->id],
-        ]);
-
-        $this->assertSame([$existing->id, $missing], $context->normalizedInput['model_ids']);
-        $this->assertSame([$existing->id, $missing], $context->targetState['requested_ids']);
-        $this->assertSame([$existing->id], array_column($context->targetState['records'], 'id'));
+        try {
+            app(OperationRiskContextResolver::class)->resolve($operation, [
+                'model_ids' => [(string) $missing, (string) $existing->id, $existing->id],
+            ]);
+            $this->fail('Expected incomplete bulk target denial.');
+        } catch (\Wncms\Api\V2\Risk\RiskContextException $exception) {
+            $this->assertSame('validation.failed', $exception->errorCode);
+            $this->assertSame(422, $exception->httpStatus);
+        }
     }
 
     private function operation(): ApiOperationContract

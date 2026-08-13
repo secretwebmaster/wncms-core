@@ -298,14 +298,14 @@ class ProductionRiskOperationTest extends TestCase
         $request->setRouteResolver(fn () => $route);
         $context = $this->context();
         $request->attributes->set(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE, $context);
-        $snapshot = app(OperationRiskContextResolver::class)->resolveRequest($request, $operation);
-        $plan = app(ActionPlanService::class)->createResolved($context, $operation, $snapshot);
-        $request->attributes->set(ResolveApiV2RiskContext::ATTRIBUTE, $snapshot);
-        $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
+        try {
+            app(OperationRiskContextResolver::class)->resolveRequest($request, $operation);
+            $this->fail('Plan creation must reject an initially incomplete bulk set.');
+        } catch (RiskContextException $exception) {
+            $this->assertSame('validation.failed', $exception->errorCode);
+            $this->assertSame(422, $exception->httpStatus);
+        }
         Channel::create(['id' => $missingId, 'name' => 'Appeared', 'slug' => 'risk-bulk-new-'.uniqid()]);
-
-        $created = app(EnforceApiV2RiskPolicy::class)->handle($request, fn () => response()->json(['ok' => true]));
-        $this->assertSame(409, $created->getStatusCode());
 
         $freshRequest = Request::create('/api/v2/backend/channels/bulk_delete', 'POST', ['model_ids' => [$missingId, $existing->id]]);
         $route->bind($freshRequest);
@@ -470,6 +470,8 @@ class ProductionRiskOperationTest extends TestCase
     {
         config(['wncms.models.channel.website_mode' => 'multi']);
         $actor = User::query()->firstOrFail();
+        $actor->givePermissionTo(Permission::findOrCreate('channel_edit', 'web'));
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
         $website = Website::query()->firstOrFail();
         $websiteB = Website::create([
             'user_id' => null,
@@ -621,6 +623,101 @@ class ProductionRiskOperationTest extends TestCase
     }
 
     /**
+     * Verify a revoke racing after authorization is serialized behind the side effect.
+     */
+    public function test_concurrent_permission_revoke_cannot_pass_between_authorization_and_mutation(): void
+    {
+        if (! function_exists('pcntl_fork')) {
+            $this->markTestSkipped('Process concurrency primitives are unavailable.');
+        }
+        uss('api_high_risk_action_mode', 'direct');
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        $actor = User::factory()->create();
+        $website = Website::query()->firstOrFail();
+        $actor->websites()->syncWithoutDetaching([$website->getKey()]);
+        $permission = Permission::findOrCreate('channel_edit', 'web');
+        $actor->givePermissionTo($permission);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $channel = Channel::create(['name' => 'Before authority race', 'slug' => 'authority-race-'.uniqid()]);
+        $channel->websites()->sync([$website->getKey()]);
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'authority-race', 'authority-session', ['channels.write'], [$website->getKey()]);
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+        $request = $this->productionRequest('api.v2.backend.channels.update', $context, [
+            'name' => 'After authority race', 'website_id' => $website->getKey(),
+        ], ['id' => $channel->getKey()]);
+        $request->attributes->set(
+            ResolveApiV2RiskContext::ATTRIBUTE,
+            app(OperationRiskContextResolver::class)->resolveRequest($request, $operation, ['id' => $channel->getKey()]),
+        );
+        DB::connection()->commit();
+        $started = tempnam(sys_get_temp_dir(), 'wncms-permission-started-');
+        $completed = tempnam(sys_get_temp_dir(), 'wncms-permission-completed-');
+        $pid = pcntl_fork();
+        $revokedBeforeMutation = false;
+
+        if ($pid === 0) {
+            DB::disconnect();
+            $deadline = microtime(true) + 10;
+            while (filesize($started) === 0 && microtime(true) < $deadline) {
+                clearstatcache(true, $started);
+                usleep(10_000);
+            }
+            while (microtime(true) < $deadline) {
+                try {
+                    $deleted = DB::table(config('permission.table_names.model_has_permissions'))
+                        ->where('model_type', $actor->getMorphClass())
+                        ->where(config('permission.column_names.model_morph_key'), $actor->getKey())
+                        ->where('permission_id', $permission->getKey())
+                        ->delete();
+                    if ($deleted === 1) {
+                        file_put_contents($completed, 'completed', LOCK_EX);
+                        exit(0);
+                    }
+                } catch (\Illuminate\Database\QueryException) {
+                    DB::disconnect();
+                }
+                usleep(20_000);
+            }
+            exit(2);
+        }
+
+        try {
+            $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$revokedBeforeMutation, $started, $completed, $channel) {
+                file_put_contents($started, 'started', LOCK_EX);
+                usleep(100_000);
+                clearstatcache(true, $completed);
+                $revokedBeforeMutation = filesize($completed) > 0;
+                Channel::query()->whereKey($channel->getKey())->update(['name' => 'After authority race']);
+
+                return response()->json(['ok' => true]);
+            });
+
+            pcntl_waitpid($pid, $status);
+            $this->assertSame(0, pcntl_wexitstatus($status));
+            DB::disconnect();
+            if ($response->getStatusCode() === 200) {
+                $this->assertFalse($revokedBeforeMutation, 'A successful mutation must serialize before permission revoke.');
+                $this->assertSame('After authority race', Channel::query()->findOrFail($channel->getKey())->name);
+            } else {
+                $this->assertSame(503, $response->getStatusCode(), (string) $response->getContent());
+                $this->assertSame('Before authority race', Channel::query()->findOrFail($channel->getKey())->name);
+            }
+            $this->assertFalse(DB::table(config('permission.table_names.model_has_permissions'))
+                ->where('model_type', $actor->getMorphClass())
+                ->where(config('permission.column_names.model_morph_key'), $actor->getKey())
+                ->where('permission_id', $permission->getKey())
+                ->exists());
+        } finally {
+            pcntl_waitpid($pid, $status, WNOHANG);
+            @unlink($started);
+            @unlink($completed);
+            Channel::query()->whereKey($channel->getKey())->delete();
+            User::query()->whereKey($actor->getKey())->delete();
+            DB::connection()->beginTransaction();
+        }
+    }
+
+    /**
      * Verify missing requested Website rows fail closed before direct execution.
      */
     public function test_missing_requested_website_fails_closed_in_direct_mode(): void
@@ -642,6 +739,87 @@ class ProductionRiskOperationTest extends TestCase
 
         $this->expectRiskContextCode('website.scope_denied', fn () => app(OperationRiskContextResolver::class)->resolveRequest($request, $operation, ['id' => $channel->id]));
         $this->assertSame('Missing website', $channel->fresh()->name);
+    }
+
+    /**
+     * Verify an unvalidated confirmation header cannot enable stale-plan resolution.
+     */
+    public function test_direct_mode_garbage_confirmation_does_not_allow_missing_targets(): void
+    {
+        uss('api_high_risk_action_mode', 'direct');
+        $missing = (int) Channel::query()->max('id') + 1000;
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+        $request = $this->productionRequest('api.v2.backend.channels.update', $this->context(), [
+            'name' => 'Must not execute',
+        ], ['id' => $missing]);
+        $request->headers->set('X-WNCMS-Confirmation', 'garbage');
+
+        try {
+            app(OperationRiskContextResolver::class)->resolveExecution($request, $operation, ['id' => $missing]);
+            $this->fail('Expected direct missing target denial.');
+        } catch (RiskContextException $exception) {
+            $this->assertSame('resource_not_found', $exception->errorCode);
+            $this->assertSame(404, $exception->httpStatus);
+        }
+    }
+
+    /**
+     * Verify a different morph type cannot impersonate revoked actor membership.
+     */
+    public function test_actor_membership_recheck_uses_the_relation_morph_discriminator(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        $actor = User::query()->firstOrFail();
+        $otherActor = User::factory()->create();
+        $website = Website::create([
+            'user_id' => $otherActor->getKey(),
+            'domain' => 'morph-collision-'.uniqid().'.test',
+            'site_name' => 'Morph collision',
+            'theme' => 'default',
+        ]);
+        $channel = Channel::create([
+            'id' => $actor->getKey(),
+            'name' => 'Morph collision',
+            'slug' => 'morph-collision-'.uniqid(),
+        ]);
+        $actor->websites()->syncWithoutDetaching([$website->getKey()]);
+        $channel->websites()->syncWithoutDetaching([$website->getKey()]);
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'morph-collision', 'morph-session', ['channels.write'], [$website->getKey()]);
+        $riskContext = new \Wncms\Api\V2\Risk\RiskContext([], [
+            'website_scope' => [
+                'requested_ids' => [$website->getKey()],
+                'requested_rows' => [$website->getAttributes()],
+                'target_ids' => [$website->getKey()],
+                'target_count' => 1,
+                'scoped_model' => true,
+            ],
+        ], []);
+
+        $actor->websites()->detach($website->getKey());
+
+        $this->expectRiskContextCode('website.scope_denied', fn () => app(\Wncms\Auth\Api\V2\WebsiteScopeGuard::class)->assertResolvedScope($context, $riskContext, true));
+    }
+
+    /**
+     * Verify direct and plan-create bulk resolution reject a partially missing set.
+     */
+    public function test_bulk_resolution_requires_every_requested_target_to_exist(): void
+    {
+        $existing = Channel::create(['name' => 'Existing', 'slug' => 'complete-bulk-'.uniqid()]);
+        $missing = (int) Channel::query()->max('id') + 1000;
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.bulk_delete');
+        $request = $this->productionRequest('api.v2.backend.channels.bulk_delete', $this->context(), [
+            'model_ids' => [$existing->getKey(), $missing],
+        ]);
+
+        try {
+            app(OperationRiskContextResolver::class)->resolveRequest($request, $operation);
+            $this->fail('Expected incomplete target denial.');
+        } catch (RiskContextException $exception) {
+            $this->assertSame('validation.failed', $exception->errorCode);
+            $this->assertSame(422, $exception->httpStatus);
+        }
+        $this->assertNotNull($existing->fresh());
     }
 
     /**

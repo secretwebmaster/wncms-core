@@ -183,8 +183,10 @@ Generic resource descriptor 也会绑定所选 website rows，以及 target mode
 `websites` pivot membership。每个 `website_id` 与 `website_ids` 值都必须同时位于
 credential scope 与 actor 当前可访问范围内。Website resource 的 route 或 bulk target
 ID 本身就是 authoritative website scope，即使 Website model 在其他语义上是 global。
-Website-scoped create/update 要求非空 binding；`website_key` 会解析为 canonical ID，明确的
-空 `website_ids` 不会静默 detach all 或覆盖 `website_id`。没有 membership 的
+Website-scoped create 要求非空 binding；update 在省略所有 website selector 时保留当前
+pivot membership。提供 selector 时，`website_key` 会解析为 canonical ID；明确的空值、
+`null`、空字串，以及 `website_id`、`website_ids`、`website_key` 之间的冲突都会被拒绝。
+Plan 与 mutation 使用同一个 canonical binding。没有 membership 的
 website-scoped target 会被拒绝。执行 transaction 内会重新锁定并检查 fresh actor row、
 actor-to-website membership、website ownership、target rows、website rows 与 pivots。
 Actor 失去当前访问权时会在执行前被拒绝；planned target state 缺失会使 plan stale，
@@ -194,10 +196,16 @@ security-event model 必须解析到同一个 named database connection，否则
 授权后，仍保留 global target semantics。
 
 Action plan 创建会先按 target operation 检查 accepted credential type、ability、当前
-permission、website scope 与 actor 当前访问权。系统在同一个 named transaction 内锁定并
+permission、website scope 与 actor 当前访问权。Credential、ability 与 authoritative
+direct/role permission snapshot 会在 target 或 website resolution 前检查，避免未授权 caller
+由后续错误推断 target 是否存在。Permission model 及 direct、role、role-permission pivot
+必须使用同一个 named connection。系统在同一个 named transaction 内锁定并
 解析 authorization/target snapshot，然后原子写入 hash-only plan 与 mandatory
 `risk.plan.created` event。未授权请求不会建立任何一列；audit 失败会回滚 plan，也不会
 返回 plaintext confirmation。
+公开的 `ActionPlanService` 创建方法同样强制此边界，direct package caller 无法绕过授权或
+mandatory audit。Bulk operation 在 direct execution 与 plan 创建时要求所有 requested target
+存在；有效 plan 建立后 target 消失则返回 `risk.plan_stale`。
 
 Descriptor 的 `ability` 与 data `risk` 是语义声明，不会从 HTTP method 推导。Registry
 启动时会拒绝 resource/bridge operation-ID collision，除非 ID 位于经审核的 override

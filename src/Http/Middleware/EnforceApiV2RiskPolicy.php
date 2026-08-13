@@ -124,6 +124,7 @@ final class EnforceApiV2RiskPolicy
             $connections = array_values(array_unique(array_merge(
                 $this->events->modelConnectionNames($modelKeys),
                 $riskContext->connectionNames,
+                $this->authorizer->connectionNames($context, $operation),
             )));
             if (count($connections) !== 1) {
                 throw new \RuntimeException('Domain, outbox, security mutation, and event connections must match.');
@@ -134,10 +135,15 @@ final class EnforceApiV2RiskPolicy
             return DB::connection($connection)->transaction(function () use ($request, $next, $context, $operation, $requiresPlan, $proof, $confirmation, $formalDescriptor, $riskContext, $connection): Response {
                 $route = $request->route();
                 $parameters = $route instanceof Route ? $route->parameters() : [];
+                $this->authorizer->authorizePreTarget($context, $operation);
+                $allowMissingForStalePlan = false;
+                if ($requiresPlan) {
+                    $this->plans->assertUsableReference($context, $operation, $confirmation);
+                    $allowMissingForStalePlan = true;
+                }
                 $riskContext = $formalDescriptor
-                    ? $this->riskContexts->resolveExecution($request, $operation, $parameters)
+                    ? $this->riskContexts->resolveExecution($request, $operation, $parameters, $allowMissingForStalePlan)
                     : $riskContext;
-                $this->authorizer->authorize($context, $operation);
                 if (array_diff(array_unique($riskContext->connectionNames), [$connection]) !== []) {
                     throw new \RuntimeException('Target relationship connections must match.');
                 }

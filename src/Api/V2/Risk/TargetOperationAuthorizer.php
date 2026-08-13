@@ -2,17 +2,57 @@
 
 namespace Wncms\Api\V2\Risk;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Guard;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 
 final class TargetOperationAuthorizer
 {
     /**
-     * Authorize one operation against the current credential and actor state.
+     * Return every named connection used by authoritative permission resolution.
+     *
+     * @return array<int, string>
+     */
+    public function connectionNames(AuthenticationContext $context, ApiOperationContract $operation): array
+    {
+        $actor = $context->actor();
+        if (! method_exists($actor, 'getConnection')) {
+            throw new \RuntimeException('Actor authorization connection cannot be resolved.');
+        }
+        $connections = [$actor->getConnection()->getName()];
+        if ($operation->permission === null) {
+            return $connections;
+        }
+        if (! method_exists($actor, 'permissions') || ! method_exists($actor, 'roles')) {
+            throw new \RuntimeException('Actor permission relations cannot be resolved.');
+        }
+        $permissions = $actor->permissions();
+        $roles = $actor->roles();
+        if (! $permissions instanceof BelongsToMany || ! $roles instanceof BelongsToMany) {
+            throw new \RuntimeException('Actor permission relations are unsupported.');
+        }
+        $rolePermissions = $roles->getRelated()->permissions();
+        if (! $rolePermissions instanceof BelongsToMany) {
+            throw new \RuntimeException('Role permission relation is unsupported.');
+        }
+
+        return array_values(array_unique(array_merge($connections, [
+            $permissions->getRelated()->getConnection()->getName(),
+            $permissions->newPivotStatement()->getConnection()->getName(),
+            $roles->getRelated()->getConnection()->getName(),
+            $roles->newPivotStatement()->getConnection()->getName(),
+            $rolePermissions->getRelated()->getConnection()->getName(),
+            $rolePermissions->newPivotStatement()->getConnection()->getName(),
+        ])));
+    }
+
+    /**
+     * Authorize credential and ability without resolving target state.
      *
      * @throws \Wncms\Api\V2\Risk\RiskContextException
      */
-    public function authorize(AuthenticationContext $context, ApiOperationContract $operation): void
+    public function authorizePreTarget(AuthenticationContext $context, ApiOperationContract $operation): void
     {
         if (! in_array($context->credentialType(), $operation->acceptedCredentialTypes, true)) {
             throw new RiskContextException('risk.credential_type_denied', 403);
@@ -26,12 +66,83 @@ final class TargetOperationAuthorizer
         if ($operation->permissionMode !== 'static') {
             throw new RiskContextException('authorization.permission_denied', 403);
         }
+
+        if (! $this->permissionGranted($context, $operation->permission)) {
+            throw new RiskContextException('authorization.permission_denied', 403);
+        }
+    }
+
+    /**
+     * Authorize one operation against a locked authoritative database snapshot.
+     *
+     * @throws \Wncms\Api\V2\Risk\RiskContextException
+     */
+    public function authorize(AuthenticationContext $context, ApiOperationContract $operation): void
+    {
+        $this->authorizePreTarget($context, $operation);
+    }
+
+    /**
+     * Resolve direct and role permission grants without Spatie relation cache.
+     */
+    public function permissionGranted(AuthenticationContext $context, string $permission): bool
+    {
         $actor = $context->actor();
         $freshActor = $context->actorId() !== null
             ? $actor->newQuery()->whereKey($context->actorId())->lockForUpdate()->first()
             : null;
-        if ($freshActor === null || ! method_exists($freshActor, 'checkPermissionTo') || ! $freshActor->checkPermissionTo($operation->permission)) {
-            throw new RiskContextException('authorization.permission_denied', 403);
+        if ($freshActor === null || ! method_exists($freshActor, 'permissions') || ! method_exists($freshActor, 'roles')) {
+            return false;
         }
+
+        $permissions = $freshActor->permissions();
+        $roles = $freshActor->roles();
+        if (! $permissions instanceof BelongsToMany || ! $roles instanceof BelongsToMany) {
+            return false;
+        }
+        $directIds = $permissions->newPivotQuery()
+            ->orderBy($permissions->getRelatedPivotKeyName())
+            ->lockForUpdate()
+            ->pluck($permissions->getRelatedPivotKeyName())
+            ->all();
+        $roleIds = $roles->newPivotQuery()
+            ->orderBy($roles->getRelatedPivotKeyName())
+            ->lockForUpdate()
+            ->pluck($roles->getRelatedPivotKeyName())
+            ->all();
+
+        $roleModel = $roles->getRelated();
+        $roleKey = $roleModel->getKeyName();
+        $roleRows = $roleIds === []
+            ? collect()
+            : $roleModel->newQuery()->whereKey($roleIds)->orderBy($roleKey)->lockForUpdate()->get();
+        $rolePermissionIds = [];
+        if ($roleRows->isNotEmpty()) {
+            $rolePermissions = $roleRows->first()->permissions();
+            if (! $rolePermissions instanceof BelongsToMany) {
+                return false;
+            }
+            $rolePermissionIds = $rolePermissions->newPivotStatement()
+                ->whereIn($rolePermissions->getForeignPivotKeyName(), $roleRows->modelKeys())
+                ->orderBy($rolePermissions->getForeignPivotKeyName())
+                ->orderBy($rolePermissions->getRelatedPivotKeyName())
+                ->lockForUpdate()
+                ->pluck($rolePermissions->getRelatedPivotKeyName())
+                ->all();
+        }
+
+        $permissionIds = array_values(array_unique(array_merge($directIds, $rolePermissionIds)));
+        $permissionModel = $permissions->getRelated();
+        $permissionRow = $permissionIds === []
+            ? null
+            : $permissionModel->newQuery()
+                ->whereKey($permissionIds)
+                ->where('name', $permission)
+                ->where('guard_name', Guard::getDefaultName($freshActor))
+                ->orderBy($permissionModel->getKeyName())
+                ->lockForUpdate()
+                ->first();
+
+        return $permissionRow !== null;
     }
 }

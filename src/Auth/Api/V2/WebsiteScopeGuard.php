@@ -2,11 +2,11 @@
 
 namespace Wncms\Auth\Api\V2;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\Request;
 use Wncms\Api\V2\Risk\RiskContext;
 use Wncms\Api\V2\Risk\RiskContextException;
-use Wncms\Models\Website;
 
 final class WebsiteScopeGuard
 {
@@ -38,7 +38,7 @@ final class WebsiteScopeGuard
 
         $websiteModel = wncms()->getModelClass('website');
         $website = $websiteModel::query()->find($websiteId);
-        if (! $website instanceof Website || ! $this->actorCanAccess($context, $website)) {
+        if (! $website instanceof $websiteModel || ! $this->actorCanAccess($context, $website)) {
             return WebsiteScopeResolution::rejected('website.scope_denied');
         }
         $requestedWebsites = $websiteModel::query()->whereIn('id', $this->requestedWebsiteIds($request))->get();
@@ -46,7 +46,7 @@ final class WebsiteScopeGuard
             return WebsiteScopeResolution::rejected('website.scope_denied');
         }
         foreach ($requestedWebsites as $requestedWebsite) {
-            if (! $requestedWebsite instanceof Website || ! $this->actorCanAccess($context, $requestedWebsite)) {
+            if (! $requestedWebsite instanceof $websiteModel || ! $this->actorCanAccess($context, $requestedWebsite)) {
                 return WebsiteScopeResolution::rejected('website.scope_denied');
             }
         }
@@ -120,6 +120,9 @@ final class WebsiteScopeGuard
         $pivotQuery = $relation->newPivotStatement()
             ->where($relation->getForeignPivotKeyName(), $freshActor->getKey())
             ->whereIn($relation->getRelatedPivotKeyName(), $websiteIds);
+        if (method_exists($relation, 'getMorphType') && method_exists($relation, 'getMorphClass')) {
+            $pivotQuery->where($relation->getMorphType(), $relation->getMorphClass());
+        }
         $memberIds = ($lock ? $pivotQuery->lockForUpdate() : $pivotQuery)
             ->pluck($relation->getRelatedPivotKeyName())
             ->map(static fn ($id): int => (int) $id)
@@ -134,7 +137,7 @@ final class WebsiteScopeGuard
     /**
      * Return the canonical immutable identity for a resolved website.
      */
-    public static function identity(Website $website): string
+    public static function identity(Model $website): string
     {
         return 'website:'.(string) $website->getKey();
     }
@@ -232,7 +235,7 @@ final class WebsiteScopeGuard
     /**
      * Determine whether the current actor owns or is related to the selected website.
      */
-    private function actorCanAccess(AuthenticationContext $context, Website $website): bool
+    private function actorCanAccess(AuthenticationContext $context, Model $website): bool
     {
         if ((string) $website->user_id === (string) $context->actorId()) {
             return true;
