@@ -139,24 +139,22 @@ final class SecurityEventService
             if ($event === null) {
                 $attributes['context'] = $this->aggregateContext($attributes['context'], 1, $attributes['occurred_at'], $attributes['request_id']);
 
-                try {
-                    DB::table('api_security_events')->insert($this->databaseAttributes($attributes));
-                } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
-                    $event = DB::table('api_security_events')
-                        ->where('aggregate_key', $attributes['aggregate_key'])
-                        ->lockForUpdate()
-                        ->first();
+                $inserted = DB::table('api_security_events')->insertOrIgnore($this->databaseAttributes($attributes));
 
-                    if ($event === null) {
-                        throw $e;
-                    }
-                }
+                $event = DB::table('api_security_events')
+                    ->where('aggregate_key', $attributes['aggregate_key'])
+                    ->lockForUpdate()
+                    ->first();
 
-                if ($event === null) {
+                if ($inserted === 1 && $event !== null) {
                     $created = ApiSecurityEvent::query()->where('aggregate_key', $attributes['aggregate_key'])->firstOrFail();
                     $this->dispatch($created);
 
                     return $created;
+                }
+
+                if ($event === null) {
+                    throw new \RuntimeException('Security event aggregate could not be resolved after insert.');
                 }
             }
 

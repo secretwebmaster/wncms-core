@@ -4,6 +4,7 @@ namespace Wncms\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Wncms\Models\Builders\AppendOnlySecurityEventBuilder;
+use Wncms\Models\Builders\AppendOnlySecurityEventQueryBuilder;
 
 class ApiSecurityEvent extends BaseModel
 {
@@ -35,6 +36,40 @@ class ApiSecurityEvent extends BaseModel
     public function newEloquentBuilder($query): AppendOnlySecurityEventBuilder
     {
         return new AppendOnlySecurityEventBuilder($query);
+    }
+
+    /**
+     * Create the base query builder that rejects ordinary event mutations.
+     *
+     * @return \Wncms\Models\Builders\AppendOnlySecurityEventQueryBuilder
+     */
+    protected function newBaseQueryBuilder(): AppendOnlySecurityEventQueryBuilder
+    {
+        return new AppendOnlySecurityEventQueryBuilder($this->getConnection());
+    }
+
+    /**
+     * Reject timestamp-only model mutations before Laravel can treat them as clean saves.
+     *
+     * @param  array|string|null  $attribute
+     *
+     * @return never
+     */
+    public function touch($attribute = null): never
+    {
+        throw new \LogicException('Security events are append-only.');
+    }
+
+    /**
+     * Reject quiet timestamp-only model mutations.
+     *
+     * @param  array|string|null  $attribute
+     *
+     * @return never
+     */
+    public function touchQuietly($attribute = null): never
+    {
+        throw new \LogicException('Security events are append-only.');
     }
 
     /**
