@@ -5,18 +5,23 @@ namespace Wncms\Http\Controllers\Api\V2\Backend;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Auth\Api\V2\AccessTokenService;
 use Wncms\Auth\Api\V2\ApiCredential;
+use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\CredentialParser;
+use Wncms\Auth\Api\V2\CsrfTokenService;
 use Wncms\Auth\Api\V2\DummyPasswordHasher;
 use Wncms\Auth\Api\V2\IssuedRefreshToken;
 use Wncms\Auth\Api\V2\LoginThrottleService;
+use Wncms\Auth\Api\V2\OriginPolicy;
 use Wncms\Auth\Api\V2\RefreshTokenException;
 use Wncms\Auth\Api\V2\RefreshTokenService;
 use Wncms\Auth\Api\V2\SessionService;
@@ -37,6 +42,9 @@ class AuthController extends ApiV2Controller
      * @param  \Wncms\Auth\Api\V2\LoginThrottleService  $loginThrottle
      * @param  \Wncms\Services\Security\SecurityEventService  $events
      * @param  \Wncms\Api\V2\ApiContractRegistry  $contracts
+     * @param  \Wncms\Auth\Api\V2\AuthSecurityConfig  $securityConfig
+     * @param  \Wncms\Auth\Api\V2\OriginPolicy  $originPolicy
+     * @param  \Wncms\Auth\Api\V2\CsrfTokenService  $csrfTokens
      */
     public function __construct(
         private AccessTokenService $accessTokens,
@@ -47,6 +55,9 @@ class AuthController extends ApiV2Controller
         private LoginThrottleService $loginThrottle,
         private SecurityEventService $events,
         private ApiContractRegistry $contracts,
+        private AuthSecurityConfig $securityConfig,
+        private OriginPolicy $originPolicy,
+        private CsrfTokenService $csrfTokens,
     ) {
     }
 
@@ -91,15 +102,16 @@ class AuthController extends ApiV2Controller
             : $now->addDays((int) config('wncms.auth_security.refresh_token_lifetime_days', 30));
         $deviceName = trim((string) ($validated['device_name'] ?? 'nextjs-admin')) ?: 'nextjs-admin';
         $sessionId = (string) Str::ulid();
+        $transport = $this->securityConfig->refreshTransport();
 
         try {
-            $issued = $this->events->withinTransaction(function () use ($user, $remembered, $expiresAt, $deviceName, $now, $sessionId): array {
+            $issued = $this->events->withinTransaction(function () use ($user, $remembered, $expiresAt, $deviceName, $now, $sessionId, $transport): array {
                 $sessionModel = wncms()->getModelClass('api_session');
                 $session = $sessionModel::create([
                     'session_id' => $sessionId,
                     'user_id' => $user->getKey(),
                     'device_name' => $deviceName,
-                    'refresh_transport' => 'json',
+                    'refresh_transport' => $transport,
                     'remembered' => $remembered,
                     'last_activity_at' => $now,
                     'expires_at' => $expiresAt,
@@ -111,8 +123,9 @@ class AuthController extends ApiV2Controller
                     $this->websiteIds($user),
                 );
                 $refresh = $this->refreshTokens->issue($session);
+                $csrf = $transport === 'cookie' ? $this->csrfTokens->issue($session) : null;
 
-                return compact('session', 'access', 'refresh');
+                return compact('session', 'access', 'refresh', 'csrf');
             }, [
                 'type' => 'auth.login.succeeded',
                 'severity' => 'info',
@@ -125,12 +138,16 @@ class AuthController extends ApiV2Controller
 
         $this->loginThrottle->clearAccount($identifier);
 
-        return $this->ok($this->credentialResponse(
+        $response = $this->ok($this->credentialResponse(
             $issued['access'],
             $issued['refresh'],
             $issued['session'],
             $user,
         ), 'login_success');
+
+        return $transport === 'cookie'
+            ? $this->withRefreshCookies($response, $issued['refresh'], (string) $issued['csrf'])
+            : $response;
     }
 
     /**
@@ -141,17 +158,49 @@ class AuthController extends ApiV2Controller
      */
     public function refresh(Request $request): JsonResponse
     {
-        $validated = $request->validate(['refresh_token' => ['required', 'string']]);
-        $credential = $this->credentials->parse((string) $validated['refresh_token']);
+        $refreshToken = $this->refreshCredential($request);
+        if ($refreshToken === null) {
+            return $this->responseFactory()->failure(
+                'authentication.refresh_invalid',
+                'Refresh credential is not valid',
+                Response::HTTP_UNAUTHORIZED,
+            );
+        }
+
+        $credential = $this->credentials->parse($refreshToken);
 
         try {
-            $pair = $this->refreshTokens->rotate($credential);
-            $sessionModel = wncms()->getModelClass('api_session');
-            $userModel = wncms()->getModelClass('user');
-            $session = $sessionModel::query()->findOrFail($pair->refresh->model->session_id);
-            $user = $userModel::query()->findOrFail($pair->refresh->model->user_id);
+            $rotate = function () use ($credential): array {
+                $pair = $this->refreshTokens->rotate($credential);
+                $sessionModel = wncms()->getModelClass('api_session');
+                $userModel = wncms()->getModelClass('user');
+                $session = $sessionModel::query()->findOrFail($pair->refresh->model->session_id);
+                $user = $userModel::query()->findOrFail($pair->refresh->model->user_id);
+                $csrf = $this->securityConfig->refreshTransport() === 'cookie'
+                    ? $this->csrfTokens->issue($session)
+                    : null;
 
-            return $this->ok($this->credentialResponse($pair->access, $pair->refresh, $session, $user));
+                return compact('pair', 'session', 'user', 'csrf');
+            };
+            $rotated = $this->securityConfig->refreshTransport() === 'cookie'
+                ? DB::transaction($rotate)
+                : $rotate();
+            $response = $this->ok($this->credentialResponse(
+                $rotated['pair']->access,
+                $rotated['pair']->refresh,
+                $rotated['session'],
+                $rotated['user'],
+            ));
+
+            if ($this->securityConfig->refreshTransport() !== 'cookie') {
+                return $response;
+            }
+
+            return $this->withRefreshCookies(
+                $response,
+                $rotated['pair']->refresh,
+                (string) $rotated['csrf'],
+            );
         } catch (RefreshTokenException $exception) {
             $this->recordRefreshFailure($request, $credential, $exception);
 
@@ -173,8 +222,16 @@ class AuthController extends ApiV2Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $validated = $request->validate(['refresh_token' => ['required', 'string']]);
-        $credential = $this->credentials->parse((string) $validated['refresh_token']);
+        $refreshToken = $this->refreshCredential($request);
+        if ($refreshToken === null) {
+            return $this->responseFactory()->failure(
+                'authentication.refresh_invalid',
+                'Refresh credential is not valid',
+                Response::HTTP_UNAUTHORIZED,
+            );
+        }
+
+        $credential = $this->credentials->parse($refreshToken);
         $session = $this->refreshTokens->sessionForLogout($credential);
 
         if ($session instanceof ApiSession) {
@@ -185,7 +242,11 @@ class AuthController extends ApiV2Controller
             }
         }
 
-        return $this->ok(null, 'logout_success');
+        $response = $this->ok(null, 'logout_success');
+
+        return $this->securityConfig->refreshTransport() === 'cookie'
+            ? $this->clearRefreshCookies($response)
+            : $response;
     }
 
     /**
@@ -219,7 +280,11 @@ class AuthController extends ApiV2Controller
             return $this->securityAuditUnavailable($exception);
         }
 
-        return $this->ok(['revoked_sessions' => $count], 'logout_all_success');
+        $response = $this->ok(['revoked_sessions' => $count], 'logout_all_success');
+
+        return $this->securityConfig->refreshTransport() === 'cookie'
+            ? $this->clearRefreshCookies($response)
+            : $response;
     }
 
     /**
@@ -275,16 +340,105 @@ class AuthController extends ApiV2Controller
      */
     private function credentialResponse(array $access, IssuedRefreshToken $refresh, ApiSession $session, User $user): array
     {
-        return [
+        $response = [
             'access_token' => $access['token'],
             'token' => $access['token'],
             'token_type' => 'Bearer',
             'access_expires_at' => $access['expires_at']->toAtomString(),
-            'refresh_token' => $refresh->token,
             'refresh_expires_at' => $refresh->expiresAt?->toAtomString(),
             'session' => $this->sessionResponse($session),
             'user' => $this->userResponse($user),
         ];
+
+        if ($this->securityConfig->refreshTransport() === 'json') {
+            $response['refresh_token'] = $refresh->token;
+        }
+
+        return $response;
+    }
+
+    /**
+     * Resolve a refresh credential exclusively from the configured transport.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return string|null
+     */
+    private function refreshCredential(Request $request): ?string
+    {
+        if ($this->securityConfig->refreshTransport() === 'cookie') {
+            $token = trim((string) $request->cookie(OriginPolicy::REFRESH_COOKIE, ''));
+
+            return $token === '' ? null : $token;
+        }
+
+        $validated = $request->validate(['refresh_token' => ['required', 'string']]);
+        $token = trim((string) $validated['refresh_token']);
+
+        return $token === '' ? null : $token;
+    }
+
+    /**
+     * Attach exact refresh and readable CSRF cookies to a response.
+     *
+     * @param  \Illuminate\Http\JsonResponse  $response
+     * @param  \Wncms\Auth\Api\V2\IssuedRefreshToken  $refresh
+     * @param  string  $csrf
+     * @return \Illuminate\Http\JsonResponse
+     */
+    private function withRefreshCookies(JsonResponse $response, IssuedRefreshToken $refresh, string $csrf): JsonResponse
+    {
+        $options = $this->originPolicy->cookieOptions();
+        $expiresAt = $refresh->expiresAt ?? 0;
+        $response->headers->setCookie(Cookie::create(
+            OriginPolicy::REFRESH_COOKIE,
+            $refresh->token,
+            $expiresAt,
+            $options['path'],
+            $options['domain'],
+            $options['secure'],
+            true,
+            false,
+            $options['same_site'],
+        ));
+        $response->headers->setCookie(Cookie::create(
+            OriginPolicy::CSRF_COOKIE,
+            $csrf,
+            $expiresAt,
+            $options['path'],
+            $options['domain'],
+            $options['secure'],
+            false,
+            false,
+            $options['same_site'],
+        ));
+
+        return $response;
+    }
+
+    /**
+     * Expire both Cookie-mode browser credentials with their configured scope.
+     *
+     * @param  \Illuminate\Http\JsonResponse  $response
+     * @return \Illuminate\Http\JsonResponse
+     */
+    private function clearRefreshCookies(JsonResponse $response): JsonResponse
+    {
+        $options = $this->originPolicy->cookieOptions();
+        foreach ([OriginPolicy::REFRESH_COOKIE => true, OriginPolicy::CSRF_COOKIE => false] as $name => $httpOnly) {
+            $response->headers->setCookie(Cookie::create(
+                $name,
+                '',
+                1,
+                $options['path'],
+                $options['domain'],
+                $options['secure'],
+                $httpOnly,
+                false,
+                $options['same_site'],
+            ));
+        }
+
+        return $response;
     }
 
     /**

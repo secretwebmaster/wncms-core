@@ -46,6 +46,44 @@ curl "https://your-domain.com/api/v2/backend/links?website_id=1" \
   -H "Accept: application/json"
 ```
 
+### Refresh 传输模式
+
+`api_refresh_transport` 选择一个互斥的 refresh 通道：
+
+- `json`（预设）：登入和 refresh 返回 `refresh_token`；refresh 与 logout
+  只接受 JSON body 中的 token。WNCMS 不读取或写入 refresh/CSRF cookie。
+- `cookie`：登入和 refresh 绝不返回 refresh 明文。WNCMS 使用 Secure、
+  HttpOnly 的 `__Secure-wncms_refresh` cookie，以及可读取的 Secure
+  `wncms_refresh_csrf` cookie。两者的 path 均为
+  `/api/v2/backend/auth`，预设为 host-only domain，并使用已验证的
+  `SameSite` 策略。
+
+Cookie 模式的登入、refresh 与 logout 要求完全匹配的允许 `Origin`，比较
+scheme、host 与有效 port。缺少、`null`、wildcard、格式错误或未获准的值
+都会被拒绝。仅当明确启用 `api_refresh_cookie_referer_fallback` 且没有
+`Origin` 时，系统才会考虑 `Referer`。
+
+Cookie refresh 与 logout 必须将 `wncms_refresh_csrf` 复制到
+`X-WNCMS-CSRF` 标头。WNCMS 会比较两者，并验证它们与当前 session 的
+hash-only 绑定。成功 refresh 会轮换两个 cookie；logout 和适用的 session
+撤销会让两个 cookie 过期。Body/cookie 通道不一致返回
+`authentication.refresh_transport_mismatch`，Origin 与 CSRF 失败分别返回
+`authentication.origin_denied` 和 `authentication.csrf_failed`。
+
+```javascript
+const csrf = readCookie('wncms_refresh_csrf')
+
+await fetch('https://api.example.test/api/v2/backend/auth/refresh', {
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-WNCMS-CSRF': csrf,
+  },
+  body: '{}',
+})
+```
+
 对于受保护的 Links mutation，此 token 关联的使用者始终是 automation actor。
 系统会针对该使用者检查 `link_index`、`link_create`、`link_edit` 或
 `link_delete`，强制写入也会把使用者 ID 记录在 `mutation_audits`。

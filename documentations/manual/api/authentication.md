@@ -46,6 +46,46 @@ curl "https://your-domain.com/api/v2/backend/links?website_id=1" \
   -H "Accept: application/json"
 ```
 
+### Refresh Transport
+
+`api_refresh_transport` selects one mutually exclusive refresh channel:
+
+- `json` (default): login and refresh return `refresh_token`; refresh and logout
+  accept it only in the JSON body. WNCMS neither reads nor writes refresh/CSRF
+  cookies.
+- `cookie`: login and refresh never return refresh plaintext. WNCMS uses the
+  Secure, HttpOnly `__Secure-wncms_refresh` cookie and the readable Secure
+  `wncms_refresh_csrf` cookie. Both use `/api/v2/backend/auth`, host-only domain
+  scope by default, and the validated `SameSite` policy.
+
+Cookie-mode login, refresh, and logout require an exact allowed `Origin`,
+including scheme, host, and effective port. Missing, `null`, wildcard,
+malformed, and unapproved values are denied. `Referer` is considered only when
+`api_refresh_cookie_referer_fallback` is explicitly enabled and `Origin` is
+absent.
+
+For Cookie refresh and logout, copy `wncms_refresh_csrf` into the
+`X-WNCMS-CSRF` header. WNCMS compares both values and verifies their hash-only
+binding to the current session. Successful refresh rotates both cookies;
+logout and applicable session revocations expire both. A body/cookie channel
+mismatch returns `authentication.refresh_transport_mismatch`, while Origin and
+CSRF failures return `authentication.origin_denied` and
+`authentication.csrf_failed`.
+
+```javascript
+const csrf = readCookie('wncms_refresh_csrf')
+
+await fetch('https://api.example.test/api/v2/backend/auth/refresh', {
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-WNCMS-CSRF': csrf,
+  },
+  body: '{}',
+})
+```
+
 For guarded Links mutations, the user associated with this token is always the
 automation actor. Route permissions (`link_index`, `link_create`, `link_edit`,
 or `link_delete`) are checked against that user, and forced writes record the

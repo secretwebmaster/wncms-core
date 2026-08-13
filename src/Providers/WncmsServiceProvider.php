@@ -32,18 +32,23 @@ use Wncms\Api\V2\Repositories\CacheOperationRepository;
 use Wncms\Auth\Api\V2\AccessTokenService;
 use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\CredentialParser;
+use Wncms\Auth\Api\V2\CsrfTokenService;
 use Wncms\Auth\Api\V2\DummyPasswordHasher;
 use Wncms\Auth\Api\V2\LoginThrottleService;
+use Wncms\Auth\Api\V2\OriginPolicy;
 use Wncms\Auth\Api\V2\RefreshTokenService;
 use Wncms\Auth\Api\V2\RefreshTokenConsumer;
 use Wncms\Auth\Api\V2\SessionService;
 use Wncms\Auth\Api\V2\TokenHasher;
 use Wncms\Auth\Api\V2\WebsiteScopeGuard;
 use Wncms\Http\Middleware\ApiV2TokenAuth;
+use Wncms\Http\Middleware\EnforceApiV2RefreshTransport;
 use Wncms\Http\Middleware\RequireApiV2Ability;
 use Wncms\Http\Middleware\RequireApiV2ModelPermission;
 use Wncms\Http\Middleware\RequireApiV2Permission;
 use Wncms\Http\Middleware\ResolveApiV2WebsiteScope;
+use Wncms\Http\Middleware\ValidateApiV2RefreshCsrf;
+use Wncms\Http\Middleware\ValidateApiV2RefreshOrigin;
 
 class WncmsServiceProvider extends ServiceProvider
 {
@@ -109,10 +114,16 @@ class WncmsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('api_v2_model_permission', RequireApiV2ModelPermission::class);
         $router->aliasMiddleware('api_v2_website_scope', ResolveApiV2WebsiteScope::class);
         $router->aliasMiddleware('api_v2_idempotency', \Wncms\Http\Middleware\EnforceApiV2Idempotency::class);
+        $router->aliasMiddleware('api_v2_refresh_transport', EnforceApiV2RefreshTransport::class);
+        $router->aliasMiddleware('api_v2_refresh_origin', ValidateApiV2RefreshOrigin::class);
+        $router->aliasMiddleware('api_v2_refresh_csrf', ValidateApiV2RefreshCsrf::class);
 
         $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
         $kernel->prependToMiddlewarePriority(\Wncms\Http\Middleware\AssignApiV2RequestId::class);
         foreach ([
+            EnforceApiV2RefreshTransport::class,
+            ValidateApiV2RefreshOrigin::class,
+            ValidateApiV2RefreshCsrf::class,
             ApiV2TokenAuth::class,
             RequireApiV2Ability::class,
             RequireApiV2Permission::class,
@@ -263,8 +274,11 @@ class WncmsServiceProvider extends ServiceProvider
     {
         $replayResponseTrust = ReplayResponseTrust::create();
 
+        $this->app->bind(AuthSecurityConfig::class, static fn () => AuthSecurityConfig::fromRuntime());
         $this->app->singleton(TokenHasher::class);
         $this->app->singleton(CredentialParser::class);
+        $this->app->bind(OriginPolicy::class);
+        $this->app->singleton(CsrfTokenService::class);
         $this->app->singleton(DummyPasswordHasher::class);
         $this->app->singleton(AccessTokenService::class);
         $this->app->singleton(RefreshTokenService::class);

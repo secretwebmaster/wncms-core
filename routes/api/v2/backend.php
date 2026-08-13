@@ -14,10 +14,14 @@ Route::prefix('v2/backend')
     ->middleware(['api', 'api_v2_whitelist'])
     ->group(function () {
         Route::post('/auth/login', [AuthController::class, 'login'])
-            ->middleware('throttle:api-v2-login')
+            ->middleware(['api_v2_refresh_transport', 'api_v2_refresh_origin', 'throttle:api-v2-login'])
             ->name('auth.login');
-        Route::post('/auth/refresh', [AuthController::class, 'refresh'])->name('auth.refresh');
-        Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
+        Route::post('/auth/refresh', [AuthController::class, 'refresh'])
+            ->middleware(['api_v2_refresh_transport', 'api_v2_refresh_origin', 'api_v2_refresh_csrf'])
+            ->name('auth.refresh');
+        Route::post('/auth/logout', [AuthController::class, 'logout'])
+            ->middleware(['api_v2_refresh_transport', 'api_v2_refresh_origin', 'api_v2_refresh_csrf'])
+            ->name('auth.logout');
 
         Route::middleware(['api_v2_token_auth'])->group(function () {
             Route::post('/auth/logout-all', [AuthController::class, 'logoutAll'])

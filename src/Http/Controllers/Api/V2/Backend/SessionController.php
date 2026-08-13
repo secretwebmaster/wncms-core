@@ -4,9 +4,12 @@ namespace Wncms\Http\Controllers\Api\V2\Backend;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Auth\Api\V2\ApiCredential;
+use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\AuthenticationContext;
+use Wncms\Auth\Api\V2\OriginPolicy;
 use Wncms\Auth\Api\V2\SessionService;
 use Wncms\Models\ApiSession;
 use Wncms\Models\User;
@@ -17,9 +20,14 @@ class SessionController extends ApiV2Controller
      * Create the session management controller.
      *
      * @param  \Wncms\Auth\Api\V2\SessionService  $sessions
+     * @param  \Wncms\Auth\Api\V2\AuthSecurityConfig  $securityConfig
+     * @param  \Wncms\Auth\Api\V2\OriginPolicy  $originPolicy
      */
-    public function __construct(private SessionService $sessions)
-    {
+    public function __construct(
+        private SessionService $sessions,
+        private AuthSecurityConfig $securityConfig,
+        private OriginPolicy $originPolicy,
+    ) {
     }
 
     /**
@@ -73,7 +81,28 @@ class SessionController extends ApiV2Controller
             return $this->securityAuditUnavailable($exception);
         }
 
-        return $this->ok(null, 'session_revoked');
+        $response = $this->ok(null, 'session_revoked');
+        if ($this->securityConfig->refreshTransport() !== 'cookie'
+            || !hash_equals((string) $session->session_id, (string) $context->sessionPublicId())) {
+            return $response;
+        }
+
+        $options = $this->originPolicy->cookieOptions();
+        foreach ([OriginPolicy::REFRESH_COOKIE => true, OriginPolicy::CSRF_COOKIE => false] as $name => $httpOnly) {
+            $response->headers->setCookie(Cookie::create(
+                $name,
+                '',
+                1,
+                $options['path'],
+                $options['domain'],
+                $options['secure'],
+                $httpOnly,
+                false,
+                $options['same_site'],
+            ));
+        }
+
+        return $response;
     }
 
     /**

@@ -27,6 +27,7 @@ final class RefreshTokenService
         private RefreshTokenConsumer $consumer,
         private SecurityEventService $events,
         private ApiContractRegistry $contracts,
+        private AuthSecurityConfig $config,
     ) {
     }
 
@@ -175,7 +176,8 @@ final class RefreshTokenService
     {
         $sessionModel = wncms()->getModelClass('api_session');
         $session = $sessionModel::query()->whereKey($token->session_id)->where('user_id', $token->user_id)->first();
-        if (!$session instanceof $sessionModel || $session->refresh_transport !== 'json') {
+        if (!$session instanceof $sessionModel
+            || $session->refresh_transport !== $this->config->refreshTransport()) {
             throw new RefreshTokenException('authentication.refresh_invalid');
         }
 
