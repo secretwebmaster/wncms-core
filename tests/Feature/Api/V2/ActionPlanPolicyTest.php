@@ -81,6 +81,47 @@ class ActionPlanPolicyTest extends TestCase
     }
 
     /**
+     * Verify the middleware executor rejects caller-owned transactions before resolving or mutating state.
+     */
+    public function test_middleware_executor_rejects_ambient_transaction_before_resolution(): void
+    {
+        [$context, $operation] = $this->fixture();
+        $resolved = 0;
+        $executed = 0;
+
+        try {
+            app(ActionPlanService::class)->executeMiddlewareOperation(
+                $context,
+                $operation,
+                '',
+                '',
+                '',
+                ['setting'],
+                [],
+                false,
+                function () use (&$resolved): RiskContext {
+                    $resolved++;
+
+                    return new RiskContext([], [], [], ['setting']);
+                },
+                function () use (&$executed): null {
+                    $executed++;
+
+                    return null;
+                },
+            );
+            $this->fail('Expected ambient transaction denial.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Risk middleware execution requires a service-owned outer transaction.', $exception->getMessage());
+        }
+
+        $this->assertSame(0, $resolved);
+        $this->assertSame(0, $executed);
+        $this->assertSame(0, DB::table('api_action_plans')->count());
+        $this->assertSame(0, DB::table('api_security_events')->count());
+    }
+
+    /**
      * Verify direct service callers cannot bypass the authoritative permission snapshot.
      */
     public function test_direct_service_create_rejects_unauthorized_callers_without_plan_or_event(): void

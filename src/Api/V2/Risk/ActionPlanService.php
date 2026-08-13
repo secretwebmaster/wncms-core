@@ -72,6 +72,9 @@ final class ActionPlanService
             throw new \RuntimeException('Domain, authorization, security mutation, and event connections must match.');
         }
         $connection = DB::connection($connections[0]);
+        if ($connection->transactionLevel() !== 0) {
+            throw new \RuntimeException('Risk middleware execution requires a service-owned outer transaction.');
+        }
         $denialContext = null;
         $stepReserved = false;
         try {
