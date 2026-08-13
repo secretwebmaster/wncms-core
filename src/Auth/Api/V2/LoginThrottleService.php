@@ -3,6 +3,7 @@
 namespace Wncms\Auth\Api\V2;
 
 use Illuminate\Cache\RateLimiter;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Sleep;
 
 final class LoginThrottleService
@@ -45,8 +46,15 @@ final class LoginThrottleService
      */
     public function clearAccount(string $identifier): void
     {
-        $this->limiter->clear($this->delayKey($identifier));
-        $this->limiter->clear($this->middlewareStorageKey(self::accountKey($identifier)));
+        try {
+            $this->limiter->clear($this->delayKey($identifier));
+            $this->limiter->clear($this->middlewareStorageKey(self::accountKey($identifier)));
+        } catch (\Throwable $exception) {
+            Log::warning('WNCMS login limiter state could not be cleared after successful authentication.', [
+                'account_key' => self::accountKey($identifier),
+                'exception' => $exception::class,
+            ]);
+        }
     }
 
     /**

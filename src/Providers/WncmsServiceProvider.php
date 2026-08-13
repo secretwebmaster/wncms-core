@@ -32,8 +32,10 @@ use Wncms\Api\V2\Repositories\CacheOperationRepository;
 use Wncms\Auth\Api\V2\AccessTokenService;
 use Wncms\Auth\Api\V2\AuthSecurityConfig;
 use Wncms\Auth\Api\V2\CredentialParser;
+use Wncms\Auth\Api\V2\DummyPasswordHasher;
 use Wncms\Auth\Api\V2\LoginThrottleService;
 use Wncms\Auth\Api\V2\RefreshTokenService;
+use Wncms\Auth\Api\V2\RefreshTokenConsumer;
 use Wncms\Auth\Api\V2\SessionService;
 use Wncms\Auth\Api\V2\TokenHasher;
 use Wncms\Auth\Api\V2\WebsiteScopeGuard;
@@ -263,8 +265,10 @@ class WncmsServiceProvider extends ServiceProvider
 
         $this->app->singleton(TokenHasher::class);
         $this->app->singleton(CredentialParser::class);
+        $this->app->singleton(DummyPasswordHasher::class);
         $this->app->singleton(AccessTokenService::class);
         $this->app->singleton(RefreshTokenService::class);
+        $this->app->singleton(RefreshTokenConsumer::class);
         $this->app->singleton(SessionService::class);
         $this->app->singleton(LoginThrottleService::class);
         $this->app->singleton(WebsiteScopeGuard::class);

@@ -20,10 +20,18 @@ Route::prefix('v2/backend')
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
         Route::middleware(['api_v2_token_auth'])->group(function () {
-            Route::post('/auth/logout-all', [AuthController::class, 'logoutAll'])->name('auth.logout_all');
+            Route::post('/auth/logout-all', [AuthController::class, 'logoutAll'])
+                ->defaults('api_operation_id', 'backend.auth.logout_all')
+                ->defaults('api_website_identity', 'global:interactive-sessions')
+                ->middleware('api_v2_idempotency')
+                ->name('auth.logout_all');
             Route::get('/auth/me', [AuthController::class, 'me'])->name('auth.me');
             Route::get('/auth/sessions', [SessionController::class, 'index'])->name('auth.sessions.index');
-            Route::delete('/auth/sessions/{session_id}', [SessionController::class, 'destroy'])->name('auth.sessions.destroy');
+            Route::delete('/auth/sessions/{session_id}', [SessionController::class, 'destroy'])
+                ->defaults('api_operation_id', 'backend.auth.sessions.destroy')
+                ->defaults('api_website_identity', 'global:interactive-sessions')
+                ->middleware('api_v2_idempotency')
+                ->name('auth.sessions.destroy');
             Route::get('/i18n/ui', [I18nController::class, 'ui'])->name('i18n.ui');
             Route::get('/translations', [I18nController::class, 'translations'])->name('translations');
             Route::get('/operations/{id}', [OperationController::class, 'show'])->name('operations.show');

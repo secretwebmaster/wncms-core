@@ -14,6 +14,7 @@ use Wncms\Auth\Api\V2\AccessTokenService;
 use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\CredentialParser;
+use Wncms\Auth\Api\V2\DummyPasswordHasher;
 use Wncms\Auth\Api\V2\IssuedRefreshToken;
 use Wncms\Auth\Api\V2\LoginThrottleService;
 use Wncms\Auth\Api\V2\RefreshTokenException;
@@ -25,8 +26,6 @@ use Wncms\Services\Security\SecurityEventService;
 
 class AuthController extends ApiV2Controller
 {
-    private const DUMMY_PASSWORD_HASH = '$2y$12$4aFA.ykM5XMKDzyVdqTrf.vBrhSnISI8Ky6tVD4lIH9qhQ56uQp6m';
-
     /**
      * Create the interactive authentication controller.
      *
@@ -34,6 +33,7 @@ class AuthController extends ApiV2Controller
      * @param  \Wncms\Auth\Api\V2\RefreshTokenService  $refreshTokens
      * @param  \Wncms\Auth\Api\V2\SessionService  $sessions
      * @param  \Wncms\Auth\Api\V2\CredentialParser  $credentials
+     * @param  \Wncms\Auth\Api\V2\DummyPasswordHasher  $dummyPasswords
      * @param  \Wncms\Auth\Api\V2\LoginThrottleService  $loginThrottle
      * @param  \Wncms\Services\Security\SecurityEventService  $events
      * @param  \Wncms\Api\V2\ApiContractRegistry  $contracts
@@ -43,6 +43,7 @@ class AuthController extends ApiV2Controller
         private RefreshTokenService $refreshTokens,
         private SessionService $sessions,
         private CredentialParser $credentials,
+        private DummyPasswordHasher $dummyPasswords,
         private LoginThrottleService $loginThrottle,
         private SecurityEventService $events,
         private ApiContractRegistry $contracts,
@@ -68,10 +69,10 @@ class AuthController extends ApiV2Controller
         $identifier = mb_strtolower(trim((string) $validated['email']));
         $userModel = wncms()->getModelClass('user');
         $user = $userModel::query()->where('email', $identifier)->first();
-        $passwordHash = $user instanceof User ? (string) $user->password : self::DUMMY_PASSWORD_HASH;
+        $passwordHash = $user instanceof $userModel ? (string) $user->password : $this->dummyPasswords->material();
         $valid = Hash::check((string) $validated['password'], $passwordHash);
 
-        if (!$valid || !$user instanceof User || $this->userIsDisabled($user)) {
+        if (!$valid || !$user instanceof $userModel || $this->userIsDisabled($user)) {
             $this->loginThrottle->recordFailure($identifier);
             $this->recordLoginFailure($request, $identifier);
 
@@ -93,7 +94,8 @@ class AuthController extends ApiV2Controller
 
         try {
             $issued = $this->events->withinTransaction(function () use ($user, $remembered, $expiresAt, $deviceName, $now, $sessionId): array {
-                $session = ApiSession::create([
+                $sessionModel = wncms()->getModelClass('api_session');
+                $session = $sessionModel::create([
                     'session_id' => $sessionId,
                     'user_id' => $user->getKey(),
                     'device_name' => $deviceName,
@@ -118,13 +120,7 @@ class AuthController extends ApiV2Controller
                 'context' => $this->loginEventContext($request, $identifier, $user, $sessionId),
             ]);
         } catch (\Throwable $exception) {
-            report($exception);
-
-            return $this->responseFactory()->failure(
-                'security.audit_unavailable',
-                'Security audit is unavailable',
-                Response::HTTP_SERVICE_UNAVAILABLE,
-            );
+            return $this->securityAuditUnavailable($exception);
         }
 
         $this->loginThrottle->clearAccount($identifier);
@@ -150,8 +146,10 @@ class AuthController extends ApiV2Controller
 
         try {
             $pair = $this->refreshTokens->rotate($credential);
-            $session = ApiSession::query()->findOrFail($pair->refresh->model->session_id);
-            $user = User::query()->findOrFail($pair->refresh->model->user_id);
+            $sessionModel = wncms()->getModelClass('api_session');
+            $userModel = wncms()->getModelClass('user');
+            $session = $sessionModel::query()->findOrFail($pair->refresh->model->session_id);
+            $user = $userModel::query()->findOrFail($pair->refresh->model->user_id);
 
             return $this->ok($this->credentialResponse($pair->access, $pair->refresh, $session, $user));
         } catch (RefreshTokenException $exception) {
@@ -163,13 +161,7 @@ class AuthController extends ApiV2Controller
                 $exception->httpStatus,
             );
         } catch (\Throwable $exception) {
-            report($exception);
-
-            return $this->responseFactory()->failure(
-                'security.audit_unavailable',
-                'Security audit is unavailable',
-                Response::HTTP_SERVICE_UNAVAILABLE,
-            );
+            return $this->securityAuditUnavailable($exception);
         }
     }
 
@@ -189,13 +181,7 @@ class AuthController extends ApiV2Controller
             try {
                 $this->sessions->logout($session);
             } catch (\Throwable $exception) {
-                report($exception);
-
-                return $this->responseFactory()->failure(
-                    'security.audit_unavailable',
-                    'Security audit is unavailable',
-                    Response::HTTP_SERVICE_UNAVAILABLE,
-                );
+                return $this->securityAuditUnavailable($exception);
             }
         }
 
@@ -221,7 +207,17 @@ class AuthController extends ApiV2Controller
             );
         }
 
-        $count = $this->sessions->revokeAll($context->actor());
+        $sessionModel = wncms()->getModelClass('api_session');
+        $currentSession = $sessionModel::query()
+            ->where('session_id', $context->sessionPublicId())
+            ->where('user_id', $context->actor()->getAuthIdentifier())
+            ->first();
+
+        try {
+            $count = $this->sessions->revokeAll($context->actor(), $currentSession?->getKey());
+        } catch (\Throwable $exception) {
+            return $this->securityAuditUnavailable($exception);
+        }
 
         return $this->ok(['revoked_sessions' => $count], 'logout_all_success');
     }
@@ -376,7 +372,7 @@ class AuthController extends ApiV2Controller
         return [
             'surface' => 'api_v2',
             'request_id' => $request->attributes->get('wncms_api_v2_request_id'),
-            'actor_type' => User::class,
+            'actor_type' => $user::class,
             'actor_id' => $user->getKey(),
             'session_id' => $sessionId,
             'ip' => (string) $request->ip(),

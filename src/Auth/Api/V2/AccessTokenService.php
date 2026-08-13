@@ -146,13 +146,15 @@ final class AccessTokenService
         try {
             $now = CarbonImmutable::now('UTC');
             $cutoff = $now->subMinutes(5);
-            ApiAccessToken::query()
+            $accessModel = wncms()->getModelClass('api_access_token');
+            $sessionModel = wncms()->getModelClass('api_session');
+            $accessModel::query()
                 ->whereKey($token->getKey())
                 ->where(function ($query) use ($cutoff): void {
                     $query->whereNull('last_used_at')->orWhere('last_used_at', '<=', $cutoff);
                 })
                 ->update(['last_used_at' => $now, 'updated_at' => $now]);
-            ApiSession::query()
+            $sessionModel::query()
                 ->whereKey($session->getKey())
                 ->where(function ($query) use ($cutoff): void {
                     $query->whereNull('last_activity_at')->orWhere('last_activity_at', '<=', $cutoff);

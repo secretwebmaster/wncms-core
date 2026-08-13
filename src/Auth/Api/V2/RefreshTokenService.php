@@ -3,7 +3,6 @@
 namespace Wncms\Auth\Api\V2;
 
 use Carbon\CarbonImmutable;
-use Closure;
 use Illuminate\Support\Str;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Models\ApiRefreshToken;
@@ -16,21 +15,18 @@ final class RefreshTokenService
     /**
      * Create the refresh-token lifecycle service.
      *
-     * The optional callback is a deterministic race-test seam invoked immediately before
-     * the database conditional consume. Production resolution never supplies it.
-     *
      * @param  \Wncms\Auth\Api\V2\TokenHasher  $hasher
      * @param  \Wncms\Auth\Api\V2\AccessTokenService  $accessTokens
+     * @param  \Wncms\Auth\Api\V2\RefreshTokenConsumer  $consumer
      * @param  \Wncms\Services\Security\SecurityEventService  $events
      * @param  \Wncms\Api\V2\ApiContractRegistry  $contracts
-     * @param  \Closure|null  $beforeConsume
      */
     public function __construct(
         private TokenHasher $hasher,
         private AccessTokenService $accessTokens,
+        private RefreshTokenConsumer $consumer,
         private SecurityEventService $events,
         private ApiContractRegistry $contracts,
-        private ?Closure $beforeConsume = null,
     ) {
     }
 
@@ -75,27 +71,17 @@ final class RefreshTokenService
             throw new RefreshTokenException('authentication.refresh_expired');
         }
 
-        if ($this->beforeConsume !== null) {
-            ($this->beforeConsume)();
-        }
-
         try {
             return $this->events->withinTransaction(function () use ($token, $session): RotatedCredentialPair {
                 $now = CarbonImmutable::now('UTC');
                 $replacementMaterial = $this->hasher->issue('wncms_rt');
-                $consumed = ApiRefreshToken::query()
-                    ->whereKey($token->getKey())
-                    ->whereNull('consumed_at')
-                    ->whereNull('revoked_at')
-                    ->update([
-                        'consumed_at' => $now,
-                        'replaced_by_token_id' => $replacementMaterial['public_id'],
-                        'updated_at' => $now,
-                    ]);
-
-                if ($consumed !== 1) {
-                    throw new RefreshRotationLost('The refresh token was consumed by another request.');
-                }
+                $refreshModel = wncms()->getModelClass('api_refresh_token');
+                $this->consumer->consume(
+                    $refreshModel,
+                    $token->getKey(),
+                    $replacementMaterial['public_id'],
+                    $now,
+                );
 
                 $refresh = $this->persistIssued(
                     $session,
@@ -118,14 +104,14 @@ final class RefreshTokenService
                 'outcome' => 'succeeded',
                 'context' => [
                     'surface' => 'api_v2',
-                    'actor_type' => User::class,
+                    'actor_type' => wncms()->getModelClass('user'),
                     'actor_id' => $token->user_id,
                     'credential_type' => ApiCredential::TYPE_REFRESH,
                     'credential_id' => $token->token_id,
                     'session_id' => $session->session_id,
                 ],
             ]);
-        } catch (RefreshRotationLost $exception) {
+        } catch (RefreshTokenReuseException $exception) {
             $token->refresh();
             $this->revokeForReuse($token, $session);
         }
@@ -147,9 +133,10 @@ final class RefreshTokenService
             return null;
         }
 
-        $session = ApiSession::query()->whereKey($token->session_id)->where('user_id', $token->user_id)->first();
+        $sessionModel = wncms()->getModelClass('api_session');
+        $session = $sessionModel::query()->whereKey($token->session_id)->where('user_id', $token->user_id)->first();
 
-        return $session instanceof ApiSession ? $session : null;
+        return $session instanceof $sessionModel ? $session : null;
     }
 
     /**
@@ -166,8 +153,9 @@ final class RefreshTokenService
             throw new RefreshTokenException('authentication.refresh_invalid');
         }
 
-        $token = ApiRefreshToken::query()->where('token_id', $credential->publicId())->first();
-        if (!$token instanceof ApiRefreshToken
+        $refreshModel = wncms()->getModelClass('api_refresh_token');
+        $token = $refreshModel::query()->where('token_id', $credential->publicId())->first();
+        if (!$token instanceof $refreshModel
             || !$this->hasher->matches($credential->plainText(), (string) $token->token_hash)) {
             throw new RefreshTokenException('authentication.refresh_invalid');
         }
@@ -185,8 +173,9 @@ final class RefreshTokenService
      */
     private function activeSession(ApiRefreshToken $token): ApiSession
     {
-        $session = ApiSession::query()->whereKey($token->session_id)->where('user_id', $token->user_id)->first();
-        if (!$session instanceof ApiSession || $session->refresh_transport !== 'json') {
+        $sessionModel = wncms()->getModelClass('api_session');
+        $session = $sessionModel::query()->whereKey($token->session_id)->where('user_id', $token->user_id)->first();
+        if (!$session instanceof $sessionModel || $session->refresh_transport !== 'json') {
             throw new RefreshTokenException('authentication.refresh_invalid');
         }
 
@@ -204,7 +193,8 @@ final class RefreshTokenService
     {
         $this->events->withinTransaction(function () use ($session): void {
             $now = CarbonImmutable::now('UTC');
-            ApiSession::query()->whereKey($session->getKey())->whereNull('revoked_at')->update([
+            $sessionModel = wncms()->getModelClass('api_session');
+            $sessionModel::query()->whereKey($session->getKey())->whereNull('revoked_at')->update([
                 'revoked_at' => $now,
                 'revocation_reason' => 'refresh_reuse',
                 'updated_at' => $now,
@@ -216,7 +206,7 @@ final class RefreshTokenService
             'outcome' => 'denied',
             'context' => [
                 'surface' => 'api_v2',
-                'actor_type' => User::class,
+                'actor_type' => wncms()->getModelClass('user'),
                 'actor_id' => $token->user_id,
                 'credential_type' => ApiCredential::TYPE_REFRESH,
                 'credential_id' => $token->token_id,
@@ -265,7 +255,8 @@ final class RefreshTokenService
         $expiresAt = $session->expires_at === null
             ? null
             : CarbonImmutable::instance($session->expires_at);
-        $model = ApiRefreshToken::create([
+        $refreshModel = wncms()->getModelClass('api_refresh_token');
+        $model = $refreshModel::create([
             'token_id' => $material['public_id'],
             'token_hash' => $material['hash'],
             'user_id' => $session->user_id,
@@ -304,8 +295,9 @@ final class RefreshTokenService
      */
     private function activeUser(mixed $userId): User
     {
-        $user = User::query()->find($userId);
-        if (!$user instanceof User || (method_exists($user, 'hasRole') && $user->hasRole('suspended'))) {
+        $userModel = wncms()->getModelClass('user');
+        $user = $userModel::query()->find($userId);
+        if (!$user instanceof $userModel || (method_exists($user, 'hasRole') && $user->hasRole('suspended'))) {
             throw new RefreshTokenException('authentication.refresh_invalid');
         }
 

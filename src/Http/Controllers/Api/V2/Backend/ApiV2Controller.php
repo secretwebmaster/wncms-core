@@ -71,6 +71,25 @@ class ApiV2Controller extends ApiController
     }
 
     /**
+     * Map a mandatory security-audit failure to the stable fail-closed response.
+     *
+     * The audited service owns rollback; controllers own transport mapping.
+     *
+     * @param  \Throwable  $exception
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function securityAuditUnavailable(\Throwable $exception): JsonResponse
+    {
+        report($exception);
+
+        return $this->responseFactory()->failure(
+            'security.audit_unavailable',
+            'Security audit is unavailable',
+            Response::HTTP_SERVICE_UNAVAILABLE,
+        );
+    }
+
+    /**
      * Resolve the shared API v2 response factory.
      *
      * @return \Wncms\Api\V2\ApiResponseFactory

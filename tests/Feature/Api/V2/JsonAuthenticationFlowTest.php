@@ -3,21 +3,17 @@
 namespace Wncms\Tests\Feature\Api\V2;
 
 use Carbon\CarbonImmutable;
-use Fiber;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Wncms\Auth\Api\V2\CredentialParser;
+use Symfony\Component\Process\Process;
 use Wncms\Auth\Api\V2\AccessTokenService;
-use Wncms\Auth\Api\V2\TokenHasher;
-use Wncms\Auth\Api\V2\RefreshTokenReuseException;
-use Wncms\Auth\Api\V2\RefreshTokenService;
-use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Auth\Api\V2\CredentialParser;
 use Wncms\Models\ApiRefreshToken;
 use Wncms\Models\ApiSession;
 use Wncms\Models\User;
 use Wncms\Models\Website;
-use Wncms\Services\Security\SecurityEventService;
 use Wncms\Tests\TestCase;
 
 class JsonAuthenticationFlowTest extends TestCase
@@ -146,49 +142,119 @@ class JsonAuthenticationFlowTest extends TestCase
     }
 
     /**
-     * Verify the production atomic consume predicate has exactly one winner at a race barrier.
+     * Verify two operating-system processes race the production consume predicate safely.
      *
-     * This controlled race seam runs both contenders from the same pre-consume state. The
-     * loser must observe the affected-row predicate and surface typed replay detection.
+     * Each process owns an independent SQLite connection, observes the token as unconsumed,
+     * reaches a database-visible file barrier, and then competes on the conditional update.
      *
      * @return void
      */
     public function test_two_racing_rotations_have_exactly_one_atomic_consume_winner(): void
     {
-        $login = $this->loginJson()->json('data');
-        $credential = app(CredentialParser::class)->parse($login['refresh_token']);
-        $barrier = static function (): void {
-            Fiber::suspend('ready-to-consume');
-        };
-        $service = static fn (): RefreshTokenService => new RefreshTokenService(
-            app(TokenHasher::class),
-            app(AccessTokenService::class),
-            app(SecurityEventService::class),
-            app(ApiContractRegistry::class),
-            $barrier,
-        );
-        $contender = static function (RefreshTokenService $service) use ($credential): string {
-            try {
-                $service->rotate($credential);
+        if (!class_exists(Process::class) || !function_exists('proc_open')) {
+            $this->markTestSkipped('Independent process execution is unavailable.');
+        }
 
-                return 'success';
-            } catch (RefreshTokenReuseException $exception) {
-                return 'reuse';
+        $directory = sys_get_temp_dir().'/wncms-refresh-race-'.bin2hex(random_bytes(8));
+        mkdir($directory, 0700, true);
+        $database = $directory.'/race.sqlite';
+        $pdo = new \PDO('sqlite:'.$database);
+        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $pdo->exec('PRAGMA journal_mode=WAL');
+        $pdo->exec('CREATE TABLE api_refresh_tokens (id INTEGER PRIMARY KEY AUTOINCREMENT, token_id TEXT NOT NULL, consumed_at TEXT NULL, revoked_at TEXT NULL, replaced_by_token_id TEXT NULL, updated_at TEXT NULL)');
+        $pdo->exec('CREATE TABLE refresh_race_barrier (contender TEXT PRIMARY KEY, state TEXT NOT NULL)');
+        $pdo->exec("INSERT INTO api_refresh_tokens (token_id) VALUES ('race-token')");
+        $tokenId = (int) $pdo->lastInsertId();
+        $worker = dirname(__DIR__, 3).'/Support/RefreshTokenRaceWorker.php';
+        $processes = [];
+
+        try {
+            foreach (['first', 'second'] as $contender) {
+                $process = new Process([
+                    PHP_BINARY,
+                    $worker,
+                    dirname(__DIR__, 4),
+                    $database,
+                    $contender,
+                    (string) $tokenId,
+                ]);
+                $process->start();
+                $processes[$contender] = $process;
             }
-        };
-        $first = new Fiber(fn (): string => $contender($service()));
-        $second = new Fiber(fn (): string => $contender($service()));
 
-        $this->assertSame('ready-to-consume', $first->start());
-        $this->assertSame('ready-to-consume', $second->start());
-        $first->resume();
-        $second->resume();
+            $deadline = microtime(true) + 10;
+            while ((int) $pdo->query("SELECT COUNT(*) FROM refresh_race_barrier WHERE state = 'ready'")->fetchColumn() !== 2 && microtime(true) < $deadline) {
+                usleep(10_000);
+            }
+            $this->assertSame(2, (int) $pdo->query("SELECT COUNT(*) FROM refresh_race_barrier WHERE state = 'ready'")->fetchColumn());
+            $pdo->exec("INSERT INTO refresh_race_barrier (contender, state) VALUES ('coordinator', 'start')");
 
-        $outcomes = [$first->getReturn(), $second->getReturn()];
+            $outcomes = [];
+            foreach ($processes as $process) {
+                $process->wait();
+                $this->assertSame(0, $process->getExitCode(), $process->getErrorOutput().$process->getOutput());
+                $outcomes[] = trim($process->getOutput());
+            }
 
-        sort($outcomes);
-        $this->assertSame(['reuse', 'success'], $outcomes);
-        $this->assertSame(1, ApiRefreshToken::query()->whereNotNull('consumed_at')->where('token_id', $credential->publicId())->count());
+            sort($outcomes);
+            $this->assertSame(['reuse', 'success'], $outcomes);
+            $this->assertSame(1, (int) $pdo->query('SELECT COUNT(*) FROM api_refresh_tokens WHERE consumed_at IS NOT NULL')->fetchColumn());
+        } finally {
+            foreach ($processes as $process) {
+                if ($process->isRunning()) {
+                    $process->stop();
+                }
+            }
+            foreach (glob($directory.'/*') ?: [] as $file) {
+                unlink($file);
+            }
+            rmdir($directory);
+        }
+    }
+
+    /**
+     * Verify login, refresh, authentication activity, and revocation honor model overrides.
+     *
+     * @return void
+     */
+    public function test_interactive_lifecycle_resolves_all_applicable_models_through_the_registry(): void
+    {
+        config([
+            'wncms.models.api_session' => ['class' => Task6ApiSessionOverride::class],
+            'wncms.models.api_access_token' => ['class' => Task6ApiAccessTokenOverride::class],
+            'wncms.models.api_refresh_token' => ['class' => Task6ApiRefreshTokenOverride::class],
+        ]);
+        foreach (['api_session', 'api_access_token', 'api_refresh_token'] as $modelKey) {
+            $this->clearCachedModelClass($modelKey);
+        }
+        Task6ApiSessionOverride::resetTracking();
+        Task6ApiAccessTokenOverride::resetTracking();
+        Task6ApiRefreshTokenOverride::resetTracking();
+
+        $login = $this->loginJson(['device_name' => 'registry-override'])->json('data');
+
+        $this->assertSame(1, Task6ApiSessionOverride::$creates);
+        $this->assertSame(1, Task6ApiAccessTokenOverride::$creates);
+        $this->assertSame(1, Task6ApiRefreshTokenOverride::$creates);
+
+        $this->refreshJson($login['refresh_token'])->assertOk();
+        $this->assertSame(2, Task6ApiAccessTokenOverride::$creates);
+        $this->assertSame(2, Task6ApiRefreshTokenOverride::$creates);
+
+        DB::table('api_sessions')
+            ->where('session_id', $login['session']['id'])
+            ->update(['last_activity_at' => now()->subMinutes(10)]);
+        Task6ApiSessionOverride::$builderUpdates = 0;
+        Task6ApiAccessTokenOverride::$builderUpdates = 0;
+        $credential = app(CredentialParser::class)->parse($login['access_token']);
+        app(AccessTokenService::class)->authenticate($credential);
+        $this->assertGreaterThanOrEqual(1, Task6ApiSessionOverride::$builderUpdates);
+        $this->assertGreaterThanOrEqual(1, Task6ApiAccessTokenOverride::$builderUpdates);
+
+        $session = Task6ApiSessionOverride::query()->where('session_id', $login['session']['id'])->firstOrFail();
+        Task6ApiSessionOverride::$builderUpdates = 0;
+        app(\Wncms\Auth\Api\V2\SessionService::class)->revoke($session, 'registry-test');
+        $this->assertGreaterThanOrEqual(1, Task6ApiSessionOverride::$builderUpdates);
     }
 
     /**
@@ -241,5 +307,132 @@ class JsonAuthenticationFlowTest extends TestCase
                 'user_agent' => 'task6-json-agent-correlation-key-1234567890',
             ]],
         ]]);
+    }
+
+    /**
+     * Forget one WNCMS model resolution cache entry after changing its test override.
+     *
+     * @param  string  $key
+     * @return void
+     */
+    private function clearCachedModelClass(string $key): void
+    {
+        $wncms = wncms();
+        $reflection = new \ReflectionObject($wncms);
+        $property = $reflection->getProperty('modelClassCache');
+        $property->setAccessible(true);
+        $cache = (array) $property->getValue($wncms);
+        unset($cache[$key]);
+        $property->setValue($wncms, $cache);
+    }
+}
+
+/**
+ * Track builder mutations executed through a configured API model override.
+ */
+class Task6TrackingBuilder extends Builder
+{
+    /**
+     * Track updates before delegating to Eloquent.
+     *
+     * @param  array<string, mixed>  $values
+     * @return int
+     */
+    public function update(array $values)
+    {
+        $modelClass = $this->getModel()::class;
+        $modelClass::$builderUpdates++;
+
+        return parent::update($values);
+    }
+}
+
+/**
+ * Test-only API session registry override.
+ */
+class Task6ApiSessionOverride extends ApiSession
+{
+    public static int $creates = 0;
+
+    public static int $builderUpdates = 0;
+
+    protected $table = 'api_sessions';
+
+    protected static function booted(): void
+    {
+        static::creating(static function (): void {
+            self::$creates++;
+        });
+    }
+
+    public function newEloquentBuilder($query): Builder
+    {
+        return new Task6TrackingBuilder($query);
+    }
+
+    public static function resetTracking(): void
+    {
+        self::$creates = 0;
+        self::$builderUpdates = 0;
+    }
+}
+
+/**
+ * Test-only API access-token registry override.
+ */
+class Task6ApiAccessTokenOverride extends \Wncms\Models\ApiAccessToken
+{
+    public static int $creates = 0;
+
+    public static int $builderUpdates = 0;
+
+    protected $table = 'api_access_tokens';
+
+    protected static function booted(): void
+    {
+        static::creating(static function (): void {
+            self::$creates++;
+        });
+    }
+
+    public function newEloquentBuilder($query): Builder
+    {
+        return new Task6TrackingBuilder($query);
+    }
+
+    public static function resetTracking(): void
+    {
+        self::$creates = 0;
+        self::$builderUpdates = 0;
+    }
+}
+
+/**
+ * Test-only API refresh-token registry override.
+ */
+class Task6ApiRefreshTokenOverride extends ApiRefreshToken
+{
+    public static int $creates = 0;
+
+    public static int $builderUpdates = 0;
+
+    protected $table = 'api_refresh_tokens';
+
+    protected static function booted(): void
+    {
+        static::creating(static function (): void {
+            self::$creates++;
+        });
+    }
+
+    public function newEloquentBuilder($query): Builder
+    {
+        return new Task6TrackingBuilder($query);
+    }
+
+    public static function resetTracking(): void
+    {
+        self::$creates = 0;
+        self::$builderUpdates = 0;
     }
 }

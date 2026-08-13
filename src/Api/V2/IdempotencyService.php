@@ -250,6 +250,15 @@ class IdempotencyService
      */
     protected function websiteIdentity(Request $request): string
     {
+        $route = $request->route();
+        $explicitIdentity = $route instanceof Route
+            ? ($route->defaults['api_website_identity'] ?? null)
+            : null;
+        if (is_string($explicitIdentity)
+            && preg_match('/^global:[a-z][a-z0-9-]{0,63}$/D', $explicitIdentity) === 1) {
+            return $explicitIdentity;
+        }
+
         $identity = $request->attributes->get(WebsiteScopeGuard::WEBSITE_IDENTITY_ATTRIBUTE);
         if (is_string($identity) && preg_match('/^website:[1-9][0-9]*$/D', $identity) === 1) {
             return $identity;

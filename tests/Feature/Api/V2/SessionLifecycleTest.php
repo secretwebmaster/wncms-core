@@ -4,7 +4,10 @@ namespace Wncms\Tests\Feature\Api\V2;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 use Wncms\Auth\Api\V2\SessionService;
 use Wncms\Auth\Api\V2\TokenHasher;
 use Wncms\Models\ApiServiceToken;
@@ -31,6 +34,7 @@ class SessionLifecycleTest extends TestCase
         parent::setUp();
 
         config([
+            'wncms-api-v2.idempotency.store' => 'array',
             'wncms-api-v2.auth_security.security_event_correlation' => [
                 'active_key_version' => 'v1',
                 'keys' => ['v1' => [
@@ -48,6 +52,8 @@ class SessionLifecycleTest extends TestCase
             'wncms.auth_security.login_window_minutes' => 15,
             'wncms.auth_security.login_progressive_delay_seconds' => [0],
         ]);
+        Cache::flush();
+        Cache::flushLocks();
         uss('enable_api_access', 1);
         uss('api_access_whitelist', '');
         $this->user = User::create([
@@ -100,12 +106,14 @@ class SessionLifecycleTest extends TestCase
         $strangerLogin = $this->loginAs($stranger, 'stranger-password', 'stranger');
 
         $this->withToken($strangerLogin['access_token'])
+            ->withHeader('Idempotency-Key', 'cross-user-revoke-01')
             ->deleteJson('/api/v2/backend/auth/sessions/'.$other['session']['id'])
             ->assertNotFound()
             ->assertJsonPath('meta.error_code', 'resource.not_found');
         $this->assertNull(ApiSession::query()->where('session_id', $other['session']['id'])->value('revoked_at'));
 
         $this->withToken($current['access_token'])
+            ->withHeader('Idempotency-Key', 'revoke-owner-session-01')
             ->deleteJson('/api/v2/backend/auth/sessions/'.$other['session']['id'])
             ->assertOk();
         $this->assertNotNull(ApiSession::query()->where('session_id', $other['session']['id'])->value('revoked_at'));
@@ -157,9 +165,40 @@ class SessionLifecycleTest extends TestCase
         $this->assertNotNull(ApiSession::query()->where('session_id', $second['session']['id'])->value('revoked_at'));
         $this->assertNull($serviceToken->fresh()->revoked_at);
 
-        $this->withToken($first['access_token'])->postJson('/api/v2/backend/auth/logout-all')->assertOk();
-        $this->assertNotNull($firstSession->fresh()->revoked_at);
+        $this->withToken($first['access_token'])
+            ->withHeader('Idempotency-Key', 'logout-all-session-01')
+            ->postJson('/api/v2/backend/auth/logout-all')
+            ->assertOk();
+        $this->assertNull($firstSession->fresh()->revoked_at);
         $this->assertNull($serviceToken->fresh()->revoked_at);
+    }
+
+    /**
+     * Verify logout-all preserves its requesting session so the same key can replay safely.
+     *
+     * @return void
+     */
+    public function test_logout_all_replays_the_same_key_and_revokes_every_other_interactive_session(): void
+    {
+        $current = $this->login('logout-all-current');
+        $other = $this->login('logout-all-other');
+        $key = 'logout-all-replay-key-01';
+
+        $first = $this->withToken($current['access_token'])
+            ->withHeader('Idempotency-Key', $key)
+            ->postJson('/api/v2/backend/auth/logout-all');
+        $first->assertOk()->assertJsonPath('data.revoked_sessions', 1);
+
+        $this->withToken($current['access_token'])
+            ->withHeader('Idempotency-Key', $key)
+            ->postJson('http://changed-session-host.test/api/v2/backend/auth/logout-all')
+            ->assertOk()
+            ->assertHeader('Idempotency-Replayed', 'true')
+            ->assertJsonPath('data.revoked_sessions', 1);
+
+        $this->assertNull(ApiSession::query()->where('session_id', $current['session']['id'])->value('revoked_at'));
+        $this->assertNotNull(ApiSession::query()->where('session_id', $other['session']['id'])->value('revoked_at'));
+        $this->assertSame(1, DB::table('api_security_events')->where('event_type', 'auth.logout_all.succeeded')->count());
     }
 
     /**
@@ -185,6 +224,161 @@ class SessionLifecycleTest extends TestCase
         $this->withToken($login['access_token'])->getJson('/api/v2/backend/auth/me')->assertOk();
         $this->assertTrue($session->fresh()->last_activity_at->equalTo(CarbonImmutable::now('UTC')));
         CarbonImmutable::setTestNow();
+    }
+
+    /**
+     * Verify session mutations require a valid idempotency key before changing state.
+     *
+     * @return void
+     */
+    public function test_session_mutations_reject_missing_and_invalid_idempotency_keys_without_revocation(): void
+    {
+        $current = $this->login('idempotency-current');
+        $other = $this->login('idempotency-other');
+
+        $this->withToken($current['access_token'])
+            ->deleteJson('/api/v2/backend/auth/sessions/'.$other['session']['id'])
+            ->assertBadRequest()
+            ->assertJsonPath('meta.error_code', 'idempotency.key_missing');
+        $this->withToken($current['access_token'])
+            ->withHeader('Idempotency-Key', 'short')
+            ->postJson('/api/v2/backend/auth/logout-all')
+            ->assertBadRequest()
+            ->assertJsonPath('meta.error_code', 'idempotency.key_invalid');
+
+        $this->assertNull(ApiSession::query()->where('session_id', $current['session']['id'])->value('revoked_at'));
+        $this->assertNull(ApiSession::query()->where('session_id', $other['session']['id'])->value('revoked_at'));
+    }
+
+    /**
+     * Verify both session mutations publish stable operation and global-scope identities.
+     *
+     * @return void
+     */
+    public function test_session_mutation_routes_publish_idempotency_contracts(): void
+    {
+        foreach ([
+            'api.v2.backend.auth.logout_all' => 'backend.auth.logout_all',
+            'api.v2.backend.auth.sessions.destroy' => 'backend.auth.sessions.destroy',
+        ] as $routeName => $operationId) {
+            $route = Route::getRoutes()->getByName($routeName);
+            $this->assertNotNull($route);
+            $this->assertSame($operationId, $route->defaults['api_operation_id'] ?? null);
+            $this->assertSame('global:interactive-sessions', $route->defaults['api_website_identity'] ?? null);
+            $this->assertContains('api_v2_idempotency', $route->gatherMiddleware());
+        }
+    }
+
+    /**
+     * Verify individual revoke replays once and rejects key reuse for another target or payload.
+     *
+     * @return void
+     */
+    public function test_individual_revoke_replays_same_key_and_conflicts_on_target_or_payload_change(): void
+    {
+        $current = $this->login('replay-current');
+        $first = $this->login('replay-first');
+        $second = $this->login('replay-second');
+        $key = 'session-revoke-replay-01';
+
+        $this->withToken($current['access_token'])
+            ->withHeader('Idempotency-Key', $key)
+            ->deleteJson('/api/v2/backend/auth/sessions/'.$first['session']['id'], ['reason' => 'one'])
+            ->assertOk();
+        $this->withToken($current['access_token'])
+            ->withHeader('Idempotency-Key', $key)
+            ->deleteJson('/api/v2/backend/auth/sessions/'.$first['session']['id'], ['reason' => 'one'])
+            ->assertOk()
+            ->assertHeader('Idempotency-Replayed', 'true');
+        $this->withToken($current['access_token'])
+            ->withHeader('Idempotency-Key', $key)
+            ->deleteJson('/api/v2/backend/auth/sessions/'.$second['session']['id'], ['reason' => 'one'])
+            ->assertConflict()
+            ->assertJsonPath('meta.error_code', 'idempotency.key_conflict');
+
+        $payloadKey = 'session-revoke-payload-01';
+        $this->withToken($current['access_token'])
+            ->withHeader('Idempotency-Key', $payloadKey)
+            ->deleteJson('/api/v2/backend/auth/sessions/'.$second['session']['id'], ['reason' => 'one'])
+            ->assertOk();
+        $this->withToken($current['access_token'])
+            ->withHeader('Idempotency-Key', $payloadKey)
+            ->deleteJson('/api/v2/backend/auth/sessions/'.$second['session']['id'], ['reason' => 'two'])
+            ->assertConflict()
+            ->assertJsonPath('meta.error_code', 'idempotency.key_conflict');
+    }
+
+    /**
+     * Verify missing mandatory correlation keys roll back logout-all and individual revoke.
+     *
+     * @return void
+     */
+    public function test_session_mutations_map_missing_audit_configuration_to_503_and_roll_back(): void
+    {
+        $current = $this->login('audit-config-current');
+        $other = $this->login('audit-config-other');
+        config(['wncms-api-v2.auth_security.security_event_correlation' => [
+            'active_key_version' => null,
+            'keys' => [],
+        ]]);
+
+        $this->withToken($current['access_token'])
+            ->withHeader('Idempotency-Key', 'audit-config-revoke-01')
+            ->deleteJson('/api/v2/backend/auth/sessions/'.$other['session']['id'])
+            ->assertStatus(503)
+            ->assertJsonPath('meta.error_code', 'security.audit_unavailable');
+        $this->withToken($current['access_token'])
+            ->withHeader('Idempotency-Key', 'audit-config-logout-01')
+            ->postJson('/api/v2/backend/auth/logout-all')
+            ->assertStatus(503)
+            ->assertJsonPath('meta.error_code', 'security.audit_unavailable');
+
+        $this->assertInteractivePairActive($current);
+        $this->assertInteractivePairActive($other);
+    }
+
+    /**
+     * Verify a real event insert failure rolls back logout-all and individual revoke.
+     *
+     * @return void
+     */
+    public function test_session_mutations_map_event_persistence_failure_to_503_and_roll_back(): void
+    {
+        $current = $this->login('audit-insert-current');
+        $other = $this->login('audit-insert-other');
+        DB::unprepared("CREATE TEMP TRIGGER task6_security_event_insert_failure BEFORE INSERT ON api_security_events BEGIN SELECT RAISE(FAIL, 'injected event insert failure'); END");
+
+        try {
+            $this->withToken($current['access_token'])
+                ->withHeader('Idempotency-Key', 'audit-insert-revoke-01')
+                ->deleteJson('/api/v2/backend/auth/sessions/'.$other['session']['id'])
+                ->assertStatus(503)
+                ->assertJsonPath('meta.error_code', 'security.audit_unavailable');
+            $this->withToken($current['access_token'])
+                ->withHeader('Idempotency-Key', 'audit-insert-logout-01')
+                ->postJson('/api/v2/backend/auth/logout-all')
+                ->assertStatus(503)
+                ->assertJsonPath('meta.error_code', 'security.audit_unavailable');
+        } finally {
+            DB::unprepared('DROP TRIGGER IF EXISTS task6_security_event_insert_failure');
+        }
+
+        $this->assertInteractivePairActive($current);
+        $this->assertInteractivePairActive($other);
+    }
+
+    /**
+     * Assert a login response still owns an active session/access/refresh triple.
+     *
+     * @param  array<string, mixed>  $login
+     * @return void
+     */
+    private function assertInteractivePairActive(array $login): void
+    {
+        $session = ApiSession::query()->where('session_id', $login['session']['id'])->firstOrFail();
+        $this->assertNull($session->revoked_at);
+        $this->assertDatabaseHas('api_access_tokens', ['session_id' => $session->id, 'revoked_at' => null]);
+        $this->assertDatabaseHas('api_refresh_tokens', ['session_id' => $session->id, 'revoked_at' => null]);
     }
 
     /**

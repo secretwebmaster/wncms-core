@@ -65,7 +65,8 @@ final class SessionService
     public function revokeAll(User $user, ?int $exceptSessionId = null): int
     {
         return $this->events->withinTransaction(function () use ($user, $exceptSessionId): int {
-            $query = ApiSession::query()->where('user_id', $user->getKey())->whereNull('revoked_at');
+            $sessionModel = wncms()->getModelClass('api_session');
+            $query = $sessionModel::query()->where('user_id', $user->getKey())->whereNull('revoked_at');
             if ($exceptSessionId !== null) {
                 $query->whereKeyNot($exceptSessionId);
             }
@@ -82,7 +83,7 @@ final class SessionService
             'outcome' => 'succeeded',
             'context' => [
                 'surface' => 'api_v2',
-                'actor_type' => User::class,
+                'actor_type' => $user::class,
                 'actor_id' => $user->getKey(),
                 'context' => ['reason' => 'logout_all'],
             ],
@@ -117,7 +118,8 @@ final class SessionService
     private function revokeRows(ApiSession $session, string $reason): void
     {
         $now = CarbonImmutable::now('UTC');
-        ApiSession::query()->whereKey($session->getKey())->whereNull('revoked_at')->update([
+        $sessionModel = wncms()->getModelClass('api_session');
+        $sessionModel::query()->whereKey($session->getKey())->whereNull('revoked_at')->update([
             'revoked_at' => $now,
             'revocation_reason' => $reason,
             'updated_at' => $now,
@@ -165,7 +167,7 @@ final class SessionService
     {
         return [
             'surface' => 'api_v2',
-            'actor_type' => User::class,
+            'actor_type' => wncms()->getModelClass('user'),
             'actor_id' => $session->user_id,
             'session_id' => $session->session_id,
             'context' => ['reason' => $reason],

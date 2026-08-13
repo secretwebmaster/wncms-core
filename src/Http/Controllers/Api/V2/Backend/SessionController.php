@@ -54,11 +54,12 @@ class SessionController extends ApiV2Controller
             return $this->credentialTypeDenied();
         }
 
-        $session = ApiSession::query()
+        $sessionModel = wncms()->getModelClass('api_session');
+        $session = $sessionModel::query()
             ->where('session_id', $sessionId)
             ->where('user_id', $context->actor()->getKey())
             ->first();
-        if (!$session instanceof ApiSession) {
+        if (!$session instanceof $sessionModel) {
             return $this->responseFactory()->failure(
                 'resource.not_found',
                 'Resource not found',
@@ -66,7 +67,11 @@ class SessionController extends ApiV2Controller
             );
         }
 
-        $this->sessions->revoke($session, 'self_service');
+        try {
+            $this->sessions->revoke($session, 'self_service');
+        } catch (\Throwable $exception) {
+            return $this->securityAuditUnavailable($exception);
+        }
 
         return $this->ok(null, 'session_revoked');
     }

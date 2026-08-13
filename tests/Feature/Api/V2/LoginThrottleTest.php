@@ -2,10 +2,20 @@
 
 namespace Wncms\Tests\Feature\Api\V2;
 
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\RateLimiter as CacheRateLimiter;
+use Illuminate\Cache\Repository;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Sleep;
+use Monolog\Handler\TestHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Wncms\Auth\Api\V2\DummyPasswordHasher;
+use Wncms\Auth\Api\V2\LoginThrottleService;
+use Wncms\Models\ApiSession;
 use Wncms\Models\User;
 use Wncms\Models\Website;
 use Wncms\Tests\TestCase;
@@ -63,9 +73,25 @@ class LoginThrottleTest extends TestCase
      *
      * @return void
      */
-    public function test_unknown_account_and_wrong_password_are_generic_and_both_execute_password_hash_checks(): void
+    #[DataProvider('supportedPasswordDrivers')]
+    public function test_unknown_account_and_wrong_password_are_generic_for_each_real_hash_driver(string $driver, string $algorithm): void
     {
-        Hash::spy();
+        if (!in_array($algorithm, password_algos(), true)) {
+            $this->markTestSkipped("{$driver} is unavailable in this PHP runtime.");
+        }
+
+        config([
+            'hashing.driver' => $driver,
+            'hashing.bcrypt' => ['rounds' => 4, 'verify' => true],
+            'hashing.argon' => ['memory' => 1024, 'threads' => 1, 'time' => 1, 'verify' => true],
+        ]);
+        app('hash')->forgetDrivers();
+        try {
+            $passwordHash = Hash::make($this->password);
+        } catch (\RuntimeException $exception) {
+            $this->markTestSkipped("{$driver} is advertised but unavailable: {$exception->getMessage()}");
+        }
+        $this->user->forceFill(['password' => $passwordHash])->save();
 
         $unknown = $this->login('unknown-'.uniqid().'@example.test', 'wrong', '203.0.113.10');
         $wrong = $this->login($this->user->email, 'wrong', '203.0.113.11');
@@ -73,7 +99,50 @@ class LoginThrottleTest extends TestCase
         $unknown->assertUnauthorized()->assertJsonPath('meta.error_code', 'authentication.invalid_credentials');
         $wrong->assertUnauthorized()->assertJsonPath('meta.error_code', 'authentication.invalid_credentials');
         $this->assertSame($unknown->json('message'), $wrong->json('message'));
-        Hash::shouldHaveReceived('check')->twice();
+        $this->assertDatabaseMissing('api_sessions', ['user_id' => $this->user->id]);
+    }
+
+    /**
+     * Supply real password drivers and their PHP algorithm identifiers.
+     *
+     * @return array<string, array{string, string}>
+     */
+    public static function supportedPasswordDrivers(): array
+    {
+        return [
+            'bcrypt' => ['bcrypt', '2y'],
+            'argon2i' => ['argon', 'argon2i'],
+            'argon2id' => ['argon2id', 'argon2id'],
+        ];
+    }
+
+    /**
+     * Verify one singleton safely rotates its cached dummy material after driver changes.
+     *
+     * @return void
+     */
+    public function test_dummy_password_cache_is_scoped_to_the_current_hash_configuration(): void
+    {
+        config(['hashing.driver' => 'bcrypt', 'hashing.bcrypt' => ['rounds' => 4, 'verify' => true]]);
+        app('hash')->forgetDrivers();
+        $service = app(DummyPasswordHasher::class);
+        $bcrypt = $service->material();
+        $this->assertSame('bcrypt', password_get_info($bcrypt)['algoName']);
+
+        config([
+            'hashing.driver' => 'argon2id',
+            'hashing.argon' => ['memory' => 1024, 'threads' => 1, 'time' => 1, 'verify' => true],
+        ]);
+        app('hash')->forgetDrivers();
+        try {
+            $argon = $service->material();
+        } catch (\RuntimeException $exception) {
+            $this->markTestSkipped('Argon2id is unavailable: '.$exception->getMessage());
+        }
+
+        $this->assertSame('argon2id', password_get_info($argon)['algoName']);
+        $this->assertNotSame($bcrypt, $argon);
+        $this->assertSame($argon, $service->material());
     }
 
     /**
@@ -142,5 +211,52 @@ class LoginThrottleTest extends TestCase
             'password' => $password,
             'device_name' => 'throttle-test',
         ]);
+    }
+
+    /**
+     * Verify post-commit limiter cleanup failure cannot discard an issued credential pair.
+     *
+     * @return void
+     */
+    public function test_successful_login_is_fail_open_when_limiter_cleanup_storage_throws(): void
+    {
+        $handler = new TestHandler();
+        Log::getLogger()->pushHandler($handler);
+        $store = new class extends ArrayStore
+        {
+            /**
+             * Simulate an unavailable cache delete operation.
+             *
+             * @param  string  $key
+             * @return bool
+             */
+            public function forget($key)
+            {
+                throw new \RuntimeException('Injected cache cleanup failure.');
+            }
+        };
+        $this->app->instance(
+            LoginThrottleService::class,
+            new LoginThrottleService(new CacheRateLimiter(new Repository($store))),
+        );
+
+        try {
+            $response = $this->login($this->user->email, $this->password, '203.0.113.50');
+        } finally {
+            Log::getLogger()->popHandler();
+        }
+
+        $response->assertOk()->assertJsonStructure(['data' => ['access_token', 'refresh_token', 'session']]);
+        $this->assertSame(1, ApiSession::query()->where('user_id', $this->user->id)->whereNull('revoked_at')->count());
+        $this->assertSame(1, DB::table('api_access_tokens')->where('user_id', $this->user->id)->whereNull('revoked_at')->count());
+        $this->assertSame(1, DB::table('api_refresh_tokens')->where('user_id', $this->user->id)->whereNull('revoked_at')->count());
+
+        $this->withToken((string) $response->json('data.access_token'))
+            ->getJson('/api/v2/backend/auth/me')
+            ->assertOk();
+        $records = json_encode($handler->getRecords(), JSON_THROW_ON_ERROR);
+        $this->assertStringContainsString('login limiter state could not be cleared', $records);
+        $this->assertStringNotContainsString($this->user->email, $records);
+        $this->assertStringNotContainsString($this->password, $records);
     }
 }
