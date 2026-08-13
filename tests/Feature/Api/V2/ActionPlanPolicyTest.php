@@ -512,6 +512,8 @@ class ActionPlanPolicyTest extends TestCase
             'password' => 'unused-hash',
             'email_verified_at' => now(),
         ]);
+        $actor->givePermissionTo(Permission::findOrCreate('api_token_create', 'web'));
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
         $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'access-1', 'session-1', ['tokens.create'], [1]);
         $operation = $this->operation();
 

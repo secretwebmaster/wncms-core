@@ -15,6 +15,7 @@ use Wncms\Api\V2\Risk\OperationRiskContextResolver;
 use Wncms\Api\V2\Risk\RiskContext;
 use Wncms\Api\V2\Risk\RiskContextException;
 use Wncms\Api\V2\Risk\RiskPolicy;
+use Wncms\Api\V2\Risk\TargetOperationAuthorizer;
 use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\AuthSecurityConfig;
@@ -32,6 +33,7 @@ final class EnforceApiV2RiskPolicy
         private ApiResponseFactory $responses,
         private SecurityEventService $events,
         private OperationRiskContextResolver $riskContexts,
+        private TargetOperationAuthorizer $authorizer,
     ) {}
 
     /**
@@ -135,6 +137,7 @@ final class EnforceApiV2RiskPolicy
                 $riskContext = $formalDescriptor
                     ? $this->riskContexts->resolveExecution($request, $operation, $parameters)
                     : $riskContext;
+                $this->authorizer->authorize($context, $operation);
                 if (array_diff(array_unique($riskContext->connectionNames), [$connection]) !== []) {
                     throw new \RuntimeException('Target relationship connections must match.');
                 }

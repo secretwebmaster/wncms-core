@@ -201,13 +201,27 @@ to bind to the actual actor.
 Generic resource descriptors also bind the selected website rows and the
 target model's actual `websites` pivot membership. Every `website_id` and
 `website_ids` value must be inside both the credential scope and the actor's
-current access. Website-scoped targets with no membership are denied. These
-rows and pivots are locked and resolved again inside execution, so membership
-or website existence changes make a plan stale. The target, website, pivot,
+current access. A Website resource's route or bulk target IDs are themselves
+authoritative website scope, even though Website is otherwise a global model.
+Website-scoped creates and updates require a non-empty binding; `website_key`
+is resolved to its canonical ID, and an explicit empty `website_ids` list never
+silently detaches all websites or overrides `website_id`. Website-scoped targets
+with no membership are denied. The fresh actor row, actor-to-website membership,
+website ownership, target rows, website rows, and pivots are locked and checked
+again inside execution. Losing current actor access is denied before execution;
+missing planned target state makes the plan stale, while direct execution fails
+closed. The target, actor, website, pivot,
 plan, proof, and security-event models must resolve to one named database
 connection; otherwise plan creation or execution fails before a side effect.
 Global models retain global target semantics after the explicitly selected
 websites pass normal scope authorization.
+
+Action-plan creation applies the target operation's accepted credential type,
+ability, current permission, website scope, and current actor access before it
+creates a plan. It locks and resolves that authorization and target snapshot,
+then inserts the hash-only plan and mandatory `risk.plan.created` event in the
+same named transaction. An unauthorized request creates neither row, and an
+audit failure rolls back the plan without returning its plaintext confirmation.
 
 Descriptor `ability` and data `risk` are semantic declarations, not deductions
 from the HTTP method. Registry startup rejects resource/bridge operation-ID

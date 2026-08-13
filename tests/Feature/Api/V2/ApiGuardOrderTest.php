@@ -22,7 +22,10 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
+use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\ApiResponseFactory;
+use Wncms\Api\V2\Risk\ActionPlanService;
+use Wncms\Api\V2\Risk\OperationRiskContextResolver;
 use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\TokenHasher;
@@ -372,6 +375,108 @@ class ApiGuardOrderTest extends TestCase
         $response = $this->scopedResourceRequest($malformed, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
         $this->assertSame(403, $response->getStatusCode());
         $this->assertSame('Scoped After', $channel->fresh()->name);
+    }
+
+    /**
+     * Verify direct generic-resource mutations share one canonical website binding.
+     */
+    public function test_direct_resource_store_accepts_website_key_and_update_rejects_empty_list_override(): void
+    {
+        uss('enable_api_access', 1);
+        uss('api_access_whitelist', '');
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        foreach (['channel_create', 'channel_edit'] as $permission) {
+            Permission::findOrCreate($permission, 'web');
+            $this->user->givePermissionTo($permission);
+        }
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $context = new AuthenticationContext($this->user, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'binding-direct', $this->session->session_id, ['channels.write'], [$this->website->id]);
+
+        $store = Request::create('/api/v2/backend/channels', 'POST', [
+            'name' => 'Key-bound channel',
+            'slug' => 'key-bound-'.uniqid(),
+            'website_key' => 'website:'.$this->website->id,
+        ]);
+        $response = $this->scopedResourceRequest($store, 'api.v2.backend.channels.store', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->store($request, 'channels'));
+        $this->assertSame(201, $response->getStatusCode(), (string) $response->getContent());
+        $channel = Channel::query()->where('name', 'Key-bound channel')->firstOrFail();
+        $this->assertSame([$this->website->id], $channel->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->all());
+
+        $update = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
+            'name' => 'Must not detach',
+            'website_id' => $this->website->id,
+            'website_ids' => [],
+        ]);
+        $response = $this->scopedResourceRequest($update, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $this->assertSame(422, $response->getStatusCode());
+        $this->assertSame('Key-bound channel', $channel->fresh()->name);
+        $this->assertSame([$this->website->id], $channel->fresh()->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->all());
+    }
+
+    /**
+     * Verify planned execution and its controller consume the same canonical website-key binding.
+     */
+    public function test_planned_resource_update_uses_canonical_website_key_binding(): void
+    {
+        uss('api_high_risk_action_mode', 'planned');
+        config(['wncms-api-v2.auth_security.security_event_correlation' => [
+            'active_key_version' => 'v1',
+            'keys' => ['v1' => [
+                'ip' => 'binding-ip-key-123456789012345678901',
+                'login_identifier' => 'binding-login-key-123456789012345',
+                'user_agent' => 'binding-agent-key-1234567890123456',
+            ]],
+        ]]);
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        Permission::findOrCreate('channel_edit', 'web');
+        $this->user->givePermissionTo('channel_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $channel = Channel::create(['name' => 'Planned before', 'slug' => 'planned-binding-'.uniqid()]);
+        $channel->websites()->sync([$this->website->id]);
+        $context = new AuthenticationContext($this->user, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'binding-planned', $this->session->session_id, ['channels.write'], [$this->website->id]);
+        $request = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
+            'name' => 'Planned after',
+            'website_key' => 'website:'.$this->website->id,
+        ]);
+        $route = Route::getRoutes()->getByName('api.v2.backend.channels.update');
+        $route->bind($request);
+        $request->setRouteResolver(fn () => $route);
+        $request->attributes->set(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE, $context);
+        auth()->setUser($this->user);
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+        $snapshot = app(OperationRiskContextResolver::class)->resolveRequest($request, $operation, ['id' => $channel->id]);
+        $plan = app(ActionPlanService::class)->createResolved($context, $operation, $snapshot);
+        $request->attributes->set(ResolveApiV2RiskContext::ATTRIBUTE, $snapshot);
+        $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
+
+        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+
+        $this->assertSame(200, $response->getStatusCode(), (string) $response->getContent());
+        $this->assertSame('Planned after', $channel->fresh()->name);
+        $this->assertSame([$this->website->id], $channel->fresh()->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->all());
+    }
+
+    /**
+     * Verify global generic resources retain their unscoped binding semantics.
+     */
+    public function test_global_resource_update_allows_empty_website_binding_input(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'global']);
+        Permission::findOrCreate('channel_edit', 'web');
+        $this->user->givePermissionTo('channel_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $channel = Channel::create(['name' => 'Global before', 'slug' => 'global-binding-'.uniqid()]);
+        $context = new AuthenticationContext($this->user, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'binding-global', $this->session->session_id, ['channels.write'], [$this->website->id]);
+        $request = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
+            'name' => 'Global after',
+            'website_id' => $this->website->id,
+            'website_ids' => [],
+        ]);
+
+        $response = $this->scopedResourceRequest($request, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+
+        $this->assertSame(200, $response->getStatusCode(), (string) $response->getContent());
+        $this->assertSame('Global after', $channel->fresh()->name);
     }
 
     /**

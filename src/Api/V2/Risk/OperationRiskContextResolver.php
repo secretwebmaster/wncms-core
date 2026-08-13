@@ -44,6 +44,16 @@ final class OperationRiskContextResolver
     }
 
     /**
+     * Return named connections required by current actor website authorization.
+     *
+     * @return array<int, string>
+     */
+    public function authorizationConnectionNames(AuthenticationContext $context): array
+    {
+        return $this->websiteScope->authorizationConnectionNames($context);
+    }
+
+    /**
      * Resolve canonical input and server-owned target/environment state.
      *
      * @param  array<string, mixed>  $input
@@ -78,10 +88,10 @@ final class OperationRiskContextResolver
             $resolved = ($this->resolvers[$operation->id])($this->normalizeInput($operation, $input), $parameters);
             $resolved['environment'] = $resolved['environment'] ?? $this->environment->resolve($request);
 
-            return $this->scopedContext($request, $operation, $input, $resolved);
+            return $this->scopedContext($request, $operation, $input, $resolved, false);
         }
 
-        return $this->scopedContext($request, $operation, $input, $this->resolveLegacy($operation, $this->normalizeInput($operation, $input), $parameters, false, $request));
+        return $this->scopedContext($request, $operation, $input, $this->resolveLegacy($operation, $this->normalizeInput($operation, $input), $parameters, false, $request), false);
     }
 
     /**
@@ -97,10 +107,10 @@ final class OperationRiskContextResolver
             $resolved = ($this->resolvers[$operation->id])($normalized, $parameters, true);
             $resolved['environment'] = $resolved['environment'] ?? $this->environment->resolve($request);
 
-            return $this->scopedContext($request, $operation, $input, $resolved);
+            return $this->scopedContext($request, $operation, $input, $resolved, true);
         }
 
-        return $this->scopedContext($request, $operation, $input, $this->resolveLegacy($operation, $normalized, $parameters, true, $request));
+        return $this->scopedContext($request, $operation, $input, $this->resolveLegacy($operation, $normalized, $parameters, true, $request), true);
     }
 
     /**
@@ -128,12 +138,24 @@ final class OperationRiskContextResolver
      * @param  array<string, mixed>  $input
      * @param  array<string, mixed>  $resolved
      */
-    private function scopedContext(Request $request, ApiOperationContract $operation, array $input, array $resolved): RiskContext
+    private function scopedContext(Request $request, ApiOperationContract $operation, array $input, array $resolved, bool $lock): RiskContext
     {
         $context = $this->context($operation, $input, $resolved);
         $authentication = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
         if ($authentication instanceof AuthenticationContext) {
-            $this->websiteScope->assertResolvedScope($authentication, $context);
+            $context = new RiskContext(
+                $context->normalizedInput,
+                $context->targetState,
+                $context->environment,
+                $context->modelKeys,
+                array_values(array_unique(array_merge($context->connectionNames, $this->authorizationConnectionNames($authentication)))),
+            );
+            $this->websiteScope->assertResolvedScope(
+                $authentication,
+                $context,
+                $lock,
+                $lock && trim((string) $request->headers->get('X-WNCMS-Confirmation', '')) !== '',
+            );
         }
 
         return $context;
@@ -215,6 +237,9 @@ final class OperationRiskContextResolver
         $scoped = method_exists($modelClass, 'isWebsiteScopedModel') && $modelClass::isWebsiteScopedModel();
         $pivots = [];
         $targetIds = [];
+        if ($modelClass === wncms()->getModelClass('website')) {
+            $targetIds = $models->map(static fn ($model): int => (int) $model->getKey())->all();
+        }
         if ($scoped) {
             if (! method_exists($modelClass, 'websites')) {
                 throw new \RuntimeException("Scoped model [{$modelClass}] does not declare a websites relation.");
@@ -308,8 +333,27 @@ final class OperationRiskContextResolver
         if (array_key_exists('website_id', $input) && $input['website_id'] !== null && $input['website_id'] !== '') {
             $input['website_id'] = (int) $input['website_id'];
         }
+        if (array_key_exists('website_key', $input)) {
+            if (preg_match('/^website:([1-9][0-9]*)$/D', (string) $input['website_key'], $matches) !== 1) {
+                throw new RiskContextException('validation.failed', 422);
+            }
+            $keyId = (int) $matches[1];
+            if (isset($input['website_id']) && (int) $input['website_id'] !== $keyId) {
+                throw new RiskContextException('validation.failed', 422);
+            }
+            $input['website_id'] = $keyId;
+            unset($input['website_key']);
+        }
         if (array_key_exists('website_ids', $input)) {
             $input['website_ids'] = $this->ids($input['website_ids']);
+            $modelKey = (string) ($operation->domainModelKeys[0] ?? '');
+            $modelClass = $modelKey !== '' ? wncms()->getModelClass($modelKey) : null;
+            $websiteScoped = is_string($modelClass)
+                && method_exists($modelClass, 'isWebsiteScopedModel')
+                && $modelClass::isWebsiteScopedModel();
+            if ($websiteScoped && $input['website_ids'] === [] && isset($input['website_id'])) {
+                throw new RiskContextException('validation.failed', 422);
+            }
         }
 
         return $this->normalize($input);

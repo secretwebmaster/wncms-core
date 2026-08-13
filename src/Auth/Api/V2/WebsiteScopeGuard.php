@@ -2,6 +2,7 @@
 
 namespace Wncms\Auth\Api\V2;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\Request;
 use Wncms\Api\V2\Risk\RiskContext;
 use Wncms\Api\V2\Risk\RiskContextException;
@@ -62,7 +63,7 @@ final class WebsiteScopeGuard
      *
      * @throws \Wncms\Api\V2\Risk\RiskContextException
      */
-    public function assertResolvedScope(AuthenticationContext $context, RiskContext $riskContext): void
+    public function assertResolvedScope(AuthenticationContext $context, RiskContext $riskContext, bool $lock = false, bool $allowMissingForStalePlan = false): void
     {
         $scope = (array) ($riskContext->targetState['website_scope'] ?? []);
         $websiteIds = array_values(array_unique(array_map('intval', array_merge(
@@ -74,6 +75,16 @@ final class WebsiteScopeGuard
                 throw new RiskContextException('website.scope_denied', 403);
             }
         }
+        $requestedRows = (array) ($scope['requested_rows'] ?? []);
+        $missingRequestedRows = count($requestedRows) !== count((array) ($scope['requested_ids'] ?? []));
+        if ($missingRequestedRows && ! $allowMissingForStalePlan) {
+            throw new RiskContextException('website.scope_denied', 403);
+        }
+        if ($missingRequestedRows) {
+            $existingIds = array_map(static fn (array $row): int => (int) ($row['id'] ?? 0), $requestedRows);
+            $websiteIds = array_values(array_intersect($websiteIds, $existingIds));
+        }
+        $this->assertCurrentActorAccess($context, $websiteIds, $lock);
         if (
             (bool) ($scope['scoped_model'] ?? false)
             && (int) ($scope['target_count'] ?? 0) > 0
@@ -84,11 +95,73 @@ final class WebsiteScopeGuard
     }
 
     /**
+     * Re-read current actor membership and ownership for every authoritative website.
+     *
+     * @param  array<int, int>  $websiteIds
+     */
+    private function assertCurrentActorAccess(AuthenticationContext $context, array $websiteIds, bool $lock): void
+    {
+        if ($websiteIds === [] || $context->actorId() === null) {
+            return;
+        }
+        $actor = $context->actor();
+        $actorQuery = $actor->newQuery()->whereKey($context->actorId());
+        $freshActor = ($lock ? $actorQuery->lockForUpdate() : $actorQuery)->first();
+        if ($freshActor === null || ! method_exists($freshActor, 'websites')) {
+            throw new RiskContextException('website.scope_denied', 403);
+        }
+        $websiteClass = wncms()->getModelClass('website');
+        $websiteQuery = $websiteClass::query()->whereIn((new $websiteClass)->getKeyName(), $websiteIds);
+        $websites = ($lock ? $websiteQuery->lockForUpdate() : $websiteQuery)->get();
+        if ($websites->count() !== count($websiteIds)) {
+            throw new RiskContextException('website.scope_denied', 403);
+        }
+        $relation = $freshActor->websites();
+        $pivotQuery = $relation->newPivotStatement()
+            ->where($relation->getForeignPivotKeyName(), $freshActor->getKey())
+            ->whereIn($relation->getRelatedPivotKeyName(), $websiteIds);
+        $memberIds = ($lock ? $pivotQuery->lockForUpdate() : $pivotQuery)
+            ->pluck($relation->getRelatedPivotKeyName())
+            ->map(static fn ($id): int => (int) $id)
+            ->all();
+        foreach ($websites as $website) {
+            if ((string) $website->user_id !== (string) $context->actorId() && ! in_array((int) $website->getKey(), $memberIds, true)) {
+                throw new RiskContextException('website.scope_denied', 403);
+            }
+        }
+    }
+
+    /**
      * Return the canonical immutable identity for a resolved website.
      */
     public static function identity(Website $website): string
     {
         return 'website:'.(string) $website->getKey();
+    }
+
+    /**
+     * Return every named connection used by current actor website authorization.
+     *
+     * @return array<int, string>
+     */
+    public function authorizationConnectionNames(AuthenticationContext $context): array
+    {
+        $actor = $context->actor();
+        if (! method_exists($actor, 'getConnection') || ! method_exists($actor, 'websites')) {
+            throw new \RuntimeException('Actor website authorization cannot be resolved.');
+        }
+        $relation = $actor->websites();
+        if (! $relation instanceof BelongsToMany) {
+            throw new \RuntimeException('Actor websites relation is unsupported.');
+        }
+        $websiteClass = wncms()->getModelClass('website');
+
+        return array_values(array_unique([
+            $actor->getConnection()->getName(),
+            (new $websiteClass)->getConnection()->getName(),
+            $relation->getRelated()->getConnection()->getName(),
+            $relation->newPivotStatement()->getConnection()->getName(),
+        ]));
     }
 
     /**

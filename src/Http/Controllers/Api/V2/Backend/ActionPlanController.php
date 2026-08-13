@@ -4,12 +4,14 @@ namespace Wncms\Http\Controllers\Api\V2\Backend;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\Risk\ActionPlanException;
 use Wncms\Api\V2\Risk\ActionPlanService;
 use Wncms\Api\V2\Risk\OperationRiskContextResolver;
 use Wncms\Api\V2\Risk\RiskContextException;
+use Wncms\Api\V2\Risk\TargetOperationAuthorizer;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Http\Middleware\ApiV2TokenAuth;
 use Wncms\Services\Security\SecurityEventService;
@@ -21,6 +23,7 @@ final class ActionPlanController extends ApiV2Controller
         private ActionPlanService $plans,
         private OperationRiskContextResolver $riskContexts,
         private SecurityEventService $events,
+        private TargetOperationAuthorizer $authorizer,
     ) {}
 
     /**
@@ -43,9 +46,6 @@ final class ActionPlanController extends ApiV2Controller
             if (! in_array($operation->sideEffectKind, ['database', 'transactional_outbox'], true) || ! $operation->idempotent) {
                 return $this->responseFactory()->failure('risk.policy_unavailable', 'Operation does not have a transactional risk boundary', 503);
             }
-            $planRequest = Request::createFrom($request);
-            $planRequest->request->replace(['input' => $validated['input']]);
-            $riskContext = $this->riskContexts->resolveRequest($planRequest, $operation, (array) ($validated['parameters'] ?? []));
             if ($operation->domainModelKeys === [] && $operation->transactionalOutboxModelKeys === []) {
                 return $this->responseFactory()->failure('risk.policy_unavailable', 'Transactional domain boundary is required', 503);
             }
@@ -55,12 +55,23 @@ final class ActionPlanController extends ApiV2Controller
                     $operation->domainModelKeys,
                     $operation->transactionalOutboxModelKeys,
                 )),
-                $riskContext->connectionNames,
+                $this->riskContexts->authorizationConnectionNames($context),
             )));
             if (count($connections) !== 1) {
                 return $this->responseFactory()->failure('risk.policy_unavailable', 'Operation connections do not share one transaction', 503);
             }
-            $plan = $this->plans->createResolved($context, $operation, $riskContext);
+            $planRequest = Request::createFrom($request);
+            $planRequest->request->replace(['input' => $validated['input']]);
+            $parameters = (array) ($validated['parameters'] ?? []);
+            $plan = DB::connection($connections[0])->transaction(function () use ($planRequest, $context, $operation, $parameters, $connections): array {
+                $riskContext = $this->riskContexts->resolveExecution($planRequest, $operation, $parameters);
+                if (array_diff(array_unique($riskContext->connectionNames), $connections) !== []) {
+                    throw new \RuntimeException('Target relationship connections must match.');
+                }
+                $this->authorizer->authorize($context, $operation);
+
+                return $this->plans->createResolved($context, $operation, $riskContext);
+            });
         } catch (RiskContextException $exception) {
             return $this->responseFactory()->failure($exception->errorCode, 'Action plan request is not valid', $exception->httpStatus);
         } catch (ActionPlanException $exception) {

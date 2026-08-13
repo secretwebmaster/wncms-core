@@ -181,12 +181,23 @@ authentication 後執行，讓 account limit 綁定到實際 actor。
 
 Generic resource descriptor 也會綁定所選 website rows，以及 target model 實際的
 `websites` pivot membership。每個 `website_id` 與 `website_ids` 值都必須同時位於
-credential scope 與 actor 目前可存取範圍內；沒有 membership 的 website-scoped target
-會被拒絕。執行 transaction 內會再次鎖定並解析這些 rows 與 pivots，因此 membership
-或 website existence 改變會使 plan stale。Target、website、pivot、plan、proof 與
+credential scope 與 actor 目前可存取範圍內。Website resource 的 route 或 bulk target
+ID 本身就是 authoritative website scope，即使 Website model 在其他語意上是 global。
+Website-scoped create/update 要求非空 binding；`website_key` 會解析為 canonical ID，明確的
+空 `website_ids` 不會靜默 detach all 或覆蓋 `website_id`。沒有 membership 的
+website-scoped target 會被拒絕。執行 transaction 內會重新鎖定並檢查 fresh actor row、
+actor-to-website membership、website ownership、target rows、website rows 與 pivots。
+Actor 失去目前存取權時會在執行前被拒絕；planned target state 缺失會使 plan stale，
+direct execution 則 fail closed。Target、actor、website、pivot、plan、proof 與
 security-event model 必須解析到同一個 named database connection，否則 plan 建立或
 執行會在 side effect 前 fail closed。Global model 在明確選擇的 website 通過一般 scope
 授權後，仍保留 global target semantics。
+
+Action plan 建立會先按 target operation 檢查 accepted credential type、ability、目前
+permission、website scope 與 actor 目前存取權。系統在同一個 named transaction 內鎖定並
+解析 authorization/target snapshot，然後原子寫入 hash-only plan 與 mandatory
+`risk.plan.created` event。未授權請求不會建立任何資料列；audit 失敗會回滾 plan，也不會
+回傳 plaintext confirmation。
 
 Descriptor 的 `ability` 與 data `risk` 是語意宣告，不會從 HTTP method 推導。Registry
 啟動時會拒絕 resource/bridge operation-ID collision，除非 ID 位於經審核的 override

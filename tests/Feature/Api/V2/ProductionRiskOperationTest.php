@@ -4,12 +4,18 @@ namespace Wncms\Tests\Feature\Api\V2;
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 use Wncms\Api\V2\ApiContractRegistry;
+use Wncms\Api\V2\Providers\LegacyBackendContractProvider;
 use Wncms\Api\V2\Risk\ActionPlanService;
 use Wncms\Api\V2\Risk\OperationRiskContextResolver;
+use Wncms\Api\V2\Risk\RiskContextException;
 use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
+use Wncms\Http\Controllers\Api\V2\Backend\ActionPlanController;
 use Wncms\Http\Middleware\ApiV2TokenAuth;
 use Wncms\Http\Middleware\EnforceApiV2RiskPolicy;
 use Wncms\Http\Middleware\ResolveApiV2RiskContext;
@@ -399,11 +405,406 @@ class ProductionRiskOperationTest extends TestCase
     }
 
     /**
+     * Verify Website route targets are authoritative scope even though Website is a global model.
+     */
+    public function test_website_resource_targets_cannot_escape_interactive_or_service_scope(): void
+    {
+        $actor = User::query()->firstOrFail();
+        $websiteA = Website::query()->firstOrFail();
+        $websiteB = Website::create([
+            'user_id' => $actor->id,
+            'domain' => 'risk-website-target-b-'.uniqid().'.test',
+            'site_name' => 'Risk Website Target B',
+            'theme' => 'default',
+        ]);
+        $actor->websites()->syncWithoutDetaching([$websiteA->id, $websiteB->id]);
+
+        foreach ([ApiCredential::TYPE_INTERACTIVE_ACCESS, ApiCredential::TYPE_SERVICE_TOKEN] as $credentialType) {
+            $context = new AuthenticationContext($actor, $credentialType, 'website-target-'.$credentialType, null, ['websites.write'], [$websiteA->id]);
+            foreach (['update', 'destroy'] as $action) {
+                $operation = app(ApiContractRegistry::class)->operation('backend.websites.'.$action);
+                $request = $this->productionRequest('api.v2.backend.websites.'.$action, $context, ['website_id' => $websiteA->id], ['id' => $websiteB->id]);
+
+                $this->expectRiskContextCode('website.scope_denied', fn () => app(OperationRiskContextResolver::class)->resolveRequest($request, $operation, ['id' => $websiteB->id]));
+            }
+        }
+    }
+
+    /**
+     * Verify one out-of-scope Website in a bulk request denies the whole target set.
+     */
+    public function test_website_bulk_delete_mixed_scope_is_atomically_denied(): void
+    {
+        $actor = User::query()->firstOrFail();
+        $websiteA = Website::query()->firstOrFail();
+        $websiteB = Website::create([
+            'user_id' => $actor->id,
+            'domain' => 'risk-website-bulk-b-'.uniqid().'.test',
+            'site_name' => 'Risk Website Bulk B',
+            'theme' => 'default',
+        ]);
+        $actor->websites()->syncWithoutDetaching([$websiteA->id, $websiteB->id]);
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_SERVICE_TOKEN, 'website-bulk', null, ['websites.write'], [$websiteA->id]);
+        $resources = config('wncms-backend-api-v2.resources');
+        $resources['websites']['enable_bulk_delete'] = true;
+        $resources['websites']['enabled_actions'] = ['index', 'show', 'store', 'update', 'destroy', 'bulk_delete'];
+        $resources['websites']['permissions']['bulk_delete'] = 'website_bulk_delete';
+        config(['wncms-backend-api-v2.resources' => $resources]);
+        $registry = new ApiContractRegistry;
+        (new LegacyBackendContractProvider)->register($registry);
+        $operation = $registry->operation('backend.websites.bulk_delete');
+        $request = $this->productionRequest('api.v2.backend.websites.bulk_delete', $context, [
+            'website_id' => $websiteA->id,
+            'model_ids' => [$websiteA->id, $websiteB->id],
+        ]);
+
+        $this->expectRiskContextCode('website.scope_denied', fn () => app(OperationRiskContextResolver::class)->resolveRequest($request, $operation));
+        $this->assertTrue(Website::query()->whereKey($websiteA->id)->exists());
+        $this->assertTrue(Website::query()->whereKey($websiteB->id)->exists());
+    }
+
+    /**
+     * Verify transaction-fresh authorization rejects actor website access revoked after planning.
+     */
+    public function test_actor_website_revocation_after_snapshot_denies_direct_and_planned_execution(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        $actor = User::query()->firstOrFail();
+        $website = Website::query()->firstOrFail();
+        $websiteB = Website::create([
+            'user_id' => null,
+            'domain' => 'risk-revoke-b-'.uniqid().'.test',
+            'site_name' => 'Risk Revoke B',
+            'theme' => 'default',
+        ]);
+        $actor->websites()->syncWithoutDetaching([$website->id, $websiteB->id]);
+        $website->update(['user_id' => null]);
+        $channel = Channel::create(['name' => 'Before revocation', 'slug' => 'risk-revoke-'.uniqid()]);
+        $channel->websites()->sync([$website->id, $websiteB->id]);
+
+        foreach (['direct', 'planned'] as $mode) {
+            uss('api_high_risk_action_mode', $mode);
+            $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'revocation-'.$mode, 'session-'.$mode, ['channels.write'], [$website->id, $websiteB->id]);
+            $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+            $request = $this->productionRequest('api.v2.backend.channels.update', $context, [
+                'name' => 'Must not execute',
+                'website_id' => $website->id,
+                'website_ids' => [$website->id, $websiteB->id],
+            ], ['id' => $channel->id]);
+            $snapshot = app(OperationRiskContextResolver::class)->resolveRequest($request, $operation, ['id' => $channel->id]);
+            $request->attributes->set(ResolveApiV2RiskContext::ATTRIBUTE, $snapshot);
+            if ($mode === 'planned') {
+                $plan = app(ActionPlanService::class)->createResolved($context, $operation, $snapshot);
+                $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
+            }
+            $actor->websites()->detach($websiteB->id);
+            $executions = 0;
+
+            $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions) {
+                $executions++;
+
+                return response()->json(['ok' => true]);
+            });
+
+            $this->assertSame(403, $response->getStatusCode(), (string) $response->getContent());
+            $this->assertSame('website.scope_denied', $response->getData(true)['meta']['error_code']);
+            $this->assertSame(0, $executions);
+            $actor->websites()->syncWithoutDetaching([$websiteB->id]);
+        }
+    }
+
+    /**
+     * Verify a concurrent actor-membership revocation wins before plan execution.
+     */
+    public function test_concurrent_actor_website_revocation_denies_planned_execution(): void
+    {
+        if (! function_exists('pcntl_fork')) {
+            $this->markTestSkipped('Process concurrency primitives are unavailable.');
+        }
+        uss('api_high_risk_action_mode', 'planned');
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        $actor = User::query()->firstOrFail();
+        $websiteA = Website::query()->firstOrFail();
+        $websiteB = Website::create([
+            'user_id' => null,
+            'domain' => 'risk-concurrent-revoke-'.uniqid().'.test',
+            'site_name' => 'Risk Concurrent Revoke',
+            'theme' => 'default',
+        ]);
+        $actor->websites()->syncWithoutDetaching([$websiteA->id, $websiteB->id]);
+        $channel = Channel::create(['name' => 'Concurrent revoke', 'slug' => 'risk-concurrent-revoke-'.uniqid()]);
+        $channel->websites()->sync([$websiteA->id, $websiteB->id]);
+        $context = $this->context([$websiteA->id, $websiteB->id]);
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+        $request = $this->productionRequest('api.v2.backend.channels.update', $context, [
+            'name' => 'Must not execute',
+            'website_id' => $websiteA->id,
+            'website_ids' => [$websiteA->id, $websiteB->id],
+        ], ['id' => $channel->id]);
+        $snapshot = app(OperationRiskContextResolver::class)->resolveRequest($request, $operation, ['id' => $channel->id]);
+        $plan = app(ActionPlanService::class)->createResolved($context, $operation, $snapshot);
+        $request->attributes->set(ResolveApiV2RiskContext::ATTRIBUTE, $snapshot);
+        $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
+        DB::connection()->commit();
+        $barrier = tempnam(sys_get_temp_dir(), 'wncms-risk-access-');
+
+        try {
+            $pid = pcntl_fork();
+            if ($pid === 0) {
+                DB::disconnect();
+                User::query()->findOrFail($actor->id)->websites()->detach($websiteB->id);
+                file_put_contents($barrier, 'revoked', LOCK_EX);
+                exit(0);
+            }
+            $deadline = microtime(true) + 10;
+            while (filesize($barrier) === 0 && microtime(true) < $deadline) {
+                clearstatcache(true, $barrier);
+                usleep(10_000);
+            }
+            pcntl_waitpid($pid, $status);
+            $this->assertSame(0, pcntl_wexitstatus($status));
+            DB::disconnect();
+
+            $response = app(EnforceApiV2RiskPolicy::class)->handle($request, fn () => response()->json(['ok' => true]));
+
+            $this->assertSame(403, $response->getStatusCode(), (string) $response->getContent());
+            $this->assertSame('website.scope_denied', $response->getData(true)['meta']['error_code']);
+        } finally {
+            @unlink($barrier);
+            DB::table('api_action_plans')->where('plan_id', $plan['id'])->delete();
+            DB::table('api_security_events')->where('actor_id', $context->actorId())->delete();
+            Channel::query()->whereKey($channel->id)->delete();
+            Website::query()->whereKey($websiteB->id)->delete();
+            uss('api_high_risk_action_mode', 'direct');
+            DB::connection()->beginTransaction();
+        }
+    }
+
+    /**
+     * Verify a permission revoked after planning is denied from fresh actor state.
+     */
+    public function test_permission_revoked_after_planning_denies_before_execution(): void
+    {
+        uss('api_high_risk_action_mode', 'planned');
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        $actor = User::query()->firstOrFail();
+        $website = Website::query()->firstOrFail();
+        $actor->websites()->syncWithoutDetaching([$website->id]);
+        Permission::findOrCreate('channel_edit', 'web');
+        $actor->givePermissionTo('channel_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $channel = Channel::create(['name' => 'Permission before', 'slug' => 'risk-permission-'.uniqid()]);
+        $channel->websites()->sync([$website->id]);
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'permission-fresh', 'permission-session', ['channels.write'], [$website->id]);
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+        $request = $this->productionRequest('api.v2.backend.channels.update', $context, [
+            'name' => 'Must not execute', 'website_id' => $website->id,
+        ], ['id' => $channel->id]);
+        $snapshot = app(OperationRiskContextResolver::class)->resolveRequest($request, $operation, ['id' => $channel->id]);
+        $plan = app(ActionPlanService::class)->createResolved($context, $operation, $snapshot);
+        $request->attributes->set(ResolveApiV2RiskContext::ATTRIBUTE, $snapshot);
+        $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
+        $actor->checkPermissionTo('channel_edit');
+        $actor->revokePermissionTo('channel_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $executions = 0;
+
+        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions) {
+            $executions++;
+
+            return response()->json(['ok' => true]);
+        });
+
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('authorization.permission_denied', $response->getData(true)['meta']['error_code']);
+        $this->assertSame(0, $executions);
+    }
+
+    /**
+     * Verify missing requested Website rows fail closed before direct execution.
+     */
+    public function test_missing_requested_website_fails_closed_in_direct_mode(): void
+    {
+        uss('api_high_risk_action_mode', 'direct');
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        $missing = (int) Website::query()->max('id') + 1000;
+        $actor = User::query()->firstOrFail();
+        $existing = Website::query()->firstOrFail();
+        $actor->websites()->syncWithoutDetaching([$existing->id]);
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'missing-website', 'missing-session', ['channels.write'], [$existing->id, $missing]);
+        $channel = Channel::create(['name' => 'Missing website', 'slug' => 'risk-missing-'.uniqid()]);
+        $channel->websites()->sync([$existing->id]);
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+        $request = $this->productionRequest('api.v2.backend.channels.update', $context, [
+            'name' => 'Must not execute',
+            'website_id' => $missing,
+        ], ['id' => $channel->id]);
+
+        $this->expectRiskContextCode('website.scope_denied', fn () => app(OperationRiskContextResolver::class)->resolveRequest($request, $operation, ['id' => $channel->id]));
+        $this->assertSame('Missing website', $channel->fresh()->name);
+    }
+
+    /**
+     * Verify action-plan creation enforces the target operation guards before persistence.
+     */
+    public function test_action_plan_creation_rejects_target_credential_ability_and_permission_before_persistence(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        $actor = User::query()->firstOrFail();
+        $website = Website::query()->firstOrFail();
+        $actor->websites()->syncWithoutDetaching([$website->id]);
+        $channel = Channel::create(['name' => 'Plan target', 'slug' => 'plan-target-'.uniqid()]);
+        $channel->websites()->sync([$website->id]);
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+        $beforePlans = DB::table('api_action_plans')->count();
+        $beforeEvents = DB::table('api_security_events')->where('event_type', 'risk.plan.created')->count();
+
+        $noAbility = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'plan-no-ability', 'plan-session', [], [$website->id]);
+        $response = app(ActionPlanController::class)->store($this->actionPlanRequest($noAbility, $operation->id, [
+            'name' => 'After', 'website_id' => $website->id,
+        ], ['id' => $channel->id]));
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('authorization.ability_denied', $response->getData(true)['meta']['error_code']);
+
+        $noPermission = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'plan-no-permission', 'plan-session', ['channels.write'], [$website->id]);
+        Permission::findOrCreate('channel_edit', 'web');
+        $actor->givePermissionTo('channel_edit');
+        $actor->checkPermissionTo('channel_edit');
+        $actor->revokePermissionTo('channel_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $response = app(ActionPlanController::class)->store($this->actionPlanRequest($noPermission, $operation->id, [
+            'name' => 'After', 'website_id' => $website->id,
+        ], ['id' => $channel->id]));
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('authorization.permission_denied', $response->getData(true)['meta']['error_code']);
+
+        $credentialOperation = app(ApiContractRegistry::class)->operation('backend.users.update');
+        $service = new AuthenticationContext($actor, ApiCredential::TYPE_SERVICE_TOKEN, 'plan-service', null, ['users.write'], [$website->id]);
+        $response = app(ActionPlanController::class)->store($this->actionPlanRequest($service, $credentialOperation->id, [
+            'website_id' => $website->id,
+        ], ['id' => $actor->id]));
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('risk.credential_type_denied', $response->getData(true)['meta']['error_code']);
+
+        $this->assertSame($beforePlans, DB::table('api_action_plans')->count());
+        $this->assertSame($beforeEvents, DB::table('api_security_events')->where('event_type', 'risk.plan.created')->count());
+    }
+
+    /**
+     * Verify plan row and mandatory event commit atomically after a locked authorization snapshot.
+     */
+    public function test_action_plan_creation_commits_authorized_snapshot_and_event_atomically(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        $actor = User::query()->firstOrFail();
+        $website = Website::query()->firstOrFail();
+        $actor->websites()->syncWithoutDetaching([$website->id]);
+        Permission::findOrCreate('channel_edit', 'web');
+        $actor->givePermissionTo('channel_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $channel = Channel::create(['name' => 'Atomic plan', 'slug' => 'atomic-plan-'.uniqid()]);
+        $channel->websites()->sync([$website->id]);
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'plan-atomic', 'plan-session', ['channels.write'], [$website->id]);
+
+        $response = app(ActionPlanController::class)->store($this->actionPlanRequest($context, $operation->id, [
+            'name' => 'After', 'website_id' => $website->id,
+        ], ['id' => $channel->id]));
+
+        $this->assertSame(201, $response->getStatusCode(), (string) $response->getContent());
+        $this->assertSame(1, DB::table('api_action_plans')->where('credential_id', 'plan-atomic')->count());
+        $this->assertSame(1, DB::table('api_security_events')->where('event_type', 'risk.plan.created')->where('credential_id', 'plan-atomic')->count());
+    }
+
+    /**
+     * Verify mandatory audit failure rolls back plan storage without returning a secret.
+     */
+    public function test_action_plan_creation_audit_failure_returns_no_confirmation_and_rolls_back(): void
+    {
+        config(['wncms.models.channel.website_mode' => 'multi']);
+        $actor = User::query()->firstOrFail();
+        $website = Website::query()->firstOrFail();
+        $actor->websites()->syncWithoutDetaching([$website->id]);
+        Permission::findOrCreate('channel_edit', 'web');
+        $actor->givePermissionTo('channel_edit');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $channel = Channel::create(['name' => 'Rollback plan', 'slug' => 'rollback-plan-'.uniqid()]);
+        $channel->websites()->sync([$website->id]);
+        $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'plan-rollback', 'plan-session', ['channels.write'], [$website->id]);
+        $beforePlans = DB::table('api_action_plans')->count();
+        config(['wncms-api-v2.auth_security.security_event_correlation.keys' => []]);
+
+        $response = app(ActionPlanController::class)->store($this->actionPlanRequest($context, $operation->id, [
+            'name' => 'After', 'website_id' => $website->id,
+        ], ['id' => $channel->id]));
+
+        $this->assertSame(503, $response->getStatusCode());
+        $this->assertSame('security.audit_unavailable', $response->getData(true)['meta']['error_code']);
+        $this->assertArrayNotHasKey('confirmation', (array) $response->getData(true)['data']);
+        $this->assertSame($beforePlans, DB::table('api_action_plans')->count());
+    }
+
+    /**
+     * Build one action-plan controller request with authentication context.
+     *
+     * @param  array<string, mixed>  $input
+     * @param  array<string, mixed>  $parameters
+     */
+    private function actionPlanRequest(AuthenticationContext $context, string $operation, array $input, array $parameters): Request
+    {
+        $request = Request::create('/api/v2/backend/action-plans', 'POST', compact('operation', 'input', 'parameters'));
+        $request->attributes->set(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE, $context);
+
+        return $request;
+    }
+
+    /**
+     * Build one bound production route request.
+     *
+     * @param  array<string, mixed>  $input
+     * @param  array<string, mixed>  $parameters
+     */
+    private function productionRequest(string $routeName, AuthenticationContext $context, array $input, array $parameters = []): Request
+    {
+        $path = '/api/v2/backend/_risk-target';
+        $request = Request::create($path, 'POST', $input);
+        $route = new Route(['POST'], $path, fn () => null);
+        $route->defaults('api_operation_id', str_replace('api.v2.', '', $routeName));
+        $route->bind($request);
+        foreach ($parameters as $key => $value) {
+            $route->setParameter($key, $value);
+        }
+        $request->setRouteResolver(fn () => $route);
+        $request->attributes->set(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE, $context);
+
+        return $request;
+    }
+
+    /**
+     * Assert one stable risk-context denial.
+     */
+    private function expectRiskContextCode(string $code, callable $callback): void
+    {
+        try {
+            $callback();
+            $this->fail('Expected risk-context denial.');
+        } catch (RiskContextException $exception) {
+            $this->assertSame($code, $exception->errorCode);
+            $this->assertSame(403, $exception->httpStatus);
+        }
+    }
+
+    /**
      * Build one interactive context for production risk metadata.
      */
     private function context(array $websiteIds = []): AuthenticationContext
     {
         $user = User::query()->firstOrFail();
+        foreach (['channel_edit', 'channel_bulk_delete'] as $permission) {
+            $user->givePermissionTo(Permission::findOrCreate($permission, 'web'));
+        }
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         return new AuthenticationContext($user, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'production-risk', 'session-risk', ['*'], $websiteIds);
     }
