@@ -346,6 +346,12 @@ class SecurityEventServiceTest extends TestCase
                 $aggregateKey,
                 true,
             ],
+            'postgresql unquoted identifiers' => [
+                'insert into api_security_events (aggregate_key, event_id) values (?, ?) on conflict do nothing',
+                [$aggregateKey, 'event-id'],
+                $aggregateKey,
+                true,
+            ],
             'ordinary insert into target table' => [
                 'insert into "api_security_events" ("event_id", "aggregate_key") values (?, ?)',
                 ['event-id', $aggregateKey],
@@ -367,6 +373,18 @@ class SecurityEventServiceTest extends TestCase
             'aggregate table without expected key binding' => [
                 'insert or ignore into "api_security_events" ("event_id", "aggregate_key") values (?, ?)',
                 ['event-id', str_repeat('b', 64)],
+                $aggregateKey,
+                false,
+            ],
+            'expected key bound to a different column' => [
+                'insert or ignore into "api_security_events" ("event_id", "aggregate_key") values (?, ?)',
+                [$aggregateKey, str_repeat('b', 64)],
+                $aggregateKey,
+                false,
+            ],
+            'expected key bound without aggregate key column' => [
+                'insert or ignore into "api_security_events" ("event_id", "request_id") values (?, ?)',
+                ['event-id', $aggregateKey],
                 $aggregateKey,
                 false,
             ],
@@ -444,6 +462,8 @@ class SecurityEventServiceTest extends TestCase
     /**
      * Determine whether a database query is the expected aggregate insert-or-ignore operation.
      *
+     * This test seam accepts one row of placeholders so each column maps directly to one binding.
+     *
      * @param  string  $query
      * @param  array  $bindings
      * @param  string  $aggregateKey
@@ -452,18 +472,48 @@ class SecurityEventServiceTest extends TestCase
      */
     private static function isAggregateInsertQuery(string $query, array $bindings, string $aggregateKey): bool
     {
-        if (!in_array($aggregateKey, $bindings, true)) {
+        $normalized = strtolower((string) preg_replace('/\s+/', ' ', trim($query)));
+        $identifier = '(?:"[^"]+"|`[^`]+`|\[[^\]]+\]|[a-z_][a-z0-9_$]*)';
+        $table = '(?:"api_security_events"|`api_security_events`|\[api_security_events\]|api_security_events)';
+        $columns = $identifier.'(?:\s*,\s*'.$identifier.')*';
+        $placeholders = '\?(?:\s*,\s*\?)*';
+        $pattern = '/^insert (?:(?<ignore>or ignore|ignore) )?into '.$table
+            .'\s*\(\s*(?<columns>'.$columns.')\s*\)\s*values\s*\(\s*(?<values>'.$placeholders.')\s*\)(?<suffix>.*)$/';
+
+        if (preg_match($pattern, $normalized, $matches) !== 1) {
             return false;
         }
 
-        $normalized = strtolower((string) preg_replace('/\s+/', ' ', trim($query)));
-        $table = '(?:"api_security_events"|`api_security_events`|\[api_security_events\]|api_security_events)';
+        $suffix = trim($matches['suffix']);
+        $usesIgnoreGrammar = $matches['ignore'] !== '' && $suffix === '';
+        $usesDoNothingGrammar = $matches['ignore'] === ''
+            && preg_match('/^on conflict\s+do nothing(?:\s+returning\b.*)?$/', $suffix) === 1;
 
-        if (preg_match('/^insert (?:or ignore|ignore) into '.$table.'\s*\(/', $normalized) === 1) {
-            return true;
+        if (!$usesIgnoreGrammar && !$usesDoNothingGrammar) {
+            return false;
         }
 
-        return preg_match('/^insert into '.$table.'\s*\(/', $normalized) === 1
-            && preg_match('/\bon conflict\s+do nothing(?:\s+returning\b.*)?$/', $normalized) === 1;
+        preg_match_all('/'.$identifier.'/', $matches['columns'], $columnMatches);
+        $columnNames = array_map(self::normalizeSqlIdentifier(...), $columnMatches[0]);
+        $aggregateKeyIndex = array_search('aggregate_key', $columnNames, true);
+        $placeholderCount = substr_count($matches['values'], '?');
+
+        if ($aggregateKeyIndex === false || count($columnNames) !== $placeholderCount || count($bindings) !== $placeholderCount) {
+            return false;
+        }
+
+        return $bindings[$aggregateKeyIndex] === $aggregateKey;
+    }
+
+    /**
+     * Normalize a quoted or unquoted SQL identifier for matcher comparison.
+     *
+     * @param  string  $identifier
+     *
+     * @return string
+     */
+    private static function normalizeSqlIdentifier(string $identifier): string
+    {
+        return strtolower(trim(trim($identifier), '"`[]'));
     }
 }
