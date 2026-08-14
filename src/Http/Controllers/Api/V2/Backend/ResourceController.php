@@ -83,7 +83,7 @@ class ResourceController extends ApiV2Controller
         }
     }
 
-    public function show(Request $request, string $resource, int|string $id)
+    public function show(Request $request, int|string $id, string $resource)
     {
         try {
             $config = $this->resolveResourceConfig($resource);
@@ -136,7 +136,7 @@ class ResourceController extends ApiV2Controller
         }
     }
 
-    public function update(Request $request, string $resource, int|string $id)
+    public function update(Request $request, int|string $id, string $resource)
     {
         try {
             $config = $this->resolveResourceConfig($resource);
@@ -168,7 +168,7 @@ class ResourceController extends ApiV2Controller
         }
     }
 
-    public function destroy(Request $request, string $resource, int|string $id)
+    public function destroy(Request $request, int|string $id, string $resource)
     {
         try {
             $config = $this->resolveResourceConfig($resource);

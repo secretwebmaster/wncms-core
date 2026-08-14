@@ -1,8 +1,19 @@
 <?php
 
+use Wncms\Http\Controllers\Api\V2\Backend\AdvertisementController as ApiV2AdvertisementController;
+use Wncms\Http\Controllers\Api\V2\Backend\ClickController as ApiV2ClickController;
+use Wncms\Http\Controllers\Api\V2\Backend\CommentController as ApiV2CommentController;
+use Wncms\Http\Controllers\Api\V2\Backend\LinkController as ApiV2LinkController;
+use Wncms\Http\Controllers\Api\V2\Backend\PackageController as ApiV2PackageController;
+use Wncms\Http\Controllers\Api\V2\Backend\PageBuilderController as ApiV2PageBuilderController;
+use Wncms\Http\Controllers\Api\V2\Backend\PermissionController as ApiV2PermissionController;
+use Wncms\Http\Controllers\Api\V2\Backend\PluginController as ApiV2PluginController;
+use Wncms\Http\Controllers\Api\V2\Backend\PostController as ApiV2PostController;
+use Wncms\Http\Controllers\Api\V2\Backend\RoleController as ApiV2RoleController;
+use Wncms\Http\Controllers\Api\V2\Backend\ThemeController as ApiV2ThemeController;
 use Wncms\Http\Controllers\Backend\CacheController;
-use Wncms\Http\Controllers\Backend\DashboardController;
 use Wncms\Http\Controllers\Backend\ClickController;
+use Wncms\Http\Controllers\Backend\DashboardController;
 use Wncms\Http\Controllers\Backend\MenuController;
 use Wncms\Http\Controllers\Backend\ModelController;
 use Wncms\Http\Controllers\Backend\PackageController;
@@ -11,7 +22,6 @@ use Wncms\Http\Controllers\Backend\PermissionController;
 use Wncms\Http\Controllers\Backend\PluginController;
 use Wncms\Http\Controllers\Backend\PostController;
 use Wncms\Http\Controllers\Backend\RecordController;
-use Wncms\Http\Controllers\Backend\SearchKeywordController;
 use Wncms\Http\Controllers\Backend\SettingController;
 use Wncms\Http\Controllers\Backend\TagController;
 use Wncms\Http\Controllers\Backend\ToolController;
@@ -20,16 +30,6 @@ use Wncms\Http\Controllers\Backend\UploadController;
 use Wncms\Http\Controllers\Backend\UserController;
 use Wncms\Http\Controllers\Backend\WebsiteController;
 use Wncms\Http\Controllers\ThemeController;
-use Wncms\Http\Controllers\Api\V2\Backend\AdvertisementController as ApiV2AdvertisementController;
-use Wncms\Http\Controllers\Api\V2\Backend\CommentController as ApiV2CommentController;
-use Wncms\Http\Controllers\Api\V2\Backend\ClickController as ApiV2ClickController;
-use Wncms\Http\Controllers\Api\V2\Backend\LinkController as ApiV2LinkController;
-use Wncms\Http\Controllers\Api\V2\Backend\PackageController as ApiV2PackageController;
-use Wncms\Http\Controllers\Api\V2\Backend\PageBuilderController as ApiV2PageBuilderController;
-use Wncms\Http\Controllers\Api\V2\Backend\PluginController as ApiV2PluginController;
-use Wncms\Http\Controllers\Api\V2\Backend\PostController as ApiV2PostController;
-use Wncms\Http\Controllers\Api\V2\Backend\RoleController as ApiV2RoleController;
-use Wncms\Http\Controllers\Api\V2\Backend\ThemeController as ApiV2ThemeController;
 
 return [
     'resources' => [
@@ -134,6 +134,9 @@ return [
         ],
         'permissions' => [
             'model_key' => 'permission',
+            'controller' => ApiV2PermissionController::class,
+            'implementation' => 'domain',
+            'website_scoped' => false,
             'permissions' => [
                 'index' => 'permission_index',
                 'show' => 'permission_show',
@@ -270,9 +273,9 @@ return [
         ['name' => 'packages.deactivate', 'method' => 'post', 'uri' => 'packages/{key}/deactivate', 'controller' => PackageController::class, 'action' => 'deactivate', 'permission' => 'package_edit'],
 
         // Permissions
-        ['name' => 'permissions.bulk_assign_roles', 'method' => 'post', 'uri' => 'permissions/bulk_assign_roles', 'controller' => PermissionController::class, 'action' => 'bulk_assign_roles', 'permission' => 'permission_edit'],
-        ['name' => 'permissions.bulk_remove_roles', 'method' => 'post', 'uri' => 'permissions/bulk_remove_roles', 'controller' => PermissionController::class, 'action' => 'bulk_remove_roles', 'permission' => 'permission_edit'],
-        ['name' => 'permissions.bulk_delete', 'method' => 'post', 'uri' => 'permissions/bulk_delete', 'controller' => PermissionController::class, 'action' => 'bulk_delete', 'permission' => 'permission_bulk_delete'],
+        ['name' => 'permissions.bulk_assign_roles', 'method' => 'post', 'uri' => 'permissions/bulk_assign_roles', 'controller' => PermissionController::class, 'action' => 'bulk_assign_roles', 'permission' => 'permission_edit', 'website_scoped' => false],
+        ['name' => 'permissions.bulk_remove_roles', 'method' => 'post', 'uri' => 'permissions/bulk_remove_roles', 'controller' => PermissionController::class, 'action' => 'bulk_remove_roles', 'permission' => 'permission_edit', 'website_scoped' => false],
+        ['name' => 'permissions.bulk_delete', 'method' => 'post', 'uri' => 'permissions/bulk_delete', 'controller' => PermissionController::class, 'action' => 'bulk_delete', 'permission' => 'permission_bulk_delete', 'website_scoped' => false],
 
         // Plugins
         ['name' => 'plugins.upload', 'method' => 'post', 'uri' => 'plugins/upload', 'controller' => PluginController::class, 'action' => 'upload', 'permission' => 'plugin_upload'],

@@ -67,6 +67,24 @@ class LegacyOperationSecurityTest extends TestCase
     }
 
     /**
+     * Verify global resources retain ability, permission, and risk guards without fake website scope.
+     */
+    public function test_global_resource_omits_website_scope_middleware(): void
+    {
+        $requirements = LegacyOperationSecurity::resourceRequirements('permissions', 'index', [
+            'website_scoped' => false,
+            'permissions' => ['index' => 'permission_index'],
+        ]);
+
+        $this->assertSame([
+            'api_v2_ability:permissions.read',
+            'api_v2_permission:permission_index',
+            'api_v2_risk_context',
+            'api_v2_risk',
+        ], $requirements['middleware']);
+    }
+
+    /**
      * Verify bridge requirements support static and model-target permission declarations.
      *
      * @param  array<string, mixed>  $action

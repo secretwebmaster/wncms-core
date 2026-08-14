@@ -11,6 +11,25 @@ use Wncms\Tests\TestCase;
 
 class LegacyBackendContractProviderTest extends TestCase
 {
+    public function test_generic_single_record_controller_parameters_follow_route_value_order(): void
+    {
+        $methods = [
+            [ResourceController::class, 'show'],
+            [ResourceController::class, 'update'],
+            [ResourceController::class, 'destroy'],
+            [\Wncms\Http\Controllers\Api\V2\Backend\CommentController::class, 'update'],
+            [\Wncms\Http\Controllers\Api\V2\Backend\CommentController::class, 'destroy'],
+        ];
+        foreach ($methods as [$controller, $method]) {
+            $parameters = (new \ReflectionMethod($controller, $method))->getParameters();
+
+            $this->assertSame(['request', 'id', 'resource'], array_map(
+                static fn (\ReflectionParameter $parameter): string => $parameter->getName(),
+                $parameters,
+            ));
+        }
+    }
+
     /**
      * Register every enabled resource route and configured bridge action exactly once.
      */
@@ -54,7 +73,9 @@ class LegacyBackendContractProviderTest extends TestCase
                 $this->assertSame($resourceConfig['permissions'][$action] ?? null, $operation->permission);
                 $this->assertSame('static', $operation->permissionMode);
                 $this->assertSame(LegacyOperationSecurity::resourceAbility($resource, $action), $operation->ability);
-                $this->assertTrue($operation->websiteScoped);
+                $websiteScoped = (bool) ($resourceConfig['website_scoped'] ?? true);
+                $this->assertSame($websiteScoped, $operation->websiteScoped);
+                $this->assertSame($websiteScoped ? 'required' : 'none', $operation->websiteScopeMode);
                 $expectedSecurityRisk = match ($action) {
                     'bulk_delete' => 'critical',
                     'update', 'destroy' => 'high',
@@ -68,11 +89,11 @@ class LegacyBackendContractProviderTest extends TestCase
                 $this->assertSame($safeResourceBoundary && in_array($action, ['update', 'destroy', 'bulk_delete'], true), $operation->actionPlanEligible);
 
                 if (! in_array($operationId, $bridgeOperationIds, true)) {
-                    $expectedImplementation = $resource === $referenceDomain
+                    $expectedImplementation = $resourceConfig['implementation'] ?? ($resource === $referenceDomain
                         ? 'domain'
                         : (($resourceConfig['controller'] ?? ResourceController::class) === ResourceController::class
                             ? 'legacy_resource'
-                            : 'legacy_controller');
+                            : 'legacy_controller'));
 
                     $this->assertSame($expectedImplementation, $operation->implementation);
                 }
@@ -93,7 +114,9 @@ class LegacyBackendContractProviderTest extends TestCase
             $this->assertSame(isset($action['permission_template']) ? 'model_template' : 'static', $operation->permissionMode);
             $expectedAbilitySuffix = $operation->sideEffectKind === 'read' ? 'read' : 'write';
             $this->assertSame(explode('.', (string) $action['name'], 2)[0].'.'.$expectedAbilitySuffix, $operation->ability);
-            $this->assertTrue($operation->websiteScoped);
+            $websiteScoped = (bool) ($action['website_scoped'] ?? true);
+            $this->assertSame($websiteScoped, $operation->websiteScoped);
+            $this->assertSame($websiteScoped ? 'required' : 'none', $operation->websiteScopeMode);
             $this->assertSame('legacy_bridge', $operation->implementation);
             if ($operation->sideEffectKind === 'read') {
                 $this->assertSame('normal', $operation->securityRisk);

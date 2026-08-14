@@ -24,12 +24,12 @@ class CommentController extends ResourceController
         $userModelClass = wncms()->getModelClass('user');
         $query = $userModelClass::query()->select(['id', 'username', 'email']);
 
-        if (!isAdmin()) {
+        if (! isAdmin()) {
             $query->where('id', auth()->id());
         } elseif ($keyword !== '') {
             $query->where(function ($builder) use ($keyword) {
-                $builder->where('username', 'like', '%' . $keyword . '%')
-                    ->orWhere('email', 'like', '%' . $keyword . '%');
+                $builder->where('username', 'like', '%'.$keyword.'%')
+                    ->orWhere('email', 'like', '%'.$keyword.'%');
             });
         }
 
@@ -48,14 +48,14 @@ class CommentController extends ResourceController
     {
         try {
             $config = $this->resolveResourceConfig($resource);
-            if (!$config) {
+            if (! $config) {
                 return $this->error('resource_not_supported', Response::HTTP_NOT_FOUND);
             }
 
             $this->authorizeResourceAction($config['permissions']['store'] ?? null);
 
             $modelClass = $this->resolveModelClass($config['model_key']);
-            if (!$modelClass) {
+            if (! $modelClass) {
                 return $this->error('model_not_found', Response::HTTP_NOT_FOUND);
             }
 
@@ -77,23 +77,23 @@ class CommentController extends ResourceController
         }
     }
 
-    public function update(Request $request, string $resource, int|string $id)
+    public function update(Request $request, int|string $id, string $resource)
     {
         try {
             $config = $this->resolveResourceConfig($resource);
-            if (!$config) {
+            if (! $config) {
                 return $this->error('resource_not_supported', Response::HTTP_NOT_FOUND);
             }
 
             $this->authorizeResourceAction($config['permissions']['update'] ?? null);
 
             $modelClass = $this->resolveModelClass($config['model_key']);
-            if (!$modelClass) {
+            if (! $modelClass) {
                 return $this->error('model_not_found', Response::HTTP_NOT_FOUND);
             }
 
             $comment = $modelClass::query()->find($id);
-            if (!$comment) {
+            if (! $comment) {
                 return $this->error('model_not_found', Response::HTTP_NOT_FOUND);
             }
 
@@ -106,7 +106,7 @@ class CommentController extends ResourceController
                 'status' => $validated['status'] ?? $comment->status,
             ];
 
-            if (!empty($validated['created_at'])) {
+            if (! empty($validated['created_at'])) {
                 $payload['created_at'] = $validated['created_at'];
             }
 
@@ -120,23 +120,23 @@ class CommentController extends ResourceController
         }
     }
 
-    public function destroy(Request $request, string $resource, int|string $id)
+    public function destroy(Request $request, int|string $id, string $resource)
     {
         try {
             $config = $this->resolveResourceConfig($resource);
-            if (!$config) {
+            if (! $config) {
                 return $this->error('resource_not_supported', Response::HTTP_NOT_FOUND);
             }
 
             $this->authorizeResourceAction($config['permissions']['destroy'] ?? null);
 
             $modelClass = $this->resolveModelClass($config['model_key']);
-            if (!$modelClass) {
+            if (! $modelClass) {
                 return $this->error('model_not_found', Response::HTTP_NOT_FOUND);
             }
 
             $comment = $modelClass::query()->find($id);
-            if (!$comment) {
+            if (! $comment) {
                 return $this->error('model_not_found', Response::HTTP_NOT_FOUND);
             }
 
@@ -161,7 +161,7 @@ class CommentController extends ResourceController
                 'status' => ['nullable', Rule::in($modelClass::STATUSES)],
                 'parent_id' => [
                     'nullable',
-                    'exists:' . (new $modelClass)->getTable() . ',id',
+                    'exists:'.(new $modelClass)->getTable().',id',
                     Rule::notIn(array_filter([$commentId])),
                 ],
             ],

@@ -59,7 +59,12 @@ final class LegacyOperationSecurity
             'target_resolver' => $descriptor->targetResolver,
             'relationship_boundaries' => $descriptor->relationshipBoundaries,
             'idempotent' => $descriptor->idempotent,
-            'middleware' => self::middleware($descriptor->ability, 'api_v2_permission:'.$permission, $descriptor->idempotent),
+            'middleware' => self::middleware(
+                $descriptor->ability,
+                'api_v2_permission:'.$permission,
+                $descriptor->idempotent,
+                (bool) ($resourceConfig['website_scoped'] ?? true),
+            ),
         ];
     }
 
@@ -126,7 +131,12 @@ final class LegacyOperationSecurity
             'target_resolver' => $descriptor->targetResolver,
             'relationship_boundaries' => $descriptor->relationshipBoundaries,
             'idempotent' => $descriptor->idempotent,
-            'middleware' => self::middleware($descriptor->ability, $permissionMiddleware, $descriptor->idempotent),
+            'middleware' => self::middleware(
+                $descriptor->ability,
+                $permissionMiddleware,
+                $descriptor->idempotent,
+                (bool) ($action['website_scoped'] ?? true),
+            ),
         ];
     }
 
@@ -154,14 +164,16 @@ final class LegacyOperationSecurity
      *
      * @return array<int, string>
      */
-    private static function middleware(string $ability, string $permissionMiddleware, bool $idempotent): array
+    private static function middleware(string $ability, string $permissionMiddleware, bool $idempotent, bool $websiteScoped): array
     {
         $middleware = [
             'api_v2_ability:'.$ability,
             $permissionMiddleware,
-            'api_v2_website_scope',
-            'api_v2_risk_context',
         ];
+        if ($websiteScoped) {
+            $middleware[] = 'api_v2_website_scope';
+        }
+        $middleware[] = 'api_v2_risk_context';
         if ($idempotent) {
             $middleware[] = 'api_v2_idempotency';
         }

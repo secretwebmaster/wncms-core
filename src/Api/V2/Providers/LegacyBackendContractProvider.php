@@ -66,6 +66,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                 }
 
                 $security = LegacyOperationSecurity::resourceRequirements($resource, $action, $resourceConfig);
+                $websiteScoped = (bool) ($resourceConfig['website_scoped'] ?? true);
 
                 $registry->registerOperation(new ApiOperationContract(
                     id: $operationId,
@@ -76,7 +77,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                     routeName: "api.v2.backend.{$resource}.{$action}",
                     permission: $security['permission'],
                     ability: $security['ability'],
-                    websiteScoped: true,
+                    websiteScoped: $websiteScoped,
                     risk: $security['data_risk'],
                     implementation: $this->resourceImplementation($resource, $resourceConfig, $referenceDomain),
                     request: ApiSchema::object(),
@@ -95,7 +96,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                     targetResolver: $security['target_resolver'],
                     relationshipBoundaries: $security['relationship_boundaries'],
                     legacyTokenAllowed: in_array('legacy_personal_access_token', $security['accepted_credential_types'], true),
-                    websiteScopeMode: 'required',
+                    websiteScopeMode: $websiteScoped ? 'required' : 'none',
                     idempotencyRequired: $security['idempotent'],
                 ));
             }
@@ -120,6 +121,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
             $domain = explode('.', $name)[0];
             $method = strtoupper((string) ($action['method'] ?? 'post'));
             $security = LegacyOperationSecurity::actionRequirements($action);
+            $websiteScoped = (bool) ($action['website_scoped'] ?? true);
 
             $this->registerDomain($registry, $domain);
             $registry->registerOperation(new ApiOperationContract(
@@ -131,7 +133,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                 routeName: "api.v2.backend.{$name}",
                 permission: $security['permission'],
                 ability: $security['ability'],
-                websiteScoped: true,
+                websiteScoped: $websiteScoped,
                 risk: $security['data_risk'],
                 implementation: 'legacy_bridge',
                 request: ApiSchema::object(),
@@ -150,7 +152,7 @@ class LegacyBackendContractProvider implements ApiContractProvider
                 targetResolver: $security['target_resolver'],
                 relationshipBoundaries: $security['relationship_boundaries'],
                 legacyTokenAllowed: in_array('legacy_personal_access_token', $security['accepted_credential_types'], true),
-                websiteScopeMode: 'required',
+                websiteScopeMode: $websiteScoped ? 'required' : 'none',
                 idempotencyRequired: $security['idempotent'],
             ));
         }
@@ -175,6 +177,10 @@ class LegacyBackendContractProvider implements ApiContractProvider
      */
     protected function resourceImplementation(string $resource, array $resourceConfig, ?string $referenceDomain): string
     {
+        if (isset($resourceConfig['implementation'])) {
+            return (string) $resourceConfig['implementation'];
+        }
+
         if ($resource === $referenceDomain) {
             return 'domain';
         }

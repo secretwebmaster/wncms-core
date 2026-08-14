@@ -342,13 +342,13 @@ class ApiGuardOrderTest extends TestCase
         });
 
         $update = Request::create('/api/v2/backend/channels/'.$targets[0]->id, 'PATCH', ['name' => 'Must not update', 'website_id' => $this->website->id]);
-        $response = $this->scopedResourceRequest($update, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $targets[0]->id));
+        $response = $this->scopedResourceRequest($update, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, $targets[0]->id, 'channels'));
         $this->assertSame(403, $response->getStatusCode());
         $this->assertSame('website.scope_denied', $response->getData(true)['meta']['error_code']);
         $this->assertNotSame('Must not update', $targets[0]->fresh()->name);
 
         $destroy = Request::create('/api/v2/backend/channels/'.$targets[1]->id, 'DELETE', ['website_id' => $this->website->id]);
-        $response = $this->scopedResourceRequest($destroy, 'api.v2.backend.channels.destroy', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->destroy($request, 'channels', $targets[1]->id));
+        $response = $this->scopedResourceRequest($destroy, 'api.v2.backend.channels.destroy', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->destroy($request, $targets[1]->id, 'channels'));
         $this->assertSame(403, $response->getStatusCode());
         $this->assertNotNull($targets[1]->fresh());
 
@@ -383,14 +383,14 @@ class ApiGuardOrderTest extends TestCase
         $denied = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
             'name' => 'Denied', 'website_id' => $this->website->id, 'website_ids' => [$other->id, $this->website->id],
         ]);
-        $response = $this->scopedResourceRequest($denied, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $response = $this->scopedResourceRequest($denied, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, $channel->id, 'channels'));
         $this->assertSame(403, $response->getStatusCode());
         $this->assertSame('Scoped Before', $channel->fresh()->name);
 
         $allowed = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
             'name' => 'Scoped After', 'website_id' => $this->website->id, 'website_ids' => [$this->website->id, $this->website->id],
         ]);
-        $response = $this->scopedResourceRequest($allowed, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $response = $this->scopedResourceRequest($allowed, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, $channel->id, 'channels'));
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('Scoped After', $channel->fresh()->name);
         $this->assertSame([$this->website->id], $channel->fresh()->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->all());
@@ -399,14 +399,14 @@ class ApiGuardOrderTest extends TestCase
         $emptyMembership = Request::create('/api/v2/backend/channels/'.$unscoped->id, 'PATCH', [
             'name' => 'Must remain unchanged', 'website_id' => $this->website->id,
         ]);
-        $response = $this->scopedResourceRequest($emptyMembership, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $unscoped->id));
+        $response = $this->scopedResourceRequest($emptyMembership, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, $unscoped->id, 'channels'));
         $this->assertSame(403, $response->getStatusCode());
         $this->assertSame('No Membership', $unscoped->fresh()->name);
 
         $malformed = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
             'name' => 'Must remain scoped', 'website_id' => $this->website->id, 'website_ids' => [$this->website->id, 'invalid'],
         ]);
-        $response = $this->scopedResourceRequest($malformed, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $response = $this->scopedResourceRequest($malformed, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, $channel->id, 'channels'));
         $this->assertSame(403, $response->getStatusCode());
         $this->assertSame('Scoped After', $channel->fresh()->name);
     }
@@ -441,7 +441,7 @@ class ApiGuardOrderTest extends TestCase
             'website_id' => $this->website->id,
             'website_ids' => [],
         ]);
-        $response = $this->scopedResourceRequest($update, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $response = $this->scopedResourceRequest($update, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, $channel->id, 'channels'));
         $this->assertSame(422, $response->getStatusCode());
         $this->assertSame('Key-bound channel', $channel->fresh()->name);
         $this->assertSame([$this->website->id], $channel->fresh()->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->all());
@@ -479,7 +479,7 @@ class ApiGuardOrderTest extends TestCase
             'name' => 'Must not update', 'website_id' => $this->website->id,
             'website_ids' => [$this->website->id, $other->id],
         ]);
-        $response = $this->scopedResourceRequest($update, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $response = $this->scopedResourceRequest($update, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, $channel->id, 'channels'));
         $this->assertSame(422, $response->getStatusCode());
         $this->assertSame('Single before', $channel->fresh()->name);
         $this->assertSame([$this->website->id], $channel->fresh()->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->all());
@@ -487,7 +487,7 @@ class ApiGuardOrderTest extends TestCase
         $valid = Request::create('/api/v2/backend/channels/'.$channel->id, 'PATCH', [
             'name' => 'Single after', 'website_key' => 'website:'.$other->id,
         ]);
-        $response = $this->scopedResourceRequest($valid, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $response = $this->scopedResourceRequest($valid, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, $channel->id, 'channels'));
         $this->assertSame(200, $response->getStatusCode(), (string) $response->getContent());
         $this->assertSame([$other->id], $channel->fresh()->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->all());
     }
@@ -529,7 +529,7 @@ class ApiGuardOrderTest extends TestCase
         $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
 
         $response = $this->withoutAmbientTransaction(
-            fn () => app(EnforceApiV2RiskPolicy::class)->handle($request, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id)),
+            fn () => app(EnforceApiV2RiskPolicy::class)->handle($request, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, $channel->id, 'channels')),
         );
 
         $this->assertSame(200, $response->getStatusCode(), (string) $response->getContent());
@@ -554,7 +554,7 @@ class ApiGuardOrderTest extends TestCase
             'website_ids' => [],
         ]);
 
-        $response = $this->scopedResourceRequest($request, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $response = $this->scopedResourceRequest($request, 'api.v2.backend.channels.update', $context, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, $channel->id, 'channels'));
 
         $this->assertSame(200, $response->getStatusCode(), (string) $response->getContent());
         $this->assertSame('Global after', $channel->fresh()->name);
@@ -769,12 +769,15 @@ class ApiGuardOrderTest extends TestCase
                 $ability = $resource.'.'.(in_array($action, ['index', 'show'], true) ? 'read' : 'write');
                 $permission = (string) ($resourceConfig['permissions'][$action] ?? '');
                 $this->assertNotSame('', $permission, "Missing fixture permission for {$resource}.{$action}.");
-                $this->assertMiddlewareOrder($route->gatherMiddleware(), [
+                $expectedMiddleware = [
                     'api_v2_token_auth',
                     'api_v2_ability:'.$ability,
                     'api_v2_permission:'.$permission,
-                    'api_v2_website_scope',
-                ]);
+                ];
+                if (($resourceConfig['website_scoped'] ?? true) === true) {
+                    $expectedMiddleware[] = 'api_v2_website_scope';
+                }
+                $this->assertMiddlewareOrder($route->gatherMiddleware(), $expectedMiddleware);
                 $this->assertNotContains('api_v2_has_website', $route->gatherMiddleware());
             }
         }
@@ -789,12 +792,15 @@ class ApiGuardOrderTest extends TestCase
             $permissionMiddleware = isset($action['permission_template'])
                 ? 'api_v2_model_permission:'.str_replace(['{model}_', '{model}'], '', (string) $action['permission_template'])
                 : 'api_v2_permission:'.(string) ($action['permission'] ?? '');
-            $this->assertMiddlewareOrder($route->gatherMiddleware(), [
+            $expectedMiddleware = [
                 'api_v2_token_auth',
                 'api_v2_ability:'.$ability,
                 $permissionMiddleware,
-                'api_v2_website_scope',
-            ]);
+            ];
+            if (($action['website_scoped'] ?? true) === true) {
+                $expectedMiddleware[] = 'api_v2_website_scope';
+            }
+            $this->assertMiddlewareOrder($route->gatherMiddleware(), $expectedMiddleware);
             $this->assertNotContains('api_v2_has_website', $route->gatherMiddleware());
         }
     }
