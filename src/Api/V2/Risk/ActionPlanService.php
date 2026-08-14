@@ -114,7 +114,7 @@ final class ActionPlanService
                 if ($requiresPlan
                     || $operation->sideEffectKind === 'external'
                     || in_array('websites', $operation->relationshipBoundaries, true)) {
-                    $this->authorizer->authorizePreTarget($context, $operation);
+                    $this->authorizer->authorizeResolved($context, $operation, $riskContext);
                 }
                 if ($requiresPlan && ! in_array($operation->sideEffectKind, ['database', 'transactional_outbox'], true)) {
                     throw new RiskContextException('risk.policy_unavailable', 503);

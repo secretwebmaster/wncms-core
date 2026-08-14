@@ -3,7 +3,6 @@
 namespace Wncms\Tests\Feature\Api\V2;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
@@ -35,8 +34,6 @@ use Wncms\Tests\TestCase;
 
 class ActionPlanPolicyTest extends TestCase
 {
-    use DatabaseTransactions;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -57,6 +54,22 @@ class ActionPlanPolicyTest extends TestCase
     protected function tearDown(): void
     {
         CarbonImmutable::setTestNow();
+        uss('api_high_risk_action_mode', 'direct');
+        $actorIds = User::query()
+            ->where('username', 'like', 'risk-plan-%')
+            ->orWhere('username', 'like', 'permission-cross-%')
+            ->pluck('id');
+        if ($actorIds->isNotEmpty()) {
+            DB::table('api_action_plans')->whereIn('actor_id', $actorIds)->delete();
+            DB::table('api_security_events')->whereIn('actor_id', $actorIds)->delete();
+            DB::table(config('permission.table_names.model_has_permissions', 'model_has_permissions'))
+                ->whereIn(config('permission.column_names.model_morph_key', 'model_id'), $actorIds)
+                ->delete();
+            DB::table(config('permission.table_names.model_has_roles', 'model_has_roles'))
+                ->whereIn(config('permission.column_names.model_morph_key', 'model_id'), $actorIds)
+                ->delete();
+            User::query()->whereKey($actorIds)->delete();
+        }
         parent::tearDown();
     }
 
@@ -70,11 +83,16 @@ class ActionPlanPolicyTest extends TestCase
         $this->assertStringNotContainsString($plan['confirmation'], json_encode($stored, JSON_THROW_ON_ERROR));
         $this->assertSame('2026-08-14T00:05:00+00:00', $plan['expires_at']);
 
+        DB::beginTransaction();
         try {
-            app(ActionPlanService::class)->consume($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]);
-            $this->fail('Expected ambient transaction denial.');
-        } catch (\RuntimeException $exception) {
-            $this->assertSame('Action-plan execution requires a service-owned outer transaction.', $exception->getMessage());
+            try {
+                app(ActionPlanService::class)->consume($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]);
+                $this->fail('Expected ambient transaction denial.');
+            } catch (\RuntimeException $exception) {
+                $this->assertSame('Action-plan execution requires a service-owned outer transaction.', $exception->getMessage());
+            }
+        } finally {
+            DB::rollBack();
         }
         $this->assertNull(DB::table('api_action_plans')->where('plan_id', $plan['id'])->value('consumed_at'));
         $this->executePlan($context, $operation, $plan['confirmation'], ['name' => 'exact'], ['version' => 7]);
@@ -90,30 +108,35 @@ class ActionPlanPolicyTest extends TestCase
         $resolved = 0;
         $executed = 0;
 
+        DB::beginTransaction();
         try {
-            app(ActionPlanService::class)->executeMiddlewareOperation(
-                $context,
-                $operation,
-                '',
-                '',
-                '',
-                ['setting'],
-                [],
-                false,
-                function () use (&$resolved): RiskContext {
-                    $resolved++;
+            try {
+                app(ActionPlanService::class)->executeMiddlewareOperation(
+                    $context,
+                    $operation,
+                    '',
+                    '',
+                    '',
+                    ['setting'],
+                    [],
+                    false,
+                    function () use (&$resolved): RiskContext {
+                        $resolved++;
 
-                    return new RiskContext([], [], [], ['setting']);
-                },
-                function () use (&$executed): null {
-                    $executed++;
+                        return new RiskContext([], [], [], ['setting']);
+                    },
+                    function () use (&$executed): null {
+                        $executed++;
 
-                    return null;
-                },
-            );
-            $this->fail('Expected ambient transaction denial.');
-        } catch (\RuntimeException $exception) {
-            $this->assertSame('Risk middleware execution requires a service-owned outer transaction.', $exception->getMessage());
+                        return null;
+                    },
+                );
+                $this->fail('Expected ambient transaction denial.');
+            } catch (\RuntimeException $exception) {
+                $this->assertSame('Risk middleware execution requires a service-owned outer transaction.', $exception->getMessage());
+            }
+        } finally {
+            DB::rollBack();
         }
 
         $this->assertSame(0, $resolved);
@@ -144,7 +167,6 @@ class ActionPlanPolicyTest extends TestCase
         $this->assertTrue($actor->fresh()->hasPermissionTo('cache_flush'));
         $actor->revokePermissionTo('cache_flush');
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        DB::connection()->commit();
         $executions = 0;
 
         try {
@@ -171,7 +193,6 @@ class ActionPlanPolicyTest extends TestCase
         } finally {
             DB::table('api_security_events')->where('actor_id', $actor->getKey())->delete();
             User::query()->whereKey($actor->getKey())->delete();
-            DB::connection()->beginTransaction();
         }
 
         $this->assertSame(0, $executions);
@@ -463,7 +484,6 @@ class ActionPlanPolicyTest extends TestCase
     {
         [$context, $operation] = $this->fixture();
         $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
-        DB::connection()->commit();
 
         try {
             $beforeEvents = DB::table('api_security_events')->where('event_type', 'risk.plan.stale')->where('actor_id', $context->actorId())->count();
@@ -489,7 +509,6 @@ class ActionPlanPolicyTest extends TestCase
             DB::table('api_action_plans')->where('plan_id', $plan['id'])->delete();
             DB::table('api_security_events')->where('actor_id', $context->actorId())->delete();
             User::query()->whereKey($context->actorId())->delete();
-            DB::connection()->beginTransaction();
         }
     }
 
@@ -529,7 +548,6 @@ class ActionPlanPolicyTest extends TestCase
     {
         [$context, $operation] = $this->fixture();
         $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
-        DB::connection()->commit();
 
         try {
             config(['wncms-api-v2.auth_security.security_event_correlation.keys' => []]);
@@ -552,7 +570,6 @@ class ActionPlanPolicyTest extends TestCase
             DB::table('api_action_plans')->where('plan_id', $plan['id'])->delete();
             DB::table('api_security_events')->where('actor_id', $context->actorId())->delete();
             User::query()->whereKey($context->actorId())->delete();
-            DB::connection()->beginTransaction();
         }
     }
 
@@ -812,7 +829,6 @@ class ActionPlanPolicyTest extends TestCase
         $this->registerOperation($operation);
         uss('api_high_risk_action_mode', 'planned');
         $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
-        DB::connection()->commit();
         Event::fake([ApiSecurityEventRecorded::class]);
 
         try {
@@ -828,7 +844,6 @@ class ActionPlanPolicyTest extends TestCase
             DB::table('api_security_events')->where('actor_id', $context->actorId())->delete();
             User::query()->whereKey($context->actorId())->delete();
             uss('api_high_risk_action_mode', 'direct');
-            DB::connection()->beginTransaction();
         }
     }
 
@@ -891,7 +906,6 @@ class ActionPlanPolicyTest extends TestCase
         $this->registerOperation($operation);
         uss('api_high_risk_action_mode', 'planned');
         $plan = app(ActionPlanService::class)->create($context, $operation, ['name' => 'exact'], ['version' => 7]);
-        DB::connection()->commit();
         $markerFile = tempnam(sys_get_temp_dir(), 'wncms-plan-effects-');
         $readyFile = tempnam(sys_get_temp_dir(), 'wncms-plan-ready-');
         $resultFile = tempnam(sys_get_temp_dir(), 'wncms-plan-results-');
@@ -949,7 +963,6 @@ class ActionPlanPolicyTest extends TestCase
             DB::table('api_security_events')->where('actor_id', $context->actorId())->delete();
             User::query()->whereKey($context->actorId())->delete();
             uss('api_high_risk_action_mode', 'direct');
-            DB::connection()->beginTransaction();
         }
     }
 

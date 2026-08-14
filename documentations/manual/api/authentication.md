@@ -180,6 +180,13 @@ external queue enqueue is rejected before execution because it cannot share
 that atomic boundary. Idempotent retries replay the committed result before
 rechecking a consumed confirmation.
 
+Package callers may create or execute plans only for idempotent database or
+transactional-outbox operations with a declared model boundary. Public plan
+execution rejects a caller-owned ambient transaction so rollback-safe denial
+audit remains durable. Direct external operations do not gain planned atomicity,
+but WNCMS rechecks their current credential, ability, and permission inside the
+owned execution transaction before dispatching the side effect.
+
 Production legacy operations use an explicit security descriptor; WNCMS does
 not infer safety from an HTTP method or operation name. Every configured route
 must declare its credential types, step-up and plan policy, domain/outbox model

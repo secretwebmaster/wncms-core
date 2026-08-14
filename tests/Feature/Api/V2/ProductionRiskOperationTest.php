@@ -5,6 +5,7 @@ namespace Wncms\Tests\Feature\Api\V2;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -28,12 +29,20 @@ class ProductionRiskOperationTest extends TestCase
 {
     use DatabaseTransactions;
 
+    /** @var array<string, array<int, array<string, mixed>>> */
+    private array $databaseSnapshot = [];
+
+    private bool $suspendedTestTransaction = false;
+
     /**
      * Configure mandatory security event correlation for plan tests.
      */
     protected function setUp(): void
     {
         parent::setUp();
+        foreach ($this->snapshotTables() as $table) {
+            $this->databaseSnapshot[$table] = DB::table($table)->get()->map(static fn ($row): array => (array) $row)->all();
+        }
         config(['wncms-api-v2.auth_security.security_event_correlation' => [
             'active_key_version' => 'v1',
             'keys' => ['v1' => [
@@ -42,6 +51,29 @@ class ProductionRiskOperationTest extends TestCase
                 'user_agent' => 'production-risk-agent-key-123456789',
             ]],
         ]]);
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->suspendedTestTransaction) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            DB::statement('PRAGMA foreign_keys = OFF');
+            foreach (array_reverse($this->snapshotTables()) as $table) {
+                DB::table($table)->delete();
+            }
+            foreach ($this->snapshotTables() as $table) {
+                if ($this->databaseSnapshot[$table] !== []) {
+                    DB::table($table)->insert($this->databaseSnapshot[$table]);
+                }
+            }
+            DB::statement('PRAGMA foreign_keys = ON');
+            DB::beginTransaction();
+            Cache::flush();
+        }
+
+        parent::tearDown();
     }
 
     /**
@@ -56,11 +88,14 @@ class ProductionRiskOperationTest extends TestCase
         $route = app('router')->getRoutes()->getByName('api.v2.backend.cache.flush');
         $route->bind($request);
         $request->setRouteResolver(fn () => $route);
-        $request->attributes->set(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE, $this->context());
+        $context = $this->context();
+        $context->actor()->givePermissionTo(Permission::findOrCreate('cache_flush', 'web'));
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $request->attributes->set(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE, $context);
         $request->attributes->set(ResolveApiV2RiskContext::ATTRIBUTE, app(OperationRiskContextResolver::class)->resolveRequest($request, $operation));
         $executions = 0;
 
-        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions) {
+        $response = $this->executeRiskMiddleware($request, function () use (&$executions) {
             $executions++;
 
             return response()->json(['ok' => true]);
@@ -81,11 +116,14 @@ class ProductionRiskOperationTest extends TestCase
         $route = app('router')->getRoutes()->getByName('api.v2.backend.cache.flush');
         $route->bind($request);
         $request->setRouteResolver(fn () => $route);
-        $request->attributes->set(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE, $this->context());
+        $context = $this->context();
+        $context->actor()->givePermissionTo(Permission::findOrCreate('cache_flush', 'web'));
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $request->attributes->set(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE, $context);
         $request->attributes->set(ResolveApiV2RiskContext::ATTRIBUTE, app(OperationRiskContextResolver::class)->resolveRequest($request, $operation));
         $executions = 0;
 
-        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions) {
+        $response = $this->executeRiskMiddleware($request, function () use (&$executions) {
             $executions++;
 
             return response()->json(['ok' => true]);
@@ -117,7 +155,7 @@ class ProductionRiskOperationTest extends TestCase
         $channel->update(['remark' => 'concurrently changed']);
         $executions = 0;
 
-        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions) {
+        $response = $this->executeRiskMiddleware($request, function () use (&$executions) {
             $executions++;
 
             return response()->json(['ok' => true]);
@@ -147,7 +185,7 @@ class ProductionRiskOperationTest extends TestCase
         $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
         $request->server->set('REMOTE_ADDR', '192.0.2.11');
 
-        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, fn () => response()->json(['ok' => true]));
+        $response = $this->executeRiskMiddleware($request, fn () => response()->json(['ok' => true]));
 
         $this->assertSame(409, $response->getStatusCode());
         $this->assertSame('risk.plan_stale', $response->getData(true)['meta']['error_code']);
@@ -180,7 +218,7 @@ class ProductionRiskOperationTest extends TestCase
         $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
         $channel->websites()->sync([$websiteB->id]);
 
-        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, fn () => response()->json(['ok' => true]));
+        $response = $this->executeRiskMiddleware($request, fn () => response()->json(['ok' => true]));
 
         $this->assertSame(409, $response->getStatusCode());
         $this->assertSame('risk.plan_stale', $response->getData(true)['meta']['error_code']);
@@ -213,7 +251,7 @@ class ProductionRiskOperationTest extends TestCase
         $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
         $websiteB->delete();
 
-        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, fn () => response()->json(['ok' => true]));
+        $response = $this->executeRiskMiddleware($request, fn () => response()->json(['ok' => true]));
 
         $this->assertSame(409, $response->getStatusCode());
         $this->assertSame('risk.plan_stale', $response->getData(true)['meta']['error_code']);
@@ -266,7 +304,7 @@ class ProductionRiskOperationTest extends TestCase
             );
             $executions = 0;
 
-            $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions) {
+            $response = $this->executeRiskMiddleware($request, function () use (&$executions) {
                 $executions++;
 
                 return response()->json(['ok' => true]);
@@ -317,7 +355,7 @@ class ProductionRiskOperationTest extends TestCase
         $freshRequest->headers->set('X-WNCMS-Confirmation', $freshPlan['confirmation']);
         $existing->delete();
 
-        $deleted = app(EnforceApiV2RiskPolicy::class)->handle($freshRequest, fn () => response()->json(['ok' => true]));
+        $deleted = $this->executeRiskMiddleware($freshRequest, fn () => response()->json(['ok' => true]));
         $this->assertSame(409, $deleted->getStatusCode());
     }
 
@@ -363,7 +401,7 @@ class ProductionRiskOperationTest extends TestCase
             $this->assertSame(0, pcntl_wexitstatus($status));
             DB::disconnect();
 
-            $response = app(EnforceApiV2RiskPolicy::class)->handle($request, fn () => response()->json(['ok' => true]));
+            $response = $this->executeRiskMiddleware($request, fn () => response()->json(['ok' => true]));
 
             $this->assertSame(409, $response->getStatusCode());
             $this->assertSame('risk.plan_stale', $response->getData(true)['meta']['error_code']);
@@ -393,7 +431,7 @@ class ProductionRiskOperationTest extends TestCase
         $request->attributes->set(ResolveApiV2RiskContext::ATTRIBUTE, app(OperationRiskContextResolver::class)->resolveRequest($request, $operation));
         $executions = 0;
 
-        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions) {
+        $response = $this->executeRiskMiddleware($request, function () use (&$executions) {
             $executions++;
 
             return response()->json(['ok' => true]);
@@ -502,7 +540,7 @@ class ProductionRiskOperationTest extends TestCase
             $actor->websites()->detach($websiteB->id);
             $executions = 0;
 
-            $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions) {
+            $response = $this->executeRiskMiddleware($request, function () use (&$executions) {
                 $executions++;
 
                 return response()->json(['ok' => true]);
@@ -567,7 +605,7 @@ class ProductionRiskOperationTest extends TestCase
             $this->assertSame(0, pcntl_wexitstatus($status));
             DB::disconnect();
 
-            $response = app(EnforceApiV2RiskPolicy::class)->handle($request, fn () => response()->json(['ok' => true]));
+            $response = $this->executeRiskMiddleware($request, fn () => response()->json(['ok' => true]));
 
             $this->assertSame(403, $response->getStatusCode(), (string) $response->getContent());
             $this->assertSame('website.scope_denied', $response->getData(true)['meta']['error_code']);
@@ -611,7 +649,7 @@ class ProductionRiskOperationTest extends TestCase
         app(PermissionRegistrar::class)->forgetCachedPermissions();
         $executions = 0;
 
-        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$executions) {
+        $response = $this->executeRiskMiddleware($request, function () use (&$executions) {
             $executions++;
 
             return response()->json(['ok' => true]);
@@ -682,7 +720,7 @@ class ProductionRiskOperationTest extends TestCase
         }
 
         try {
-            $response = app(EnforceApiV2RiskPolicy::class)->handle($request, function () use (&$revokedBeforeMutation, $started, $completed, $channel) {
+            $response = $this->executeRiskMiddleware($request, function () use (&$revokedBeforeMutation, $started, $completed, $channel) {
                 file_put_contents($started, 'started', LOCK_EX);
                 usleep(100_000);
                 clearstatcache(true, $completed);
@@ -1058,6 +1096,47 @@ class ProductionRiskOperationTest extends TestCase
             $this->assertSame($code, $exception->errorCode);
             $this->assertSame(403, $exception->httpStatus);
         }
+    }
+
+    /**
+     * Execute risk middleware without the test harness transaction becoming its owner.
+     */
+    private function executeRiskMiddleware(Request $request, callable $next): mixed
+    {
+        $suspended = DB::transactionLevel() > 0;
+        if ($suspended) {
+            while (DB::transactionLevel() > 0) {
+                DB::commit();
+            }
+            $this->suspendedTestTransaction = true;
+        }
+
+        try {
+            return app(EnforceApiV2RiskPolicy::class)->handle($request, $next);
+        } finally {
+            if ($suspended) {
+                DB::beginTransaction();
+            }
+        }
+    }
+
+    /** @return array<int, string> */
+    private function snapshotTables(): array
+    {
+        return [
+            'users',
+            'websites',
+            'channels',
+            'settings',
+            config('permission.table_names.roles', 'roles'),
+            config('permission.table_names.permissions', 'permissions'),
+            config('permission.table_names.model_has_roles', 'model_has_roles'),
+            config('permission.table_names.model_has_permissions', 'model_has_permissions'),
+            config('permission.table_names.role_has_permissions', 'role_has_permissions'),
+            'model_has_websites',
+            'api_action_plans',
+            'api_security_events',
+        ];
     }
 
     /**

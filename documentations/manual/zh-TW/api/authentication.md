@@ -164,6 +164,12 @@ database connection 原子提交。Async 只支援同 database 的 transactional
 network 或外部 queue enqueue 會在執行前 fail closed。Idempotent retry 會在重新檢查已
 消耗 confirmation 前 replay 已提交結果。
 
+Package caller 只能為已宣告 model boundary 的冪等 database 或
+transactional-outbox operation 建立或執行 plan。公開 plan execution 會拒絕
+caller-owned ambient transaction，確保 rollback 後的 denial audit 仍可持久保存。
+Direct external operation 不會因此取得 planned atomicity，但 WNCMS 會在派發副作用前，
+於自有 execution transaction 內重新檢查目前 credential、ability 與 permission。
+
 Production legacy operation 使用明確的 security descriptor；WNCMS 不會從 HTTP
 method 或 operation name 推斷安全性。每條 configured route 都必須宣告 credential
 types、step-up 與 plan policy、domain/outbox model boundary、side-effect kind、request

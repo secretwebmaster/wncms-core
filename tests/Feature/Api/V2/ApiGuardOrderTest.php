@@ -17,6 +17,7 @@ namespace Wncms\Tests\Feature\Api\V2;
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -47,6 +48,11 @@ class ApiGuardOrderTest extends TestCase
 {
     use DatabaseTransactions;
 
+    /** @var array<string, array<int, array<string, mixed>>> */
+    private array $databaseSnapshot = [];
+
+    private bool $suspendedTestTransaction = false;
+
     private int $domainExecutions = 0;
 
     private User $user;
@@ -61,6 +67,10 @@ class ApiGuardOrderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        foreach ($this->snapshotTables() as $table) {
+            $this->databaseSnapshot[$table] = DB::table($table)->get()->map(static fn ($row): array => (array) $row)->all();
+        }
 
         uss('api_high_risk_action_mode', 'direct');
 
@@ -100,6 +110,29 @@ class ApiGuardOrderTest extends TestCase
             'api_v2_ability:links.read',
             'api_v2_token_auth',
         ]);
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->suspendedTestTransaction) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            DB::statement('PRAGMA foreign_keys = OFF');
+            foreach (array_reverse($this->snapshotTables()) as $table) {
+                DB::table($table)->delete();
+            }
+            foreach ($this->snapshotTables() as $table) {
+                if ($this->databaseSnapshot[$table] !== []) {
+                    DB::table($table)->insert($this->databaseSnapshot[$table]);
+                }
+            }
+            DB::statement('PRAGMA foreign_keys = ON');
+            DB::beginTransaction();
+            Cache::flush();
+        }
+
+        parent::tearDown();
     }
 
     /**
@@ -236,9 +269,10 @@ class ApiGuardOrderTest extends TestCase
             ->assertForbidden()
             ->assertJsonPath('meta.error_code', 'website.scope_denied');
 
-        $this->withToken($withAbility)
-            ->getJson('/api/v2/backend/links?website_id='.$this->website->id)
-            ->assertOk();
+        $this->withoutAmbientTransaction(
+            fn () => $this->withToken($withAbility)
+                ->getJson('/api/v2/backend/links?website_id='.$this->website->id),
+        )->assertOk();
     }
 
     /**
@@ -494,7 +528,9 @@ class ApiGuardOrderTest extends TestCase
         $request->attributes->set(ResolveApiV2RiskContext::ATTRIBUTE, $snapshot);
         $request->headers->set('X-WNCMS-Confirmation', $plan['confirmation']);
 
-        $response = app(EnforceApiV2RiskPolicy::class)->handle($request, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id));
+        $response = $this->withoutAmbientTransaction(
+            fn () => app(EnforceApiV2RiskPolicy::class)->handle($request, fn (Request $request) => app(\Wncms\Http\Controllers\Api\V2\Backend\ResourceController::class)->update($request, 'channels', $channel->id)),
+        );
 
         $this->assertSame(200, $response->getStatusCode(), (string) $response->getContent());
         $this->assertSame('Planned after', $channel->fresh()->name);
@@ -557,13 +593,15 @@ class ApiGuardOrderTest extends TestCase
 
         $this->user->givePermissionTo('user_edit');
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        $this->withToken($token)->withHeader('Idempotency-Key', 'guard-trusted-update-allowed')->postJson('/api/v2/backend/models/update', [
-            'model' => 'users',
-            'model_id' => $target->id,
-            'column' => 'username',
-            'value' => 'generic-target-allowed',
-            'website_id' => $this->website->id,
-        ])->assertOk();
+        $this->withoutAmbientTransaction(
+            fn () => $this->withToken($token)->withHeader('Idempotency-Key', 'guard-trusted-update-allowed')->postJson('/api/v2/backend/models/update', [
+                'model' => 'users',
+                'model_id' => $target->id,
+                'column' => 'username',
+                'value' => 'generic-target-allowed',
+                'website_id' => $this->website->id,
+            ]),
+        )->assertOk();
         $this->assertSame('generic-target-allowed', $target->fresh()->username);
     }
 
@@ -600,13 +638,15 @@ class ApiGuardOrderTest extends TestCase
         $newTimestamp = '2025-01-02 03:04:05';
         $token = $this->token(['models.write'], [$this->website->id]);
 
-        $this->withToken($token)->withHeader('Idempotency-Key', 'guard-trusted-override-update')->postJson('/api/v2/backend/models/update', [
-            'model' => 'trusted_widgets',
-            'model_id' => $target->id,
-            'column' => 'updated_at',
-            'value' => $newTimestamp,
-            'website_id' => $this->website->id,
-        ])->assertOk();
+        $this->withoutAmbientTransaction(
+            fn () => $this->withToken($token)->withHeader('Idempotency-Key', 'guard-trusted-override-update')->postJson('/api/v2/backend/models/update', [
+                'model' => 'trusted_widgets',
+                'model_id' => $target->id,
+                'column' => 'updated_at',
+                'value' => $newTimestamp,
+                'website_id' => $this->website->id,
+            ]),
+        )->assertOk();
 
         $this->assertSame($newTimestamp, (string) DB::table('users')->where('id', $target->id)->value('updated_at'));
         $this->assertNotSame($targetBefore, (string) DB::table('users')->where('id', $target->id)->value('updated_at'));
@@ -893,9 +933,50 @@ class ApiGuardOrderTest extends TestCase
         $request->attributes->set(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE, $context);
         auth()->setUser($this->user);
 
-        return app(ResolveApiV2WebsiteScope::class)->handle($request, fn (Request $request) => app(ResolveApiV2RiskContext::class)->handle($request, fn (Request $request) => app(EnforceApiV2RiskPolicy::class)->handle($request, $domain)
-        )
+        return $this->withoutAmbientTransaction(
+            fn () => app(ResolveApiV2WebsiteScope::class)->handle($request, fn (Request $request) => app(ResolveApiV2RiskContext::class)->handle($request, fn (Request $request) => app(EnforceApiV2RiskPolicy::class)->handle($request, $domain))),
         );
+    }
+
+    /** Execute one production risk boundary without the test harness owning its transaction. */
+    private function withoutAmbientTransaction(callable $callback): mixed
+    {
+        $suspended = DB::transactionLevel() > 0;
+        if ($suspended) {
+            while (DB::transactionLevel() > 0) {
+                DB::commit();
+            }
+            $this->suspendedTestTransaction = true;
+        }
+
+        try {
+            return $callback();
+        } finally {
+            if ($suspended) {
+                DB::beginTransaction();
+            }
+        }
+    }
+
+    /** @return array<int, string> */
+    private function snapshotTables(): array
+    {
+        return [
+            'users',
+            'websites',
+            'channels',
+            'settings',
+            config('permission.table_names.roles', 'roles'),
+            config('permission.table_names.permissions', 'permissions'),
+            config('permission.table_names.model_has_roles', 'model_has_roles'),
+            config('permission.table_names.model_has_permissions', 'model_has_permissions'),
+            config('permission.table_names.role_has_permissions', 'role_has_permissions'),
+            'model_has_websites',
+            'api_sessions',
+            'api_access_tokens',
+            'api_action_plans',
+            'api_security_events',
+        ];
     }
 
     /**
