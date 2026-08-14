@@ -15,6 +15,13 @@ final class WebsiteScopeGuard
     public const WEBSITE_IDENTITY_ATTRIBUTE = 'wncms_api_v2_website_identity';
 
     /**
+     * Create the website scope guard.
+     *
+     * @param  \Wncms\Auth\Api\V2\ActorWebsiteAccess  $actorWebsites
+     */
+    public function __construct(private ActorWebsiteAccess $actorWebsites) {}
+
+    /**
      * Resolve and authorize one explicit stable website selection.
      *
      * Website keys use the canonical `website:{primary-key}` form. Domains are never identities.
@@ -115,6 +122,9 @@ final class WebsiteScopeGuard
         $websites = ($lock ? $websiteQuery->lockForUpdate() : $websiteQuery)->get();
         if ($websites->count() !== count($websiteIds)) {
             throw new RiskContextException('website.scope_denied', 403);
+        }
+        if ($freshActor instanceof \Wncms\Models\User && $this->actorWebsites->isAdministrator($freshActor)) {
+            return;
         }
         $relation = $freshActor->websites();
         $pivotQuery = $relation->newPivotStatement()
@@ -237,13 +247,8 @@ final class WebsiteScopeGuard
      */
     private function actorCanAccess(AuthenticationContext $context, Model $website): bool
     {
-        if ((string) $website->user_id === (string) $context->actorId()) {
-            return true;
-        }
-
         $actor = $context->actor();
 
-        return method_exists($actor, 'websites')
-            && $actor->websites()->whereKey($website->getKey())->exists();
+        return $actor instanceof \Wncms\Models\User && $this->actorWebsites->canAccess($actor, $website);
     }
 }

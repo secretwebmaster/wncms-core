@@ -51,6 +51,10 @@ curl "https://your-domain.com/api/v2/backend/links?website_id=1" \
 `website:{id}` key）选择 `X-Website-Id`/`website_id` 范围。这样客户端无需
 预先知道网站 ID，就能发现当前用户可访问的网站。
 
+拥有 Blade 管理员角色 `admin` 或 `superadmin` 的用户，即使没有任何
+`website_user` pivot 记录，也会在此启动列表中取得所有现有网站。其他用户只会取得
+明确关联的网站。签发及刷新 access token 的网站范围也采用相同规则。
+
 ```json
 {
   "id": 29,
@@ -206,13 +210,15 @@ authentication 后执行，让 account limit 绑定到实际 actor。
 Generic resource descriptor 也会绑定所选 website rows，以及 target model 实际的
 `websites` pivot membership。每个 `website_id` 与 `website_ids` 值都必须同时位于
 credential scope 与 actor 当前可访问范围内。Website resource 的 route 或 bulk target
-ID 本身就是 authoritative website scope，即使 Website model 在其他语义上是 global。
+会按当前访问规则授权：`admin` 与 `superadmin` 可访问所有现有网站，其他用户则必须是
+网站拥有者或具有明确的网站关联。这些 route 或 bulk target ID 本身就是 authoritative
+website scope，即使 Website model 在其他语义上是 global。
 Website-scoped create 要求非空 binding；update 在省略所有 website selector 时保留当前
 pivot membership。提供 selector 时，`website_key` 会解析为 canonical ID；明确的空值、
 `null`、空字串，以及 `website_id`、`website_ids`、`website_key` 之间的冲突都会被拒绝。
-Plan 与 mutation 使用同一个 canonical binding。没有 membership 的
+Plan 与 mutation 使用同一个 canonical binding。超出 actor 当前访问范围的
 website-scoped target 会被拒绝。执行 transaction 内会重新锁定并检查 fresh actor row、
-actor-to-website membership、website ownership、target rows、website rows 与 pivots。
+管理员角色、actor-to-website relationship、website ownership、target rows、website rows 与 pivots。
 Actor 失去当前访问权时会在执行前被拒绝；planned target state 缺失会使 plan stale，
 direct execution 则 fail closed。Target、actor、website、pivot、plan、proof 与
 security-event model 必须解析到同一个 named database connection，否则 plan 创建或

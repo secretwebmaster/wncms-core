@@ -15,6 +15,7 @@ final class ServiceTokenService
         private AbilityTemplateRegistry $templates,
         private TokenHasher $hasher,
         private SecurityEventService $events,
+        private ActorWebsiteAccess $actorWebsites,
     ) {}
 
     /** @return array<string, mixed> */
@@ -167,7 +168,7 @@ final class ServiceTokenService
             throw ValidationException::withMessages(['website_ids' => ['At least one website is required.']]);
         }
 
-        $owned = array_map('intval', $actor->websites()->whereIn('websites.id', $requested)->pluck('websites.id')->all());
+        $owned = $this->actorWebsites->matchingWebsiteIds($actor, $requested);
         $credentialScope = array_map('intval', $context->websiteIds());
         if (count($owned) !== count($requested) || count(array_intersect($requested, $credentialScope)) !== count($requested)) {
             throw ValidationException::withMessages(['website_ids' => ['Website scope exceeds the actor or credential boundary.']]);

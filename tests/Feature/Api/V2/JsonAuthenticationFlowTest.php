@@ -5,11 +5,17 @@ namespace Wncms\Tests\Feature\Api\V2;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 use Symfony\Component\Process\Process;
 use Wncms\Auth\Api\V2\AccessTokenService;
+use Wncms\Auth\Api\V2\ApiCredential;
+use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\CredentialParser;
+use Wncms\Auth\Api\V2\WebsiteScopeGuard;
+use Wncms\Models\ApiAccessToken;
 use Wncms\Models\ApiRefreshToken;
 use Wncms\Models\ApiSecurityEvent;
 use Wncms\Models\ApiSession;
@@ -151,6 +157,56 @@ class JsonAuthenticationFlowTest extends TestCase
             date_default_timezone_set($originalTimezone);
             config(['app.timezone' => $originalTimezone]);
         }
+    }
+
+    /**
+     * Verify an administrator without website pivots receives the Blade-equivalent all-website scope.
+     *
+     * @return void
+     */
+    public function test_administrator_without_website_pivots_can_bootstrap_and_authorize_every_website(): void
+    {
+        $this->user->websites()->detach();
+        $this->user->assignRole(Role::findOrCreate('admin', 'web'));
+        $expectedWebsiteIds = Website::query()->orderBy('id')->pluck('id')->map(static fn ($id): int => (int) $id)->all();
+
+        $login = $this->loginJson()->assertOk();
+
+        $this->assertSame($expectedWebsiteIds, array_column($login->json('data.user.websites'), 'id'));
+        $this->assertSame(
+            $expectedWebsiteIds,
+            ApiAccessToken::query()->where('user_id', $this->user->id)->latest('id')->firstOrFail()->website_ids,
+        );
+
+        $context = app(AccessTokenService::class)->authenticate(
+            app(CredentialParser::class)->parse((string) $login->json('data.access_token')),
+        );
+        $this->assertInstanceOf(AuthenticationContext::class, $context);
+        foreach ($expectedWebsiteIds as $websiteId) {
+            $request = Request::create('/api/v2/backend/posts', 'GET', ['website_id' => $websiteId]);
+            $this->assertTrue(app(WebsiteScopeGuard::class)->resolve($request, $context)->isAllowed());
+        }
+    }
+
+    /**
+     * Verify refresh rotation preserves all-website scope for an administrator without pivots.
+     *
+     * @return void
+     */
+    public function test_administrator_refresh_preserves_all_website_scope_without_pivots(): void
+    {
+        $this->user->websites()->detach();
+        $this->user->assignRole(Role::findOrCreate('admin', 'web'));
+        $expectedWebsiteIds = Website::query()->orderBy('id')->pluck('id')->map(static fn ($id): int => (int) $id)->all();
+        $login = $this->loginJson()->assertOk()->json('data');
+
+        $refresh = $this->refreshJson((string) $login['refresh_token'])->assertOk();
+        $context = app(AccessTokenService::class)->authenticate(
+            app(CredentialParser::class)->parse((string) $refresh->json('data.access_token')),
+        );
+
+        $this->assertSame($expectedWebsiteIds, $context->websiteIds());
+        $this->assertSame(ApiCredential::TYPE_INTERACTIVE_ACCESS, $context->credentialType());
     }
 
     /**
@@ -380,6 +436,7 @@ class JsonAuthenticationFlowTest extends TestCase
      * Rotate one JSON refresh credential.
      *
      * @param  string  $refreshToken
+     *
      * @return \Illuminate\Testing\TestResponse
      */
     private function refreshJson(string $refreshToken)
@@ -426,6 +483,7 @@ class JsonAuthenticationFlowTest extends TestCase
      * Forget one WNCMS model resolution cache entry after changing its test override.
      *
      * @param  string  $key
+     *
      * @return void
      */
     private function clearCachedModelClass(string $key): void

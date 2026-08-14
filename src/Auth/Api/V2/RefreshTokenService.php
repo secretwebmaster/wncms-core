@@ -21,6 +21,7 @@ final class RefreshTokenService
         private RefreshTokenConsumer $consumer,
         private SecurityEventService $events,
         private ApiContractRegistry $contracts,
+        private ActorWebsiteAccess $actorWebsites,
     ) {}
 
     /**
@@ -86,7 +87,7 @@ final class RefreshTokenService
                     $user,
                     $session,
                     $this->interactiveAbilities(),
-                    $this->websiteIds($user),
+                    $this->actorWebsites->websiteIds($user),
                 );
 
                 $pair = new RotatedCredentialPair($access, $refresh);
@@ -325,15 +326,5 @@ final class RefreshTokenService
         );
 
         return array_values(array_unique(array_filter($abilities, static fn (?string $ability): bool => $ability !== null)));
-    }
-
-    /**
-     * Return stable website IDs currently accessible to the actor.
-     *
-     * @return array<int, int>
-     */
-    private function websiteIds(User $user): array
-    {
-        return array_map('intval', $user->websites()->pluck('websites.id')->all());
     }
 }

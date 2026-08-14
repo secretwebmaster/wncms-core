@@ -52,6 +52,11 @@ key) to select the `X-Website-Id`/`website_id` scope before requesting a
 website-scoped collection. This avoids requiring a website ID before the
 client can discover which websites the actor may access.
 
+Actors with the Blade administrator roles `admin` or `superadmin` receive every
+existing website in this bootstrap list, even when no `website_user` pivot rows
+exist. Other actors receive only their explicitly related websites. The same
+rule is applied when issuing and refreshing access-token website scope.
+
 ```json
 {
   "id": 29,
@@ -228,14 +233,17 @@ Generic resource descriptors also bind the selected website rows and the
 target model's actual `websites` pivot membership. Every `website_id` and
 `website_ids` value must be inside both the credential scope and the actor's
 current access. A Website resource's route or bulk target IDs are themselves
-authoritative website scope, even though Website is otherwise a global model.
+authorized against this current access rule: `admin` and `superadmin` actors
+may access every existing website, while other actors require ownership or an
+explicit website relationship. Those route or bulk target IDs are authoritative
+website scope, even though Website is otherwise a global model.
 Website-scoped creates require a non-empty binding. Updates preserve the current
 pivot membership when every website selector is omitted. When a selector is
 present, `website_key` is resolved to its canonical ID; explicit empty, `null`,
 or blank selectors and conflicts between `website_id`, `website_ids`, and
 `website_key` are rejected. Planning and mutation consume this same canonical
-binding. Website-scoped targets
-with no membership are denied. The fresh actor row, actor-to-website membership,
+binding. Website-scoped targets outside the actor's current access are denied.
+The fresh actor row, administrator role, actor-to-website relationship,
 website ownership, target rows, website rows, and pivots are locked and checked
 again inside execution. Losing current actor access is denied before execution;
 missing planned target state makes the plan stale, while direct execution fails

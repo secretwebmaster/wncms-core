@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Auth\Api\V2\AccessTokenService;
+use Wncms\Auth\Api\V2\ActorWebsiteAccess;
 use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Auth\Api\V2\AuthSecurityConfig;
@@ -47,6 +48,7 @@ class AuthController extends ApiV2Controller
         private OriginPolicy $originPolicy,
         private CsrfTokenService $csrfTokens,
         private StepUpService $stepUp,
+        private ActorWebsiteAccess $actorWebsites,
     ) {}
 
     /**
@@ -161,7 +163,7 @@ class AuthController extends ApiV2Controller
                     $user,
                     $session,
                     $this->interactiveAbilities(),
-                    $this->websiteIds($user),
+                    $this->actorWebsites->websiteIds($user),
                 );
                 $refresh = $this->refreshTokens->issue($session);
                 $csrf = $transport === 'cookie' ? $this->csrfTokens->issue($session, $refresh->model) : null;
@@ -490,9 +492,7 @@ class AuthController extends ApiV2Controller
      */
     private function userResponse(User $user): array
     {
-        $websites = $user->websites()
-            ->orderBy('websites.id')
-            ->get(['websites.id', 'websites.domain', 'websites.site_name'])
+        $websites = $this->actorWebsites->websites($user)
             ->map(static fn ($website): array => [
                 'id' => (int) $website->getKey(),
                 'key' => 'website:'.$website->getKey(),
@@ -524,16 +524,6 @@ class AuthController extends ApiV2Controller
         );
 
         return array_values(array_unique(array_filter($abilities, static fn (?string $ability): bool => $ability !== null)));
-    }
-
-    /**
-     * Return stable website IDs currently accessible to the actor.
-     *
-     * @return array<int, int>
-     */
-    private function websiteIds(User $user): array
-    {
-        return array_map('intval', $user->websites()->pluck('websites.id')->all());
     }
 
     /**

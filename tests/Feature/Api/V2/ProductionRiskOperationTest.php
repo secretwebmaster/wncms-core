@@ -507,7 +507,7 @@ class ProductionRiskOperationTest extends TestCase
     public function test_actor_website_revocation_after_snapshot_denies_direct_and_planned_execution(): void
     {
         config(['wncms.models.channel.website_mode' => 'multi']);
-        $actor = User::query()->firstOrFail();
+        $actor = User::factory()->create();
         $actor->givePermissionTo(Permission::findOrCreate('channel_edit', 'web'));
         app(PermissionRegistrar::class)->forgetCachedPermissions();
         $website = Website::query()->firstOrFail();
@@ -563,7 +563,11 @@ class ProductionRiskOperationTest extends TestCase
         }
         uss('api_high_risk_action_mode', 'planned');
         config(['wncms.models.channel.website_mode' => 'multi']);
-        $actor = User::query()->firstOrFail();
+        $actor = User::factory()->create();
+        foreach (['channel_edit', 'channel_bulk_delete'] as $permission) {
+            $actor->givePermissionTo(Permission::findOrCreate($permission, 'web'));
+        }
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
         $websiteA = Website::query()->firstOrFail();
         $websiteB = Website::create([
             'user_id' => null,
@@ -574,7 +578,7 @@ class ProductionRiskOperationTest extends TestCase
         $actor->websites()->syncWithoutDetaching([$websiteA->id, $websiteB->id]);
         $channel = Channel::create(['name' => 'Concurrent revoke', 'slug' => 'risk-concurrent-revoke-'.uniqid()]);
         $channel->websites()->sync([$websiteA->id, $websiteB->id]);
-        $context = $this->context([$websiteA->id, $websiteB->id]);
+        $context = new AuthenticationContext($actor, ApiCredential::TYPE_INTERACTIVE_ACCESS, 'production-risk', 'session-risk', ['*'], [$websiteA->id, $websiteB->id]);
         $operation = app(ApiContractRegistry::class)->operation('backend.channels.update');
         $request = $this->productionRequest('api.v2.backend.channels.update', $context, [
             'name' => 'Must not execute',
@@ -807,7 +811,7 @@ class ProductionRiskOperationTest extends TestCase
     public function test_actor_membership_recheck_uses_the_relation_morph_discriminator(): void
     {
         config(['wncms.models.channel.website_mode' => 'multi']);
-        $actor = User::query()->firstOrFail();
+        $actor = User::factory()->create();
         $otherActor = User::factory()->create();
         $website = Website::create([
             'user_id' => $otherActor->getKey(),
