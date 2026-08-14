@@ -2,10 +2,12 @@
 
 namespace Wncms\Http\Middleware;
 
+use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Auth\Api\V2\AccessTokenService;
@@ -105,7 +107,7 @@ class ApiV2TokenAuth
 
         $user = $this->activeUser($token->user_id);
 
-        return new AuthenticationContext(
+        $context = new AuthenticationContext(
             $user,
             ApiCredential::TYPE_SERVICE_TOKEN,
             (string) $token->token_id,
@@ -113,6 +115,30 @@ class ApiV2TokenAuth
             (array) $token->abilities,
             array_map('intval', (array) $token->website_ids),
         );
+
+        $this->touchServiceToken($token);
+
+        return $context;
+    }
+
+    /** Debounce best-effort service-token usage metadata to one write per five minutes. */
+    private function touchServiceToken(ApiServiceToken $token): void
+    {
+        try {
+            $now = CarbonImmutable::now('UTC');
+            $modelClass = wncms()->getModelClass('api_service_token');
+            $modelClass::query()
+                ->whereKey($token->getKey())
+                ->where(function ($query) use ($now): void {
+                    $query->whereNull('last_used_at')->orWhere('last_used_at', '<=', $now->subMinutes(5));
+                })
+                ->update(['last_used_at' => $now, 'updated_at' => $now]);
+        } catch (\Throwable $exception) {
+            Log::warning('WNCMS service-token activity metadata could not be updated.', [
+                'credential_id' => $token->token_id,
+                'exception' => $exception::class,
+            ]);
+        }
     }
 
     /**

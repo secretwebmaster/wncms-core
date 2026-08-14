@@ -801,6 +801,23 @@ class RateLimitedClient {
 }
 ```
 
+## Scoped Service Tokens
+
+Service-token management is interactive-session only. The API publishes these routes:
+
+```text
+GET    /api/v2/backend/auth/service-token-options
+GET    /api/v2/backend/auth/service-tokens
+POST   /api/v2/backend/auth/service-tokens
+GET    /api/v2/backend/auth/service-tokens/{token_id}
+POST   /api/v2/backend/auth/service-tokens/{token_id}/rotate
+DELETE /api/v2/backend/auth/service-tokens/{token_id}
+```
+
+Create requests select `read_only`, `content_editor`, `site_manager`, or `full_admin`, explicit `website_ids`, and `expires_in_days` of `30`, `90`, `365`, or `permanent`. Grants are bounded by the formal operation registry, the actor's current permissions, access-token abilities, and website membership. Multiple websites require `api_token_create_cross_site`; permanent tokens require `api_token_create_permanent`. Credential-management abilities are never delegable.
+
+Create, rotate, and revoke require an idempotency key and purpose-bound step-up proof (`service_token.create`, `service_token.rotate`, or `service_token.revoke`). Create and rotate return plaintext only in their successful response. The five-minute replay window stores that response encrypted. List and show never return hashes, plaintext, or secret fragments. Rotation invalidates the old credential atomically; unknown and cross-user identifiers return the same `404` response.
+
 ## Troubleshooting
 
 ### Token Not Working After Regeneration

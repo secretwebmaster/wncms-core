@@ -140,7 +140,7 @@ Run: `vendor/bin/phpunit tests/Feature/Api/V2/AuthSecuritySettingsTest.php tests
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add config/wncms-api-v2.php config/wncms-system-settings.php database/seeders/RolesSeeder.php src/Providers/WncmsServiceProvider.php src/Auth/Api/V2/AuthSecurityConfig.php tests/Feature/Api/V2/AuthSecuritySettingsTest.php tests/Unit/Api/V2/AuthSecurityConfigTest.php
@@ -649,7 +649,7 @@ git commit -m "feat(auth): enforce step-up risk plans"
 - Produces `AbilityTemplateRegistry::optionsFor(User $actor): array` and `resolveGrant(User $actor, string $template, array $additions, array $removals): array`.
 - Produces `ServiceTokenService::create(AuthenticationContext $context, array $input): array`, `rotate(AuthenticationContext $context, ApiServiceToken $token): array`, `revoke(AuthenticationContext $context, ApiServiceToken $token): void`, and actor-scoped list/show queries.
 
-- [ ] **Step 1: Write failing template/grant/scope/plaintext tests**
+- [x] **Step 1: Write failing template/grant/scope/plaintext tests**
 
 ```php
 public function test_service_token_requires_explicit_website_and_cannot_exceed_actor(): void
@@ -663,13 +663,13 @@ public function test_service_token_requires_explicit_website_and_cannot_exceed_a
 
 Test all four templates, additions/removals, unknown abilities, cross-site/permanent permissions, expiry enumeration, step-up/risk/idempotency, plaintext-once encrypted replay window, atomic rotation, cross-user 404, service-token credential-management denial, last-used debounce, and password revocation.
 
-- [ ] **Step 2: Run and confirm failures**
+- [x] **Step 2: Run and confirm failures**
 
 Run: `vendor/bin/phpunit tests/Feature/Api/V2/ServiceTokenManagementTest.php tests/Unit/Api/V2/AbilityTemplateRegistryTest.php`
 
 Expected: FAIL.
 
-- [ ] **Step 3: Implement actor-bounded token management**
+- [x] **Step 3: Implement actor-bounded token management**
 
 Build templates from formal registry abilities, exclude credential management from every service token, intersect grants with actor permission/delegable ability and website access, and store only hash. Resource output omits hashes/fragments and returns plaintext only in create/rotate result.
 
@@ -683,7 +683,7 @@ final class ServiceTokenService
 }
 ```
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `vendor/bin/phpunit tests/Feature/Api/V2/ServiceTokenManagementTest.php tests/Unit/Api/V2/AbilityTemplateRegistryTest.php tests/Feature/Api/V2/AccessTokenAuthenticationTest.php`
 

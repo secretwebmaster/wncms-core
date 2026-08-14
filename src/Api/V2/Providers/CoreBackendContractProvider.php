@@ -8,6 +8,7 @@ use Wncms\Api\V2\Data\ApiDomainContract;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Api\V2\Data\ApiSchema;
 use Wncms\Api\V2\Enums\AsyncOperationStatus;
+use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Http\Controllers\Api\V2\Backend\OperationController;
 
 class CoreBackendContractProvider implements ApiContractProvider
@@ -55,6 +56,48 @@ class CoreBackendContractProvider implements ApiContractProvider
             response: $response,
             idempotent: true,
         ));
+
+        $this->registerServiceTokenOperations($registry);
+    }
+
+    /** Register the interactive-only scoped service-token management contract. */
+    private function registerServiceTokenOperations(ApiContractRegistry $registry): void
+    {
+        $registry->registerDomain(new ApiDomainContract('authentication', 'Authentication'));
+        $definitions = [
+            ['options', 'GET', '/api/v2/backend/auth/service-token-options', 'api_token_create', 'tokens.create', false, false, null],
+            ['index', 'GET', '/api/v2/backend/auth/service-tokens', 'api_token_index', 'tokens.read', false, false, null],
+            ['store', 'POST', '/api/v2/backend/auth/service-tokens', 'api_token_create', 'tokens.create', true, true, 'service_token.create'],
+            ['show', 'GET', '/api/v2/backend/auth/service-tokens/{token_id}', 'api_token_show', 'tokens.read', false, false, null],
+            ['rotate', 'POST', '/api/v2/backend/auth/service-tokens/{token_id}/rotate', 'api_token_rotate', 'tokens.rotate', true, true, 'service_token.rotate'],
+            ['destroy', 'DELETE', '/api/v2/backend/auth/service-tokens/{token_id}', 'api_token_revoke', 'tokens.revoke', true, true, 'service_token.revoke'],
+        ];
+
+        foreach ($definitions as [$action, $method, $path, $permission, $ability, $mutation, $stepUp, $purpose]) {
+            $registry->registerOperation(new ApiOperationContract(
+                id: "backend.auth.service_tokens.{$action}",
+                domain: 'authentication',
+                surface: 'backend',
+                method: $method,
+                path: $path,
+                routeName: "api.v2.backend.auth.service_tokens.{$action}",
+                permission: $permission,
+                ability: $ability,
+                websiteScoped: false,
+                risk: $mutation ? 'write' : 'read',
+                implementation: 'domain',
+                request: ApiSchema::object(),
+                response: ApiSchema::object(),
+                idempotent: $mutation,
+                securityRisk: $mutation ? 'sensitive' : 'normal',
+                acceptedCredentialTypes: [ApiCredential::TYPE_INTERACTIVE_ACCESS],
+                requiresStepUp: $stepUp,
+                stepUpPurposes: $purpose === null ? [] : [$purpose],
+                actionPlanEligible: $mutation,
+                domainModelKeys: $mutation ? ['api_service_token'] : [],
+                sideEffectKind: $mutation ? 'database' : 'read',
+            ));
+        }
     }
 
     /**

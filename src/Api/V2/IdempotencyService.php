@@ -147,15 +147,17 @@ class IdempotencyService
             $response = $this->finalizer->finalize($response, $requestId);
             $body = $this->validatedResponseBody($response);
 
+            $sensitiveReplay = $this->sensitiveReplay($request);
             $this->store->put($scope, [
                 'fingerprint' => $fingerprint,
                 'status' => $response->getStatusCode(),
-                'body' => $body,
+                'body' => $sensitiveReplay ? app('encrypter')->encryptString($body) : $body,
+                ...($sensitiveReplay ? ['body_encrypted' => true] : []),
                 'headers' => [
                     'Content-Type' => (string) $response->headers->get('Content-Type', 'application/json'),
                     'X-Request-ID' => (string) $response->headers->get('X-Request-ID', ''),
                 ],
-            ], (int) config('wncms-api-v2.idempotency.ttl_seconds', 86400));
+            ], $this->replayTtl($request));
 
             return $response;
         } finally {
@@ -183,6 +185,24 @@ class IdempotencyService
         json_decode($body, false, 512, JSON_THROW_ON_ERROR);
 
         return $body;
+    }
+
+    /** Determine whether this operation's replay body contains one-shot secret material. */
+    protected function sensitiveReplay(Request $request): bool
+    {
+        $route = $request->route();
+
+        return $route instanceof Route && ($route->defaults['api_sensitive_idempotency'] ?? false) === true;
+    }
+
+    /** Resolve an operation-specific bounded replay window without exceeding the global TTL. */
+    protected function replayTtl(Request $request): int
+    {
+        $global = max(1, (int) config('wncms-api-v2.idempotency.ttl_seconds', 86400));
+        $route = $request->route();
+        $requested = $route instanceof Route ? (int) ($route->defaults['api_idempotency_ttl_seconds'] ?? $global) : $global;
+
+        return max(1, min($global, $requested));
     }
 
     /**
@@ -512,6 +532,10 @@ class IdempotencyService
         $body = $record['body'] ?? null;
         if (! is_string($body)) {
             throw new \UnexpectedValueException('Stored idempotency response body is invalid');
+        }
+
+        if (($record['body_encrypted'] ?? false) === true) {
+            $body = app('encrypter')->decryptString($body);
         }
 
         json_decode($body, false, 512, JSON_THROW_ON_ERROR);

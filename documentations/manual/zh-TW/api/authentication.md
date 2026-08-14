@@ -750,6 +750,23 @@ class RateLimitedClient {
 }
 ```
 
+## 限定範圍的 Service Token
+
+Service token 管理僅允許 interactive session 使用。API 提供以下路由：
+
+```text
+GET    /api/v2/backend/auth/service-token-options
+GET    /api/v2/backend/auth/service-tokens
+POST   /api/v2/backend/auth/service-tokens
+GET    /api/v2/backend/auth/service-tokens/{token_id}
+POST   /api/v2/backend/auth/service-tokens/{token_id}/rotate
+DELETE /api/v2/backend/auth/service-tokens/{token_id}
+```
+
+建立時選擇 `read_only`、`content_editor`、`site_manager` 或 `full_admin`，並明確傳入 `website_ids`，以及 `30`、`90`、`365` 或 `permanent` 的 `expires_in_days`。授權範圍受正式 operation registry、操作者目前權限、access token abilities 與網站成員資格共同限制。多個網站需要 `api_token_create_cross_site`；永久 token 需要 `api_token_create_permanent`。憑證管理能力永遠不能委派。
+
+建立、輪替與撤銷需要 idempotency key，以及用途限定的 step-up proof（`service_token.create`、`service_token.rotate` 或 `service_token.revoke`）。建立與輪替僅在成功回應中回傳一次明文；五分鐘 replay window 會加密儲存該回應。列表與詳情不會回傳 hash、明文或 secret 片段。輪替會原子停用舊憑證；未知與跨使用者 ID 返回相同的 `404`。
+
 ## 疑難排解
 
 ### 重新產生後 Token 無法使用
