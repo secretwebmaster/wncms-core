@@ -28,7 +28,10 @@ class LegacyOperationSecurityTest extends TestCase
         $this->assertSame($permission, $requirements['permission']);
         $this->assertSame('static', $requirements['permission_mode']);
         $this->assertSame($risk, $requirements['security_risk']);
-        $this->assertSame(['interactive_access', 'service_token'], $requirements['accepted_credential_types']);
+        $expectedCredentials = $action === 'bulk_delete'
+            ? ['interactive_access']
+            : ['interactive_access', 'service_token', 'legacy_personal_access_token'];
+        $this->assertSame($expectedCredentials, $requirements['accepted_credential_types']);
         $this->assertFalse($requirements['requires_step_up']);
         $this->assertSame([], $requirements['step_up_purposes']);
         $this->assertSame($planEligible, $requirements['action_plan_eligible']);
@@ -93,7 +96,7 @@ class LegacyOperationSecurityTest extends TestCase
                 'permission' => 'page_edit',
                 'permission_mode' => 'static',
                 'security_risk' => 'normal',
-                'accepted_credential_types' => ['interactive_access', 'service_token'],
+                'accepted_credential_types' => ['interactive_access', 'service_token', 'legacy_personal_access_token'],
                 'requires_step_up' => false,
                 'step_up_purposes' => [],
                 'action_plan_eligible' => false,

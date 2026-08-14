@@ -188,7 +188,8 @@ class CookieAuthenticationFlowTest extends TestCase
             ->assertNoContent()
             ->assertHeader('Access-Control-Allow-Origin', 'https://admin.example.test')
             ->assertHeader('Access-Control-Allow-Credentials', 'true')
-            ->assertHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+            ->assertHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
+            ->assertHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Idempotency-Key, X-WNCMS-CSRF, X-WNCMS-Step-Up, X-WNCMS-Step-Up-Purpose, X-WNCMS-Confirmation');
 
         $denied = $this->withHeaders([
             'Origin' => 'https://attacker.example.test',

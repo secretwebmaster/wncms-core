@@ -60,7 +60,7 @@ class LegacyOperationDescriptorRegistryTest extends TestCase
             'model_key' => 'channel',
             'permissions' => ['update' => 'channel_edit'],
         ]);
-        $this->assertSame(['interactive_access', 'service_token'], $channel->acceptedCredentialTypes);
+        $this->assertSame(['interactive_access', 'service_token', 'legacy_personal_access_token'], $channel->acceptedCredentialTypes);
         $this->assertSame(['channel', 'website'], $channel->domainModelKeys);
         $this->assertSame(['websites'], $channel->relationshipBoundaries);
     }

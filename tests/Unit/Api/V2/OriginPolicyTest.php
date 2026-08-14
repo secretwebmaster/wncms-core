@@ -340,16 +340,7 @@ class OriginPolicyTest extends TestCase
      */
     public function test_cookie_transport_accepts_exact_paths_with_parameter_route_wildcard(): void
     {
-        $this->configureCredentialedCors([
-            'api/v2/backend/auth/login',
-            'api/v2/backend/auth/refresh',
-            'api/v2/backend/auth/logout',
-            'api/v2/backend/auth/logout-all',
-            'api/v2/backend/auth/me',
-            'api/v2/backend/auth/reauthenticate',
-            'api/v2/backend/auth/sessions',
-            'api/v2/backend/auth/sessions/*',
-        ]);
+        $this->configureCredentialedCors(array_column(AuthRouteSurface::corsRouteDescriptors(), 'pattern'));
         $config = AuthSecurityConfig::fromValues([
             'api_refresh_transport' => 'cookie',
             'api_refresh_cookie_allowed_origins' => 'https://admin.example.test',
@@ -381,7 +372,7 @@ class OriginPolicyTest extends TestCase
     {
         $registered = collect(Route::getRoutes()->getRoutes())
             ->filter(static fn ($route): bool => str_starts_with((string) $route->getName(), 'api.v2.backend.auth.'))
-            ->map(static fn ($route): string => str_replace('{session_id}', '*', $route->uri()))
+            ->map(static fn ($route): string => preg_replace('/\{[^}]+\}/', '*', $route->uri()) ?? $route->uri())
             ->unique()
             ->sort()
             ->values()

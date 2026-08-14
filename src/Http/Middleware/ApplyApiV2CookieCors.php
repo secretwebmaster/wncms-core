@@ -67,8 +67,8 @@ final class ApplyApiV2CookieCors
             : $next($request);
         $response->headers->set('Access-Control-Allow-Origin', $origin);
         $response->headers->set('Access-Control-Allow-Credentials', 'true');
-        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-        $response->headers->set('Access-Control-Allow-Headers', 'Authorization, Content-Type, Idempotency-Key, X-WNCMS-CSRF');
+        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+        $response->headers->set('Access-Control-Allow-Headers', 'Authorization, Content-Type, Idempotency-Key, X-WNCMS-CSRF, X-WNCMS-Step-Up, X-WNCMS-Step-Up-Purpose, X-WNCMS-Confirmation');
         $response->setVary('Origin', false);
 
         return $response;
