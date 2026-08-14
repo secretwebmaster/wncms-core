@@ -26,8 +26,11 @@ final class ApiContractValidator
     ];
 
     private const ALLOWED_SECURITY_RISKS = ['normal', 'sensitive', 'high', 'critical'];
+
     private const ALLOWED_CREDENTIAL_TYPES = ['interactive_access', 'refresh', 'service_token', 'legacy_personal_access_token'];
+
     private const ALLOWED_WEBSITE_SCOPE_MODES = ['none', 'optional', 'required'];
+
     private const ALLOWED_REFRESH_TRANSPORTS = ['json', 'cookie'];
 
     private const HTTP_METHODS = [
@@ -58,8 +61,6 @@ final class ApiContractValidator
     /**
      * Create a validator for one installed API contract snapshot.
      *
-     * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
-     * @param  \Illuminate\Routing\RouteCollectionInterface  $routes
      * @param  array<string, mixed>  $openApi
      * @param  array<int, string>  $excludedRouteNames
      */
@@ -68,8 +69,7 @@ final class ApiContractValidator
         private readonly RouteCollectionInterface $routes,
         private readonly array $openApi,
         private readonly array $excludedRouteNames = [],
-    ) {
-    }
+    ) {}
 
     /**
      * Validate registry metadata against runtime routes and OpenAPI operations.
@@ -114,7 +114,6 @@ final class ApiContractValidator
      * Validate operation identifiers, ownership, metadata, paths, and schemas.
      *
      * @param  array<string, \Wncms\Api\V2\Data\ApiOperationContract>  $operations
-     * @return void
      */
     private function validateRegistry(array $operations): void
     {
@@ -219,7 +218,6 @@ final class ApiContractValidator
      * Validate every domain identity that may appear in a contract report.
      *
      * @param  array<string, \Wncms\Api\V2\Data\ApiDomainContract>  $domains
-     * @return void
      */
     private function validateDomainIdentities(array $domains): void
     {
@@ -250,10 +248,6 @@ final class ApiContractValidator
      *
      * Invalid byte sequences are replaced with deterministic markers before
      * being added to an issue so sorting never receives unsafe report values.
-     *
-     * @param  int|string  $registryKey
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
-     * @return void
      */
     private function validateOperationIdentities(int|string $registryKey, ApiOperationContract $operation): void
     {
@@ -305,9 +299,6 @@ final class ApiContractValidator
      * Surface identifies the transport and authentication boundary, not an
      * operation-ID namespace. This permits stable domain IDs such as
      * system.translations and plugin-provided IDs on the frontend surface.
-     *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
-     * @return void
      */
     private function validateDomainOwnership(ApiOperationContract $operation): void
     {
@@ -330,9 +321,6 @@ final class ApiContractValidator
 
     /**
      * Validate allowed metadata values and backend mutation permissions.
-     *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
-     * @return void
      */
     private function validateOperationMetadata(ApiOperationContract $operation): void
     {
@@ -429,9 +417,6 @@ final class ApiContractValidator
 
     /**
      * Validate query metadata as unique lists of dotted ASCII identifiers.
-     *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
-     * @return void
      */
     private function validateMetadataLists(ApiOperationContract $operation): void
     {
@@ -482,12 +467,6 @@ final class ApiContractValidator
 
     /**
      * Append a JSON-safe metadata validation error.
-     *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
-     * @param  string  $collection
-     * @param  string  $reason
-     * @param  int|null  $index
-     * @return void
      */
     private function metadataError(
         ApiOperationContract $operation,
@@ -509,9 +488,6 @@ final class ApiContractValidator
 
     /**
      * Validate canonical route paths and path-parameter syntax.
-     *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
-     * @return void
      */
     private function validateOperationPath(ApiOperationContract $operation): void
     {
@@ -562,9 +538,6 @@ final class ApiContractValidator
 
     /**
      * Validate request and response JSON Schema structure recursively.
-     *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
-     * @return void
      */
     private function validateOperationSchemas(ApiOperationContract $operation): void
     {
@@ -588,10 +561,7 @@ final class ApiContractValidator
     /**
      * Validate that every schema value can be represented in JSON.
      *
-     * @param  mixed  $value
-     * @param  string  $location
      * @param  array<int, array{location: string, reason: string}>  $issues
-     * @return void
      */
     private function validateSchemaJsonValues(mixed $value, string $location, array &$issues): void
     {
@@ -634,10 +604,7 @@ final class ApiContractValidator
      *
      * The empty array represents the valid empty JSON Schema object in PHP.
      *
-     * @param  mixed  $schema
-     * @param  string  $location
      * @param  array<int, array{location: string, reason: string}>  $issues
-     * @return void
      */
     private function validateSchemaNode(mixed $schema, string $location, array &$issues): void
     {
@@ -750,10 +717,7 @@ final class ApiContractValidator
     /**
      * Validate a JSON Schema type declaration.
      *
-     * @param  mixed  $type
-     * @param  string  $location
      * @param  array<int, array{location: string, reason: string}>  $issues
-     * @return void
      */
     private function validateSchemaType(mixed $type, string $location, array &$issues): void
     {
@@ -809,9 +773,7 @@ final class ApiContractValidator
      * Validate object required-property declarations.
      *
      * @param  array<string, mixed>  $schema
-     * @param  string  $location
      * @param  array<int, array{location: string, reason: string}>  $issues
-     * @return void
      */
     private function validateRequiredProperties(array $schema, string $location, array &$issues): void
     {
@@ -865,9 +827,7 @@ final class ApiContractValidator
      * Validate JSON Schema enum structure and uniqueness.
      *
      * @param  array<string, mixed>  $schema
-     * @param  string  $location
      * @param  array<int, array{location: string, reason: string}>  $issues
-     * @return void
      */
     private function validateSchemaEnum(array $schema, string $location, array &$issues): void
     {
@@ -906,7 +866,6 @@ final class ApiContractValidator
      * Validate both registry-to-route and business-route-to-registry coverage.
      *
      * @param  array<string, \Wncms\Api\V2\Data\ApiOperationContract>  $operations
-     * @return void
      */
     private function validateRoutes(array $operations): void
     {
@@ -980,6 +939,12 @@ final class ApiContractValidator
                     'route_name' => $operation->routeName,
                 ]);
             }
+
+            foreach ($namedRoutes as $routeEntry) {
+                if ($routeEntry['method'] === $expectedMethod && $routeEntry['path'] === $expectedPath) {
+                    $this->validateRouteSecurityMetadata($operation, $routeEntry);
+                }
+            }
         }
 
         foreach ($routeEntries as $entry) {
@@ -1012,9 +977,61 @@ final class ApiContractValidator
     }
 
     /**
+     * Validate explicit runtime operation identifiers and required guard aliases.
+     *
+     * Routes without an explicit operation identifier retain compatibility with
+     * legacy contract bindings and are validated by method/path/name only.
+     *
+     * @param  array<string, mixed>  $entry
+     */
+    private function validateRouteSecurityMetadata(ApiOperationContract $operation, array $entry): void
+    {
+        $actualOperationId = $entry['operation_id'];
+        if (! is_string($actualOperationId) || $actualOperationId === '') {
+            return;
+        }
+
+        if ($actualOperationId !== $operation->id) {
+            $this->error('route.operation_id_mismatch', [
+                'actual_operation_id' => $actualOperationId,
+                'expected_operation_id' => $operation->id,
+                'route_name' => $operation->routeName,
+            ]);
+        }
+
+        $required = [];
+        if ($operation->acceptedCredentialTypes !== []) {
+            $required[] = 'api_v2_token_auth';
+        }
+        if ($operation->ability !== null) {
+            $required[] = 'api_v2_ability:'.$operation->ability;
+        }
+        if ($operation->permissionMode === 'static' && $operation->permission !== null) {
+            $required[] = 'api_v2_permission:'.$operation->permission;
+        }
+        if ($operation->idempotencyRequired) {
+            $required[] = 'api_v2_idempotency';
+        }
+        if ($operation->requiresStepUp || $operation->actionPlanEligible) {
+            $required[] = 'api_v2_risk_context';
+            $required[] = 'api_v2_risk';
+        }
+
+        $missing = array_values(array_diff($required, $entry['middleware']));
+        if ($missing !== []) {
+            sort($missing);
+            $this->error('route.middleware_mismatch', [
+                'missing_middleware' => $missing,
+                'operation_id' => $operation->id,
+                'route_name' => $operation->routeName,
+            ]);
+        }
+    }
+
+    /**
      * Export normalized runtime route entries without Laravel's implicit GET HEAD alias.
      *
-     * @return array<int, array{method: string, path: string, route_name: string|null}>
+     * @return array<int, array{method: string, path: string, route_name: string|null, operation_id: mixed, middleware: array<int, string>}>
      */
     private function routeEntries(): array
     {
@@ -1029,6 +1046,9 @@ final class ApiContractValidator
 
             $path = $this->normalizePath($route->uri());
             $routeName = $route->getName();
+            $operationId = $route->defaults['api_operation_id'] ?? null;
+            $middleware = array_values(array_unique(array_filter($route->gatherMiddleware(), 'is_string')));
+            sort($middleware);
             $this->validateReportIdentity('route.path', $path);
             if ($routeName !== null) {
                 $this->validateReportIdentity('route.name', $routeName);
@@ -1040,6 +1060,8 @@ final class ApiContractValidator
                     'method' => $method,
                     'path' => $path,
                     'route_name' => $routeName,
+                    'operation_id' => $operationId,
+                    'middleware' => $middleware,
                 ];
             }
         }
@@ -1056,7 +1078,6 @@ final class ApiContractValidator
      * Validate exact one-to-one operation coverage in the OpenAPI document.
      *
      * @param  array<string, \Wncms\Api\V2\Data\ApiOperationContract>  $operations
-     * @return void
      */
     private function validateOpenApi(array $operations): void
     {
@@ -1199,9 +1220,6 @@ final class ApiContractValidator
 
     /**
      * Determine whether an HTTP method changes server state.
-     *
-     * @param  string  $method
-     * @return bool
      */
     private function isMutation(string $method): bool
     {
@@ -1210,9 +1228,6 @@ final class ApiContractValidator
 
     /**
      * Normalize a route or contract path for exact binding comparisons.
-     *
-     * @param  string  $path
-     * @return string
      */
     private function normalizePath(string $path): string
     {
@@ -1227,10 +1242,6 @@ final class ApiContractValidator
      *
      * Invalid UTF-8 keys are represented by their deterministic hexadecimal
      * bytes so the error report never contains the invalid source bytes.
-     *
-     * @param  string  $location
-     * @param  int|string  $key
-     * @return string
      */
     private function schemaChildLocation(string $location, int|string $key): string
     {
@@ -1247,9 +1258,6 @@ final class ApiContractValidator
 
     /**
      * Determine whether a string contains valid UTF-8.
-     *
-     * @param  string  $value
-     * @return bool
      */
     private function isValidUtf8(string $value): bool
     {
@@ -1258,9 +1266,6 @@ final class ApiContractValidator
 
     /**
      * Return a stable JSON-safe representation of an arbitrary string.
-     *
-     * @param  string  $value
-     * @return string
      */
     private function safeString(string $value): string
     {
@@ -1271,10 +1276,6 @@ final class ApiContractValidator
 
     /**
      * Add an identity validation error using only safe display values.
-     *
-     * @param  string  $field
-     * @param  string  $value
-     * @return void
      */
     private function validateReportIdentity(string $field, string $value): void
     {
@@ -1290,11 +1291,6 @@ final class ApiContractValidator
 
     /**
      * Build a stable route binding key.
-     *
-     * @param  string  $method
-     * @param  string  $path
-     * @param  string  $routeName
-     * @return string
      */
     private function bindingKey(string $method, string $path, string $routeName): string
     {
@@ -1304,9 +1300,7 @@ final class ApiContractValidator
     /**
      * Append one validation error.
      *
-     * @param  string  $code
      * @param  array<string, mixed>  $details
-     * @return void
      */
     private function error(string $code, array $details): void
     {
@@ -1316,9 +1310,7 @@ final class ApiContractValidator
     /**
      * Append one non-fatal validation warning.
      *
-     * @param  string  $code
      * @param  array<string, mixed>  $details
-     * @return void
      */
     private function warning(string $code, array $details): void
     {

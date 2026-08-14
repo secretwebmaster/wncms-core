@@ -2,11 +2,12 @@
 
 namespace Wncms\Tests\Feature\Api\V2;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 use Wncms\Auth\Api\V2\LegacyPersonalTokenAuthenticator;
@@ -19,8 +20,11 @@ class LegacyPersonalTokenCompatibilityTest extends TestCase
     use DatabaseTransactions;
 
     private User $user;
+
     private Website $website;
+
     private array $snapshot = [];
+
     private bool $suspended = false;
 
     protected function setUp(): void
@@ -47,11 +51,20 @@ class LegacyPersonalTokenCompatibilityTest extends TestCase
 
     protected function tearDown(): void
     {
+        CarbonImmutable::setTestNow();
         if ($this->suspended) {
-            while (DB::transactionLevel() > 0) DB::rollBack();
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
             DB::statement('PRAGMA foreign_keys = OFF');
-            foreach (array_reverse(array_keys($this->snapshot)) as $table) DB::table($table)->delete();
-            foreach ($this->snapshot as $table => $rows) if ($rows !== []) DB::table($table)->insert($rows);
+            foreach (array_reverse(array_keys($this->snapshot)) as $table) {
+                DB::table($table)->delete();
+            }
+            foreach ($this->snapshot as $table => $rows) {
+                if ($rows !== []) {
+                    DB::table($table)->insert($rows);
+                }
+            }
             DB::statement('PRAGMA foreign_keys = ON');
             DB::beginTransaction();
             Cache::flush();
@@ -98,6 +111,39 @@ class LegacyPersonalTokenCompatibilityTest extends TestCase
         $this->assertSame($before, DB::getSchemaBuilder()->getColumnListing('personal_access_tokens'));
     }
 
+    public function test_legacy_pat_last_used_metadata_is_debounced_for_five_minutes(): void
+    {
+        $start = CarbonImmutable::parse('2026-08-14 00:00:00', 'UTC');
+        CarbonImmutable::setTestNow($start);
+        $token = $this->legacyPat(['*']);
+        $tokenId = (int) explode('|', $token, 2)[0];
+        $this->suspendTransaction();
+
+        $this->withToken($token)->getJson('/api/v2/backend/links?website_id='.$this->website->id)->assertOk();
+        $first = (string) DB::table('personal_access_tokens')->where('id', $tokenId)->value('last_used_at');
+
+        CarbonImmutable::setTestNow($start->addMinute());
+        $this->withToken($token)->getJson('/api/v2/backend/links?website_id='.$this->website->id)->assertOk();
+        $this->assertSame($first, (string) DB::table('personal_access_tokens')->where('id', $tokenId)->value('last_used_at'));
+
+        CarbonImmutable::setTestNow($start->addMinutes(6));
+        $this->withToken($token)->getJson('/api/v2/backend/links?website_id='.$this->website->id)->assertOk();
+        $this->assertNotSame($first, (string) DB::table('personal_access_tokens')->where('id', $tokenId)->value('last_used_at'));
+    }
+
+    public function test_legacy_pat_metadata_write_failure_does_not_break_authorized_read(): void
+    {
+        $token = $this->legacyPat(['*']);
+        $this->suspendTransaction();
+        DB::unprepared("CREATE TRIGGER deny_legacy_last_used BEFORE UPDATE OF last_used_at ON personal_access_tokens BEGIN SELECT RAISE(FAIL, 'simulated metadata outage'); END");
+
+        try {
+            $this->withToken($token)->getJson('/api/v2/backend/links?website_id='.$this->website->id)->assertOk();
+        } finally {
+            DB::unprepared('DROP TRIGGER IF EXISTS deny_legacy_last_used');
+        }
+    }
+
     private function legacyPat(array $abilities): string
     {
         $secret = 'legacy-secret-'.bin2hex(random_bytes(12));
@@ -112,7 +158,9 @@ class LegacyPersonalTokenCompatibilityTest extends TestCase
 
     private function suspendTransaction(): void
     {
-        while (DB::transactionLevel() > 0) DB::commit();
+        while (DB::transactionLevel() > 0) {
+            DB::commit();
+        }
         $this->suspended = true;
     }
 }

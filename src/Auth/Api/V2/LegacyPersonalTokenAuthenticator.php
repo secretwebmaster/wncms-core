@@ -5,6 +5,7 @@ namespace Wncms\Auth\Api\V2;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Wncms\Api\V2\Data\ApiOperationContract;
 use Wncms\Models\User;
@@ -12,6 +13,7 @@ use Wncms\Models\User;
 final class LegacyPersonalTokenAuthenticator
 {
     private const REQUIRED_COLUMNS = ['id', 'tokenable_type', 'tokenable_id', 'token'];
+
     private const OPTIONAL_COLUMNS = ['abilities', 'last_used_at', 'expires_at', 'created_at'];
 
     public function __construct(private LegacyTokenPolicy $policy) {}
@@ -28,9 +30,13 @@ final class LegacyPersonalTokenAuthenticator
 
         [$id, $hashInput] = $this->hashInput($credential);
         $query = DB::table('personal_access_tokens')->where('token', hash('sha256', $hashInput));
-        if ($id !== null) $query->where('id', $id);
+        if ($id !== null) {
+            $query->where('id', $id);
+        }
         $token = $query->first();
-        if ($token === null) throw new AuthenticationException('authentication.invalid_token');
+        if ($token === null) {
+            throw new AuthenticationException('authentication.invalid_token');
+        }
 
         $userClass = wncms()->getModelClass('user');
         if (! is_a((string) $token->tokenable_type, $userClass, true)) {
@@ -48,10 +54,25 @@ final class LegacyPersonalTokenAuthenticator
             throw new AuthenticationException('authentication.invalid_token');
         }
         $abilities = isset($token->abilities) ? json_decode((string) $token->abilities, true) : ['*'];
-        if (! is_array($abilities)) $abilities = [];
+        if (! is_array($abilities)) {
+            $abilities = [];
+        }
 
         if (in_array('last_used_at', $schema['optional_present'], true)) {
-            DB::table('personal_access_tokens')->where('id', $token->id)->update(['last_used_at' => CarbonImmutable::now('UTC')]);
+            try {
+                $now = CarbonImmutable::now('UTC');
+                DB::table('personal_access_tokens')
+                    ->where('id', $token->id)
+                    ->where(function ($query) use ($now): void {
+                        $query->whereNull('last_used_at')->orWhere('last_used_at', '<=', $now->subMinutes(5));
+                    })
+                    ->update(['last_used_at' => $now]);
+            } catch (\Throwable $exception) {
+                Log::warning('WNCMS legacy personal token last-used metadata could not be updated.', [
+                    'credential_id' => (string) $token->id,
+                    'exception' => $exception::class,
+                ]);
+            }
         }
 
         return new AuthenticationContext($user, ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN, (string) $token->id, null, $abilities, $websiteIds);
@@ -79,6 +100,7 @@ final class LegacyPersonalTokenAuthenticator
     {
         if ($credential->publicId() !== null && str_contains($credential->plainText(), '|')) {
             [, $secret] = explode('|', $credential->plainText(), 2);
+
             return [(int) $credential->publicId(), $secret];
         }
 

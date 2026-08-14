@@ -30,11 +30,19 @@ final class SecurityEventController extends ApiV2Controller
             'actor_type' => 'actor_type', 'actor_id' => 'actor_id', 'target_type' => 'target_type', 'target_id' => 'target_id',
             'credential_type' => 'credential_type', 'credential_id' => 'credential_id',
             'request_id' => 'request_id', 'run_id' => 'run_id'] as $input => $column) {
-            if (array_key_exists($input, $validated)) $query->where($column, $validated[$input]);
+            if (array_key_exists($input, $validated)) {
+                $query->where($column, $validated[$input]);
+            }
         }
-        if (array_key_exists('website_id', $validated)) $query->whereJsonContains('website_ids', $validated['website_id']);
-        if (isset($validated['from'])) $query->where('occurred_at', '>=', CarbonImmutable::parse($validated['from'])->utc());
-        if (isset($validated['to'])) $query->where('occurred_at', '<=', CarbonImmutable::parse($validated['to'])->utc());
+        if (array_key_exists('website_id', $validated)) {
+            $query->whereJsonContains('website_ids', $validated['website_id']);
+        }
+        if (isset($validated['from'])) {
+            $query->where('occurred_at', '>=', CarbonImmutable::parse($validated['from'])->utc());
+        }
+        if (isset($validated['to'])) {
+            $query->where('occurred_at', '<=', CarbonImmutable::parse($validated['to'])->utc());
+        }
 
         $page = $query->orderByDesc('occurred_at')->orderByDesc('id')->paginate($this->normalizePerPage($request));
         $page->setCollection($page->getCollection()->map(fn (ApiSecurityEvent $event): array => (new SecurityEventResource($event))->toArray($request)));
@@ -45,7 +53,9 @@ final class SecurityEventController extends ApiV2Controller
     public function show(Request $request, string $eventId): JsonResponse
     {
         $event = $this->scopedQuery($request)->where('event_id', $eventId)->first();
-        if (! $event instanceof ApiSecurityEvent) return $this->error('Resource not found', 404);
+        if (! $event instanceof ApiSecurityEvent) {
+            return $this->error('Resource not found', 404);
+        }
 
         return $this->ok((new SecurityEventResource($event))->toArray($request));
     }
@@ -54,10 +64,26 @@ final class SecurityEventController extends ApiV2Controller
     {
         $context = $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE);
         $websiteIds = $context instanceof AuthenticationContext ? $context->websiteIds() : [];
+        $actorId = $context instanceof AuthenticationContext ? $context->actorId() : null;
+        $actorTypes = [];
+        if ($context instanceof AuthenticationContext) {
+            $actor = $context->actor();
+            $actorTypes[] = $actor::class;
+            if (method_exists($actor, 'getMorphClass')) {
+                $actorTypes[] = $actor->getMorphClass();
+            }
+            $actorTypes = array_values(array_unique($actorTypes));
+        }
 
-        return ApiSecurityEvent::query()->where(function (Builder $query) use ($websiteIds): void {
-            $query->whereNull('website_ids')->orWhereJsonLength('website_ids', 0);
-            foreach ($websiteIds as $websiteId) $query->orWhereJsonContains('website_ids', $websiteId);
+        return ApiSecurityEvent::query()->where(function (Builder $query) use ($websiteIds, $actorId, $actorTypes): void {
+            $query->where(function (Builder $global) use ($actorId, $actorTypes): void {
+                $global->where(function (Builder $scope): void {
+                    $scope->whereNull('website_ids')->orWhereJsonLength('website_ids', 0);
+                })->where('actor_id', $actorId)->whereIn('actor_type', $actorTypes);
+            });
+            foreach ($websiteIds as $websiteId) {
+                $query->orWhereJsonContains('website_ids', $websiteId);
+            }
         });
     }
 }

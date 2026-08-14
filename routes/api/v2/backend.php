@@ -4,15 +4,15 @@ use Illuminate\Support\Facades\Route;
 use Wncms\Api\V2\LegacyOperationSecurity;
 use Wncms\Http\Controllers\Api\V2\Backend\ActionPlanController;
 use Wncms\Http\Controllers\Api\V2\Backend\AuthController;
-use Wncms\Http\Controllers\Api\V2\Backend\BridgeController;
 use Wncms\Http\Controllers\Api\V2\Backend\BladeSecurityController;
+use Wncms\Http\Controllers\Api\V2\Backend\BridgeController;
 use Wncms\Http\Controllers\Api\V2\Backend\I18nController;
 use Wncms\Http\Controllers\Api\V2\Backend\OperationController;
 use Wncms\Http\Controllers\Api\V2\Backend\ProfileSecurityController;
 use Wncms\Http\Controllers\Api\V2\Backend\ResourceController;
-use Wncms\Http\Controllers\Api\V2\Backend\SessionController;
-use Wncms\Http\Controllers\Api\V2\Backend\ServiceTokenController;
 use Wncms\Http\Controllers\Api\V2\Backend\SecurityEventController;
+use Wncms\Http\Controllers\Api\V2\Backend\ServiceTokenController;
+use Wncms\Http\Controllers\Api\V2\Backend\SessionController;
 
 Route::prefix('v2/backend')
     ->name('api.v2.backend.')
@@ -43,7 +43,7 @@ Route::prefix('v2/backend')
             Route::post('/action-plans', [ActionPlanController::class, 'store'])
                 ->name('action_plans.store');
             Route::post('/auth/logout-all', [AuthController::class, 'logoutAll'])
-                ->defaults('api_operation_id', 'backend.auth.logout_all')
+                ->defaults('api_operation_id', 'backend.authentication.logout_all')
                 ->defaults('api_website_identity', 'global:interactive-sessions')
                 ->middleware('api_v2_idempotency')
                 ->name('auth.logout_all');
@@ -86,7 +86,7 @@ Route::prefix('v2/backend')
                 ->name('auth.email_verification.send');
             Route::get('/auth/sessions', [SessionController::class, 'index'])->name('auth.sessions.index');
             Route::delete('/auth/sessions/{session_id}', [SessionController::class, 'destroy'])
-                ->defaults('api_operation_id', 'backend.auth.sessions.destroy')
+                ->defaults('api_operation_id', 'backend.authentication.sessions.destroy')
                 ->defaults('api_website_identity', 'global:interactive-sessions')
                 ->middleware('api_v2_idempotency')
                 ->name('auth.sessions.destroy');
@@ -126,7 +126,7 @@ Route::prefix('v2/backend')
             Route::get('/operations/{id}', [OperationController::class, 'show'])->name('operations.show');
             Route::post('/operations/{id}/cancel', [OperationController::class, 'cancel'])
                 ->defaults('api_operation_id', 'backend.operations.cancel')
-                ->middleware('api_v2_idempotency')
+                ->middleware(['api_v2_permission:operation_cancel', 'api_v2_idempotency'])
                 ->name('operations.cancel');
         });
 

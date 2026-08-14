@@ -18,7 +18,9 @@ final class RiskPolicy
         $broad = in_array(($normalizedInput['template'] ?? null), ['site_manager', 'full_admin'], true)
             || ($normalizedInput['ability_template'] ?? null) === 'full_admin';
 
-        if ($permanent) {
+        if ($operation->id === 'backend.security.blade.update') {
+            $inputRisk = ($normalizedInput['enabled'] ?? null) === true ? 'high' : 'critical';
+        } elseif ($permanent) {
             $inputRisk = 'critical';
         } elseif ($crossSite || $broad) {
             $inputRisk = 'high';

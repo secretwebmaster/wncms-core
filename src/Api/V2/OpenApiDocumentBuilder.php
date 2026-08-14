@@ -9,8 +9,6 @@ final class OpenApiDocumentBuilder
 {
     /**
      * Create the OpenAPI document builder.
-     *
-     * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
      */
     public function __construct(private readonly ApiContractRegistry $registry) {}
 
@@ -58,7 +56,6 @@ final class OpenApiDocumentBuilder
     /**
      * Build one OpenAPI operation from its registry contract.
      *
-     * @param  \Wncms\Api\V2\Data\ApiOperationContract  $operation
      *
      * @return array<string, mixed>
      */
@@ -151,7 +148,6 @@ final class OpenApiDocumentBuilder
     /**
      * Build path parameters in their URL appearance order.
      *
-     * @param  string  $path
      *
      * @return array<int, array<string, mixed>>
      */
@@ -182,7 +178,7 @@ final class OpenApiDocumentBuilder
                     'bearerFormat' => 'WNCMS personal access token',
                 ],
                 'refreshTokenBody' => ['type' => 'apiKey', 'in' => 'query', 'name' => 'refresh_token', 'description' => 'Conceptual JSON request-body refresh credential.'],
-                'refreshCookie' => ['type' => 'apiKey', 'in' => 'cookie', 'name' => 'wncms_refresh_token'],
+                'refreshCookie' => ['type' => 'apiKey', 'in' => 'cookie', 'name' => '__Secure-wncms_refresh'],
                 'csrfCookie' => ['type' => 'apiKey', 'in' => 'cookie', 'name' => 'wncms_refresh_csrf'],
                 'csrfHeader' => ['type' => 'apiKey', 'in' => 'header', 'name' => 'X-WNCMS-CSRF'],
             ],

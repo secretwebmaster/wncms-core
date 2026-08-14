@@ -12,10 +12,15 @@ use Wncms\Tests\TestCase;
 
 class OpenApiDocumentBuilderTest extends TestCase
 {
+    public function test_refresh_cookie_security_scheme_matches_the_runtime_cookie_name(): void
+    {
+        $document = (new OpenApiDocumentBuilder($this->registry()))->build();
+
+        $this->assertSame('__Secure-wncms_refresh', $document['components']['securitySchemes']['refreshCookie']['name']);
+    }
+
     /**
      * Verify the builder exports the complete registry as a deterministic OpenAPI document.
-     *
-     * @return void
      */
     public function test_it_builds_a_deterministic_openapi_document_from_every_registry_operation(): void
     {
@@ -61,8 +66,6 @@ class OpenApiDocumentBuilderTest extends TestCase
 
     /**
      * Verify operations expose schemas, metadata extensions, and surface-specific security.
-     *
-     * @return void
      */
     public function test_it_maps_operation_contracts_to_openapi_security_schemas_and_extensions(): void
     {
@@ -132,12 +135,10 @@ class OpenApiDocumentBuilderTest extends TestCase
 
     /**
      * Verify OpenAPI JSON preserves root boolean operation schemas.
-     *
-     * @return void
      */
     public function test_openapi_wire_preserves_root_boolean_operation_schemas(): void
     {
-        $registry = new ApiContractRegistry();
+        $registry = new ApiContractRegistry;
         $registry->registerDomain(new ApiDomainContract('posts', 'Posts'));
         $registry->registerOperation(new ApiOperationContract(
             id: 'backend.posts.boolean_schema',
@@ -170,8 +171,6 @@ class OpenApiDocumentBuilderTest extends TestCase
 
     /**
      * Verify every existing successful HTTP status resolves to the success envelope.
-     *
-     * @return void
      */
     public function test_it_does_not_classify_created_or_accepted_responses_as_errors(): void
     {
@@ -196,8 +195,6 @@ class OpenApiDocumentBuilderTest extends TestCase
 
     /**
      * Verify shared components describe bearer authentication and stable API envelopes.
-     *
-     * @return void
      */
     public function test_it_defines_bearer_authentication_and_standard_envelope_components(): void
     {
@@ -280,8 +277,6 @@ class OpenApiDocumentBuilderTest extends TestCase
 
     /**
      * Verify error schemas preserve every array value supported by the response factory.
-     *
-     * @return void
      */
     public function test_error_envelope_supports_general_object_and_list_error_values(): void
     {
@@ -317,8 +312,6 @@ class OpenApiDocumentBuilderTest extends TestCase
 
     /**
      * Verify two operation IDs cannot overwrite the same OpenAPI path and method.
-     *
-     * @return void
      */
     public function test_it_rejects_duplicate_path_and_method_slots(): void
     {
@@ -347,12 +340,10 @@ class OpenApiDocumentBuilderTest extends TestCase
 
     /**
      * Build a registry fixture with deliberately unordered paths and methods.
-     *
-     * @return \Wncms\Api\V2\ApiContractRegistry
      */
     protected function registry(): ApiContractRegistry
     {
-        $registry = new ApiContractRegistry();
+        $registry = new ApiContractRegistry;
         $registry->registerDomain(new ApiDomainContract('posts', 'Posts'));
 
         $registry->registerOperation(new ApiOperationContract(
@@ -408,8 +399,6 @@ class OpenApiDocumentBuilderTest extends TestCase
      * Resolve an OpenAPI response using exact, range, then default precedence.
      *
      * @param  array<string, array<string, mixed>>  $responses
-     * @param  int  $status
-     *
      * @return array<string, mixed>
      */
     protected function responseForStatus(array $responses, int $status): array

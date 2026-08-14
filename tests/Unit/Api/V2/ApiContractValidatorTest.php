@@ -14,6 +14,33 @@ use Wncms\Tests\TestCase;
 
 class ApiContractValidatorTest extends TestCase
 {
+    public function test_it_rejects_explicit_operation_id_and_required_middleware_drift(): void
+    {
+        $operation = $this->operation(
+            'backend.posts.update', 'PATCH', '/api/v2/backend/posts/{id}', 'api.v2.backend.posts.update',
+            idempotencyRequired: true,
+        );
+        $errors = (new ApiContractValidator(
+            $this->registry([$operation]),
+            $this->routes([[
+                'PATCH', 'api/v2/backend/posts/{id}', 'api.v2.backend.posts.update',
+                'backend.posts.wrong', ['api_v2_token_auth'],
+            ]]),
+            $this->openApi([['backend.posts.update', 'PATCH', '/api/v2/backend/posts/{id}']]),
+        ))->validate()['errors'];
+
+        $this->assertSame([[
+            'actual_operation_id' => 'backend.posts.wrong',
+            'expected_operation_id' => 'backend.posts.update',
+            'route_name' => 'api.v2.backend.posts.update',
+        ]], $errors['route.operation_id_mismatch']);
+        $this->assertSame([[
+            'missing_middleware' => ['api_v2_idempotency', 'api_v2_permission:post_show'],
+            'operation_id' => 'backend.posts.update',
+            'route_name' => 'api.v2.backend.posts.update',
+        ]], $errors['route.middleware_mismatch']);
+    }
+
     public function test_it_rejects_inconsistent_security_metadata(): void
     {
         $operation = $this->operation(
@@ -34,10 +61,9 @@ class ApiContractValidatorTest extends TestCase
         $this->assertArrayHasKey('contract.step_up_purpose_missing', $errors);
         $this->assertArrayHasKey('contract.idempotency_metadata_mismatch', $errors);
     }
+
     /**
      * Verify a consistent contract accepts canonical paths and empty JSON schemas.
-     *
-     * @return void
      */
     public function test_it_accepts_a_consistent_contract_and_empty_json_schema(): void
     {
@@ -68,8 +94,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify duplicate bindings use the normalized method, URI, and route-name tuple.
-     *
-     * @return void
      */
     public function test_it_rejects_duplicate_normalized_route_bindings(): void
     {
@@ -108,8 +132,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify method-path and route-name collisions are detected independently.
-     *
-     * @return void
      */
     public function test_it_rejects_method_path_and_route_name_collisions_independently(): void
     {
@@ -178,8 +200,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify missing routes and exact method, path, and name mismatches are reported.
-     *
-     * @return void
      */
     public function test_it_reports_missing_routes_and_exact_binding_mismatches(): void
     {
@@ -237,8 +257,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify API v2 business routes require contracts while declared infrastructure is excluded.
-     *
-     * @return void
      */
     public function test_it_rejects_unregistered_business_routes_but_excludes_contract_infrastructure(): void
     {
@@ -267,8 +285,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify formal backend mutations require permission and legacy gaps remain warnings.
-     *
-     * @return void
      */
     public function test_it_enforces_formal_mutation_permissions_and_warns_for_legacy_mutations(): void
     {
@@ -316,12 +332,10 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify domain ownership, risk values, and implementation markers are validated.
-     *
-     * @return void
      */
     public function test_it_rejects_invalid_domain_risk_and_implementation_metadata(): void
     {
-        $registry = new ApiContractRegistry();
+        $registry = new ApiContractRegistry;
         $registry->registerDomain(new ApiDomainContract('comments', 'Comments'));
         $operation = new ApiOperationContract(
             id: 'backend.posts.update',
@@ -359,8 +373,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify only frontend and backend are accepted as formal REST surfaces.
-     *
-     * @return void
      */
     public function test_it_rejects_an_undeclared_operation_surface(): void
     {
@@ -389,8 +401,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify dotted ASCII identifiers remain available for future nested query metadata.
-     *
-     * @return void
      */
     public function test_it_accepts_list_shaped_unique_dotted_metadata_identifiers(): void
     {
@@ -416,8 +426,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify malformed metadata lists fail deterministically without unsafe report values.
-     *
-     * @return void
      */
     public function test_it_rejects_every_malformed_metadata_list_safely(): void
     {
@@ -479,8 +487,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify malformed schemas and non-canonical path parameters fail recursively.
-     *
-     * @return void
      */
     public function test_it_rejects_malformed_nested_schemas_and_path_parameters(): void
     {
@@ -533,8 +539,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify non-JSON-safe schema values become deterministic validation errors.
-     *
-     * @return void
      */
     public function test_it_reports_non_json_safe_schema_values_without_throwing(): void
     {
@@ -566,8 +570,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify invalid UTF-8 map keys are reported with a safe stable identifier.
-     *
-     * @return void
      */
     public function test_it_reports_non_json_safe_schema_keys_without_leaking_invalid_bytes(): void
     {
@@ -613,8 +615,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify an invalid legacy read identifier is an error and never leaks into parity output.
-     *
-     * @return void
      */
     public function test_it_rejects_and_sanitizes_an_invalid_legacy_read_operation_identifier(): void
     {
@@ -659,15 +659,13 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify domain, path, and route identities are validated before reporting.
-     *
-     * @return void
      */
     public function test_it_rejects_every_invalid_contract_identity_without_leaking_source_bytes(): void
     {
         $invalidDomain = "posts.\xB2";
         $invalidPath = "/api/v2/backend/posts/\xB3";
         $invalidRouteName = "api.v2.backend.posts.show.\xB4";
-        $registry = new ApiContractRegistry();
+        $registry = new ApiContractRegistry;
         $registry->registerDomain(new ApiDomainContract($invalidDomain, 'Posts'));
         $registry->registerOperation(new ApiOperationContract(
             id: 'backend.posts.safe',
@@ -707,8 +705,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify mixed runtime identity errors remain JSON-safe and stably sorted.
-     *
-     * @return void
      */
     public function test_it_normalizes_and_sorts_mixed_runtime_identity_errors(): void
     {
@@ -749,8 +745,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify every 2020-12 schema-bearing keyword accepts nested boolean schemas.
-     *
-     * @return void
      */
     public function test_it_accepts_boolean_schemas_in_all_core_schema_bearing_keywords(): void
     {
@@ -795,8 +789,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify root boolean schemas are valid through the public schema API.
-     *
-     * @return void
      */
     public function test_it_accepts_root_boolean_schemas_from_public_factories(): void
     {
@@ -820,8 +812,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify malformed schema-map keyword containers are rejected.
-     *
-     * @return void
      */
     public function test_it_rejects_malformed_schema_map_keywords(): void
     {
@@ -848,8 +838,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify every schema-map keyword recursively validates its child schemas.
-     *
-     * @return void
      */
     public function test_it_rejects_malformed_children_in_schema_map_keywords(): void
     {
@@ -873,8 +861,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify malformed schema-list keyword containers are rejected.
-     *
-     * @return void
      */
     public function test_it_rejects_malformed_schema_list_keywords(): void
     {
@@ -901,8 +887,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify every schema-list keyword recursively validates its child schemas.
-     *
-     * @return void
      */
     public function test_it_rejects_malformed_children_in_schema_list_keywords(): void
     {
@@ -926,8 +910,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify malformed single-schema keyword values are rejected recursively.
-     *
-     * @return void
      */
     public function test_it_rejects_malformed_single_schema_keywords(): void
     {
@@ -965,8 +947,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify contentSchema recursively validates nested schema structure.
-     *
-     * @return void
      */
     public function test_it_recursively_rejects_a_malformed_content_schema(): void
     {
@@ -990,8 +970,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify registry identifiers and OpenAPI operation coverage are exactly one-to-one.
-     *
-     * @return void
      */
     public function test_it_enforces_unique_registry_ids_and_exact_openapi_coverage(): void
     {
@@ -1046,8 +1024,6 @@ class ApiContractValidatorTest extends TestCase
 
     /**
      * Verify error groups and details are stable regardless of registry insertion order.
-     *
-     * @return void
      */
     public function test_it_sorts_error_codes_and_details_deterministically(): void
     {
@@ -1115,11 +1091,10 @@ class ApiContractValidatorTest extends TestCase
      * Build a registry for post-domain fixtures.
      *
      * @param  array<int, \Wncms\Api\V2\Data\ApiOperationContract>  $operations
-     * @return \Wncms\Api\V2\ApiContractRegistry
      */
     private function registry(array $operations): ApiContractRegistry
     {
-        $registry = new ApiContractRegistry();
+        $registry = new ApiContractRegistry;
         $registry->registerDomain(new ApiDomainContract('posts', 'Posts'));
 
         foreach ($operations as $operation) {
@@ -1132,20 +1107,10 @@ class ApiContractValidatorTest extends TestCase
     /**
      * Build one operation fixture.
      *
-     * @param  string  $id
-     * @param  string  $method
-     * @param  string  $path
-     * @param  string  $routeName
-     * @param  string|null  $permission
-     * @param  string  $implementation
-     * @param  \Wncms\Api\V2\Data\ApiSchema|null  $request
-     * @param  \Wncms\Api\V2\Data\ApiSchema|null  $response
-     * @param  string  $surface
      * @param  array<int|string, mixed>  $filters
      * @param  array<int|string, mixed>  $sorts
      * @param  array<int|string, mixed>  $includes
      * @param  array<int|string, mixed>  $fields
-     * @return \Wncms\Api\V2\Data\ApiOperationContract
      */
     private function operation(
         string $id,
@@ -1199,7 +1164,6 @@ class ApiContractValidatorTest extends TestCase
      * Build a schema with an exact raw JSON Schema map, including an empty schema.
      *
      * @param  array<string, mixed>  $schema
-     * @return \Wncms\Api\V2\Data\ApiSchema
      */
     private function schema(array $schema): ApiSchema
     {
@@ -1214,16 +1178,22 @@ class ApiContractValidatorTest extends TestCase
      * Build a Laravel route collection from literal route tuples.
      *
      * @param  array<int, array{string, string, string}>  $definitions
-     * @return \Illuminate\Routing\RouteCollection
      */
     private function routes(array $definitions): RouteCollection
     {
-        $routes = new RouteCollection();
+        $routes = new RouteCollection;
 
-        foreach ($definitions as [$method, $uri, $name]) {
+        foreach ($definitions as $definition) {
+            [$method, $uri, $name] = $definition;
             $methods = $method === 'GET' ? ['GET', 'HEAD'] : [$method];
             $route = new Route($methods, $uri, static fn (): null => null);
             $route->name($name);
+            if (isset($definition[3])) {
+                $route->defaults('api_operation_id', $definition[3]);
+            }
+            if (isset($definition[4])) {
+                $route->middleware($definition[4]);
+            }
             $routes->add($route);
         }
 

@@ -31,6 +31,13 @@ class SecurityEventApiTest extends TestCase
         $hidden = $events->record('auth.login.failed', 'warning', 'denied', [
             'surface' => 'api_v2', 'website_ids' => [$other->id], 'ip' => '203.0.113.2', 'context' => ['reason' => 'test'],
         ]);
+        $ownGlobal = $events->record('auth.logout.succeeded', 'info', 'succeeded', [
+            'surface' => 'api_v2', 'actor_type' => $user::class, 'actor_id' => $user->id, 'website_ids' => [],
+        ]);
+        $otherGlobal = $events->record('auth.logout.succeeded', 'info', 'succeeded', [
+            'surface' => 'api_v2', 'actor_type' => $user::class, 'actor_id' => $user->id + 100000, 'website_ids' => [],
+            'credential_id' => 'credential-that-must-not-leak', 'session_id' => 'session-that-must-not-leak',
+        ]);
         $access = $this->postJson('/api/v2/backend/auth/login', ['email' => $user->email, 'password' => $password, 'device_name' => 'events-test'])
             ->assertOk()->json('data.access_token');
 
@@ -49,6 +56,8 @@ class SecurityEventApiTest extends TestCase
         $this->withToken($access)->getJson('/api/v2/backend/security/events/'.$hidden->event_id)->assertNotFound();
         $this->withToken($access)->getJson('/api/v2/backend/security/events/'.$visible->event_id)
             ->assertOk()->assertJsonPath('data.event_id', $visible->event_id);
+        $this->withToken($access)->getJson('/api/v2/backend/security/events/'.$ownGlobal->event_id)->assertOk();
+        $this->withToken($access)->getJson('/api/v2/backend/security/events/'.$otherGlobal->event_id)->assertNotFound();
     }
 
     private function configureCorrelation(): void

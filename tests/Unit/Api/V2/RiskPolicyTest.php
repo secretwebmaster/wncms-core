@@ -37,10 +37,20 @@ class RiskPolicyTest extends TestCase
         $this->assertFalse($policy->requiresPlan($this->operation('sensitive', true), 'sensitive', 'planned'));
     }
 
-    private function operation(string $securityRisk, bool $eligible = true): ApiOperationContract
+    public function test_blade_enable_is_high_and_disable_is_critical(): void
+    {
+        $policy = new RiskPolicy;
+        $operation = $this->operation('high', true, 'backend.security.blade.update');
+
+        $this->assertSame('high', $policy->effective($operation, ['enabled' => true], []));
+        $this->assertSame('critical', $policy->effective($operation, ['enabled' => false], []));
+        $this->assertTrue($policy->requiresPlan($operation, 'high', 'planned'));
+    }
+
+    private function operation(string $securityRisk, bool $eligible = true, string $id = 'backend.tokens.store'): ApiOperationContract
     {
         return new ApiOperationContract(
-            id: 'backend.tokens.store',
+            id: $id,
             domain: 'tokens',
             surface: 'backend',
             method: 'POST',

@@ -26,8 +26,6 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Prepare an actor and mandatory event configuration.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -67,8 +65,6 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Verify lists expose only opaque public IDs and safe session metadata.
-     *
-     * @return void
      */
     public function test_session_list_exposes_opaque_ids_without_ip_or_token_fragments(): void
     {
@@ -89,8 +85,6 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Verify only the owner can revoke an individual session.
-     *
-     * @return void
      */
     public function test_individual_revoke_is_owner_authorized_and_cross_user_is_opaque_not_found(): void
     {
@@ -121,8 +115,6 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Verify JSON logout is idempotent for a syntactically valid refresh credential.
-     *
-     * @return void
      */
     public function test_logout_is_idempotent_and_revokes_its_interactive_family(): void
     {
@@ -139,8 +131,6 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Verify logout-all and revoke-all affect interactive sessions but never service tokens.
-     *
-     * @return void
      */
     public function test_logout_all_excludes_service_tokens_and_revoke_all_can_except_one_session(): void
     {
@@ -175,8 +165,6 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Verify logout-all preserves its requesting session so the same key can replay safely.
-     *
-     * @return void
      */
     public function test_logout_all_replays_the_same_key_and_revokes_every_other_interactive_session(): void
     {
@@ -203,8 +191,6 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Verify successful access updates activity metadata at most once per five minutes.
-     *
-     * @return void
      */
     public function test_last_activity_updates_are_debounced_for_five_minutes(): void
     {
@@ -228,8 +214,6 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Verify session mutations require a valid idempotency key before changing state.
-     *
-     * @return void
      */
     public function test_session_mutations_reject_missing_and_invalid_idempotency_keys_without_revocation(): void
     {
@@ -252,14 +236,12 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Verify both session mutations publish stable operation and global-scope identities.
-     *
-     * @return void
      */
     public function test_session_mutation_routes_publish_idempotency_contracts(): void
     {
         foreach ([
-            'api.v2.backend.auth.logout_all' => 'backend.auth.logout_all',
-            'api.v2.backend.auth.sessions.destroy' => 'backend.auth.sessions.destroy',
+            'api.v2.backend.auth.logout_all' => 'backend.authentication.logout_all',
+            'api.v2.backend.auth.sessions.destroy' => 'backend.authentication.sessions.destroy',
         ] as $routeName => $operationId) {
             $route = Route::getRoutes()->getByName($routeName);
             $this->assertNotNull($route);
@@ -271,8 +253,6 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Verify individual revoke replays once and rejects key reuse for another target or payload.
-     *
-     * @return void
      */
     public function test_individual_revoke_replays_same_key_and_conflicts_on_target_or_payload_change(): void
     {
@@ -310,8 +290,6 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Verify missing mandatory correlation keys roll back logout-all and individual revoke.
-     *
-     * @return void
      */
     public function test_session_mutations_map_missing_audit_configuration_to_503_and_roll_back(): void
     {
@@ -339,8 +317,6 @@ class SessionLifecycleTest extends TestCase
 
     /**
      * Verify a real event insert failure rolls back logout-all and individual revoke.
-     *
-     * @return void
      */
     public function test_session_mutations_map_event_persistence_failure_to_503_and_roll_back(): void
     {
@@ -371,7 +347,6 @@ class SessionLifecycleTest extends TestCase
      * Assert a login response still owns an active session/access/refresh triple.
      *
      * @param  array<string, mixed>  $login
-     * @return void
      */
     private function assertInteractivePairActive(array $login): void
     {
@@ -384,7 +359,6 @@ class SessionLifecycleTest extends TestCase
     /**
      * Login the primary actor and return response data.
      *
-     * @param  string  $deviceName
      * @return array<string, mixed>
      */
     private function login(string $deviceName): array
@@ -395,9 +369,6 @@ class SessionLifecycleTest extends TestCase
     /**
      * Login one supplied actor and return response data.
      *
-     * @param  \Wncms\Models\User  $user
-     * @param  string  $password
-     * @param  string  $deviceName
      * @return array<string, mixed>
      */
     private function loginAs(User $user, string $password, string $deviceName): array

@@ -46,10 +46,17 @@ final class BladeAvailabilityService
     public function enable(string $surface): BladeAvailabilityState
     {
         $warnings = [];
+        $this->mutate(true, $surface, $warnings);
+
+        return $this->withWarnings($this->state(), $warnings);
+    }
+
+    public function emergencyEnable(string $surface): BladeAvailabilityState
+    {
+        $warnings = [];
         try {
             $this->mutate(true, $surface, $warnings);
         } catch (\Throwable $exception) {
-            // Enabling is the emergency recovery path: availability wins over audit failure.
             $this->persist(true, $warnings);
             $warnings[] = 'audit_unavailable';
             Log::critical('WNCMS Blade was enabled without a security event.', ['surface' => $surface, 'exception' => $exception::class]);
@@ -94,14 +101,25 @@ final class BladeAvailabilityService
 
     private function parseBoolean(mixed $value): ?bool
     {
-        if (is_bool($value)) return $value;
-        if ($value === 1 || $value === '1') return true;
-        if ($value === 0 || $value === '0') return false;
+        if (is_bool($value)) {
+            return $value;
+        }
+        if ($value === 1 || $value === '1') {
+            return true;
+        }
+        if ($value === 0 || $value === '0') {
+            return false;
+        }
         if (is_string($value)) {
             $value = strtolower(trim($value));
-            if (in_array($value, ['true', 'on', 'yes'], true)) return true;
-            if (in_array($value, ['false', 'off', 'no'], true)) return false;
+            if (in_array($value, ['true', 'on', 'yes'], true)) {
+                return true;
+            }
+            if (in_array($value, ['false', 'off', 'no'], true)) {
+                return false;
+            }
         }
+
         return null;
     }
 

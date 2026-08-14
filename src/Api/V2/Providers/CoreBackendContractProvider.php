@@ -15,9 +15,6 @@ class CoreBackendContractProvider implements ApiContractProvider
 {
     /**
      * Register formal core backend operation-resource contracts.
-     *
-     * @param  \Wncms\Api\V2\ApiContractRegistry  $registry
-     * @return void
      */
     public function register(ApiContractRegistry $registry): void
     {
@@ -96,7 +93,7 @@ class CoreBackendContractProvider implements ApiContractProvider
             path: '/api/v2/backend/security/blade', routeName: 'api.v2.backend.security.blade.update',
             permission: 'blade_mode_manage', ability: 'security.blade', websiteScoped: false, risk: 'write',
             implementation: 'domain', request: ApiSchema::object(['enabled' => ['type' => 'boolean']], ['enabled']), response: ApiSchema::object(),
-            idempotent: true, securityRisk: 'sensitive', acceptedCredentialTypes: [ApiCredential::TYPE_INTERACTIVE_ACCESS],
+            idempotent: true, securityRisk: 'high', acceptedCredentialTypes: [ApiCredential::TYPE_INTERACTIVE_ACCESS],
             requiresStepUp: true, stepUpPurposes: ['blade.mode'], actionPlanEligible: true,
             domainModelKeys: ['setting'], sideEffectKind: 'database',
             idempotencyRequired: true,
@@ -185,8 +182,6 @@ class CoreBackendContractProvider implements ApiContractProvider
 
     /**
      * Build the stable asynchronous operation response schema.
-     *
-     * @return \Wncms\Api\V2\Data\ApiSchema
      */
     private function operationResponseSchema(): ApiSchema
     {

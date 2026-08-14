@@ -37,4 +37,22 @@ class BladeAvailabilityPolicyTest extends TestCase
         $this->assertFalse($state->installed);
         $this->assertTrue($state->enabled);
     }
+
+    public function test_only_emergency_cli_enable_may_bypass_an_unavailable_audit_store(): void
+    {
+        DB::table('settings')->updateOrInsert(['key' => 'blade_enabled'], ['value' => '0', 'created_at' => now(), 'updated_at' => now()]);
+        config(['wncms-api-v2.auth_security.security_event_correlation.active_key_version' => null]);
+        $service = app(BladeAvailabilityService::class);
+
+        try {
+            $service->enable('api_v2');
+            $this->fail('The API-safe enable path must fail closed when audit persistence is unavailable.');
+        } catch (\RuntimeException) {
+            $this->assertFalse($service->state()->enabled);
+        }
+
+        $state = $service->emergencyEnable('cli');
+        $this->assertTrue($state->enabled);
+        $this->assertContains('audit_unavailable', $state->warnings);
+    }
 }
