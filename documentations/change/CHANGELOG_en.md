@@ -13,6 +13,11 @@
 - Raised production dependency safety floors to prevent installation of vulnerable phpseclib, Media Library, and CommonMark releases.
 - Added a default-disabled global mutation audit setting and transactionally audited all Link backend UI writes when enabled, while CLI/API responses preserve stable disabled audit metadata.
 - Added the API v2 Contract Kernel with a typed registry, permission-aware runtime capabilities, OpenAPI 3.1, stable errors and request IDs, idempotency and revision primitives, and a cache-backed asynchronous operation contract.
+- Added WNCMS-owned API v2 interactive authentication with short-lived access tokens, rotating refresh sessions, Cookie/CSRF transport, logout, and session revocation.
+- Added website- and ability-scoped service tokens, deterministic guard ordering, and time-bounded legacy personal access token compatibility with CLI disable controls.
+- Added step-up authentication, risk-tiered action plans, protected transaction boundaries and post-commit external effects, plus queryable security events with configurable retention.
+- Added API-only Blade safety controls and CLI emergency recovery, formal Auth/OpenAPI/capabilities/CORS contracts, and aligned English, Traditional Chinese, and Simplified Chinese operator and security guides.
+- Added a guarded, idempotent `7.0.0` existing-installation upgrade that creates authentication security schema, settings, and permissions without altering existing PAT data.
 
 ## v6.3.9-alpha1 2026-06-16
 

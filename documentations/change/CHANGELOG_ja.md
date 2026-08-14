@@ -13,6 +13,11 @@
 - production 依存パッケージの安全な最低バージョンを引き上げ、脆弱な phpseclib、Media Library、CommonMark の導入を防止しました。
 - デフォルト無効のグローバル変更監査設定を追加し、有効時は Link バックエンド UI の全書き込みをトランザクション内で監査します。無効時も CLI/API は安定した監査 metadata を維持します。
 - typed registry、権限対応 runtime capabilities、OpenAPI 3.1、安定したエラーコードと request ID、idempotency/revision primitives、cache-backed 非同期 operation 契約を備えた API v2 Contract Kernel を追加しました。
+- 短期 access token、ローテーション refresh session、Cookie/CSRF transport、ログアウト、セッション失効を備えた WNCMS 管理の API v2 対話型認証を追加しました。
+- ウェブサイト・ability スコープ付き service token、決定的な guard ordering、期限付き legacy personal access token 互換性、および CLI 無効化フローを追加しました。
+- step-up 認証、リスク段階別 action plan、保護されたトランザクション境界とコミット後の外部副作用、検索可能で保持期間を設定できる security events を追加しました。
+- API-only Blade の安全制御と CLI 緊急復旧、Auth/OpenAPI/capabilities/CORS の正式契約、英語・繁体字中国語・簡体字中国語の運用／セキュリティ文書を追加しました。
+- 既存 PAT データを変更せず、認証セキュリティのスキーマ・設定・権限を作成する、保護された冪等な `7.0.0` 既存インストールアップグレードを追加しました。
 
 ## v6.3.9-alpha1 2026-06-16
 

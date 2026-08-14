@@ -13,6 +13,11 @@
 - 提高 production 依赖套件的安全版本下限，避免安装存在漏洞的 phpseclib、Media Library 与 CommonMark 版本。
 - 新增默认停用的全局变更审计设置；启用后会以事务方式审计所有 Link 后台 UI 写入，CLI/API 在停用时仍保留稳定的审计 metadata。
 - 新增 API v2 Contract Kernel，包含 typed registry、按权限过滤的 runtime capabilities、OpenAPI 3.1、稳定错误码与 request ID、idempotency/revision primitives，以及 cache-backed 异步 operation 契约。
+- 新增 WNCMS 自主管理的 API v2 交互式认证，支持短效 access token、旋转式 refresh session、Cookie/CSRF transport、登出与会话撤销。
+- 新增具有网站与 ability 范围的 service token、完整 guard ordering，以及受限期间的 legacy personal access token 兼容与 CLI 停用流程。
+- 新增 step-up 验证、风险分级 action plan、事务边界与提交后外部副作用防护，并提供可查询及保留策略可控的 security events。
+- 新增 API-only Blade 安全开关与 CLI 紧急恢复、Auth/OpenAPI/capabilities/CORS 正式契约，以及英文、繁中、简中操作与安全文档。
+- 新增受保护且可重复执行的 `7.0.0` 既有安装升级，建立认证安全数据表、设置与权限，同时保留既有 PAT 数据。
 
 ## v6.3.9-alpha1 2026-06-16
 
