@@ -178,6 +178,77 @@ class ActionPlanPolicyTest extends TestCase
     }
 
     /**
+     * Verify public plan creation rejects non-atomic operation contracts.
+     */
+    public function test_public_plan_service_rejects_unsafe_operation_boundaries(): void
+    {
+        [$context] = $this->fixture();
+        $beforePlans = DB::table('api_action_plans')->count();
+        $beforeEvents = DB::table('api_security_events')->count();
+        $operations = [
+            $this->plannedBoundaryOperation('external', true, ['setting']),
+            $this->plannedBoundaryOperation('database', false, ['setting']),
+            $this->plannedBoundaryOperation('database', true, []),
+        ];
+        $executions = 0;
+
+        foreach ($operations as $operation) {
+            try {
+                app(ActionPlanService::class)->createResolved($context, $operation, new RiskContext([], [], []));
+                $this->fail('Expected unsafe plan boundary denial.');
+            } catch (RiskContextException $exception) {
+                $this->assertSame('risk.policy_unavailable', $exception->errorCode);
+                $this->assertSame(503, $exception->httpStatus);
+            }
+            try {
+                app(ActionPlanService::class)->executeResolved(
+                    $context,
+                    $operation,
+                    'wncms_cp_invalid',
+                    new RiskContext([], [], []),
+                    function () use (&$executions): void {
+                        $executions++;
+                    },
+                );
+                $this->fail('Expected unsafe execution boundary denial.');
+            } catch (RiskContextException $exception) {
+                $this->assertSame('risk.policy_unavailable', $exception->errorCode);
+                $this->assertSame(503, $exception->httpStatus);
+            }
+        }
+
+        $this->assertSame(0, $executions);
+        $this->assertSame($beforePlans, DB::table('api_action_plans')->count());
+        $this->assertSame($beforeEvents, DB::table('api_security_events')->count());
+    }
+
+    /**
+     * Verify public plan preflight resolves model keys even without redundant connection names.
+     */
+    public function test_public_plan_service_resolves_risk_context_model_key_connections(): void
+    {
+        [$context, $operation] = $this->fixture();
+        config(['database.connections.task8_cross_connection' => config('database.connections.sqlite')]);
+        config(['wncms.models.task8_cross_connection' => ['class' => Task8CrossConnectionModel::class]]);
+        $beforePlans = DB::table('api_action_plans')->count();
+        $beforeEvents = DB::table('api_security_events')->count();
+
+        try {
+            app(ActionPlanService::class)->createResolved(
+                $context,
+                $operation,
+                new RiskContext([], [], [], ['task8_cross_connection']),
+            );
+            $this->fail('Expected model-key connection mismatch denial.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Plan, authorization, domain, and event connections must match.', $exception->getMessage());
+        }
+
+        $this->assertSame($beforePlans, DB::table('api_action_plans')->count());
+        $this->assertSame($beforeEvents, DB::table('api_security_events')->count());
+    }
+
+    /**
      * Verify direct service callers cannot bypass the authoritative permission snapshot.
      */
     public function test_direct_service_create_rejects_unauthorized_callers_without_plan_or_event(): void
@@ -921,6 +992,24 @@ class ActionPlanPolicyTest extends TestCase
             securityRisk: 'normal', acceptedCredentialTypes: $acceptedCredentialTypes,
             actionPlanEligible: $actionPlanEligible, domainModelKeys: ['setting'],
             sideEffectKind: 'database', idempotent: true,
+        );
+    }
+
+    /**
+     * Build a planned operation for public boundary validation.
+     *
+     * @param  array<int, string>  $domainModelKeys
+     */
+    private function plannedBoundaryOperation(string $sideEffectKind, bool $idempotent, array $domainModelKeys): ApiOperationContract
+    {
+        return new ApiOperationContract(
+            id: 'backend.tokens.boundary.'.md5($sideEffectKind.($idempotent ? '1' : '0').implode(',', $domainModelKeys)),
+            domain: 'tokens', surface: 'backend', method: 'POST',
+            path: '/api/v2/backend/tokens', routeName: 'api.v2.backend.tokens.boundary',
+            permission: 'api_token_create', ability: 'tokens.create', websiteScoped: false,
+            risk: 'write', implementation: 'domain', request: ApiSchema::object(), response: ApiSchema::object(),
+            idempotent: $idempotent, securityRisk: 'high', actionPlanEligible: true,
+            domainModelKeys: $domainModelKeys, sideEffectKind: $sideEffectKind,
         );
     }
 

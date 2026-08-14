@@ -172,18 +172,8 @@ final class ActionPlanService
      */
     public function createForRequest(AuthenticationContext $context, ApiOperationContract $operation, Request $request, array $parameters = []): array
     {
-        if (! $operation->actionPlanEligible) {
-            throw new ActionPlanException('risk.plan_invalid', 409);
-        }
-        $connections = array_values(array_unique(array_merge(
-            $this->events->modelConnectionNames(array_merge(
-                ['api_action_plan', 'api_security_event'],
-                $operation->domainModelKeys,
-                $operation->transactionalOutboxModelKeys,
-            )),
-            $this->authorizer->connectionNames($context, $operation),
-            $this->websiteScope->authorizationConnectionNames($context),
-        )));
+        $this->assertPlannableOperation($operation);
+        $connections = $this->boundaryConnectionNames($context, $operation);
         if (count($connections) !== 1) {
             throw new \RuntimeException('Plan, authorization, domain, and event connections must match.');
         }
@@ -191,7 +181,7 @@ final class ActionPlanService
         return DB::connection($connections[0])->transaction(function () use ($context, $operation, $request, $parameters, $connections): array {
             $this->authorizer->authorizePreTarget($context, $operation);
             $riskContext = $this->riskContexts->resolveExecution($request, $operation, $parameters);
-            if (array_diff(array_unique($riskContext->connectionNames), $connections) !== []) {
+            if ($this->boundaryConnectionNames($context, $operation, $riskContext) !== $connections) {
                 throw new \RuntimeException('Target relationship connections must match.');
             }
 
@@ -210,20 +200,8 @@ final class ActionPlanService
      */
     public function createResolved(AuthenticationContext $context, ApiOperationContract $operation, RiskContext $riskContext): array
     {
-        if (! $operation->actionPlanEligible) {
-            throw new ActionPlanException('risk.plan_invalid', 409);
-        }
-
-        $connections = array_values(array_unique(array_merge(
-            $this->events->modelConnectionNames(array_merge(
-                ['api_action_plan', 'api_security_event'],
-                $operation->domainModelKeys,
-                $operation->transactionalOutboxModelKeys,
-            )),
-            $this->authorizer->connectionNames($context, $operation),
-            $this->websiteScope->authorizationConnectionNames($context),
-            $riskContext->connectionNames,
-        )));
+        $this->assertPlannableOperation($operation);
+        $connections = $this->boundaryConnectionNames($context, $operation, $riskContext);
         if (count($connections) !== 1) {
             throw new \RuntimeException('Plan, authorization, domain, and event connections must match.');
         }
@@ -329,20 +307,8 @@ final class ActionPlanService
      */
     public function executeResolved(AuthenticationContext $context, ApiOperationContract $operation, string $confirmation, RiskContext $riskContext, callable $callback): mixed
     {
-        if (! $operation->actionPlanEligible) {
-            throw new ActionPlanException('risk.plan_invalid', 409);
-        }
-
-        $connections = array_values(array_unique(array_merge(
-            $this->events->modelConnectionNames(array_merge(
-                ['api_action_plan', 'api_security_event'],
-                $operation->domainModelKeys,
-                $operation->transactionalOutboxModelKeys,
-            )),
-            $this->authorizer->connectionNames($context, $operation),
-            $this->websiteScope->authorizationConnectionNames($context),
-            $riskContext->connectionNames,
-        )));
+        $this->assertPlannableOperation($operation);
+        $connections = $this->boundaryConnectionNames($context, $operation, $riskContext);
         if (count($connections) !== 1) {
             throw new \RuntimeException('Plan, authorization, domain, and event connections must match.');
         }
@@ -400,6 +366,43 @@ final class ActionPlanService
 
             throw $exception;
         }
+    }
+
+    /**
+     * Reject operations that cannot provide an atomic, replay-safe plan boundary.
+     */
+    private function assertPlannableOperation(ApiOperationContract $operation): void
+    {
+        if (! $operation->actionPlanEligible) {
+            throw new ActionPlanException('risk.plan_invalid', 409);
+        }
+        if (! $operation->idempotent
+            || ! in_array($operation->sideEffectKind, ['database', 'transactional_outbox'], true)
+            || ($operation->domainModelKeys === [] && $operation->transactionalOutboxModelKeys === [])) {
+            throw new RiskContextException('risk.policy_unavailable', 503);
+        }
+    }
+
+    /**
+     * Resolve every named connection participating in a public plan boundary.
+     *
+     * @return array<int, string>
+     */
+    private function boundaryConnectionNames(AuthenticationContext $context, ApiOperationContract $operation, ?RiskContext $riskContext = null): array
+    {
+        $modelKeys = array_merge(
+            ['api_action_plan', 'api_security_event'],
+            $operation->domainModelKeys,
+            $operation->transactionalOutboxModelKeys,
+            $riskContext?->modelKeys ?? [],
+        );
+
+        return array_values(array_unique(array_merge(
+            $this->events->modelConnectionNames(array_values(array_unique($modelKeys))),
+            $this->authorizer->connectionNames($context, $operation),
+            $this->websiteScope->authorizationConnectionNames($context),
+            $riskContext?->connectionNames ?? [],
+        )));
     }
 
     /**
