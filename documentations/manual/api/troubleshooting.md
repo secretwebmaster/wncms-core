@@ -27,3 +27,10 @@ Use this checklist when API requests fail.
 - [Errors](./errors.md)
 - [Authentication](./authentication.md)
 - [Core Concepts](./core-concepts.md)
+## Security recovery
+
+- A plain `404` from every WNCMS UI route: check `php artisan wncms:blade:status`, then use the [API-only recovery runbook](./api-only-mode.md).
+- `risk.step_up_required`: reauthenticate for the exact operation purpose and retry with `X-WNCMS-Step-Up`.
+- `risk.plan_required`: create and confirm an action plan, then retry with `X-WNCMS-Confirmation`.
+- `authentication.refresh_reuse_detected`: discard local session state and sign in again.
+- `security.audit_unavailable`: restore the security-event store before retrying a fail-closed mutation.

@@ -27,3 +27,10 @@
 - [错误码](./errors.md)
 - [身份验证](./authentication.md)
 - [核心概念](./core-concepts.md)
+## Security recovery
+
+- 所有 WNCMS UI 都返回纯文本 `404`：执行 `php artisan wncms:blade:status`，再依 [API-only recovery runbook](./api-only-mode.md) 处理。
+- `risk.step_up_required`：针对确切 operation purpose 重新验证，并带 `X-WNCMS-Step-Up` 重试。
+- `risk.plan_required`：创建并确认 action plan，再带 `X-WNCMS-Confirmation` 重试。
+- `authentication.refresh_reuse_detected`：清除本地 session state 并重新登录。
+- `security.audit_unavailable`：修复 security-event store 后再重试 fail-closed mutation。

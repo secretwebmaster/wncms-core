@@ -79,3 +79,8 @@ php artisan wncms:api-v2-openapi --check=packages/secretwebmaster/wncms-core/res
 若 snapshot 不同、無效或無法讀取，`--check` 會以非零狀態結束。契約驗證也會
 拒絕重複 operation ID、重複 path/method、缺少 route、額外已註冊 route，
 以及 registry/OpenAPI coverage drift。
+## Authentication security
+
+生成的 `2.1.0` 文件包含 Bearer、refresh Cookie、CSRF schemes、public-operation security、write-only request secrets 與 `x-wncms-*` metadata。Client 可由 `GET /api/v2/openapi.json` 生成，但目前 actor availability 應讀取 `GET /api/v2/capabilities`。
+
+參閱[Contracts](./contracts.md)與[安全政策](./security-policy.md)。

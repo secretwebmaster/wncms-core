@@ -2442,6 +2442,11 @@ $words = [
     'plugins_index' => 'Plugins Index',
     'enable_mutation_audit' => 'Enable mutation audit',
     'enable_mutation_audit_description' => 'Record successful backend UI, CLI, and API mutations. Enabling this adds snapshot and audit queries; disabling it removes mutation accountability.',
+    'api_sessions' => 'API Sessions',
+    'api_service_tokens' => 'API Service Tokens',
+    'api_security_policy' => 'API Security Policy',
+    'api_only_mode' => 'API-only Mode',
+    'api_legacy_authentication' => 'Legacy API Authentication',
 ];
 
 $locale = basename(__DIR__);

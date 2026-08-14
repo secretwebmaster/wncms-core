@@ -102,3 +102,8 @@ php artisan wncms:api-v2-openapi --check=packages/secretwebmaster/wncms-core/res
 
 See [Runtime Capabilities](./capabilities.md), [OpenAPI 3.1](./openapi.md),
 [Asynchronous Operations](./operations.md), and [Error Reference](./errors.md).
+## Security contract fields
+
+Contract schema `2.1.0` makes credential types, step-up, action-plan eligibility, legacy access, website scope, idempotency, and refresh transports explicit. Critical operations cannot accept a legacy personal token. Invalid combinations fail contract validation instead of being guessed at runtime.
+
+See [Capabilities](./capabilities.md) and [OpenAPI](./openapi.md).

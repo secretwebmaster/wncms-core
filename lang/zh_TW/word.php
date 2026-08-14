@@ -2447,6 +2447,11 @@ $words = [
     'example' => '範例',
     'enable_mutation_audit' => '啟用異動審計',
     'enable_mutation_audit_description' => '記錄成功的後台 UI、CLI 與 API 異動。啟用後會增加快照與審計查詢；停用後將不保留異動問責記錄。',
+    'api_sessions' => 'API Sessions',
+    'api_service_tokens' => 'API Service Tokens',
+    'api_security_policy' => 'API 安全政策',
+    'api_only_mode' => 'API-only 模式',
+    'api_legacy_authentication' => 'Legacy API 驗證',
 ];
 
 $locale = basename(__DIR__);

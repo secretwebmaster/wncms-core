@@ -860,3 +860,6 @@ If you encounter an error not covered here:
 2. Review server logs: `storage/logs/laravel.log`
 3. Search GitHub issues
 4. Contact WNCMS support through admin panel
+## v7 security failures
+
+Clients must branch on stable `meta.error_code` values. Important boundaries include `risk.step_up_required`, `risk.plan_required`, `idempotency.key_missing`, `risk.credential_type_denied`, `security.audit_unavailable`, `authentication.legacy_disabled`, and `authentication.refresh_reuse_detected`. See [Security policy](./security-policy.md) and [Legacy migration](./legacy-authentication.md).

@@ -2436,6 +2436,11 @@ $words = [
     'plugins_index' => 'プラグイン一覧',
     'enable_mutation_audit' => '変更監査を有効化',
     'enable_mutation_audit_description' => '成功したバックエンド UI、CLI、API の変更を記録します。有効化するとスナップショットと監査クエリが追加され、無効化すると変更の追跡記録は保存されません。',
+    'api_sessions' => 'API セッション',
+    'api_service_tokens' => 'API サービストークン',
+    'api_security_policy' => 'API セキュリティポリシー',
+    'api_only_mode' => 'API-only モード',
+    'api_legacy_authentication' => 'Legacy API 認証',
 ];
 
 $locale = basename(__DIR__);

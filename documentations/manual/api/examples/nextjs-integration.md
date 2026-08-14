@@ -37,3 +37,9 @@ Key points:
   - `POST /api/backend/posts/{id}/delete`
   - `POST /api/backend/posts/restore/{id}`
   - `POST /api/backend/posts/bulk_delete`
+
+## Server-side BFF session exchange
+
+Keep `refresh_token` out of browser JavaScript and `localStorage`. A Next.js Route Handler should exchange credentials server-side, store only an opaque application session in an `httpOnly` Cookie, forward `Idempotency-Key`, `X-WNCMS-Step-Up`, and `X-WNCMS-Confirmation` when required, and always use `cache: 'no-store'` for `GET /api/v2/capabilities`.
+
+The browser must never receive WNCMS service-token plaintext. Use a nonworking placeholder such as `wncms_st_EXAMPLE.NOT_A_REAL_SECRET` only in documentation.

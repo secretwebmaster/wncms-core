@@ -2442,6 +2442,11 @@ $words = [
     'plugins_index' => '插件列表',
     'enable_mutation_audit' => '启用变更审计',
     'enable_mutation_audit_description' => '记录成功的后台 UI、CLI 与 API 变更。启用后会增加快照与审计查询；停用后将不保留变更问责记录。',
+    'api_sessions' => 'API Sessions',
+    'api_service_tokens' => 'API Service Tokens',
+    'api_security_policy' => 'API 安全策略',
+    'api_only_mode' => 'API-only 模式',
+    'api_legacy_authentication' => 'Legacy API 验证',
 ];
 
 $locale = basename(__DIR__);

@@ -232,3 +232,6 @@ print(result['data'])
 - Check that the endpoint exists in your WNCMS version
 
 For more troubleshooting tips, see the [Troubleshooting Guide](./troubleshooting.md).
+## Continue with secure administration
+
+Before building an admin client, read [Sessions](./sessions.md), [Service tokens](./service-tokens.md), and the [Security policy](./security-policy.md). Discover runtime availability from `GET /api/v2/capabilities`; do not hardcode permissions or step-up requirements.

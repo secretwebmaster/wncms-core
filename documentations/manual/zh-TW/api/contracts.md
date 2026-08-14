@@ -98,3 +98,8 @@ php artisan wncms:api-v2-openapi --check=packages/secretwebmaster/wncms-core/res
 
 另請參閱 [Runtime Capabilities](./capabilities.md)、[OpenAPI 3.1](./openapi.md)、
 [非同步 Operations](./operations.md) 與[錯誤參考](./errors.md)。
+## Security contract fields
+
+Contract schema `2.1.0` 明確定義 credential types、step-up、action-plan eligibility、legacy access、website scope、idempotency 與 refresh transports。Critical operation 不可接受 legacy personal token；無效組合會在 contract validation 失敗。
+
+參閱[Capabilities](./capabilities.md)與[OpenAPI](./openapi.md)。

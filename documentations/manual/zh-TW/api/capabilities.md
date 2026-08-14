@@ -121,3 +121,8 @@ operation 或 template 組合。
 
 Cancellation capability 只有在 actor 具有 `operation_cancel` 時才會顯示。
 既有安裝的升級要求請參閱[非同步 Operations](./operations.md)。
+## Authentication metadata
+
+Schema `2.1.0` 新增 root `authentication` policy，以及每個 operation 的 `security_risk`、`accepted_credential_types`、`requires_step_up`、`step_up_purposes`、`action_plan_eligible`、`legacy_token_allowed`、`website_scope_mode`、`idempotency_required` 與 `refresh_transports`。Response 依 actor 與 credential 即時計算，並帶 `Cache-Control: private, no-store`。
+
+參閱[安全政策](./security-policy.md)。

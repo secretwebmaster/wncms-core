@@ -196,3 +196,6 @@ async function apiCall(url, payload) {
 - [核心概念](./core-concepts.md) - 回應格式和錯誤處理
 - [疑難排解](./troubleshooting.md) - 常見問題和解決方案
 - [範例](./examples.md) - 錯誤處理的程式碼範例
+## v7 security failures
+
+Client 必須依 stable `meta.error_code` 分支。重要邊界包括 `risk.step_up_required`、`risk.plan_required`、`idempotency.key_missing`、`risk.credential_type_denied`、`security.audit_unavailable`、`authentication.legacy_disabled` 與 `authentication.refresh_reuse_detected`。參閱[安全政策](./security-policy.md)與[Legacy migration](./legacy-authentication.md)。

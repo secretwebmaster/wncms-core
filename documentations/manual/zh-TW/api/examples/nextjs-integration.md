@@ -37,3 +37,8 @@ export async function fetchPosts() {
   - `POST /api/backend/posts/{id}/delete`
   - `POST /api/backend/posts/restore/{id}`
   - `POST /api/backend/posts/bulk_delete`
+## Server-side BFF session exchange
+
+不要讓 browser JavaScript 或 `localStorage` 接觸 `refresh_token`。Next.js Route Handler 應在 server-side 交換 credential，只以 `httpOnly` Cookie 保存 opaque application session；需要時轉送 `Idempotency-Key`、`X-WNCMS-Step-Up` 與 `X-WNCMS-Confirmation`，並對 `GET /api/v2/capabilities` 使用 `cache: 'no-store'`。
+
+Browser 不得收到 WNCMS service-token plaintext。文件只能使用 `wncms_st_EXAMPLE.NOT_A_REAL_SECRET` 這類無法工作的 placeholder。

@@ -159,3 +159,11 @@ GET /api/v1/posts
 ```
 
 If the API is disabled, you will receive a 403 response with the message "API access is disabled".
+
+## v7 security guides
+
+- [Sessions](./sessions.md)
+- [Service tokens](./service-tokens.md)
+- [Security policy](./security-policy.md)
+- [API-only mode](./api-only-mode.md)
+- [Legacy authentication migration](./legacy-authentication.md)

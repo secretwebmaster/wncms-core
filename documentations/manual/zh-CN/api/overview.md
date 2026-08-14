@@ -139,3 +139,10 @@ rate-limit header。
 - [核心概念](./core-concepts.md) - 了解回应格式、分页和错误处理
 - [API 参考](./endpoints/posts.md) - 每个端点的详细文件
 - [范例](./examples.md) - 常见用例的程式码范例
+## v7 安全指南
+
+- [Sessions](./sessions.md)
+- [Service tokens](./service-tokens.md)
+- [安全策略](./security-policy.md)
+- [API-only mode](./api-only-mode.md)
+- [Legacy authentication migration](./legacy-authentication.md)

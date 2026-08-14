@@ -128,3 +128,8 @@ domain parity. Only a completed formal `domain` contract closes that parity gap.
 The cancellation capability is visible only when the actor has
 `operation_cancel`. See [Asynchronous Operations](./operations.md) for the
 existing-install upgrade requirement.
+## Authentication metadata
+
+Schema `2.1.0` adds the root `authentication` policy plus per-operation `security_risk`, `accepted_credential_types`, `requires_step_up`, `step_up_purposes`, `action_plan_eligible`, `legacy_token_allowed`, `website_scope_mode`, `idempotency_required`, and `refresh_transports`. The response is actor- and credential-specific and is sent with `Cache-Control: private, no-store`.
+
+See [Security policy](./security-policy.md).

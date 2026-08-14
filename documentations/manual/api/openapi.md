@@ -82,3 +82,8 @@ php artisan wncms:api-v2-openapi --check=packages/secretwebmaster/wncms-core/res
 read. Contract validation also rejects duplicate operation IDs, duplicate
 path/method pairs, missing routes, extra registered routes, and registry/OpenAPI
 coverage drift.
+## Authentication security
+
+The generated `2.1.0` document includes Bearer, refresh Cookie, and CSRF schemes, public-operation security, write-only request secrets, and `x-wncms-*` security metadata. Generate clients from `GET /api/v2/openapi.json`, but use `GET /api/v2/capabilities` for the current actor's availability.
+
+See [Contracts](./contracts.md) and [Security policy](./security-policy.md).

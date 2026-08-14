@@ -232,3 +232,6 @@ print(result['data'])
 - 检查端点是否存在于您的 WNCMS 版本中
 
 更多疑难排解提示，请参阅[疑难排解指南](./troubleshooting.md)。
+## 继续构建安全管理端
+
+构建 admin client 前请阅读 [Sessions](./sessions.md)、[Service tokens](./service-tokens.md)与[安全策略](./security-policy.md)。从 `GET /api/v2/capabilities` 获取 runtime availability；不要硬编码 permissions 或 step-up requirements。
