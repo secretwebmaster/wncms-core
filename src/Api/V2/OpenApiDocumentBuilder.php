@@ -66,15 +66,22 @@ final class OpenApiDocumentBuilder
     {
         $data = [
             'operationId' => $operation->id,
-            'security' => $operation->surface === 'frontend'
-                ? []
-                : [['bearerAuth' => []]],
+            'security' => $this->securityRequirements($operation),
             'x-wncms-permission' => $operation->permission,
             'x-wncms-permission-mode' => $operation->permissionMode,
             'x-wncms-ability' => $operation->ability,
             'x-wncms-website-scoped' => $operation->websiteScoped,
             'x-wncms-risk' => $operation->risk,
             'x-wncms-implementation' => $operation->implementation,
+            'x-wncms-security-risk' => $operation->securityRisk,
+            'x-wncms-accepted-credential-types' => $operation->acceptedCredentialTypes,
+            'x-wncms-requires-step-up' => $operation->requiresStepUp,
+            'x-wncms-step-up-purposes' => $operation->stepUpPurposes,
+            'x-wncms-action-plan-eligible' => $operation->actionPlanEligible,
+            'x-wncms-legacy-token-allowed' => $operation->legacyTokenAllowed,
+            'x-wncms-website-scope-mode' => $operation->websiteScopeMode,
+            'x-wncms-idempotency-required' => $operation->idempotencyRequired,
+            'x-wncms-refresh-transports' => $operation->refreshTransports,
         ];
 
         $parameters = $this->pathParameters($operation->path);
@@ -124,6 +131,23 @@ final class OpenApiDocumentBuilder
         return $data;
     }
 
+    /** @return array<int, array<string, array<int, string>>> */
+    private function securityRequirements(ApiOperationContract $operation): array
+    {
+        if ($operation->surface === 'frontend' || $operation->acceptedCredentialTypes === []) {
+            if ($operation->refreshTransports !== [] && ! str_ends_with($operation->id, '.login')) {
+                return [
+                    ['refreshTokenBody' => []],
+                    ['refreshCookie' => [], 'csrfCookie' => [], 'csrfHeader' => []],
+                ];
+            }
+
+            return [];
+        }
+
+        return [['bearerAuth' => []]];
+    }
+
     /**
      * Build path parameters in their URL appearance order.
      *
@@ -157,6 +181,10 @@ final class OpenApiDocumentBuilder
                     'scheme' => 'bearer',
                     'bearerFormat' => 'WNCMS personal access token',
                 ],
+                'refreshTokenBody' => ['type' => 'apiKey', 'in' => 'query', 'name' => 'refresh_token', 'description' => 'Conceptual JSON request-body refresh credential.'],
+                'refreshCookie' => ['type' => 'apiKey', 'in' => 'cookie', 'name' => 'wncms_refresh_token'],
+                'csrfCookie' => ['type' => 'apiKey', 'in' => 'cookie', 'name' => 'wncms_refresh_csrf'],
+                'csrfHeader' => ['type' => 'apiKey', 'in' => 'header', 'name' => 'X-WNCMS-CSRF'],
             ],
             'schemas' => [
                 'ResponseMeta' => [

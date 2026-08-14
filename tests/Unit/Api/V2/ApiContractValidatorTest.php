@@ -14,6 +14,26 @@ use Wncms\Tests\TestCase;
 
 class ApiContractValidatorTest extends TestCase
 {
+    public function test_it_rejects_inconsistent_security_metadata(): void
+    {
+        $operation = $this->operation(
+            'backend.posts.show', 'GET', '/api/v2/backend/posts/{id}', 'api.v2.backend.posts.show',
+            securityRisk: 'critical',
+            acceptedCredentialTypes: ['legacy_personal_access_token'],
+            requiresStepUp: true,
+            legacyTokenAllowed: true,
+            idempotencyRequired: true,
+        );
+        $errors = (new ApiContractValidator(
+            $this->registry([$operation]),
+            $this->routes([['GET', 'api/v2/backend/posts/{id}', 'api.v2.backend.posts.show']]),
+            $this->openApi([['backend.posts.show', 'GET', '/api/v2/backend/posts/{id}']]),
+        ))->validate()['errors'];
+
+        $this->assertArrayHasKey('contract.critical_legacy_forbidden', $errors);
+        $this->assertArrayHasKey('contract.step_up_purpose_missing', $errors);
+        $this->assertArrayHasKey('contract.idempotency_metadata_mismatch', $errors);
+    }
     /**
      * Verify a consistent contract accepts canonical paths and empty JSON schemas.
      *
@@ -1141,6 +1161,12 @@ class ApiContractValidatorTest extends TestCase
         array $sorts = [],
         array $includes = [],
         array $fields = [],
+        string $securityRisk = 'normal',
+        array $acceptedCredentialTypes = ['interactive_access', 'service_token'],
+        bool $requiresStepUp = false,
+        array $stepUpPurposes = [],
+        bool $legacyTokenAllowed = false,
+        bool $idempotencyRequired = false,
     ): ApiOperationContract {
         return new ApiOperationContract(
             id: $id,
@@ -1160,6 +1186,12 @@ class ApiContractValidatorTest extends TestCase
             sorts: $sorts,
             includes: $includes,
             fields: $fields,
+            securityRisk: $securityRisk,
+            acceptedCredentialTypes: $acceptedCredentialTypes,
+            requiresStepUp: $requiresStepUp,
+            stepUpPurposes: $stepUpPurposes,
+            legacyTokenAllowed: $legacyTokenAllowed,
+            idempotencyRequired: $idempotencyRequired,
         );
     }
 

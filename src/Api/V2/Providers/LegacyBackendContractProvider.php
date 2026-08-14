@@ -94,6 +94,9 @@ class LegacyBackendContractProvider implements ApiContractProvider
                     canonicalizer: $security['canonicalizer'],
                     targetResolver: $security['target_resolver'],
                     relationshipBoundaries: $security['relationship_boundaries'],
+                    legacyTokenAllowed: in_array('legacy_personal_access_token', $security['accepted_credential_types'], true),
+                    websiteScopeMode: 'required',
+                    idempotencyRequired: $security['idempotent'],
                 ));
             }
         }
@@ -146,6 +149,9 @@ class LegacyBackendContractProvider implements ApiContractProvider
                 canonicalizer: $security['canonicalizer'],
                 targetResolver: $security['target_resolver'],
                 relationshipBoundaries: $security['relationship_boundaries'],
+                legacyTokenAllowed: in_array('legacy_personal_access_token', $security['accepted_credential_types'], true),
+                websiteScopeMode: 'required',
+                idempotencyRequired: $security['idempotent'],
             ));
         }
     }

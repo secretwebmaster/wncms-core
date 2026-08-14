@@ -169,7 +169,7 @@ final class LegacyOperationDescriptorRegistry
             $ability,
             $dataRisk,
             $risk,
-            $credential ? [ApiCredential::TYPE_INTERACTIVE_ACCESS] : $this->resourceCredentials($resource),
+            ($credential || $risk === 'critical') ? [ApiCredential::TYPE_INTERACTIVE_ACCESS] : $this->resourceCredentials($resource),
             $credential,
             $credential ? ["{$resource}.{$action}"] : [],
             $plan,
@@ -219,7 +219,7 @@ final class LegacyOperationDescriptorRegistry
             $ability,
             $dataRisk,
             $risk,
-            $credential || ! $serviceAllowed
+            $credential || ! $serviceAllowed || $risk === 'critical'
                 ? [ApiCredential::TYPE_INTERACTIVE_ACCESS]
                 : [ApiCredential::TYPE_INTERACTIVE_ACCESS, ApiCredential::TYPE_SERVICE_TOKEN, ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN],
             $credential,

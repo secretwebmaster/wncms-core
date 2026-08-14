@@ -55,6 +55,7 @@ class CoreBackendContractProvider implements ApiContractProvider
             request: ApiSchema::object(),
             response: $response,
             idempotent: true,
+            idempotencyRequired: true,
         ));
 
         $this->registerServiceTokenOperations($registry);
@@ -98,6 +99,7 @@ class CoreBackendContractProvider implements ApiContractProvider
             idempotent: true, securityRisk: 'sensitive', acceptedCredentialTypes: [ApiCredential::TYPE_INTERACTIVE_ACCESS],
             requiresStepUp: true, stepUpPurposes: ['blade.mode'], actionPlanEligible: true,
             domainModelKeys: ['setting'], sideEffectKind: 'database',
+            idempotencyRequired: true,
         ));
     }
 
@@ -133,6 +135,7 @@ class CoreBackendContractProvider implements ApiContractProvider
                 acceptedCredentialTypes: [ApiCredential::TYPE_INTERACTIVE_ACCESS], requiresStepUp: $stepUp,
                 stepUpPurposes: $purpose === null ? [] : [$purpose], domainModelKeys: $stepUp ? ['user', 'api_session', 'api_access_token', 'api_refresh_token', 'api_service_token'] : [],
                 sideEffectKind: 'database',
+                idempotencyRequired: $idempotent,
             ));
         }
     }
@@ -140,7 +143,9 @@ class CoreBackendContractProvider implements ApiContractProvider
     /** Register the interactive-only scoped service-token management contract. */
     private function registerServiceTokenOperations(ApiContractRegistry $registry): void
     {
-        $registry->registerDomain(new ApiDomainContract('authentication', 'Authentication'));
+        if (! isset($registry->domains()['authentication'])) {
+            $registry->registerDomain(new ApiDomainContract('authentication', 'Authentication'));
+        }
         $definitions = [
             ['options', 'GET', '/api/v2/backend/auth/service-token-options', 'api_token_create', 'tokens.create', false, false, null],
             ['index', 'GET', '/api/v2/backend/auth/service-tokens', 'api_token_index', 'tokens.read', false, false, null],
@@ -173,6 +178,7 @@ class CoreBackendContractProvider implements ApiContractProvider
                 actionPlanEligible: $mutation,
                 domainModelKeys: $mutation ? ['api_service_token'] : [],
                 sideEffectKind: $mutation ? 'database' : 'read',
+                idempotencyRequired: $mutation,
             ));
         }
     }

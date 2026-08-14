@@ -50,6 +50,12 @@ class OpenApiEndpointTest extends TestCase
         $this->assertTrue(Str::isUuid((string) $response->headers->get('X-Request-ID')));
         $this->assertTrue(Route::has('api.v2.openapi'));
         $document = $response->json();
+        $this->assertSame('2.1.0', $document['info']['version']);
+        $this->assertArrayHasKey('refreshCookie', $document['components']['securitySchemes']);
+        $this->assertSame([], $document['paths']['/api/v2/backend/auth/login']['post']['security']);
+        $this->assertTrue($document['paths']['/api/v2/backend/security/blade']['patch']['x-wncms-requires-step-up']);
+        $this->assertTrue($document['paths']['/api/v2/backend/security/blade']['patch']['x-wncms-idempotency-required']);
+        $this->assertTrue($document['paths']['/api/v2/backend/auth/login']['post']['requestBody']['content']['application/json']['schema']['properties']['password']['writeOnly']);
         $this->assertSame(
             'model_template',
             $document['paths']['/api/v2/backend/models/update']['post']['x-wncms-permission-mode'],

@@ -4,6 +4,8 @@ namespace Wncms\Api\V2;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Wncms\Api\V2\Data\ApiOperationContract;
+use Wncms\Auth\Api\V2\AuthenticationContext;
+use Wncms\Auth\Api\V2\AuthSecurityConfig;
 
 final class CapabilityResolver
 {
@@ -29,7 +31,7 @@ final class CapabilityResolver
      * @param  \Illuminate\Contracts\Auth\Authenticatable  $user
      * @return array{schema_version: string, domains: array<string, array<string, mixed>>}
      */
-    public function resolve(Authenticatable $user): array
+    public function resolve(Authenticatable $user, mixed $authentication = null): array
     {
         $domains = [];
         $hasWebsiteContext = (bool) wncms()->website()->get();
@@ -48,6 +50,14 @@ final class CapabilityResolver
             }
 
             $disabledReasons = [];
+            if ($authentication instanceof AuthenticationContext) {
+                if (! in_array($authentication->credentialType(), $operation->acceptedCredentialTypes, true)) {
+                    $disabledReasons[] = 'credential.type_not_allowed';
+                }
+                if ($operation->ability !== null && ! $authentication->hasAbility($operation->ability)) {
+                    $disabledReasons[] = 'credential.ability_missing';
+                }
+            }
             if ($operation->websiteScoped && ! $hasWebsiteContext) {
                 $disabledReasons[] = 'website.context_missing';
             }
@@ -65,6 +75,7 @@ final class CapabilityResolver
 
         return [
             'schema_version' => (string) config('wncms-api-v2.schema_version', '2.0.0'),
+            'authentication' => $this->authenticationPolicy(),
             'domains' => $domains,
         ];
     }
@@ -108,6 +119,15 @@ final class CapabilityResolver
             'risk' => $operation->risk,
             'implementation' => $operation->implementation,
             'idempotent' => $operation->idempotent,
+            'security_risk' => $operation->securityRisk,
+            'accepted_credential_types' => $operation->acceptedCredentialTypes,
+            'requires_step_up' => $operation->requiresStepUp,
+            'step_up_purposes' => $operation->stepUpPurposes,
+            'action_plan_eligible' => $operation->actionPlanEligible,
+            'legacy_token_allowed' => $operation->legacyTokenAllowed,
+            'website_scope_mode' => $operation->websiteScopeMode,
+            'idempotency_required' => $operation->idempotencyRequired,
+            'refresh_transports' => $operation->refreshTransports,
             'filters' => $operation->filters,
             'sorts' => $operation->sorts,
             'includes' => $operation->includes,
@@ -116,6 +136,22 @@ final class CapabilityResolver
             'disabled_reasons' => $disabledReasons,
             'request_schema' => $operation->request->jsonSerialize(),
             'response_schema' => $operation->response->jsonSerialize(),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function authenticationPolicy(): array
+    {
+        $config = AuthSecurityConfig::fromRuntime();
+
+        return [
+            'access_token_lifetime_minutes' => $config->accessLifetimeMinutes(),
+            'refresh_token_lifetime_days' => $config->refreshLifetimeDays(),
+            'refresh_transport' => $config->refreshTransport(),
+            'high_risk_action_mode' => $config->highRiskMode(),
+            'step_up_lifetime_seconds' => $config->stepUpLifetimeSeconds(),
+            'legacy_personal_tokens_enabled' => $config->legacyPersonalTokensEnabled(),
+            'legacy_personal_tokens_cutoff_at' => $config->legacyPersonalTokensCutoffAt(),
         ];
     }
 }

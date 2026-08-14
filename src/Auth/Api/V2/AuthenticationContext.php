@@ -108,7 +108,7 @@ final readonly class AuthenticationContext
      */
     public function hasAbility(string $ability): bool
     {
-        return in_array($ability, $this->abilities(), true);
+        return in_array('*', $this->abilities(), true) || in_array($ability, $this->abilities(), true);
     }
 
     /**

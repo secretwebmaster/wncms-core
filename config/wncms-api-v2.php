@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'schema_version' => '2.0.0',
+    'schema_version' => '2.1.0',
     'openapi' => [
         'title' => 'WNCMS API',
-        'version' => '2.0.0',
+        'version' => '2.1.0',
     ],
     'auth_security' => [
         'access_token_lifetime_minutes' => 15,
@@ -69,21 +69,11 @@ return [
         'excluded_route_names' => [
             'api.v2.openapi',
             'api.v2.capabilities',
-            'api.v2.backend.auth.login',
-            'api.v2.backend.auth.refresh',
-            'api.v2.backend.auth.logout',
-            'api.v2.backend.auth.logout_all',
-            'api.v2.backend.auth.me',
-            'api.v2.backend.auth.sessions.index',
-            'api.v2.backend.auth.sessions.destroy',
-            'api.v2.backend.auth.reauthenticate',
-            'api.v2.backend.action_plans.store',
-            'api.v2.backend.i18n.ui',
-            'api.v2.backend.translations',
         ],
     ],
     'providers' => [
         \Wncms\Api\V2\Providers\CoreFrontendContractProvider::class,
+        \Wncms\Api\V2\Providers\CoreAuthSecurityContractProvider::class,
         \Wncms\Api\V2\Providers\CoreBackendContractProvider::class,
         \Wncms\Api\V2\Providers\LegacyBackendContractProvider::class,
     ],

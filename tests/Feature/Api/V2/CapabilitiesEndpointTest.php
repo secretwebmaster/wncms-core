@@ -77,7 +77,7 @@ class CapabilitiesEndpointTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJsonPath('data.schema_version', '2.0.0')
+            ->assertJsonPath('data.schema_version', '2.1.0')
             ->assertJsonPath('data.domains.links.key', 'links');
         $operations = $response->json('data.domains.links.operations');
         $this->assertTrue($operations['backend.links.index']['available']);
@@ -99,6 +99,15 @@ class CapabilitiesEndpointTest extends TestCase
                 'risk',
                 'implementation',
                 'idempotent',
+                'security_risk',
+                'accepted_credential_types',
+                'requires_step_up',
+                'step_up_purposes',
+                'action_plan_eligible',
+                'legacy_token_allowed',
+                'website_scope_mode',
+                'idempotency_required',
+                'refresh_transports',
                 'filters',
                 'sorts',
                 'includes',
@@ -111,6 +120,7 @@ class CapabilitiesEndpointTest extends TestCase
             array_keys($operations['backend.links.index'])
         );
         $this->assertAutomationEnvelope($response);
+        $this->assertSame('json', $response->json('data.authentication.refresh_transport'));
         $this->assertTrue(Route::has('api.v2.capabilities'));
     }
 
@@ -222,7 +232,8 @@ class CapabilitiesEndpointTest extends TestCase
             ->assertJsonPath('data.domains.plugin_demo.key', 'plugin_demo')
             ->assertJsonPath('data.domains.plugin_demo.label', 'Plugin Demo');
         $operation = $response->json('data.domains.plugin_demo.operations')['plugin.demo.inspect'];
-        $this->assertTrue($operation['available']);
+        $this->assertFalse($operation['available']);
+        $this->assertContains('credential.ability_missing', $operation['disabled_reasons']);
         $this->assertSame(['status'], $operation['filters']);
         $this->assertSame(['id'], $operation['sorts']);
         $this->assertSame(['owner'], $operation['includes']);

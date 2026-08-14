@@ -49,6 +49,10 @@ final class ApiOperationContract
         public readonly string $canonicalizer = 'schema',
         public readonly string $targetResolver = 'none',
         public readonly array $relationshipBoundaries = [],
+        public readonly bool $legacyTokenAllowed = false,
+        public readonly string $websiteScopeMode = 'none',
+        public readonly bool $idempotencyRequired = false,
+        public readonly array $refreshTransports = [],
     ) {}
 
     /**
@@ -89,6 +93,10 @@ final class ApiOperationContract
             'canonicalizer' => $this->canonicalizer,
             'target_resolver' => $this->targetResolver,
             'relationship_boundaries' => $this->relationshipBoundaries,
+            'legacy_token_allowed' => $this->legacyTokenAllowed,
+            'website_scope_mode' => $this->websiteScopeMode,
+            'idempotency_required' => $this->idempotencyRequired,
+            'refresh_transports' => $this->refreshTransports,
         ];
     }
 }

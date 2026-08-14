@@ -9,6 +9,7 @@ use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\CapabilityResolver;
 use Wncms\Api\V2\OpenApiDocumentBuilder;
 use Wncms\Http\Controllers\Controller;
+use Wncms\Http\Middleware\ApiV2TokenAuth;
 
 class ContractController extends Controller
 {
@@ -35,8 +36,8 @@ class ContractController extends Controller
     public function capabilities(Request $request): JsonResponse
     {
         return $this->responses->success(
-            $this->capabilities->resolve($request->user())
-        );
+            $this->capabilities->resolve($request->user(), $request->attributes->get(ApiV2TokenAuth::AUTH_CONTEXT_ATTRIBUTE))
+        )->header('Cache-Control', 'private, no-store')->header('Vary', 'Authorization, Cookie');
     }
 
     /**
@@ -55,6 +56,8 @@ class ContractController extends Controller
             JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
         );
 
-        return response($contents, Response::HTTP_OK, ['Content-Type' => 'application/json']);
+        return response($contents, Response::HTTP_OK, [
+            'Content-Type' => 'application/json', 'Cache-Control' => 'public, no-store', 'Vary' => 'Origin',
+        ]);
     }
 }

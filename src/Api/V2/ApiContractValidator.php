@@ -25,6 +25,11 @@ final class ApiContractValidator
         'destructive',
     ];
 
+    private const ALLOWED_SECURITY_RISKS = ['normal', 'sensitive', 'high', 'critical'];
+    private const ALLOWED_CREDENTIAL_TYPES = ['interactive_access', 'refresh', 'service_token', 'legacy_personal_access_token'];
+    private const ALLOWED_WEBSITE_SCOPE_MODES = ['none', 'optional', 'required'];
+    private const ALLOWED_REFRESH_TRANSPORTS = ['json', 'cookie'];
+
     private const HTTP_METHODS = [
         'delete',
         'get',
@@ -312,7 +317,9 @@ final class ApiContractValidator
 
         $domainRoot = "backend.{$operation->domain}";
         $domainPrefix = $domainRoot.'.';
-        if ($operation->id !== $domainRoot && ! str_starts_with($operation->id, $domainPrefix)) {
+        $aliases = $operation->domain === 'authentication' ? ['backend.auth.'] : [];
+        $matchesAlias = collect($aliases)->contains(fn (string $prefix): bool => str_starts_with($operation->id, $prefix));
+        if ($operation->id !== $domainRoot && ! str_starts_with($operation->id, $domainPrefix) && ! $matchesAlias) {
             $this->error('contract.domain_mismatch', [
                 'domain' => $operation->domain,
                 'expected_prefix' => $domainPrefix,
@@ -339,6 +346,39 @@ final class ApiContractValidator
 
         $this->validateMetadataLists($operation);
 
+        if (! in_array($operation->securityRisk, self::ALLOWED_SECURITY_RISKS, true)) {
+            $this->error('contract.security_risk_invalid', ['operation_id' => $operation->id, 'value' => $operation->securityRisk]);
+        }
+        foreach ($operation->acceptedCredentialTypes as $type) {
+            if (! in_array($type, self::ALLOWED_CREDENTIAL_TYPES, true)) {
+                $this->error('contract.credential_type_invalid', ['operation_id' => $operation->id, 'value' => $type]);
+            }
+        }
+        if ($operation->requiresStepUp && $operation->stepUpPurposes === []) {
+            $this->error('contract.step_up_purpose_missing', ['operation_id' => $operation->id]);
+        }
+        if (! $operation->requiresStepUp && $operation->stepUpPurposes !== []) {
+            $this->error('contract.step_up_purpose_unexpected', ['operation_id' => $operation->id]);
+        }
+        $acceptsLegacy = in_array('legacy_personal_access_token', $operation->acceptedCredentialTypes, true);
+        if ($operation->securityRisk === 'critical' && ($acceptsLegacy || $operation->legacyTokenAllowed)) {
+            $this->error('contract.critical_legacy_forbidden', ['operation_id' => $operation->id]);
+        }
+        if ($operation->legacyTokenAllowed !== $acceptsLegacy) {
+            $this->error('contract.legacy_token_metadata_mismatch', ['operation_id' => $operation->id]);
+        }
+        if (! in_array($operation->websiteScopeMode, self::ALLOWED_WEBSITE_SCOPE_MODES, true)) {
+            $this->error('contract.website_scope_mode_invalid', ['operation_id' => $operation->id, 'value' => $operation->websiteScopeMode]);
+        }
+        if ($operation->idempotencyRequired && ! $operation->idempotent) {
+            $this->error('contract.idempotency_metadata_mismatch', ['operation_id' => $operation->id]);
+        }
+        foreach ($operation->refreshTransports as $transport) {
+            if (! in_array($transport, self::ALLOWED_REFRESH_TRANSPORTS, true)) {
+                $this->error('contract.refresh_transport_invalid', ['operation_id' => $operation->id, 'value' => $transport]);
+            }
+        }
+
         if (! in_array($operation->risk, self::ALLOWED_RISKS, true)) {
             $this->error('contract.risk_invalid', [
                 'allowed' => self::ALLOWED_RISKS,
@@ -363,7 +403,7 @@ final class ApiContractValidator
             ]);
         }
 
-        if ($operation->surface !== 'backend' || ! $this->isMutation($method)) {
+        if ($operation->surface !== 'backend' || ! $this->isMutation($method) || $operation->domain === 'authentication') {
             return;
         }
 
