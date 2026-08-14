@@ -7,7 +7,7 @@ use Wncms\Http\Controllers\Frontend\PageController;
 // Main route group
 Route::group([
     'prefix' => gss('enable_translation', true) ? LaravelLocalization::setLocale() : null,
-    'middleware' => gss('enable_translation', true) ? ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'] : [],
+    'middleware' => array_merge(['wncms_blade'], gss('enable_translation', true) ? ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'] : []),
 ], function () {
 
     // Install
@@ -24,4 +24,4 @@ Route::group([
 });
 
 // Fallback route
-Route::fallback([PageController::class, 'fallback']);
+Route::fallback([PageController::class, 'fallback'])->middleware('wncms_blade');

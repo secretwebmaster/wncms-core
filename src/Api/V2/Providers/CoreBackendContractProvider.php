@@ -59,6 +59,28 @@ class CoreBackendContractProvider implements ApiContractProvider
 
         $this->registerServiceTokenOperations($registry);
         $this->registerUserSecurityOperations($registry);
+        $this->registerBladeSecurityOperations($registry);
+    }
+
+    private function registerBladeSecurityOperations(ApiContractRegistry $registry): void
+    {
+        $registry->registerDomain(new ApiDomainContract('security', 'Security'));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'backend.security.blade.show', domain: 'security', surface: 'backend', method: 'GET',
+            path: '/api/v2/backend/security/blade', routeName: 'api.v2.backend.security.blade.show',
+            permission: 'blade_mode_manage', ability: 'security.blade', websiteScoped: false, risk: 'read',
+            implementation: 'domain', request: ApiSchema::object(), response: ApiSchema::object(),
+            acceptedCredentialTypes: [ApiCredential::TYPE_INTERACTIVE_ACCESS], sideEffectKind: 'read',
+        ));
+        $registry->registerOperation(new ApiOperationContract(
+            id: 'backend.security.blade.update', domain: 'security', surface: 'backend', method: 'PATCH',
+            path: '/api/v2/backend/security/blade', routeName: 'api.v2.backend.security.blade.update',
+            permission: 'blade_mode_manage', ability: 'security.blade', websiteScoped: false, risk: 'write',
+            implementation: 'domain', request: ApiSchema::object(['enabled' => ['type' => 'boolean']], ['enabled']), response: ApiSchema::object(),
+            idempotent: true, securityRisk: 'sensitive', acceptedCredentialTypes: [ApiCredential::TYPE_INTERACTIVE_ACCESS],
+            requiresStepUp: true, stepUpPurposes: ['blade.mode'], actionPlanEligible: true,
+            domainModelKeys: ['setting'], sideEffectKind: 'database',
+        ));
     }
 
     /** Register stable self-service profile and credential-security operations. */

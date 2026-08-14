@@ -145,7 +145,7 @@ class PluginServiceProvider extends ServiceProvider
         $routeFile = $this->resolvePluginPath($plugin, 'routes/web.php');
 
         if ($routeFile && file_exists($routeFile)) {
-            Route::middleware(['web', 'is_installed', 'has_website'])->group($routeFile);
+            Route::middleware(['wncms_blade', 'web', 'is_installed', 'has_website'])->group($routeFile);
         }
     }
 

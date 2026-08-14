@@ -905,3 +905,9 @@ Before deploying to production:
 - [ ] Separate tokens for different environments
 - [ ] Token revocation procedure documented
 - [ ] Audit logging enabled
+
+## Blade UI recovery mode
+
+WNCMS can disable its own Blade-based web surfaces while keeping API v2 and host application routes available. Read the current state with `GET /api/v2/backend/security/blade`; update it with `PATCH /api/v2/backend/security/blade` and `{ "enabled": false }`. Both operations require an interactive access token, the `security.blade` ability, and `blade_mode_manage`; updates additionally require idempotency and a `blade.mode` step-up proof.
+
+CLI recovery remains available: `wncms:blade:status`, `wncms:blade:disable --force`, and `wncms:blade:enable`. A missing setting is treated as enabled. On an installed system, invalid or unreadable policy state fails closed with a plain `404` for WNCMS UI routes. API, callback, and host routes are not gated.

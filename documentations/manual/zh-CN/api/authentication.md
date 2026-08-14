@@ -854,3 +854,8 @@ DELETE /api/v2/backend/auth/service-tokens/{token_id}
 - [ ] 为不同环境使用独立的 token
 - [ ] 已记录 token 撤销程序
 - [ ] 已启用稽核日志记录
+## Blade UI 恢复模式
+
+WNCMS 可停用自身的 Blade Web 界面，同时保留 API v2 与宿主应用路由。使用 `GET /api/v2/backend/security/blade` 读取状态；以 `PATCH /api/v2/backend/security/blade` 及 `{ "enabled": false }` 更新状态。两者都需要 interactive access token、`security.blade` ability 与 `blade_mode_manage`；更新另需 idempotency 与 `blade.mode` step-up proof。
+
+CLI 恢复入口为 `wncms:blade:status`、`wncms:blade:disable --force` 及 `wncms:blade:enable`。设置缺少时视为启用；已安装系统若设置无效或无法读取，WNCMS UI 路由会 fail closed 并返回纯文本 `404`。API、callback 与宿主路由不受 gate 影响。

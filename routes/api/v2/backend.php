@@ -5,6 +5,7 @@ use Wncms\Api\V2\LegacyOperationSecurity;
 use Wncms\Http\Controllers\Api\V2\Backend\ActionPlanController;
 use Wncms\Http\Controllers\Api\V2\Backend\AuthController;
 use Wncms\Http\Controllers\Api\V2\Backend\BridgeController;
+use Wncms\Http\Controllers\Api\V2\Backend\BladeSecurityController;
 use Wncms\Http\Controllers\Api\V2\Backend\I18nController;
 use Wncms\Http\Controllers\Api\V2\Backend\OperationController;
 use Wncms\Http\Controllers\Api\V2\Backend\ProfileSecurityController;
@@ -46,6 +47,16 @@ Route::prefix('v2/backend')
                 ->middleware('api_v2_idempotency')
                 ->name('auth.logout_all');
             Route::get('/auth/me', [AuthController::class, 'me'])->name('auth.me');
+            Route::get('/security/blade', [BladeSecurityController::class, 'show'])
+                ->defaults('api_operation_id', 'backend.security.blade.show')
+                ->middleware(['api_v2_ability:security.blade', 'api_v2_permission:blade_mode_manage'])
+                ->name('security.blade.show');
+            Route::patch('/security/blade', [BladeSecurityController::class, 'update'])
+                ->defaults('api_operation_id', 'backend.security.blade.update')
+                ->defaults('api_website_identity', 'global:blade-availability')
+                ->defaults('api_sensitive_idempotency', true)
+                ->middleware(['api_v2_ability:security.blade', 'api_v2_permission:blade_mode_manage', 'api_v2_risk_context', 'api_v2_idempotency', 'api_v2_risk'])
+                ->name('security.blade.update');
             Route::patch('/auth/profile', [ProfileSecurityController::class, 'updateProfile'])
                 ->defaults('api_operation_id', 'backend.auth.profile.update')
                 ->middleware('api_v2_ability:account.profile')
