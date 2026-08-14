@@ -1194,6 +1194,9 @@ class ApiContractValidatorTest extends TestCase
             if (isset($definition[4])) {
                 $route->middleware($definition[4]);
             }
+            if (isset($definition[5])) {
+                $route->defaults('api_controller_permission', $definition[5]);
+            }
             $routes->add($route);
         }
 

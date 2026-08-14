@@ -1006,7 +1006,9 @@ final class ApiContractValidator
         if ($operation->ability !== null) {
             $required[] = 'api_v2_ability:'.$operation->ability;
         }
-        if ($operation->permissionMode === 'static' && $operation->permission !== null) {
+        if ($operation->permissionMode === 'static'
+            && $operation->permission !== null
+            && $entry['controller_permission'] !== $operation->permission) {
             $required[] = 'api_v2_permission:'.$operation->permission;
         }
         if ($operation->idempotencyRequired) {
@@ -1031,7 +1033,7 @@ final class ApiContractValidator
     /**
      * Export normalized runtime route entries without Laravel's implicit GET HEAD alias.
      *
-     * @return array<int, array{method: string, path: string, route_name: string|null, operation_id: mixed, middleware: array<int, string>}>
+     * @return array<int, array{method: string, path: string, route_name: string|null, operation_id: mixed, controller_permission: mixed, middleware: array<int, string>}>
      */
     private function routeEntries(): array
     {
@@ -1047,6 +1049,7 @@ final class ApiContractValidator
             $path = $this->normalizePath($route->uri());
             $routeName = $route->getName();
             $operationId = $route->defaults['api_operation_id'] ?? null;
+            $controllerPermission = $route->defaults['api_controller_permission'] ?? null;
             $middleware = array_values(array_unique(array_filter($route->gatherMiddleware(), 'is_string')));
             sort($middleware);
             $this->validateReportIdentity('route.path', $path);
@@ -1061,6 +1064,7 @@ final class ApiContractValidator
                     'path' => $path,
                     'route_name' => $routeName,
                     'operation_id' => $operationId,
+                    'controller_permission' => $controllerPermission,
                     'middleware' => $middleware,
                 ];
             }

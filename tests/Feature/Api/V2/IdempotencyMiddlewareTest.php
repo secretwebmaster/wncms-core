@@ -16,9 +16,14 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Api\V2\ApiResponseFactory;
 use Wncms\Api\V2\ApiV2ResponseFinalizer;
 use Wncms\Api\V2\Contracts\IdempotencyStore;
+use Wncms\Api\V2\Data\ApiDomainContract;
+use Wncms\Api\V2\Data\ApiOperationContract;
+use Wncms\Api\V2\Data\ApiSchema;
+use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\TokenHasher;
 use Wncms\Models\ApiAccessToken;
 use Wncms\Models\ApiSession;
@@ -44,8 +49,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Register isolated mutation routes for each idempotency test.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -239,8 +242,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Close temporary upload streams created by the test fixtures.
-     *
-     * @return void
      */
     protected function tearDown(): void
     {
@@ -262,8 +263,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify absent idempotency keys return the standard API failure envelope.
-     *
-     * @return void
      */
     public function test_missing_key_returns_a_stable_failure_envelope(): void
     {
@@ -278,8 +277,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify keys outside the supported byte length are rejected before execution.
-     *
-     * @return void
      */
     public function test_key_length_is_enforced_before_execution(): void
     {
@@ -307,8 +304,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify invalid UTF-8 keys fail before hashing, storage, or handler execution.
-     *
-     * @return void
      */
     public function test_invalid_utf8_key_is_rejected_before_execution(): void
     {
@@ -329,8 +324,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify equivalent JSON and query key ordering replays the original response.
      *
      * Changing recursive sorting or fingerprinting api_token would make this execute twice.
-     *
-     * @return void
      */
     public function test_equivalent_normalized_input_replays_the_original_response_once(): void
     {
@@ -375,8 +368,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify replay keeps the first finalized request ID when the retry sends a different ID.
      *
      * Trusting an ordinary handler response header would also allow it to bypass request-ID finalization.
-     *
-     * @return void
      */
     public function test_replay_preserves_the_first_finalized_response_across_different_request_ids(): void
     {
@@ -416,8 +407,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify generated request IDs also replay the first response identity exactly.
-     *
-     * @return void
      */
     public function test_replay_preserves_the_first_automatically_generated_request_id(): void
     {
@@ -447,8 +436,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify handlers cannot forge replay trust through headers or the finalizer API.
      *
      * A public replay marker would let the handler replace the request identity selected by middleware.
-     *
-     * @return void
      */
     public function test_handler_cannot_forge_replay_trust_through_headers_or_public_finalizer_api(): void
     {
@@ -473,8 +460,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify ordinary response finalization uses the request ID captured before the handler.
      *
      * Rereading the request attribute after downstream execution would accept the handler mutation.
-     *
-     * @return void
      */
     public function test_downstream_attribute_mutation_cannot_replace_an_ordinary_response_request_id(): void
     {
@@ -493,8 +478,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify idempotency stores the request ID captured before the mutation handler.
      *
      * Trusting the downstream attribute would persist its forged ID in the first record and every replay.
-     *
-     * @return void
      */
     public function test_downstream_attribute_mutation_cannot_replace_the_cached_response_request_id(): void
     {
@@ -531,8 +514,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify replay trust is consumed by one outer finalization only.
      *
      * Retaining and returning the replay Response on a later request must use that later request's identity.
-     *
-     * @return void
      */
     public function test_replay_response_trust_is_one_shot_when_the_response_object_is_reused(): void
     {
@@ -575,8 +556,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify equivalent form input is normalized and replayed once.
-     *
-     * @return void
      */
     public function test_equivalent_normalized_form_input_replays_once(): void
     {
@@ -613,8 +592,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify JSON objects, lists, numeric-key objects, and scalar roots retain their wire shapes.
      *
      * Associative decoding would collapse each object/list pair into the same PHP array.
-     *
-     * @return void
      */
     public function test_json_wire_shapes_remain_distinct_in_request_fingerprints(): void
     {
@@ -658,8 +635,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify malformed JSON fails before executing the mutation.
-     *
-     * @return void
      */
     public function test_malformed_json_returns_a_stable_idempotency_failure(): void
     {
@@ -680,8 +655,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify multipart file paths and metadata contribute to a deterministic fingerprint.
      *
      * Ignoring any uploaded file would replay instead of conflicting for these mutations.
-     *
-     * @return void
      */
     public function test_multipart_files_are_fingerprinted_by_path_name_size_mime_and_content(): void
     {
@@ -726,8 +699,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify a reused key with different input returns a stable conflict envelope.
-     *
-     * @return void
      */
     public function test_reused_key_with_different_input_returns_a_conflict(): void
     {
@@ -754,8 +725,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify route parameters contribute to the normalized fingerprint.
-     *
-     * @return void
      */
     public function test_route_parameter_changes_conflict_with_an_existing_key(): void
     {
@@ -783,8 +752,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify actor and operation identities isolate otherwise identical keys.
      *
      * Removing either identity from the scope would replay instead of executing each mutation.
-     *
-     * @return void
      */
     public function test_actor_and_operation_are_part_of_the_idempotency_scope(): void
     {
@@ -815,12 +782,20 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify personal access token identity isolates keys for the same actor.
      *
      * Removing token identity from the scope would replay the first token's response.
-     *
-     * @return void
      */
     public function test_personal_access_token_identity_is_part_of_the_scope(): void
     {
         $user = User::firstOrFail();
+        $user->websites()->sync([Website::firstOrFail()->getKey()]);
+        $contracts = app(ApiContractRegistry::class);
+        $contracts->registerDomain(new ApiDomainContract('test', 'Test'));
+        $contracts->registerOperation(new ApiOperationContract(
+            id: 'backend.test.token', domain: 'test', surface: 'backend', method: 'POST',
+            path: '/api/v2/_test/idempotent-token/{subject}', routeName: 'api.v2.test.idempotent-token',
+            permission: null, ability: null, websiteScoped: false, risk: 'write', implementation: 'domain',
+            request: ApiSchema::object(), response: ApiSchema::object(),
+            acceptedCredentialTypes: [ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN], legacyTokenAllowed: true,
+        ));
         $firstToken = $this->createToken($user, 'first-token-secret');
         $secondToken = $this->createToken($user, 'second-token-secret');
         $key = 'token-scope-key-01';
@@ -843,8 +818,6 @@ class IdempotencyMiddlewareTest extends TestCase
      *
      * Rotating test plaintext under one controlled public ID must replay the existing response,
      * while a different public ID must execute an isolated mutation.
-     *
-     * @return void
      */
     public function test_access_token_scope_uses_public_credential_id_without_secret_material(): void
     {
@@ -885,8 +858,6 @@ class IdempotencyMiddlewareTest extends TestCase
      *
      * Omitting the resolved website ID would replay across the sentinel and secondary website.
      * Using Host directly would fail to replay the alias request for the same website object.
-     *
-     * @return void
      */
     public function test_resolved_website_identity_and_no_context_sentinel_isolate_scopes(): void
     {
@@ -944,12 +915,10 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify website scope uses the stable model primary key rather than a mutable route key.
-     *
-     * @return void
      */
     public function test_website_scope_survives_route_key_changes_and_isolates_primary_keys(): void
     {
-        $primary = new MutableRouteKeyWebsite();
+        $primary = new MutableRouteKeyWebsite;
         $primary->setAttribute('id', 101);
         $primary->mutableRouteKey = 'route-key-alpha';
         TestWebsiteContextMiddleware::$website = $primary;
@@ -971,7 +940,7 @@ class IdempotencyMiddlewareTest extends TestCase
             ->assertHeader('Idempotency-Replayed', 'true')
             ->assertJsonPath('data.execution', 1);
 
-        $secondary = new MutableRouteKeyWebsite();
+        $secondary = new MutableRouteKeyWebsite;
         $secondary->setAttribute('id', 202);
         $secondary->mutableRouteKey = 'route-key-beta';
         TestWebsiteContextMiddleware::$website = $secondary;
@@ -986,12 +955,10 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify an unavailable atomic lock returns the stable in-progress conflict.
-     *
-     * @return void
      */
     public function test_concurrent_lock_failure_returns_an_in_progress_conflict(): void
     {
-        $store = new InspectingIdempotencyStore();
+        $store = new InspectingIdempotencyStore;
         $store->lockAvailable = false;
         app()->instance(IdempotencyStore::class, $store);
 
@@ -1011,12 +978,10 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify the lock is released when the downstream handler throws.
-     *
-     * @return void
      */
     public function test_lock_is_released_when_the_handler_throws(): void
     {
-        $store = new InspectingIdempotencyStore();
+        $store = new InspectingIdempotencyStore;
         app()->instance(IdempotencyStore::class, $store);
 
         $response = $this->postMutation(
@@ -1036,8 +1001,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify server-error responses remain retryable and are never replayed.
      *
      * Caching the first response would make the second request replay the temporary 500.
-     *
-     * @return void
      */
     public function test_server_error_response_is_not_recorded_and_can_be_retried(): void
     {
@@ -1069,8 +1032,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify replay preserves JSON root types, body bytes, status, and content type.
      *
      * Associative response decoding would turn empty and numeric-key objects or scalars into arrays.
-     *
-     * @return void
      */
     public function test_replay_preserves_exact_json_wire_types_and_content_type(): void
     {
@@ -1116,13 +1077,11 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify malformed and over-depth JSON responses are never persisted for replay.
      *
      * Skipping strict final-body validation would return and cache both invalid payloads.
-     *
-     * @return void
      */
     public function test_invalid_final_json_body_is_not_recorded_and_releases_the_lock(): void
     {
         foreach (['malformed', 'depth'] as $kind) {
-            $store = new InspectingIdempotencyStore();
+            $store = new InspectingIdempotencyStore;
             app()->instance(IdempotencyStore::class, $store);
             $uri = "/api/v2/_test/idempotent-invalid-response/{$kind}";
             $key = "invalid-response-{$kind}-key";
@@ -1154,8 +1113,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify a cache backend that reports a failed write cannot return an unprotected success.
      *
      * Ignoring the false write result would return 201 and execute the same mutation again later.
-     *
-     * @return void
      */
     public function test_cache_record_write_failure_fails_closed_and_remains_retryable(): void
     {
@@ -1185,12 +1142,10 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify store exceptions use the standard envelope, release the lock, and permit a retry.
-     *
-     * @return void
      */
     public function test_cache_record_write_exception_releases_the_lock_and_remains_retryable(): void
     {
-        $store = new InspectingIdempotencyStore();
+        $store = new InspectingIdempotencyStore;
         $store->putThrows = true;
         app()->instance(IdempotencyStore::class, $store);
 
@@ -1220,8 +1175,6 @@ class IdempotencyMiddlewareTest extends TestCase
      *
      * A null idempotency store config intentionally resolves Laravel's default store; it is
      * distinct from a named cache store whose driver is NullStore.
-     *
-     * @return void
      */
     public function test_production_rejects_unsafe_resolved_cache_backends_before_execution(): void
     {
@@ -1272,8 +1225,6 @@ class IdempotencyMiddlewareTest extends TestCase
      * Verify production rejects a failover store even when its first backend supports locks.
      *
      * Accepting the wrapper could split the record and lock across different fallback stores.
-     *
-     * @return void
      */
     public function test_production_rejects_an_array_first_failover_cache_store(): void
     {
@@ -1315,8 +1266,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify a safe atomic file store remains usable outside production.
-     *
-     * @return void
      */
     public function test_non_production_accepts_a_safe_atomic_file_cache_store(): void
     {
@@ -1348,8 +1297,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify a null idempotency config can use an explicitly trusted Laravel default store.
-     *
-     * @return void
      */
     public function test_production_accepts_a_shared_locking_default_cache_store(): void
     {
@@ -1395,12 +1342,10 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify only the stable response record is stored with configured durations.
-     *
-     * @return void
      */
     public function test_completed_response_record_and_durations_match_the_contract(): void
     {
-        $store = new InspectingIdempotencyStore();
+        $store = new InspectingIdempotencyStore;
         app()->instance(IdempotencyStore::class, $store);
 
         $response = $this->withHeader('X-Request-ID', '123e4567-e89b-42d3-a456-426614174000')
@@ -1430,8 +1375,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify the cache backend receives only a hashed scope key.
-     *
-     * @return void
      */
     public function test_cache_record_key_does_not_expose_the_raw_idempotency_key(): void
     {
@@ -1456,8 +1399,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Verify existing legacy mutations remain outside idempotency enforcement.
-     *
-     * @return void
      */
     public function test_legacy_mutation_routes_do_not_opt_in_implicitly(): void
     {
@@ -1470,11 +1411,7 @@ class IdempotencyMiddlewareTest extends TestCase
     /**
      * Send one mutation with its idempotency key.
      *
-     * @param  string  $uri
      * @param  array<string, mixed>  $payload
-     * @param  string  $key
-     *
-     * @return \Illuminate\Testing\TestResponse
      */
     protected function postMutation(string $uri, array $payload, string $key): TestResponse
     {
@@ -1484,11 +1421,7 @@ class IdempotencyMiddlewareTest extends TestCase
     /**
      * Send one form mutation with its idempotency key.
      *
-     * @param  string  $uri
      * @param  array<string, mixed>  $payload
-     * @param  string  $key
-     *
-     * @return \Illuminate\Testing\TestResponse
      */
     protected function postFormMutation(string $uri, array $payload, string $key): TestResponse
     {
@@ -1498,12 +1431,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Send one raw JSON mutation without changing its root wire type.
-     *
-     * @param  string  $uri
-     * @param  string  $json
-     * @param  string  $key
-     *
-     * @return \Illuminate\Testing\TestResponse
      */
     protected function postRawJsonMutation(string $uri, string $json, string $key): TestResponse
     {
@@ -1518,11 +1445,7 @@ class IdempotencyMiddlewareTest extends TestCase
     /**
      * Send one multipart mutation with uploaded files.
      *
-     * @param  string  $uri
      * @param  array<string, mixed>  $payload
-     * @param  string  $key
-     *
-     * @return \Illuminate\Testing\TestResponse
      */
     protected function postUploadMutation(string $uri, array $payload, string $key): TestResponse
     {
@@ -1532,12 +1455,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Create one stable multipart upload fixture.
-     *
-     * @param  string  $name
-     * @param  string  $content
-     * @param  string  $mimeType
-     *
-     * @return \Illuminate\Http\UploadedFile
      */
     protected function uploadedFile(string $name, string $content, string $mimeType): UploadedFile
     {
@@ -1555,11 +1472,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Create a personal access token fixture for an existing user.
-     *
-     * @param  \Wncms\Models\User  $user
-     * @param  string  $plainTextToken
-     *
-     * @return string
      */
     protected function createToken(User $user, string $plainTextToken): string
     {
@@ -1585,7 +1497,6 @@ class IdempotencyMiddlewareTest extends TestCase
     /**
      * Create a short-lived owned access-token fixture for idempotency identity checks.
      *
-     * @param  \Wncms\Models\User  $user
      * @return array{0: string, 1: \Wncms\Models\ApiAccessToken}
      */
     protected function createAccessToken(User $user): array
@@ -1613,10 +1524,6 @@ class IdempotencyMiddlewareTest extends TestCase
 
     /**
      * Assert the stable API v2 response envelope and matching request IDs.
-     *
-     * @param  \Illuminate\Testing\TestResponse  $response
-     *
-     * @return void
      */
     protected function assertEnvelope(TestResponse $response): void
     {
@@ -1637,8 +1544,6 @@ class MutableRouteKeyWebsite extends Model
 
     /**
      * Return the mutable route identity used to prove scope stability.
-     *
-     * @return string
      */
     public function getRouteKey(): string
     {
@@ -1652,11 +1557,6 @@ class TestWebsiteContextMiddleware
 
     /**
      * Attach the controlled resolved website model to the request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): \Symfony\Component\HttpFoundation\Response
     {
@@ -1676,11 +1576,6 @@ class TestRetainApiV2ResponseMiddleware
 
     /**
      * Retain the exact downstream response object for a later test request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -1709,10 +1604,6 @@ class InspectingIdempotencyStore implements IdempotencyStore
 
     /**
      * Retrieve the captured response record.
-     *
-     * @param  string  $scope
-     *
-     * @return array|null
      */
     public function get(string $scope): ?array
     {
@@ -1723,12 +1614,6 @@ class InspectingIdempotencyStore implements IdempotencyStore
 
     /**
      * Capture a completed response record and TTL.
-     *
-     * @param  string  $scope
-     * @param  array  $record
-     * @param  int  $ttlSeconds
-     *
-     * @return void
      */
     public function put(string $scope, array $record, int $ttlSeconds): void
     {
@@ -1743,11 +1628,6 @@ class InspectingIdempotencyStore implements IdempotencyStore
 
     /**
      * Return a controllable lock for the captured scope.
-     *
-     * @param  string  $scope
-     * @param  int  $seconds
-     *
-     * @return \Illuminate\Contracts\Cache\Lock
      */
     public function lock(string $scope, int $seconds): \Illuminate\Contracts\Cache\Lock
     {
@@ -1762,19 +1642,13 @@ class InspectingIdempotencyLock implements \Illuminate\Contracts\Cache\Lock
 {
     /**
      * Create a controllable idempotency lock.
-     *
-     * @param  \Wncms\Tests\Feature\Api\V2\InspectingIdempotencyStore  $store
      */
-    public function __construct(protected InspectingIdempotencyStore $store)
-    {
-    }
+    public function __construct(protected InspectingIdempotencyStore $store) {}
 
     /**
      * Attempt to acquire the configured test lock.
      *
      * @param  callable|null  $callback
-     *
-     * @return mixed
      */
     public function get($callback = null): mixed
     {
@@ -1798,8 +1672,6 @@ class InspectingIdempotencyLock implements \Illuminate\Contracts\Cache\Lock
      *
      * @param  int  $seconds
      * @param  callable|null  $callback
-     *
-     * @return mixed
      */
     public function block($seconds, $callback = null): mixed
     {
@@ -1808,8 +1680,6 @@ class InspectingIdempotencyLock implements \Illuminate\Contracts\Cache\Lock
 
     /**
      * Release the test lock.
-     *
-     * @return bool
      */
     public function release(): bool
     {
@@ -1820,8 +1690,6 @@ class InspectingIdempotencyLock implements \Illuminate\Contracts\Cache\Lock
 
     /**
      * Return the stable test lock owner.
-     *
-     * @return string
      */
     public function owner(): string
     {
@@ -1830,8 +1698,6 @@ class InspectingIdempotencyLock implements \Illuminate\Contracts\Cache\Lock
 
     /**
      * Force release the test lock.
-     *
-     * @return void
      */
     public function forceRelease(): void
     {

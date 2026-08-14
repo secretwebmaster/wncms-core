@@ -126,7 +126,8 @@ Route::prefix('v2/backend')
             Route::get('/operations/{id}', [OperationController::class, 'show'])->name('operations.show');
             Route::post('/operations/{id}/cancel', [OperationController::class, 'cancel'])
                 ->defaults('api_operation_id', 'backend.operations.cancel')
-                ->middleware(['api_v2_permission:operation_cancel', 'api_v2_idempotency'])
+                ->defaults('api_controller_permission', 'operation_cancel')
+                ->middleware('api_v2_idempotency')
                 ->name('operations.cancel');
         });
 
