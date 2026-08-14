@@ -3,6 +3,7 @@
 namespace Wncms\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Wncms\Foundation\Auth\Authenticatable;
@@ -11,13 +12,16 @@ use Spatie\Permission\Traits\HasRoles;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Wncms\Notifications\ResetPassword;
 
-class User extends Authenticatable implements MustVerifyEmail, HasMedia
+class User extends Authenticatable implements MustVerifyEmail, CanResetPasswordContract, HasMedia
 {
     use HasFactory, Notifiable;
     use HasRoles;
     use InteractsWithMedia;
     use MustVerifyEmailTrait;
+    use CanResetPassword;
 
     /**
      * ----------------------------------------------------------------------------------------------------
@@ -61,6 +65,12 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     public function setRememberToken($value)
     {
         $this->remember_token = $value;
+    }
+
+    /** Send the API-compatible password reset notification. */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPassword($token));
     }
 
 

@@ -7,6 +7,7 @@ use Wncms\Http\Controllers\Api\V2\Backend\AuthController;
 use Wncms\Http\Controllers\Api\V2\Backend\BridgeController;
 use Wncms\Http\Controllers\Api\V2\Backend\I18nController;
 use Wncms\Http\Controllers\Api\V2\Backend\OperationController;
+use Wncms\Http\Controllers\Api\V2\Backend\ProfileSecurityController;
 use Wncms\Http\Controllers\Api\V2\Backend\ResourceController;
 use Wncms\Http\Controllers\Api\V2\Backend\SessionController;
 use Wncms\Http\Controllers\Api\V2\Backend\ServiceTokenController;
@@ -24,6 +25,14 @@ Route::prefix('v2/backend')
         Route::post('/auth/logout', [AuthController::class, 'logout'])
             ->middleware(['api_v2_refresh_transport', 'api_v2_refresh_origin', 'api_v2_refresh_csrf'])
             ->name('auth.logout');
+        Route::post('/auth/password/forgot', [ProfileSecurityController::class, 'forgotPassword'])
+            ->name('auth.password.forgot');
+        Route::post('/auth/password/reset', [ProfileSecurityController::class, 'resetPassword'])
+            ->name('auth.password.reset');
+        Route::post('/auth/email-verification/verify', [ProfileSecurityController::class, 'confirmEmailVerification'])
+            ->name('auth.email_verification.verify');
+        Route::post('/auth/email/change/confirm', [ProfileSecurityController::class, 'confirmEmailChange'])
+            ->name('auth.email.change.confirm');
 
         Route::middleware(['api_v2_token_auth'])->group(function () {
             Route::post('/auth/reauthenticate', [AuthController::class, 'reauthenticate'])
@@ -37,6 +46,24 @@ Route::prefix('v2/backend')
                 ->middleware('api_v2_idempotency')
                 ->name('auth.logout_all');
             Route::get('/auth/me', [AuthController::class, 'me'])->name('auth.me');
+            Route::patch('/auth/profile', [ProfileSecurityController::class, 'updateProfile'])
+                ->defaults('api_operation_id', 'backend.auth.profile.update')
+                ->middleware('api_v2_ability:account.profile')
+                ->name('auth.profile.update');
+            Route::patch('/auth/password', [ProfileSecurityController::class, 'changePassword'])
+                ->defaults('api_operation_id', 'backend.auth.password.update')
+                ->defaults('api_website_identity', 'global:account-security')
+                ->middleware(['api_v2_ability:account.password', 'api_v2_risk_context', 'api_v2_idempotency', 'api_v2_risk'])
+                ->name('auth.password.update');
+            Route::post('/auth/email/change', [ProfileSecurityController::class, 'requestEmailChange'])
+                ->defaults('api_operation_id', 'backend.auth.email.change')
+                ->defaults('api_website_identity', 'global:account-security')
+                ->middleware(['api_v2_ability:account.email', 'api_v2_risk_context', 'api_v2_idempotency', 'api_v2_risk'])
+                ->name('auth.email.change');
+            Route::post('/auth/email-verification/send', [ProfileSecurityController::class, 'sendEmailVerification'])
+                ->defaults('api_operation_id', 'backend.auth.email_verification.send')
+                ->middleware('api_v2_ability:account.email')
+                ->name('auth.email_verification.send');
             Route::get('/auth/sessions', [SessionController::class, 'index'])->name('auth.sessions.index');
             Route::delete('/auth/sessions/{session_id}', [SessionController::class, 'destroy'])
                 ->defaults('api_operation_id', 'backend.auth.sessions.destroy')

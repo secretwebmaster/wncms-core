@@ -134,7 +134,7 @@ final class AuthSecurityConfig
 
 Register every key/default/range from the approved design. Reject Cookie mode without exact Origins and reject `SameSite=None` without HTTPS-compatible settings. Map validated values under `wncms.auth_security.*` during provider boot without calling `gss()` from `SettingManager::getList()`.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `vendor/bin/phpunit tests/Feature/Api/V2/AuthSecuritySettingsTest.php tests/Unit/Api/V2/AuthSecurityConfigTest.php`
 
@@ -208,7 +208,7 @@ Run: `vendor/bin/phpunit tests/Unit/Api/V2/CredentialParserTest.php tests/Unit/A
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/Auth/Api/V2 tests/Unit/Api/V2/CredentialParserTest.php tests/Unit/Api/V2/TokenHasherTest.php
@@ -708,7 +708,7 @@ git commit -m "feat(auth): add scoped service tokens"
 **Interfaces:**
 - Produces the exact `UserSecurityService` signatures shown in Step 3, including `revokeAllCredentials(User $user, string $reason): void`.
 
-- [ ] **Step 1: Write failing forgot/reset/email/revocation tests**
+- [x] **Step 1: Write failing forgot/reset/email/revocation tests**
 
 ```php
 public function test_password_change_revokes_every_exactly_attributable_credential(): void
@@ -721,13 +721,13 @@ public function test_password_change_revokes_every_exactly_attributable_credenti
 
 Test generic forgot response, single-use expiry, client callback, old email retained until verification, old-address notification, exact PAT tokenable class/ID deletion, other users/types preserved, `users.api_token=null`, and rollback on unsafe PAT schema/audit failure.
 
-- [ ] **Step 2: Run and confirm failures**
+- [x] **Step 2: Run and confirm failures**
 
 Run: `vendor/bin/phpunit tests/Feature/Api/V2/UserSecurityFlowTest.php`
 
 Expected: FAIL.
 
-- [ ] **Step 3: Implement transactional self-service security flows**
+- [x] **Step 3: Implement transactional self-service security flows**
 
 Use Laravel password broker/verification primitives behind stable API envelopes. Require interactive access and purpose-bound step-up for changes. Revoke WNCMS rows and precisely matched legacy rows in the same transaction/event; never expose account existence.
 

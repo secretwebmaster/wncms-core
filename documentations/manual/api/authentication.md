@@ -801,6 +801,25 @@ class RateLimitedClient {
 }
 ```
 
+## User Security Lifecycle
+
+The API exposes stable password, profile, and email-verification routes:
+
+```text
+POST  /api/v2/backend/auth/password/forgot
+POST  /api/v2/backend/auth/password/reset
+PATCH /api/v2/backend/auth/password
+PATCH /api/v2/backend/auth/profile
+POST  /api/v2/backend/auth/email/change
+POST  /api/v2/backend/auth/email/change/confirm
+POST  /api/v2/backend/auth/email-verification/send
+POST  /api/v2/backend/auth/email-verification/verify
+```
+
+Forgot-password always returns the same accepted envelope. Reset and email-verification links use the configured `WNCMS_API_AUTH_CLIENT_CALLBACK_URL`; the client submits the opaque credential back to the API. Verification credentials are expiring, hash-only, and single-use. An email change keeps the old address active and notifies it until the new address is confirmed.
+
+Password and email changes require an interactive access token and purpose-bound step-up proof. Password change or reset atomically revokes all interactive sessions, access/refresh tokens, service tokens, the v1 `users.api_token`, and only legacy PAT rows whose exact morph type and user ID match. Other users and morph types are preserved. Successful password responses return `reauthentication_required: true`.
+
 ## Scoped Service Tokens
 
 Service-token management is interactive-session only. The API publishes these routes:

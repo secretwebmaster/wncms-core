@@ -58,6 +58,43 @@ class CoreBackendContractProvider implements ApiContractProvider
         ));
 
         $this->registerServiceTokenOperations($registry);
+        $this->registerUserSecurityOperations($registry);
+    }
+
+    /** Register stable self-service profile and credential-security operations. */
+    private function registerUserSecurityOperations(ApiContractRegistry $registry): void
+    {
+        foreach ([
+            ['password.forgot', 'POST', '/api/v2/backend/auth/password/forgot'],
+            ['password.reset', 'POST', '/api/v2/backend/auth/password/reset'],
+            ['email_verification.verify', 'POST', '/api/v2/backend/auth/email-verification/verify'],
+            ['email.change.confirm', 'POST', '/api/v2/backend/auth/email/change/confirm'],
+        ] as [$action, $method, $path]) {
+            $registry->registerOperation(new ApiOperationContract(
+                id: "backend.auth.{$action}", domain: 'authentication', surface: 'backend', method: $method,
+                path: $path, routeName: "api.v2.backend.auth.{$action}", permission: null, ability: null,
+                websiteScoped: false, risk: 'write', implementation: 'domain', request: ApiSchema::object(), response: ApiSchema::object(),
+                acceptedCredentialTypes: [], sideEffectKind: 'database',
+            ));
+        }
+
+        $definitions = [
+            ['profile.update', 'PATCH', '/api/v2/backend/auth/profile', 'account.profile', false, null, false],
+            ['password.update', 'PATCH', '/api/v2/backend/auth/password', 'account.password', true, 'password.change', true],
+            ['email.change', 'POST', '/api/v2/backend/auth/email/change', 'account.email', true, 'email.change', true],
+            ['email_verification.send', 'POST', '/api/v2/backend/auth/email-verification/send', 'account.email', false, null, false],
+        ];
+        foreach ($definitions as [$action, $method, $path, $ability, $stepUp, $purpose, $idempotent]) {
+            $registry->registerOperation(new ApiOperationContract(
+                id: "backend.auth.{$action}", domain: 'authentication', surface: 'backend', method: $method,
+                path: $path, routeName: "api.v2.backend.auth.{$action}", permission: null, ability: $ability,
+                websiteScoped: false, risk: 'write', implementation: 'domain', request: ApiSchema::object(), response: ApiSchema::object(),
+                idempotent: $idempotent, securityRisk: $stepUp ? 'sensitive' : 'normal',
+                acceptedCredentialTypes: [ApiCredential::TYPE_INTERACTIVE_ACCESS], requiresStepUp: $stepUp,
+                stepUpPurposes: $purpose === null ? [] : [$purpose], domainModelKeys: $stepUp ? ['user', 'api_session', 'api_access_token', 'api_refresh_token', 'api_service_token'] : [],
+                sideEffectKind: 'database',
+            ));
+        }
     }
 
     /** Register the interactive-only scoped service-token management contract. */

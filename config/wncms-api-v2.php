@@ -26,6 +26,7 @@ return [
         'legacy_personal_tokens_enabled' => false,
         'legacy_personal_tokens_cutoff_at' => null,
         'security_event_retention_days' => 90,
+        'client_callback_url' => env('WNCMS_API_AUTH_CLIENT_CALLBACK_URL'),
         'security_event_correlation' => [
             'active_key_version' => env('WNCMS_API_SECURITY_EVENT_CORRELATION_KEY_VERSION'),
             'keys' => [

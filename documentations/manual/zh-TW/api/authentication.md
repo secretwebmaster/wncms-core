@@ -750,6 +750,25 @@ class RateLimitedClient {
 }
 ```
 
+## 使用者安全生命週期
+
+API 提供穩定的密碼、個人資料與 Email 驗證路由：
+
+```text
+POST  /api/v2/backend/auth/password/forgot
+POST  /api/v2/backend/auth/password/reset
+PATCH /api/v2/backend/auth/password
+PATCH /api/v2/backend/auth/profile
+POST  /api/v2/backend/auth/email/change
+POST  /api/v2/backend/auth/email/change/confirm
+POST  /api/v2/backend/auth/email-verification/send
+POST  /api/v2/backend/auth/email-verification/verify
+```
+
+忘記密碼始終返回相同的 accepted envelope。密碼重設與 Email 驗證連結使用設定的 `WNCMS_API_AUTH_CLIENT_CALLBACK_URL`；客戶端再將 opaque credential 提交回 API。驗證憑證有期限、僅儲存 hash，且只能使用一次。Email 變更會保留並通知舊地址，直到新地址確認完成。
+
+密碼與 Email 變更需要 interactive access token 及用途限定的 step-up proof。密碼變更或重設會原子撤銷所有 interactive sessions、access/refresh tokens、service tokens、v1 `users.api_token`，並且只刪除 morph type 與使用者 ID 完全相符的 legacy PAT；其他使用者及 morph type 會保留。成功的密碼回應返回 `reauthentication_required: true`。
+
 ## 限定範圍的 Service Token
 
 Service token 管理僅允許 interactive session 使用。API 提供以下路由：
