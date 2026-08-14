@@ -27,8 +27,6 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Prepare API access and website-scoped Links for each contract test.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -87,14 +85,12 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Verify Links API v2 rejects missing authentication and route permission.
-     *
-     * @return void
      */
     public function test_links_api_v2_requires_authentication_and_permission(): void
     {
         $website = Website::firstOrFail();
 
-        $unauthenticated = $this->getJson('/api/v2/backend/links?website_id=' . $website->id);
+        $unauthenticated = $this->getJson('/api/v2/backend/links?website_id='.$website->id);
         $unauthenticated
             ->assertUnauthorized()
             ->assertJsonPath('code', 401);
@@ -103,7 +99,7 @@ class LinkApiV2ControllerTest extends TestCase
         [, $token] = $this->tokenUser([], $website);
 
         $readForbidden = $this->withToken($token)
-            ->getJson('/api/v2/backend/links?website_id=' . $website->id);
+            ->getJson('/api/v2/backend/links?website_id='.$website->id);
         $readForbidden
             ->assertForbidden()
             ->assertJsonPath('code', 403);
@@ -124,36 +120,34 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Verify list filters and ID or slug inspection never leak another website.
-     *
-     * @return void
      */
     public function test_links_api_v2_lists_and_inspects_only_the_selected_website(): void
     {
         $website = Website::firstOrFail();
         $otherWebsite = $this->otherWebsite();
         [, $token] = $this->tokenUser(['link_index', 'link_edit'], $website);
-        $keyword = 'API scoped ' . uniqid();
+        $keyword = 'API scoped '.uniqid();
 
         $first = $this->websiteLink($website, [
             'status' => 'active',
-            'name' => $keyword . ' First',
-            'slug' => 'api-scoped-first-' . uniqid(),
+            'name' => $keyword.' First',
+            'slug' => 'api-scoped-first-'.uniqid(),
         ]);
         $second = $this->websiteLink($website, [
             'status' => 'active',
-            'name' => $keyword . ' Second',
-            'slug' => 'api-scoped-second-' . uniqid(),
+            'name' => $keyword.' Second',
+            'slug' => 'api-scoped-second-'.uniqid(),
         ]);
         $this->websiteLink($website, [
             'status' => 'inactive',
-            'name' => $keyword . ' Inactive',
+            'name' => $keyword.' Inactive',
         ]);
         $crossWebsite = $this->websiteLink($otherWebsite, [
             'status' => 'active',
-            'name' => $keyword . ' Cross Website',
+            'name' => $keyword.' Cross Website',
         ]);
 
-        $list = $this->withToken($token)->getJson('/api/v2/backend/links?' . http_build_query([
+        $list = $this->withToken($token)->getJson('/api/v2/backend/links?'.http_build_query([
             'website_id' => $website->id,
             'status' => 'active',
             'keyword' => $keyword,
@@ -247,8 +241,6 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Verify Links API v2 requires one explicit stable website selector.
-     *
-     * @return void
      */
     public function test_links_api_v2_requires_current_website_context_when_none_is_explicit(): void
     {
@@ -268,8 +260,6 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Verify every mutation previews without model, tag, or audit writes by default.
-     *
-     * @return void
      */
     public function test_links_api_v2_mutations_preview_by_default(): void
     {
@@ -291,7 +281,7 @@ class LinkApiV2ControllerTest extends TestCase
             $this->withToken($token)->postJson('/api/v2/backend/links', [
                 'name' => 'API preview create',
                 'url' => 'https://example.com/api-preview-create',
-                'slug' => 'api-preview-create-' . uniqid(),
+                'slug' => 'api-preview-create-'.uniqid(),
                 'website_id' => $website->id,
                 'link_categories' => ['Preview category'],
                 'force' => true,
@@ -338,8 +328,6 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Verify forced mutations use the token user for hooks, audits, and writes.
-     *
-     * @return void
      */
     public function test_links_api_v2_forced_mutations_use_the_token_user_as_actor(): void
     {
@@ -356,7 +344,7 @@ class LinkApiV2ControllerTest extends TestCase
         $hookActors = [];
         $beforeAuditCount = MutationAudit::count();
         $beforeAuditId = (int) MutationAudit::max('id');
-        $cacheKey = 'links-api-v2-cache-' . uniqid();
+        $cacheKey = 'links-api-v2-cache-'.uniqid();
 
         Event::listen('wncms.backend.links.store.after', function () use (&$hookActors): void {
             $hookActors['store'] = auth()->id();
@@ -366,7 +354,7 @@ class LinkApiV2ControllerTest extends TestCase
         });
 
         wncms()->cache()->put($cacheKey, 'cached', 60, ['links']);
-        $createdSlug = 'api-forced-create-' . uniqid();
+        $createdSlug = 'api-forced-create-'.uniqid();
         $create = $this->withToken($token)->postJson('/api/v2/backend/links', [
             'name' => 'API forced create',
             'url' => 'https://example.com/api-forced-create',
@@ -450,15 +438,13 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Verify API writes remain successful and return stable audit metadata when disabled.
-     *
-     * @return void
      */
     public function test_links_api_v2_forced_create_writes_without_audit_when_disabled(): void
     {
         config(['wncms.mutation_audit.enabled' => false]);
         $website = Website::firstOrFail();
         [, $token] = $this->tokenUser(['link_create'], $website);
-        $slug = 'api-forced-create-no-audit-' . uniqid();
+        $slug = 'api-forced-create-no-audit-'.uniqid();
         $beforeAuditCount = MutationAudit::count();
 
         $response = $this->withToken($token)->postJson('/api/v2/backend/links', [
@@ -479,8 +465,6 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Verify disabled API bulk writes return an empty stable audit ID list.
-     *
-     * @return void
      */
     public function test_links_api_v2_forced_bulk_update_returns_empty_audit_ids_when_disabled(): void
     {
@@ -508,8 +492,6 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Verify scoped, missing, and stale bulk targets never produce partial writes.
-     *
-     * @return void
      */
     public function test_links_api_v2_bulk_mutations_are_atomic(): void
     {
@@ -544,7 +526,7 @@ class LinkApiV2ControllerTest extends TestCase
         $staleSecond = $this->websiteLink($website);
         $eventCount = 0;
         $phase = 'stale';
-        Event::listen('eloquent.retrieved: ' . Link::class, function () use (&$eventCount, &$phase, $staleSecond): void {
+        Event::listen('eloquent.retrieved: '.Link::class, function () use (&$eventCount, &$phase, $staleSecond): void {
             $eventCount++;
             if ($phase === 'stale' && $eventCount === 3) {
                 $staleSecond->syncTagsWithType(['Stale category'], 'link_category');
@@ -567,8 +549,6 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Verify bulk tag transport rejects malformed JSON shapes before any writes.
-     *
-     * @return void
      */
     public function test_links_api_v2_bulk_sync_tags_rejects_malformed_transport_shapes_without_writes(): void
     {
@@ -618,8 +598,6 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Verify bulk update transport rejects malformed JSON shapes without writes.
-     *
-     * @return void
      */
     public function test_links_api_v2_bulk_update_rejects_malformed_transport_shapes_without_writes(): void
     {
@@ -672,8 +650,6 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Verify the unguarded Links bulk-delete route is not registered.
-     *
-     * @return void
      */
     public function test_links_api_v2_bulk_delete_is_unavailable(): void
     {
@@ -690,8 +666,6 @@ class LinkApiV2ControllerTest extends TestCase
     /**
      * Create a token user with the selected permissions and website access.
      *
-     * @param  array  $permissions
-     * @param  \Wncms\Models\Website  $website
      * @return array{0: \Wncms\Models\User, 1: string}
      */
     protected function tokenUser(array $permissions, Website $website): array
@@ -702,8 +676,8 @@ class LinkApiV2ControllerTest extends TestCase
 
         $password = 'api-v2-password';
         $user = User::create([
-            'username' => 'api-v2-user-' . uniqid(),
-            'email' => 'api-v2-user-' . uniqid() . '@example.com',
+            'username' => 'api-v2-user-'.uniqid(),
+            'email' => 'api-v2-user-'.uniqid().'@example.com',
             'password' => Hash::make($password),
             'email_verified_at' => now(),
         ]);
@@ -730,24 +704,18 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Create or return a second website.
-     *
-     * @return \Wncms\Models\Website
      */
     protected function otherWebsite(): Website
     {
         return Website::query()->whereKeyNot(Website::firstOrFail()->id)->first()
             ?: Website::create([
-                'domain' => 'links-api-v2-' . uniqid() . '.test',
+                'domain' => 'links-api-v2-'.uniqid().'.test',
                 'site_name' => 'Links API v2 website',
             ]);
     }
 
     /**
      * Create one Link and bind it to the selected website.
-     *
-     * @param  \Wncms\Models\Website  $website
-     * @param  array  $overrides
-     * @return \Wncms\Models\Link
      */
     protected function websiteLink(Website $website, array $overrides = []): Link
     {
@@ -759,16 +727,13 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Build valid Link attributes with unique identifiers.
-     *
-     * @param  array  $overrides
-     * @return array
      */
     protected function linkData(array $overrides = []): array
     {
         return array_merge([
             'status' => 'active',
-            'tracking_code' => 'api-v2-code-' . uniqid(),
-            'slug' => 'api-v2-link-' . uniqid(),
+            'tracking_code' => 'api-v2-code-'.uniqid(),
+            'slug' => 'api-v2-link-'.uniqid(),
             'name' => 'API v2 Link',
             'url' => 'https://example.com/api-v2-link',
             'description' => 'API v2 description',
@@ -789,10 +754,6 @@ class LinkApiV2ControllerTest extends TestCase
 
     /**
      * Return sorted tag names for one Link tag type.
-     *
-     * @param  \Wncms\Models\Link  $link
-     * @param  string  $type
-     * @return array
      */
     protected function tagNames(Link $link, string $type): array
     {
@@ -807,7 +768,6 @@ class LinkApiV2ControllerTest extends TestCase
      * Assert the stable automation envelope keys in their canonical order.
      *
      * @param  \Illuminate\Testing\TestResponse  $response
-     * @return void
      */
     protected function assertAutomationEnvelope($response): void
     {
