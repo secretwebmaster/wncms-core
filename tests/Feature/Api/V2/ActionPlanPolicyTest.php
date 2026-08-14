@@ -20,6 +20,7 @@ use Wncms\Api\V2\Risk\ActionPlanException;
 use Wncms\Api\V2\Risk\ActionPlanService;
 use Wncms\Api\V2\Risk\OperationRiskContextResolver;
 use Wncms\Api\V2\Risk\RiskContext;
+use Wncms\Api\V2\Risk\RiskContextException;
 use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
 use Wncms\Events\ApiSecurityEventRecorded;
@@ -119,6 +120,61 @@ class ActionPlanPolicyTest extends TestCase
         $this->assertSame(0, $executed);
         $this->assertSame(0, DB::table('api_action_plans')->count());
         $this->assertSame(0, DB::table('api_security_events')->count());
+    }
+
+    /**
+     * Verify direct external effects recheck current permission inside the owned transaction.
+     */
+    public function test_direct_external_operation_rechecks_fresh_permission_before_side_effect(): void
+    {
+        [$initialContext] = $this->fixture();
+        $operation = app(ApiContractRegistry::class)->operation('backend.cache.flush');
+        $this->assertNotNull($operation);
+        $actor = $initialContext->actor();
+        $actor->givePermissionTo(Permission::findOrCreate('cache_flush', 'web'));
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $context = new AuthenticationContext(
+            $actor,
+            ApiCredential::TYPE_INTERACTIVE_ACCESS,
+            'external-access',
+            'external-session',
+            [$operation->ability ?? '*'],
+            [],
+        );
+        $this->assertTrue($actor->fresh()->hasPermissionTo('cache_flush'));
+        $actor->revokePermissionTo('cache_flush');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        DB::connection()->commit();
+        $executions = 0;
+
+        try {
+            app(ActionPlanService::class)->executeMiddlewareOperation(
+                $context,
+                $operation,
+                '',
+                '',
+                '',
+                $operation->domainModelKeys,
+                $operation->transactionalOutboxModelKeys,
+                false,
+                static fn (): RiskContext => new RiskContext([], [], [], []),
+                function () use (&$executions): null {
+                    $executions++;
+
+                    return null;
+                },
+            );
+            $this->fail('Expected fresh permission denial.');
+        } catch (RiskContextException $exception) {
+            $this->assertSame('authorization.permission_denied', $exception->errorCode);
+            $this->assertSame(403, $exception->httpStatus);
+        } finally {
+            DB::table('api_security_events')->where('actor_id', $actor->getKey())->delete();
+            User::query()->whereKey($actor->getKey())->delete();
+            DB::connection()->beginTransaction();
+        }
+
+        $this->assertSame(0, $executions);
     }
 
     /**
