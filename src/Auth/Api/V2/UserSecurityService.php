@@ -105,7 +105,7 @@ final class UserSecurityService
         }
 
         $this->events->withinTransaction(function () use ($user, $payload): void {
-            $user->forceFill(['email' => $payload['email'], 'email_verified_at' => CarbonImmutable::now('UTC')])->save();
+            $user->forceFill(['email' => $payload['email'], 'email_verified_at' => CarbonImmutable::now()])->save();
         }, $this->event('auth.email_change.confirmed', $user, null, 'email_change_confirmed'), null,
             $this->events->modelConnectionNames(['user']));
     }
@@ -130,7 +130,7 @@ final class UserSecurityService
         }
 
         $this->events->withinTransaction(function () use ($user): void {
-            $user->forceFill(['email_verified_at' => CarbonImmutable::now('UTC')])->save();
+            $user->forceFill(['email_verified_at' => CarbonImmutable::now()])->save();
         }, $this->event('auth.email_verified', $user, null, 'email_verified'), null,
             $this->events->modelConnectionNames(['user']));
     }
@@ -153,7 +153,7 @@ final class UserSecurityService
 
     private function revokeCredentialRows(User $user, string $reason): void
     {
-        $now = CarbonImmutable::now('UTC');
+        $now = CarbonImmutable::now();
         $sessionClass = wncms()->getModelClass('api_session');
         $sessionClass::query()->where('user_id', $user->getKey())->whereNull('revoked_at')->update([
             'revoked_at' => $now, 'revocation_reason' => $reason, 'updated_at' => $now,

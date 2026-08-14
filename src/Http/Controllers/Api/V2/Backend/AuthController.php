@@ -137,7 +137,7 @@ class AuthController extends ApiV2Controller
 
         $remembered = (bool) ($validated['remember_me'] ?? false)
             && $this->securityConfig()->permanentRememberEnabled();
-        $now = CarbonImmutable::now('UTC');
+        $now = CarbonImmutable::now();
         $expiresAt = $remembered
             ? null
             : $now->addDays((int) config('wncms.auth_security.refresh_token_lifetime_days', 30));
@@ -490,12 +490,24 @@ class AuthController extends ApiV2Controller
      */
     private function userResponse(User $user): array
     {
+        $websites = $user->websites()
+            ->orderBy('websites.id')
+            ->get(['websites.id', 'websites.domain', 'websites.site_name'])
+            ->map(static fn ($website): array => [
+                'id' => (int) $website->getKey(),
+                'key' => 'website:'.$website->getKey(),
+                'domain' => (string) $website->domain,
+                'site_name' => (string) ($website->site_name ?: $website->domain),
+            ])
+            ->all();
+
         return [
             'id' => $user->id,
             'name' => $user->name,
             'username' => $user->username,
             'email' => $user->email,
             'roles' => method_exists($user, 'roles') ? $user->roles()->pluck('name')->all() : [],
+            'websites' => $websites,
         ];
     }
 

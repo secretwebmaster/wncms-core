@@ -107,7 +107,7 @@ final class ServiceTokenService
                     'token_id' => $material['public_id'],
                     'token_hash' => $material['hash'],
                     'last_used_at' => null,
-                    'updated_at' => CarbonImmutable::now('UTC'),
+                    'updated_at' => CarbonImmutable::now(),
                 ]);
             if ($updated !== 1) {
                 throw ValidationException::withMessages(['token' => ['The service token changed before rotation completed.']]);
@@ -127,8 +127,8 @@ final class ServiceTokenService
         $this->events->withinTransaction(function () use ($token): void {
             $modelClass = wncms()->getModelClass('api_service_token');
             $modelClass::query()->whereKey($token->getKey())->whereNull('revoked_at')->update([
-                'revoked_at' => CarbonImmutable::now('UTC'),
-                'updated_at' => CarbonImmutable::now('UTC'),
+                'revoked_at' => CarbonImmutable::now(),
+                'updated_at' => CarbonImmutable::now(),
             ]);
         }, $this->event('auth.service_token.revoked', $context, (string) $token->token_id, (array) $token->website_ids), null, $this->mutationConnections());
     }
@@ -199,7 +199,7 @@ final class ServiceTokenService
             throw ValidationException::withMessages(['expires_in_days' => ['Expiry must be 30, 90, 365, or permanent.']]);
         }
 
-        return CarbonImmutable::now('UTC')->addDays($days);
+        return CarbonImmutable::now()->addDays($days);
     }
 
     private function assertOwned(User $actor, ApiServiceToken $token): void

@@ -34,7 +34,7 @@ final class StepUpService
         }
 
         $material = $this->hasher->issue('wncms_su');
-        $expiresAt = CarbonImmutable::now('UTC')->addSeconds(AuthSecurityConfig::fromRuntime()->stepUpLifetimeSeconds());
+        $expiresAt = CarbonImmutable::now()->addSeconds(AuthSecurityConfig::fromRuntime()->stepUpLifetimeSeconds());
         $proofModel = wncms()->getModelClass('api_step_up_proof');
 
         $this->events->withinTransaction(function () use ($proofModel, $session, $purposes, $material, $expiresAt): void {
@@ -100,8 +100,8 @@ final class StepUpService
                 }
 
                 $updated = $proofModel::query()->whereKey($row->getKey())->whereNull('consumed_at')->update([
-                    'consumed_at' => CarbonImmutable::now('UTC'),
-                    'updated_at' => CarbonImmutable::now('UTC'),
+                    'consumed_at' => CarbonImmutable::now(),
+                    'updated_at' => CarbonImmutable::now(),
                 ]);
                 if ($updated !== 1) {
                     throw new StepUpException('risk.step_up_invalid', 401);
@@ -143,7 +143,7 @@ final class StepUpService
             throw $exception;
         }
         $reservationId = (string) Str::uuid();
-        $now = CarbonImmutable::now('UTC');
+        $now = CarbonImmutable::now();
         $updated = $proofModel::query()
             ->whereKey($row->getKey())
             ->whereNull('consumed_at')
@@ -193,7 +193,7 @@ final class StepUpService
         $proofModel::query()->where('reservation_id', $reservationId)->whereNull('consumed_at')->update([
             'reservation_id' => null,
             'reserved_at' => null,
-            'updated_at' => CarbonImmutable::now('UTC'),
+            'updated_at' => CarbonImmutable::now(),
         ]);
     }
 
@@ -205,10 +205,10 @@ final class StepUpService
         $proofModel = wncms()->getModelClass('api_step_up_proof');
         $this->events->withinTransaction(function () use ($proofModel, $reservationId): void {
             $updated = $proofModel::query()->where('reservation_id', $reservationId)->whereNull('consumed_at')->update([
-                'consumed_at' => CarbonImmutable::now('UTC'),
+                'consumed_at' => CarbonImmutable::now(),
                 'reservation_id' => null,
                 'reserved_at' => null,
-                'updated_at' => CarbonImmutable::now('UTC'),
+                'updated_at' => CarbonImmutable::now(),
             ]);
             if ($updated !== 1) {
                 throw new StepUpException('risk.step_up_invalid', 401);

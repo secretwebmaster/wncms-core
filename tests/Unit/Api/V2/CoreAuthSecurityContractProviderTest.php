@@ -17,6 +17,17 @@ class CoreAuthSecurityContractProviderTest extends TestCase
         $this->assertSame([], $login->acceptedCredentialTypes);
         $this->assertSame(['json', 'cookie'], $login->refreshTransports);
         $this->assertTrue($login->request->toArray()['properties']['password']['writeOnly']);
+        $this->assertSame(
+            'integer',
+            $login->response->toArray()['properties']['user']['properties']['websites']['items']['properties']['id']['type']
+        );
+
+        $me = $registry->operation('backend.authentication.me');
+        $this->assertContains('websites', $me->response->toArray()['required']);
+        $this->assertSame(
+            ['id', 'key', 'domain', 'site_name'],
+            $me->response->toArray()['properties']['websites']['items']['required']
+        );
 
         $sessions = $registry->operation('backend.authentication.sessions.destroy');
         $this->assertSame(['interactive_access'], $sessions->acceptedCredentialTypes);

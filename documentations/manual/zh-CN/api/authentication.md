@@ -46,6 +46,24 @@ curl "https://your-domain.com/api/v2/backend/links?website_id=1" \
   -H "Accept: application/json"
 ```
 
+登入响应和 `GET /api/v2/backend/auth/me` 都会包含当前用户可安全公开的
+网站启动列表。请求网站范围集合前，请使用 `websites[].id`（或其规范化
+`website:{id}` key）选择 `X-Website-Id`/`website_id` 范围。这样客户端无需
+预先知道网站 ID，就能发现当前用户可访问的网站。
+
+```json
+{
+  "id": 29,
+  "name": "Admin",
+  "username": "admin",
+  "email": "admin@example.test",
+  "roles": ["superadmin"],
+  "websites": [
+    { "id": 1, "key": "website:1", "domain": "example.test", "site_name": "Example" }
+  ]
+}
+```
+
 ### Refresh 传输模式
 
 `api_refresh_transport` 选择一个互斥的 refresh 通道：

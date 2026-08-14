@@ -46,6 +46,25 @@ curl "https://your-domain.com/api/v2/backend/links?website_id=1" \
   -H "Accept: application/json"
 ```
 
+The login response and `GET /api/v2/backend/auth/me` include the actor's safe
+website bootstrap list. Use `websites[].id` (or its canonical `website:{id}`
+key) to select the `X-Website-Id`/`website_id` scope before requesting a
+website-scoped collection. This avoids requiring a website ID before the
+client can discover which websites the actor may access.
+
+```json
+{
+  "id": 29,
+  "name": "Admin",
+  "username": "admin",
+  "email": "admin@example.test",
+  "roles": ["superadmin"],
+  "websites": [
+    { "id": 1, "key": "website:1", "domain": "example.test", "site_name": "Example" }
+  ]
+}
+```
+
 ### Refresh Transport
 
 `api_refresh_transport` selects one mutually exclusive refresh channel:

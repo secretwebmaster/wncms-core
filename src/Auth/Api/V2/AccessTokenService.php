@@ -46,7 +46,7 @@ final class AccessTokenService
         }
 
         $material = $this->hasher->issue('wncms_at');
-        $expiresAt = CarbonImmutable::now('UTC')->addMinutes(
+        $expiresAt = CarbonImmutable::now()->addMinutes(
             (int) config('wncms.auth_security.access_token_lifetime_minutes', 15)
         );
         $modelClass = wncms()->getModelClass('api_access_token');
@@ -144,7 +144,7 @@ final class AccessTokenService
     private function touchActivity(ApiAccessToken $token, ApiSession $session): void
     {
         try {
-            $now = CarbonImmutable::now('UTC');
+            $now = CarbonImmutable::now();
             $cutoff = $now->subMinutes(5);
             $accessModel = wncms()->getModelClass('api_access_token');
             $sessionModel = wncms()->getModelClass('api_session');

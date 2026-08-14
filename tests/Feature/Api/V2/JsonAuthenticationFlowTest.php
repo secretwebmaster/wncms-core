@@ -127,6 +127,33 @@ class JsonAuthenticationFlowTest extends TestCase
     }
 
     /**
+     * Verify a freshly issued credential remains valid when the host timezone is not UTC.
+     */
+    public function test_fresh_access_token_is_valid_in_a_non_utc_host_timezone(): void
+    {
+        $originalTimezone = date_default_timezone_get();
+        date_default_timezone_set('Asia/Taipei');
+        config(['app.timezone' => 'Asia/Taipei']);
+        CarbonImmutable::setTestNow('2026-08-13 10:00:00 UTC');
+
+        try {
+            $login = $this->loginJson()->assertOk();
+            $access = (string) $login->json('data.access_token');
+            $login->assertJsonPath('data.user.websites.0.id', Website::firstOrFail()->id);
+
+            $this->withToken($access)
+                ->getJson('/api/v2/backend/auth/me')
+                ->assertOk()
+                ->assertJsonPath('data.id', $this->user->id)
+                ->assertJsonPath('data.websites.0.id', Website::firstOrFail()->id);
+        } finally {
+            CarbonImmutable::setTestNow();
+            date_default_timezone_set($originalTimezone);
+            config(['app.timezone' => $originalTimezone]);
+        }
+    }
+
+    /**
      * Verify permanent remember policy affects refresh/session expiry but never access expiry.
      *
      * @return void
@@ -183,7 +210,7 @@ class JsonAuthenticationFlowTest extends TestCase
      */
     public function test_two_racing_rotations_have_exactly_one_atomic_consume_winner(): void
     {
-        if (!class_exists(Process::class) || !function_exists('proc_open')) {
+        if (! class_exists(Process::class) || ! function_exists('proc_open')) {
             $this->markTestSkipped('Independent process execution is unavailable.');
         }
 

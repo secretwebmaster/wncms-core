@@ -131,7 +131,7 @@ final class SessionService
      */
     private function revokeRows(ApiSession $session, string $reason): void
     {
-        $now = CarbonImmutable::now('UTC');
+        $now = CarbonImmutable::now();
         $sessionModel = wncms()->getModelClass('api_session');
         $sessionModel::query()->whereKey($session->getKey())->whereNull('revoked_at')->update([
             'revoked_at' => $now,

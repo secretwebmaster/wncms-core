@@ -307,10 +307,12 @@ final class ApiAuthSchema
         }
 
         $foreignKeys = Schema::getForeignKeys($table);
+        $tablePrefix = Schema::getConnection()->getTablePrefix();
         foreach ($definition['foreign_keys'] as $expected) {
-            $found = collect($foreignKeys)->contains(function (array $foreignKey) use ($expected): bool {
+            $foreignTable = $tablePrefix.$expected['table'];
+            $found = collect($foreignKeys)->contains(function (array $foreignKey) use ($expected, $foreignTable): bool {
                 return $foreignKey['columns'] === [$expected['column']]
-                    && $foreignKey['foreign_table'] === $expected['table']
+                    && $foreignKey['foreign_table'] === $foreignTable
                     && $foreignKey['foreign_columns'] === ['id']
                     && strtolower((string) $foreignKey['on_delete']) === 'cascade';
             });
@@ -329,6 +331,7 @@ final class ApiAuthSchema
     private static function tableDefinitions(): array
     {
         $integer = ['integer', 'bigint', 'int8'];
+        $smallInteger = ['smallint', 'integer', 'int2'];
         $string = ['varchar', 'character varying', 'nvarchar'];
         $timestamp = ['datetime', 'timestamp', 'timestamp without time zone'];
         $boolean = ['tinyint', 'boolean', 'bool', 'bit'];
@@ -362,7 +365,7 @@ final class ApiAuthSchema
             ],
             'api_security_events' => [
                 'primary_key' => ['id'],
-                'columns' => ['id' => $column($integer, false), 'event_id' => $column($string, false), 'occurred_at' => $column($timestamp, false), 'event_type' => $column($string, false), 'severity' => $column($string, false), 'outcome' => $column($string, false), 'surface' => $column($string, false), 'request_id' => $column($string, true), 'run_id' => $column($string, true), 'actor_type' => $column($string, true), 'actor_id' => $column($integer, true), 'target_type' => $column($string, true), 'target_id' => $column($integer, true), 'credential_type' => $column($string, true), 'credential_id' => $column($string, true), 'session_id' => $column($string, true), 'website_ids' => $column($json, true), 'error_code' => $column($string, true), 'http_status' => $column($integer, true), 'ip_hash' => $column($string, true), 'login_identifier_hash' => $column($string, true), 'user_agent_hash' => $column($string, true), 'correlation_key_version' => $column($string, true), 'aggregate_key' => $column($string, true), 'mutation_audit_id' => $column($integer, true), 'context' => $column($json, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
+                'columns' => ['id' => $column($integer, false), 'event_id' => $column($string, false), 'occurred_at' => $column($timestamp, false), 'event_type' => $column($string, false), 'severity' => $column($string, false), 'outcome' => $column($string, false), 'surface' => $column($string, false), 'request_id' => $column($string, true), 'run_id' => $column($string, true), 'actor_type' => $column($string, true), 'actor_id' => $column($integer, true), 'target_type' => $column($string, true), 'target_id' => $column($integer, true), 'credential_type' => $column($string, true), 'credential_id' => $column($string, true), 'session_id' => $column($string, true), 'website_ids' => $column($json, true), 'error_code' => $column($string, true), 'http_status' => $column($smallInteger, true), 'ip_hash' => $column($string, true), 'login_identifier_hash' => $column($string, true), 'user_agent_hash' => $column($string, true), 'correlation_key_version' => $column($string, true), 'aggregate_key' => $column($string, true), 'mutation_audit_id' => $column($integer, true), 'context' => $column($json, true), 'created_at' => $column($timestamp, true), 'updated_at' => $column($timestamp, true)],
                 'indexes' => [['columns' => ['event_id'], 'unique' => true], ['columns' => ['occurred_at'], 'unique' => false], ['columns' => ['event_type'], 'unique' => false], ['columns' => ['severity'], 'unique' => false], ['columns' => ['outcome'], 'unique' => false], ['columns' => ['surface'], 'unique' => false], ['columns' => ['request_id'], 'unique' => false], ['columns' => ['run_id'], 'unique' => false], ['columns' => ['actor_type'], 'unique' => false], ['columns' => ['actor_id'], 'unique' => false], ['columns' => ['target_type'], 'unique' => false], ['columns' => ['target_id'], 'unique' => false], ['columns' => ['credential_type'], 'unique' => false], ['columns' => ['credential_id'], 'unique' => false], ['columns' => ['session_id'], 'unique' => false], ['columns' => ['error_code'], 'unique' => false], ['columns' => ['http_status'], 'unique' => false], ['columns' => ['ip_hash'], 'unique' => false], ['columns' => ['login_identifier_hash'], 'unique' => false], ['columns' => ['user_agent_hash'], 'unique' => false], ['columns' => ['aggregate_key'], 'unique' => true], ['columns' => ['mutation_audit_id'], 'unique' => false], ['columns' => ['event_type', 'occurred_at'], 'unique' => false], ['columns' => ['actor_type', 'actor_id'], 'unique' => false], ['columns' => ['target_type', 'target_id'], 'unique' => false]],
                 'foreign_keys' => [],
             ],

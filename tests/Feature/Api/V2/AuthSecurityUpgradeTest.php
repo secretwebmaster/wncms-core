@@ -33,7 +33,7 @@ class AuthSecurityUpgradeTest extends TestCase
             'database.connections.'.$this->upgradeConnection => [
                 'driver' => 'sqlite',
                 'database' => $this->databasePath,
-                'prefix' => '',
+                'prefix' => 'wn_',
                 'foreign_key_constraints' => true,
             ],
             'database.default' => $this->upgradeConnection,

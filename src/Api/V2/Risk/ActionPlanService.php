@@ -223,7 +223,7 @@ final class ActionPlanService
     {
 
         $material = $this->hasher->issue('wncms_cp');
-        $expiresAt = CarbonImmutable::now('UTC')->addSeconds(AuthSecurityConfig::fromRuntime()->actionPlanLifetimeSeconds());
+        $expiresAt = CarbonImmutable::now()->addSeconds(AuthSecurityConfig::fromRuntime()->actionPlanLifetimeSeconds());
         $risk = $this->policy->effective($operation, $riskContext->normalizedInput, $riskContext->environment);
         $bindings = $this->bindings($context, $operation, $riskContext, $risk);
         $planModel = wncms()->getModelClass('api_action_plan');
@@ -351,8 +351,8 @@ final class ActionPlanService
 
                 $this->events->withinTransaction(function () use ($planModel, $plan): void {
                     $updated = $planModel::query()->whereKey($plan->getKey())->whereNull('consumed_at')->update([
-                        'consumed_at' => CarbonImmutable::now('UTC'),
-                        'updated_at' => CarbonImmutable::now('UTC'),
+                        'consumed_at' => CarbonImmutable::now(),
+                        'updated_at' => CarbonImmutable::now(),
                     ]);
                     if ($updated !== 1) {
                         throw new ActionPlanException('risk.confirmation_reused', 409);
@@ -454,7 +454,7 @@ final class ActionPlanService
 
         $plan = $planModel::query()->where('plan_id', $publicId)->lockForUpdate()->first();
         $this->assertUsable($plan, $confirmation, $context, $operation, $riskContext);
-        $now = CarbonImmutable::now('UTC');
+        $now = CarbonImmutable::now();
         $updated = $planModel::query()
             ->whereKey($plan->getKey())
             ->whereNull('consumed_at')
@@ -485,7 +485,7 @@ final class ActionPlanService
         $planModel::query()->where('reservation_id', $reservationId)->whereNull('consumed_at')->update([
             'reservation_id' => null,
             'reserved_at' => null,
-            'updated_at' => CarbonImmutable::now('UTC'),
+            'updated_at' => CarbonImmutable::now(),
         ]);
     }
 
@@ -500,10 +500,10 @@ final class ActionPlanService
                 ->where('reservation_id', $reservationId)
                 ->whereNull('consumed_at')
                 ->update([
-                    'consumed_at' => CarbonImmutable::now('UTC'),
+                    'consumed_at' => CarbonImmutable::now(),
                     'reservation_id' => null,
                     'reserved_at' => null,
-                    'updated_at' => CarbonImmutable::now('UTC'),
+                    'updated_at' => CarbonImmutable::now(),
                 ]);
             if ($updated !== 1) {
                 throw new ActionPlanException('risk.confirmation_reused', 409);

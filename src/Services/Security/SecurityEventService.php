@@ -206,7 +206,7 @@ final class SecurityEventService
             );
             $connection->table($table)->where('aggregate_key', $attributes['aggregate_key'])->update([
                 'context' => json_encode($aggregateContext, JSON_THROW_ON_ERROR),
-                'updated_at' => CarbonImmutable::now('UTC'),
+                'updated_at' => CarbonImmutable::now(),
             ]);
             $updated = $model->newQuery()
                 ->where('aggregate_key', $attributes['aggregate_key'])
@@ -240,7 +240,7 @@ final class SecurityEventService
 
         return [
             'event_id' => (string) Str::uuid(),
-            'occurred_at' => CarbonImmutable::now('UTC'),
+            'occurred_at' => CarbonImmutable::now(),
             'event_type' => $type,
             'severity' => $severity,
             'outcome' => $outcome,
@@ -552,8 +552,8 @@ final class SecurityEventService
             }
         }
 
-        $attributes['created_at'] = CarbonImmutable::now('UTC');
-        $attributes['updated_at'] = CarbonImmutable::now('UTC');
+        $attributes['created_at'] = CarbonImmutable::now();
+        $attributes['updated_at'] = CarbonImmutable::now();
 
         return $attributes;
     }

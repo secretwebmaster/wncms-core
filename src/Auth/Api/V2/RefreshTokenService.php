@@ -65,7 +65,7 @@ final class RefreshTokenService
 
         try {
             return $this->events->withinTransaction(function () use ($token, $session, $beforeSuccess): RotatedCredentialPair {
-                $now = CarbonImmutable::now('UTC');
+                $now = CarbonImmutable::now();
                 $replacementMaterial = $this->hasher->issue('wncms_rt');
                 $refreshModel = wncms()->getModelClass('api_refresh_token');
                 $this->consumer->consume(
@@ -202,7 +202,7 @@ final class RefreshTokenService
     private function revokeForReuse(ApiRefreshToken $token, ApiSession $session): never
     {
         $this->events->withinTransaction(function () use ($session): void {
-            $now = CarbonImmutable::now('UTC');
+            $now = CarbonImmutable::now();
             $sessionModel = wncms()->getModelClass('api_session');
             $sessionModel::query()->whereKey($session->getKey())->whereNull('revoked_at')->update([
                 'revoked_at' => $now,
