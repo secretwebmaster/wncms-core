@@ -97,6 +97,9 @@ final class EnforceApiV2RiskPolicy
         $formalDescriptor = $operation->canonicalizer !== 'schema'
             || $operation->targetResolver !== 'none'
             || $this->riskContexts->hasResolver($operation->id);
+        if ($operation->sideEffectKind === 'read' && ! $operation->requiresStepUp && ! $requiresPlan) {
+            return $next($request);
+        }
         if (! $operation->requiresStepUp && ! $requiresPlan && ! $requiresScopedTransaction && ! $formalDescriptor) {
             return $next($request);
         }

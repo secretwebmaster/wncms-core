@@ -20,6 +20,11 @@ class LinkApiV2ControllerTest extends TestCase
 {
     use DatabaseTransactions;
 
+    /** @var array<string, array<int, array<string, mixed>>> */
+    private array $databaseSnapshot = [];
+
+    private bool $suspendedTestTransaction = false;
+
     /**
      * Prepare API access and website-scoped Links for each contract test.
      *
@@ -28,6 +33,10 @@ class LinkApiV2ControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        foreach (DB::getSchemaBuilder()->getTableListing() as $table) {
+            $this->databaseSnapshot[$table] = DB::table($table)->get()->map(static fn ($row): array => (array) $row)->all();
+        }
 
         auth()->forgetGuards();
         app(PermissionRegistrar::class)->registerPermissions(Gate::getFacadeRoot());
@@ -47,6 +56,33 @@ class LinkApiV2ControllerTest extends TestCase
         uss('api_access_whitelist', '');
         config(['wncms.models.link.website_mode' => 'multi']);
         config(['wncms.mutation_audit.enabled' => true]);
+
+        while (DB::transactionLevel() > 0) {
+            DB::commit();
+        }
+        $this->suspendedTestTransaction = true;
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->suspendedTestTransaction) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            DB::statement('PRAGMA foreign_keys = OFF');
+            foreach (array_reverse(array_keys($this->databaseSnapshot)) as $table) {
+                DB::table($table)->delete();
+            }
+            foreach ($this->databaseSnapshot as $table => $rows) {
+                if ($rows !== []) {
+                    DB::table($table)->insert($rows);
+                }
+            }
+            DB::statement('PRAGMA foreign_keys = ON');
+            DB::beginTransaction();
+        }
+
+        parent::tearDown();
     }
 
     /**
@@ -521,7 +557,7 @@ class LinkApiV2ControllerTest extends TestCase
             'link_categories' => ['Partners'],
             'website_id' => $website->id,
             'force' => true,
-        ])->assertStatus(409)->assertJsonPath('errors.items.0', 'stale');
+        ])->assertStatus(409)->assertJsonPath('data.legacy.errors.items.0', 'stale');
         $phase = 'done';
 
         $this->assertSame([], $this->tagNames($staleFirst->fresh(), 'link_category'));
