@@ -60,6 +60,24 @@ class CoreBackendContractProvider implements ApiContractProvider
         $this->registerServiceTokenOperations($registry);
         $this->registerUserSecurityOperations($registry);
         $this->registerBladeSecurityOperations($registry);
+        $this->registerSecurityEventOperations($registry);
+    }
+
+    private function registerSecurityEventOperations(ApiContractRegistry $registry): void
+    {
+        foreach ([
+            ['index', '/api/v2/backend/security/events', 'security_event_index'],
+            ['show', '/api/v2/backend/security/events/{event_id}', 'security_event_show'],
+        ] as [$action, $path, $permission]) {
+            $registry->registerOperation(new ApiOperationContract(
+                id: "backend.security.events.{$action}", domain: 'security', surface: 'backend', method: 'GET',
+                path: $path, routeName: "api.v2.backend.security.events.{$action}", permission: $permission,
+                ability: 'security.events', websiteScoped: false, risk: 'read', implementation: 'domain',
+                request: ApiSchema::object(), response: ApiSchema::object(),
+                filters: $action === 'index' ? ['type', 'severity', 'outcome', 'surface', 'actor_type', 'actor_id', 'target_type', 'target_id', 'credential_type', 'credential_id', 'website_id', 'request_id', 'run_id', 'from', 'to'] : [],
+                acceptedCredentialTypes: [ApiCredential::TYPE_INTERACTIVE_ACCESS], sideEffectKind: 'read',
+            ));
+        }
     }
 
     private function registerBladeSecurityOperations(ApiContractRegistry $registry): void

@@ -859,3 +859,9 @@ DELETE /api/v2/backend/auth/service-tokens/{token_id}
 WNCMS 可停用自身的 Blade Web 界面，同时保留 API v2 与宿主应用路由。使用 `GET /api/v2/backend/security/blade` 读取状态；以 `PATCH /api/v2/backend/security/blade` 及 `{ "enabled": false }` 更新状态。两者都需要 interactive access token、`security.blade` ability 与 `blade_mode_manage`；更新另需 idempotency 与 `blade.mode` step-up proof。
 
 CLI 恢复入口为 `wncms:blade:status`、`wncms:blade:disable --force` 及 `wncms:blade:enable`。设置缺少时视为启用；已安装系统若设置无效或无法读取，WNCMS UI 路由会 fail closed 并返回纯文本 `404`。API、callback 与宿主路由不受 gate 影响。
+
+## 安全事件查询与保留期
+
+交互式管理员可使用 `security.events` ability，以及对应的 `security_event_index` 或 `security_event_show` 权限，查询只读且受网站范围限制的 `GET /api/v2/backend/security/events` 与 `GET /api/v2/backend/security/events/{event_id}`。超出凭证网站范围的事件与不存在事件一样返回 `404`；响应不含 event context 与任何 correlation hash。
+
+`wncms:auth:prune-security-events` 依 `api_security_event_retention_days`（30–365 天）以每批最多 500 条删除到期事件，并记录完成事件。WNCMS 每日调度执行且禁止重叠。

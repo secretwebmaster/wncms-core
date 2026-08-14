@@ -48,6 +48,8 @@ final class SecurityEventService
         'operation' => true,
         'policy_state' => true,
         'reason' => true,
+        'retention_days' => true,
+        'deleted_count' => true,
     ];
 
     /**

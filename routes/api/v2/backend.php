@@ -12,6 +12,7 @@ use Wncms\Http\Controllers\Api\V2\Backend\ProfileSecurityController;
 use Wncms\Http\Controllers\Api\V2\Backend\ResourceController;
 use Wncms\Http\Controllers\Api\V2\Backend\SessionController;
 use Wncms\Http\Controllers\Api\V2\Backend\ServiceTokenController;
+use Wncms\Http\Controllers\Api\V2\Backend\SecurityEventController;
 
 Route::prefix('v2/backend')
     ->name('api.v2.backend.')
@@ -57,6 +58,14 @@ Route::prefix('v2/backend')
                 ->defaults('api_sensitive_idempotency', true)
                 ->middleware(['api_v2_ability:security.blade', 'api_v2_permission:blade_mode_manage', 'api_v2_risk_context', 'api_v2_idempotency', 'api_v2_risk'])
                 ->name('security.blade.update');
+            Route::get('/security/events', [SecurityEventController::class, 'index'])
+                ->defaults('api_operation_id', 'backend.security.events.index')
+                ->middleware(['api_v2_ability:security.events', 'api_v2_permission:security_event_index'])
+                ->name('security.events.index');
+            Route::get('/security/events/{event_id}', [SecurityEventController::class, 'show'])
+                ->defaults('api_operation_id', 'backend.security.events.show')
+                ->middleware(['api_v2_ability:security.events', 'api_v2_permission:security_event_show'])
+                ->name('security.events.show');
             Route::patch('/auth/profile', [ProfileSecurityController::class, 'updateProfile'])
                 ->defaults('api_operation_id', 'backend.auth.profile.update')
                 ->middleware('api_v2_ability:account.profile')

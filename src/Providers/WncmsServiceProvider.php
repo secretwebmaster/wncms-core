@@ -10,6 +10,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
@@ -168,6 +169,12 @@ class WncmsServiceProvider extends ServiceProvider
         // Console-only command registration.
         if ($this->app->runningInConsole()) {
             $this->loadCommands();
+            $this->app->booted(function (): void {
+                $this->app->make(Schedule::class)
+                    ->command('wncms:auth:prune-security-events')
+                    ->daily()
+                    ->withoutOverlapping();
+            });
         } else {
             $this->loadHttpCallableCommands();
         }
