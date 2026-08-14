@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Wncms\Api\V2\ApiResponseFactory;
+use Wncms\Api\V2\ApiContractRegistry;
 use Wncms\Auth\Api\V2\AccessTokenService;
 use Wncms\Auth\Api\V2\ApiCredential;
 use Wncms\Auth\Api\V2\AuthenticationContext;
@@ -35,6 +36,8 @@ class ApiV2TokenAuth
         private CredentialParser $parser,
         private AccessTokenService $accessTokens,
         private TokenHasher $hasher,
+        private ApiContractRegistry $contracts,
+        private \Wncms\Auth\Api\V2\LegacyPersonalTokenAuthenticator $legacyTokens,
     ) {
     }
 
@@ -60,7 +63,7 @@ class ApiV2TokenAuth
             $context = match ($credential->type()) {
                 ApiCredential::TYPE_INTERACTIVE_ACCESS => $this->accessTokens->authenticate($credential),
                 ApiCredential::TYPE_SERVICE_TOKEN => $this->authenticateServiceToken($credential),
-                ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN => $this->authenticateLegacyToken($credential),
+                ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN => $this->legacyTokens->authenticate($credential, $this->operation($request)),
                 default => throw new AuthenticationException('authentication.invalid_token'),
             };
         } catch (AuthenticationException $exception) {
@@ -141,51 +144,15 @@ class ApiV2TokenAuth
         }
     }
 
-    /**
-     * Authenticate an explicitly eligible legacy PAT within the configured compatibility window.
-     *
-     * @param  \Wncms\Auth\Api\V2\ApiCredential  $credential
-     * @return \Wncms\Auth\Api\V2\AuthenticationContext
-     *
-     * @throws \Illuminate\Auth\AuthenticationException
-     */
-    private function authenticateLegacyToken(ApiCredential $credential): AuthenticationContext
+    /** Resolve the exact formal operation before a legacy credential is considered. */
+    private function operation(Request $request): \Wncms\Api\V2\Data\ApiOperationContract
     {
-        if (! $credential->isLegacyCandidate() || ! $this->legacyWindowIsActive()) {
-            throw new AuthenticationException('authentication.invalid_token');
-        }
+        $route = $request->route();
+        $id = $route instanceof \Illuminate\Routing\Route ? (string) ($route->defaults['api_operation_id'] ?? '') : '';
+        $operation = $this->contracts->operation($id);
+        if ($operation === null) throw new AuthenticationException('authentication.invalid_token');
 
-        [$tokenId, $hashInput] = $this->legacyHashInput($credential);
-        $query = DB::table('personal_access_tokens')->where('token', hash('sha256', $hashInput));
-        if ($tokenId !== null) {
-            $query->where('id', $tokenId);
-        }
-
-        $token = $query->first();
-        if ($token === null || ! isset($token->id, $token->tokenable_id, $token->tokenable_type)) {
-            throw new AuthenticationException('authentication.invalid_token');
-        }
-
-        if (isset($token->expires_at) && $token->expires_at !== null && now()->greaterThanOrEqualTo($token->expires_at)) {
-            throw new AuthenticationException('authentication.access_token_expired');
-        }
-
-        $userModel = wncms()->getModelClass('user');
-        if (! is_a((string) $token->tokenable_type, $userModel, true)) {
-            throw new AuthenticationException('authentication.invalid_token');
-        }
-
-        $user = $this->activeUser($token->tokenable_id);
-        $abilities = isset($token->abilities) ? json_decode((string) $token->abilities, true) : ['*'];
-
-        return new AuthenticationContext(
-            $user,
-            ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN,
-            (string) $token->id,
-            null,
-            is_array($abilities) ? $abilities : ['*'],
-            array_map('intval', $user->websites()->pluck('websites.id')->all()),
-        );
+        return $operation;
     }
 
     /**
@@ -205,39 +172,6 @@ class ApiV2TokenAuth
         }
 
         return $user;
-    }
-
-    /**
-     * Determine whether legacy acceptance is enabled and before its UTC cutoff.
-     *
-     * @return bool
-     */
-    private function legacyWindowIsActive(): bool
-    {
-        if (! (bool) config('wncms.auth_security.legacy_personal_tokens_enabled', false)) {
-            return false;
-        }
-
-        $cutoff = config('wncms.auth_security.legacy_personal_tokens_cutoff_at');
-
-        return is_string($cutoff) && trim($cutoff) !== '' && now()->isBefore($cutoff);
-    }
-
-    /**
-     * Return the optional PAT row ID and legacy hash input.
-     *
-     * @param  \Wncms\Auth\Api\V2\ApiCredential  $credential
-     * @return array{0: int|null, 1: string}
-     */
-    private function legacyHashInput(ApiCredential $credential): array
-    {
-        if ($credential->publicId() !== null && str_contains($credential->plainText(), '|')) {
-            [, $secret] = explode('|', $credential->plainText(), 2);
-
-            return [(int) $credential->publicId(), $secret];
-        }
-
-        return [null, $credential->plainText()];
     }
 
     /**

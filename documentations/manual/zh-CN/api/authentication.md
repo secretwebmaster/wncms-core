@@ -769,6 +769,18 @@ POST  /api/v2/backend/auth/email-verification/verify
 
 密码与 Email 变更需要 interactive access token 及用途限定的 step-up proof。密码变更或重设会原子撤销所有 interactive sessions、access/refresh tokens、service tokens、v1 `users.api_token`，并且只删除 morph type 与使用者 ID 完全相符的 legacy PAT；其他使用者及 morph type 会保留。成功的密码回应返回 `reauthentication_required: true`。
 
+## Legacy Personal Token 迁移
+
+Legacy PAT 接受机制是临时且只读的 adapter。它要求启用 `api_legacy_personal_tokens_enabled`、设有未来 UTC `api_legacy_personal_tokens_cutoff_at`、正式 operation 明确允许、contract 非 critical／credential、目前 WNCMS 权限有效，而且使用者只有一个可存取网站。Legacy `*` ability 不会绕过权限或网站范围。成功回应包含 `Deprecation`、`Sunset`、`Link` 与 `X-WNCMS-Credential-Type` headers。
+
+```text
+php artisan wncms:auth:legacy-status --json
+php artisan wncms:auth:legacy-cutoff "2026-12-01T00:00:00Z" --json
+php artisan wncms:auth:legacy-revoke-all --force --json
+```
+
+Adapter 只检查 host schema 的必要与选用栏位，不会修改 schema。`legacy-revoke-all` 只变更 WNCMS 接受设定，不会删除 host token rows。超过 365 天的 cutoff 同时需要 `--override-max` 与 `--force`。
+
 ## 限定范围的 Service Token
 
 Service token 管理仅允许 interactive session 使用。API 提供以下路由：

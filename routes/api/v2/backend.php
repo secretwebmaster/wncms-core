@@ -34,7 +34,7 @@ Route::prefix('v2/backend')
         Route::post('/auth/email/change/confirm', [ProfileSecurityController::class, 'confirmEmailChange'])
             ->name('auth.email.change.confirm');
 
-        Route::middleware(['api_v2_token_auth'])->group(function () {
+        Route::middleware(['api_v2_token_auth', 'api_v2_legacy_headers'])->group(function () {
             Route::post('/auth/reauthenticate', [AuthController::class, 'reauthenticate'])
                 ->middleware('throttle:api-v2-reauthenticate')
                 ->name('auth.reauthenticate');
@@ -110,7 +110,7 @@ Route::prefix('v2/backend')
                 ->name('operations.cancel');
         });
 
-        Route::middleware(['api_v2_token_auth'])->group(function () {
+        Route::middleware(['api_v2_token_auth', 'api_v2_legacy_headers'])->group(function () {
             foreach (config('wncms-backend-api-v2.resources', []) as $resource => $resourceConfig) {
                 $enabledActions = $resourceConfig['enabled_actions'] ?? ['index', 'show', 'store', 'update', 'destroy', 'bulk_delete'];
                 $controller = $resourceConfig['controller'] ?? ResourceController::class;

@@ -202,7 +202,7 @@ final readonly class ApiCredential
 }
 ```
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `vendor/bin/phpunit tests/Unit/Api/V2/CredentialParserTest.php tests/Unit/Api/V2/TokenHasherTest.php`
 
@@ -289,7 +289,7 @@ Run: `composer run test:prepare-db && vendor/bin/phpunit tests/Feature/Api/V2/Au
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add database/migrations/0001_01_01_00004*_create_api_* src/Database/Schema/ApiAuthSchema.php src/Models/Api*.php src/Models/User.php tests/Feature/Api/V2/AuthSecuritySchemaTest.php tests/Feature/PersonalAccessTokensMigrationTest.php database/testing.sqlite database/testing.schema.sql
@@ -772,7 +772,7 @@ git commit -m "feat(auth): add user security lifecycle"
 - Produces `LegacyTokenPolicy::allows(ApiOperationContract $operation, CarbonImmutable $now): bool`.
 - Produces adapter schema introspection with required/optional columns and read-only authentication.
 
-- [ ] **Step 1: Write failing host-schema fixture and cutoff tests**
+- [x] **Step 1: Write failing host-schema fixture and cutoff tests**
 
 ```php
 public function test_legacy_star_never_bypasses_permission_or_website_scope(): void
@@ -785,13 +785,13 @@ public function test_legacy_star_never_bypasses_permission_or_website_scope(): v
 
 Run against complete, missing-optional, missing-required, extra-column, absent-table fixtures. Test explicit operation opt-in, no critical/credential operations, one website, cutoff/default/max override, Deprecation/Sunset/Link headers, v1 token rejection by v2, no host schema mutation, and CLI JSON/idempotency.
 
-- [ ] **Step 2: Run and confirm failures**
+- [x] **Step 2: Run and confirm failures**
 
 Run: `vendor/bin/phpunit tests/Feature/Api/V2/LegacyPersonalTokenCompatibilityTest.php tests/Feature/Api/V2/LegacyAuthCommandsTest.php`
 
 Expected: FAIL.
 
-- [ ] **Step 3: Implement conservative adapter and commands**
+- [x] **Step 3: Implement conservative adapter and commands**
 
 Never write `last_used_at` unless the column exists. Never infer age without `created_at`. `legacy-revoke-all --force` changes only WNCMS acceptance settings. `legacy-cutoff` requires timezone-aware input; over 365 days requires `--override-max --force` and a security event.
 

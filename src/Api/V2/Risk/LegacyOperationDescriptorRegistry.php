@@ -221,7 +221,7 @@ final class LegacyOperationDescriptorRegistry
             $risk,
             $credential || ! $serviceAllowed
                 ? [ApiCredential::TYPE_INTERACTIVE_ACCESS]
-                : [ApiCredential::TYPE_INTERACTIVE_ACCESS, ApiCredential::TYPE_SERVICE_TOKEN],
+                : [ApiCredential::TYPE_INTERACTIVE_ACCESS, ApiCredential::TYPE_SERVICE_TOKEN, ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN],
             $credential,
             $credential ? [$name] : [],
             $plan,
@@ -242,7 +242,7 @@ final class LegacyOperationDescriptorRegistry
     private function resourceCredentials(string $resource): array
     {
         return in_array($resource, self::SERVICE_RESOURCE_ALLOWLIST, true)
-            ? [ApiCredential::TYPE_INTERACTIVE_ACCESS, ApiCredential::TYPE_SERVICE_TOKEN]
+            ? [ApiCredential::TYPE_INTERACTIVE_ACCESS, ApiCredential::TYPE_SERVICE_TOKEN, ApiCredential::TYPE_LEGACY_PERSONAL_ACCESS_TOKEN]
             : [ApiCredential::TYPE_INTERACTIVE_ACCESS];
     }
 

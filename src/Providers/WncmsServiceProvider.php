@@ -113,6 +113,7 @@ class WncmsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('api_v2_whitelist', \Wncms\Http\Middleware\ApiV2Whitelist::class);
         $router->aliasMiddleware('api_v2_has_website', \Wncms\Http\Middleware\ApiV2HasWebsite::class);
         $router->aliasMiddleware('api_v2_token_auth', ApiV2TokenAuth::class);
+        $router->aliasMiddleware('api_v2_legacy_headers', \Wncms\Http\Middleware\AttachApiV2LegacyDeprecationHeaders::class);
         $router->aliasMiddleware('api_v2_ability', RequireApiV2Ability::class);
         $router->aliasMiddleware('api_v2_permission', RequireApiV2Permission::class);
         $router->aliasMiddleware('api_v2_model_permission', RequireApiV2ModelPermission::class);

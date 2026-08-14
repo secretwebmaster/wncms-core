@@ -820,6 +820,18 @@ Forgot-password always returns the same accepted envelope. Reset and email-verif
 
 Password and email changes require an interactive access token and purpose-bound step-up proof. Password change or reset atomically revokes all interactive sessions, access/refresh tokens, service tokens, the v1 `users.api_token`, and only legacy PAT rows whose exact morph type and user ID match. Other users and morph types are preserved. Successful password responses return `reauthentication_required: true`.
 
+## Legacy Personal-Token Migration
+
+Legacy PAT acceptance is a temporary, read-only adapter. It requires `api_legacy_personal_tokens_enabled`, a future UTC `api_legacy_personal_tokens_cutoff_at`, an explicitly eligible formal operation, a non-critical/non-credential contract, current WNCMS permission, and exactly one accessible website. A legacy `*` ability never bypasses permission or website scope. Successful responses include `Deprecation`, `Sunset`, `Link`, and `X-WNCMS-Credential-Type` headers.
+
+```text
+php artisan wncms:auth:legacy-status --json
+php artisan wncms:auth:legacy-cutoff "2026-12-01T00:00:00Z" --json
+php artisan wncms:auth:legacy-revoke-all --force --json
+```
+
+The adapter introspects required and optional host columns without changing the host schema. `legacy-revoke-all` changes only WNCMS acceptance settings and never deletes host token rows. A cutoff beyond 365 days requires both `--override-max` and `--force`.
+
 ## Scoped Service Tokens
 
 Service-token management is interactive-session only. The API publishes these routes:
