@@ -18,6 +18,7 @@ class InstallerManager
      */
     public function runInstallation(array $input): array
     {
+        $administrator = InstallationAdmin::fromInput($input);
         if (!$this->checkDatabaseConnection($input)) {
             return [
                 'passed' => false,
@@ -25,9 +26,11 @@ class InstallerManager
             ];
         }
 
-        $this->writeEnvFile($input);
+        if (!$this->writeEnvFile($input)) {
+            throw new \RuntimeException('Could not write the installation environment.');
+        }
         $this->generateAppKey();
-        $this->runDatabaseSetup();
+        $administrator->seed(fn () => $this->runDatabaseSetup());
         $this->publishAssets();
         $this->installCustomLangFiles($input['app_locale'] ?? null);
         $this->installCustomRouteFiles();
@@ -49,6 +52,10 @@ class InstallerManager
     public function normalizeInput(array $input): array
     {
         return [
+
+            'admin_email' => $input['admin_email'] ?? null,
+            'admin_password' => $input['admin_password'] ?? null,
+            'admin_password_confirmation' => $input['admin_password_confirmation'] ?? null,
 
             'database_connection' => $input['database_connection'] ?? 'mysql',
             'database_hostname' => $input['database_hostname'] ?? '127.0.0.1',
@@ -171,8 +178,25 @@ class InstallerManager
      */
     public function writeEnvFile(array $input): bool
     {
+        // Installer values must never introduce additional environment entries.
+        foreach ($input as $key => $value) {
+            if (str_starts_with((string) $key, 'admin_')) {
+                continue; // Administrator credentials are not written to .env.
+            }
+            if ((!is_scalar($value) && $value !== null)
+                || (is_string($value) && preg_match('/[\r\n\x00]/', $value))) {
+                throw new \InvalidArgumentException('Installation environment values must be scalar single-line values.');
+            }
+        }
+        // Quote each supplied value and prevent dotenv variable interpolation.
+        $input = array_map(static fn ($value) => '"' . str_replace(
+            ['\\', '"', '$'],
+            ['\\\\', '\\"', '\\$'],
+            (string) $value
+        ) . '"', array_filter($input, static fn ($key) => !str_starts_with((string) $key, 'admin_'), ARRAY_FILTER_USE_KEY));
+
         $envFileData =
-            'APP_NAME=\'' . ($input['app_name'] ?? '') . "'\n" .
+            'APP_NAME=' . ($input['app_name'] ?? '""') . "\n" .
             'APP_ENV=' . ($input['app_env'] ?? '') . "\n" .
             'APP_KEY=' . 'base64:' . base64_encode(Str::random(32)) . "\n" .
             'APP_DEBUG=' . ($input['app_debug'] ?? '') . "\n" .
@@ -220,8 +244,7 @@ class InstallerManager
             'PUSHER_APP_SECRET=' . ($input['pusher_app_secret'] ?? '');
 
         try {
-            file_put_contents(base_path('.env'), $envFileData);
-            return true;
+            return file_put_contents(base_path('.env'), $envFileData) !== false;
         } catch (Exception $e) {
             return false;
         }
@@ -232,7 +255,9 @@ class InstallerManager
      */
     public function generateAppKey(): void
     {
-        Artisan::call('key:generate', ['--force' => true]);
+        if (Artisan::call('key:generate', ['--force' => true]) !== 0) {
+            throw new \RuntimeException('Application key generation failed.');
+        }
         info('generated key');
     }
 
@@ -249,10 +274,13 @@ class InstallerManager
                 DB::unprepared(file_get_contents($sqlPath));
                 info('Imported SQL dump instead of running migrations.');
 
-                Artisan::call('db:seed', [
+                $status = Artisan::call('db:seed', [
                     '--force' => true,
                     '--class' => \Wncms\Database\Seeders\DatabaseSeeder::class,
                 ]);
+                if ($status !== 0) {
+                    throw new \RuntimeException('Installation seeding failed.');
+                }
                 info('Seeded database after schema import.');
                 return;
             } catch (\Throwable $e) {
@@ -264,12 +292,15 @@ class InstallerManager
         }
 
         // fallback
-        Artisan::call('migrate:fresh', [
+        $status = Artisan::call('migrate:fresh', [
             '--seed' => true,
             '--force' => true,
             '--seeder' => \Wncms\Database\Seeders\DatabaseSeeder::class,
         ]);
 
+        if ($status !== 0) {
+            throw new \RuntimeException('Installation migrations or seeding failed.');
+        }
         info('Completed fallback migrations + seeders.');
     }
 
@@ -278,9 +309,12 @@ class InstallerManager
      */
     public function publishAssets(): void
     {
-        Artisan::call('vendor:publish', ['--tag' => 'wncms-core-assets']);
-        $this->publishStubs();
-        $this->installDefaultThemeAssets();
+        if (Artisan::call('vendor:publish', ['--tag' => 'wncms-core-assets']) !== 0) {
+            throw new \RuntimeException('Core asset publication failed.');
+        }
+        if (!$this->publishStubs()['passed'] || !$this->installDefaultThemeAssets()['passed']) {
+            throw new \RuntimeException('Installation asset publication failed.');
+        }
 
         info('assets published');
     }
@@ -470,10 +504,14 @@ class InstallerManager
 
         if (!file_exists($installedLogFile)) {
             $message = __('wncms::installer.installed.success_log_message') . $dateStamp . "\n";
-            file_put_contents($installedLogFile, $message);
+            if (file_put_contents($installedLogFile, $message) === false) {
+                throw new \RuntimeException('Could not record installation completion.');
+            }
         } else {
             $message = __('wncms::installer.updater.log.success_message') . $dateStamp;
-            file_put_contents($installedLogFile, $message . PHP_EOL, FILE_APPEND | LOCK_EX);
+            if (file_put_contents($installedLogFile, $message . PHP_EOL, FILE_APPEND | LOCK_EX) === false) {
+                throw new \RuntimeException('Could not record installation completion.');
+            }
         }
 
         info('created installed file');

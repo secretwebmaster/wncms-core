@@ -1,68 +1,21 @@
 # Installation Guide
 
-This guide explains how to install **WNCMS** on any server, including aaPanel, CyberPanel, VPS, or local development.
-
-## Create a New Folder
-
-You may install WNCMS into an empty folder:
+PHP 8.4 / Laravel 13. New installations only. Use an empty project directory and a dedicated empty database.
 
 ```bash
-mkdir my-project
+composer create-project laravel/laravel my-project "^13.0" --no-install --no-scripts --no-plugins
 cd my-project
+composer config allow-plugins false
+composer require secretwebmaster/wncms-core:^6.7.0 --no-scripts --no-plugins
+php artisan package:discover
+php artisan vendor:publish --tag=wncms-core-assets
 ```
-
-## Download WNCMS
-
-```bash
-composer create-project secretwebmaster/wncms .temp --no-interaction
-```
-
-This places the full Laravel + WNCMS structure inside `.temp/`.
-
-## Copy Files
-
-Some panels (aaPanel, shared hosting) already create a default `public/` folder.
-We must **merge** WNCMS into it safely without deleting uploads or server files.
-
-```bash
-# Copy all root files
-cp -r .temp/* .
-cp -r .temp/.* . 2>/dev/null
-
-# Merge public assets safely
-mkdir -p public
-cp -rf .temp/public/* public/ 2>/dev/null
-
-# Delete temp folder
-rm -rf .temp
-```
-
-This method does not require rsync and works on all systems. If your server already have rysnc, you can use rsync. The principle is to move all files one level upper.
-
-## Install Dependencies
-
-```bash
-composer self-update
-composer install --no-interaction --prefer-dist
-composer update secretwebmaster/wncms-core -W
-
-# OR
-# if you are running as root user and want to install programmatically without interaction. You can run this
-
-# COMPOSER_ALLOW_SUPERUSER=1 composer self-update
-# COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist
-# COMPOSER_ALLOW_SUPERUSER=1 composer update secretwebmaster/wncms-core -W
-```
-
-> [!NOTE]
-> Theme assets are no longer synced on every Composer update.
-> If you need to reinstall core theme assets manually, run:
->
-> ```bash
-> php artisan wncms:install-default-theme --force
-> ```
 
 ## Run Installer
+
+This v6.7.0 new install requires PHP 8.4 and Laravel 13. Supply your administrator email with `--admin_email=you@example.com`; the CLI asks for the password twice using hidden prompts. The password must contain at least 12 characters and at most 72 UTF-8 bytes. For non-interactive provisioning, provide `WNCMS_INSTALL_ADMIN_PASSWORD` through a temporary protected process environment and remove it afterwards; do not put the administrator password in command arguments or committed files. The web wizard requires the same email, password and confirmation. No shared default administrator or demo manager is created.
+
+When adding this package to a fresh official Laravel application for web installation, run `php artisan vendor:publish --tag=wncms-core-assets` before opening `/install`. Use an empty database dedicated to the new installation; the installer rebuilds its schema.
 
 WNCMS offers a full command-line installer:
 
@@ -160,10 +113,9 @@ https://your-domain.com/panel/login
 ```
 
 > [!WARNING] REMINDER
-> You must change the password after installation.
+> Sign in using the administrator email and password you supplied during installation.
 > login URL: `https://your-domain.com/panel/login`
-> default user: `admin@demo.com`
-> default password: `wncms.cc`
+> There are no shared default login credentials.
 
 ## Next Steps
 

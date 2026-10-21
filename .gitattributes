@@ -1,2 +1,2 @@
-.github/skills export-ignore
-.github/skills/** export-ignore
+/.github/skills export-ignore
+/.github/skills/** export-ignore

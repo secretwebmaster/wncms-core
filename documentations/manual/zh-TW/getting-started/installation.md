@@ -1,66 +1,15 @@
 # 安裝指南
 
-本指南說明如何在任何伺服器上安裝 **WNCMS**,包括 aaPanel、CyberPanel、VPS 或本地開發環境。
-
-## 創建新文件夾
-
-您可以將 WNCMS 安裝到一個空文件夾中:
+PHP 8.4 / Laravel 13. New installations only. Use an empty project directory and a dedicated empty database.
 
 ```bash
-mkdir my-project
+composer create-project laravel/laravel my-project "^13.0" --no-install --no-scripts --no-plugins
 cd my-project
+composer config allow-plugins false
+composer require secretwebmaster/wncms-core:^6.7.0 --no-scripts --no-plugins
+php artisan package:discover
+php artisan vendor:publish --tag=wncms-core-assets
 ```
-
-## 下載 WNCMS
-
-```bash
-composer create-project secretwebmaster/wncms .temp --no-interaction
-```
-
-這會將完整的 Laravel + WNCMS 結構放置在 `.temp/` 中。
-
-## 複製文件
-
-某些面板(aaPanel、共享主機)已經創建了默認的 `public/` 文件夾。
-我們必須**安全地合併** WNCMS,而不刪除上傳或伺服器文件。
-
-```bash
-# 複製所有根文件
-cp -r .temp/* .
-cp -r .temp/.* . 2>/dev/null
-
-# 安全地合併公共資源
-mkdir -p public
-cp -rf .temp/public/* public/ 2>/dev/null
-
-# 刪除臨時文件夾
-rm -rf .temp
-```
-
-此方法不需要 rsync 並適用於所有系統。如果您的伺服器已經有 rsync,您可以使用 rsync。原理是將所有文件移動到上一級。
-
-## 安裝依賴項
-
-```bash
-composer self-update
-composer install --no-interaction --prefer-dist
-composer update secretwebmaster/wncms-core -W
-
-# 或者
-# 如果您以 root 用戶身份運行並希望在沒有交互的情況下以編程方式安裝。您可以運行此命令
-
-# COMPOSER_ALLOW_SUPERUSER=1 composer self-update
-# COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist
-# COMPOSER_ALLOW_SUPERUSER=1 composer update secretwebmaster/wncms-core -W
-```
-
-> [!NOTE]
-> 主題資源不再於每次 Composer update 時自動同步。
-> 如果需要手動重新安裝核心主題資源，請執行:
->
-> ```bash
-> php artisan wncms:install-default-theme --force
-> ```
 
 ## 運行安裝程序
 
@@ -160,10 +109,9 @@ https://your-domain.com/panel/login
 ```
 
 > [!WARNING] 提醒
-> 您必須在安裝後更改密碼。
+> 此全新安裝 v6.7.0 需要 PHP 8.4、Laravel 13，以及專用的空白資料庫；安裝器會重建資料表。CLI 可用 `--admin_email=you@example.com` 指定管理員，密碼以隱藏提示輸入兩次，至少 12 字元、最多 72 個 UTF-8 位元組。非互動部署請透過暫時且受保護的程序環境提供 `WNCMS_INSTALL_ADMIN_PASSWORD`，完成後移除；不要放在命令參數或版本庫。網頁精靈也要求管理員帳密與確認。
 > 登入 URL: `https://your-domain.com/panel/login`
-> 默認用戶: `admin@demo.com`
-> 默認密碼: `wncms.cc`
+> 安裝後使用您指定的帳密登入，不會建立共用預設管理員或示範 manager。若以官方 Laravel 新專案加入本套件後使用網頁精靈，先執行 `php artisan vendor:publish --tag=wncms-core-assets`。
 
 ## 下一步
 

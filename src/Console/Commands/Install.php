@@ -4,6 +4,8 @@ namespace Wncms\Console\Commands;
 
 use Illuminate\Console\Command;
 use Wncms\Services\Installer\InstallerManager;
+use Wncms\Services\Installer\InstallationAdmin;
+use Illuminate\Validation\ValidationException;
 
 class Install extends Command
 {
@@ -52,6 +54,7 @@ class Install extends Command
         {db_name}
         {db_user}
         {db_pass}
+        {--admin_email=}
         {--app_name=}
         {--app_url=}
         {--app_locale=}
@@ -173,9 +176,14 @@ class Install extends Command
         $installer = new InstallerManager;
 
         // Prepare and normalize input
-        $input = $installer->normalizeInput($input);
-
-        $result = $installer->runInstallation($input);
+        try {
+            $input = array_merge($input, InstallationAdmin::consoleInput($this, $this->input->isInteractive()));
+            $input = $installer->normalizeInput($input);
+            $result = $installer->runInstallation($input);
+        } catch (ValidationException $e) {
+            $this->error('Administrator credentials are required: use --admin_email and a hidden prompt or WNCMS_INSTALL_ADMIN_PASSWORD; password must be confirmed and at least 12 characters.');
+            return Command::FAILURE;
+        }
 
         if (!$result['passed']) {
             $this->error($this->tr('install_cli_database_connection_failed'));
@@ -258,10 +266,9 @@ class Install extends Command
         $loginUrl = rtrim((string) ($input['app_url'] ?? 'http://localhost'), '/') . '/panel/login';
         $this->info($this->tr('install_cli_frontend_home', ['url' => $frontendUrl]));
         $this->info('');
-        $this->info($this->tr('install_cli_default_admin_account'));
+        $this->info('Use the administrator email and password supplied during installation.');
         $this->info($this->tr('install_cli_login_url', ['url' => $loginUrl]));
-        $this->info($this->tr('install_cli_email'));
-        $this->info($this->tr('install_cli_password'));
+
 
         return Command::SUCCESS;
     }

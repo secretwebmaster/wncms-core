@@ -9,6 +9,7 @@ use Wncms\Services\Installer\InstallerManager;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Validator;
+use Illuminate\Validation\ValidationException;
 
 class InstallController extends Controller
 {
@@ -97,7 +98,12 @@ class InstallController extends Controller
             ]);
         }
 
-        $result = $this->installer->runInstallation($input);
+        try {
+            $result = $this->installer->runInstallation($input);
+        } catch (ValidationException $e) {
+            // Return field errors only; never flash administrator passwords into a session.
+            return response()->json(['status' => 'fail', 'message' => $e->errors()], 422);
+        }
 
         if (!$result['passed']) {
             return response()->json([

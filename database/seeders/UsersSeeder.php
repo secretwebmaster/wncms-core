@@ -6,7 +6,7 @@ use Wncms\Models\User;
 use Wncms\Models\UserInfo;
 use Faker\Generator;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use Wncms\Services\Installer\InstallationAdmin;
 use Illuminate\Support\Facades\Schema;
 use Str;
 
@@ -19,10 +19,15 @@ class UsersSeeder extends Seeder
      */
     public function run(Generator $faker)
     {
+        if (!app()->bound(InstallationAdmin::class)) {
+            throw new \RuntimeException('Set administrator credentials through the WNCMS installer before seeding users.');
+        }
+        $administrator = app(InstallationAdmin::class);
+
         $adminPayload = [
             'username' => 'admin',
-            'email' => 'admin@demo.com',
-            'password' => Hash::make('wncms.cc'),
+            'email' => $administrator->email,
+            'password' => $administrator->passwordHash,
             'email_verified_at' => now(),
             'api_token' => Str::uuid(),
         ];
@@ -33,18 +38,7 @@ class UsersSeeder extends Seeder
         $demoAdmin->assignRole('superadmin');
         $demoAdmin->assignRole('admin');
 
-        $managerPayload = [
-            'username' => 'manager',
-            'email' => 'manager@demo.com',
-            'password' => Hash::make('wncms.cc'),
-            'email_verified_at' => now(),
-            'api_token' => Str::uuid(),
-        ];
-        if (Schema::hasColumn('users', 'name')) {
-            $managerPayload['name'] = 'manager';
-        }
-        $demoManager = User::create($managerPayload);
-        $demoManager->assignRole('manager');
+
 
 
 

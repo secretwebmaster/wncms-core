@@ -65,12 +65,12 @@
                     <li><i class="step__icon fa-solid fa-lg fa-check" aria-hidden="true"></i></li>
 
                     <li class="step__divider"></li>
-                    <li class="step__item {{ isActive('installer.final') }} {{ isActive('installer.environment')}} {{ isActive('installer.wizard')}} {{ isActive('installer.environmentClassic')}}">
+                    <li class="step__item {{ request()->routeIs('installer.final', 'installer.environment', 'installer.wizard', 'installer.environmentClassic') ? 'active' : '' }}">
                         <i class="step__icon fa-solid fa-server" aria-hidden="true"></i>
                     </li>
 
                     <li class="step__divider"></li>
-                    <li class="step__item {{ isActive('installer.permissions') }}">
+                    <li class="step__item {{ request()->routeIs('installer.permissions') ? 'active' : '' }}">
                         @if(Request::is('install/permissions') || Request::is('install/environment') || Request::is('install/environment/wizard') || Request::is('install/environment/classic') )
                             <a href="{{ route('installer.permissions') }}">
                                 <i class="step__icon fa-solid fa-key" aria-hidden="true"></i>
@@ -81,7 +81,7 @@
                     </li>
 
                     <li class="step__divider"></li>
-                    <li class="step__item {{ isActive('installer.requirements') }}">
+                    <li class="step__item {{ request()->routeIs('installer.requirements') ? 'active' : '' }}">
                         @if(Request::is('install') || Request::is('install/requirements') || Request::is('install/permissions') || Request::is('install/environment') || Request::is('install/environment/wizard') || Request::is('install/environment/classic') )
                             <a href="{{ route('installer.requirements') }}">
                                 <i class="step__icon fa-solid fa-list-check" aria-hidden="true"></i>
@@ -92,7 +92,7 @@
                     </li>
 
                     <li class="step__divider"></li>
-                    <li class="step__item {{ isActive('installer.welcome') }}">
+                    <li class="step__item {{ request()->routeIs('installer.welcome') ? 'active' : '' }}">
                         @if(Request::is('install') || Request::is('install/requirements') || Request::is('install/permissions') || Request::is('install/environment') || Request::is('install/environment/wizard') || Request::is('install/environment/classic') )
                             <a href="{{ route('installer.welcome') }}">
                                 <i class="step__icon fa fa-heart" aria-hidden="true"></i>

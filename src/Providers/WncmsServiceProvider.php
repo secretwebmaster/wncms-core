@@ -74,7 +74,6 @@ class WncmsServiceProvider extends ServiceProvider
         // Exclude paths from CSRF check
         $this->app->resolving(PreventRequestForgery::class, function ($csrf) {
             $csrf->except('panel/uploads/image');
-            $csrf->except('install/*');
         });
 
         // Core resources

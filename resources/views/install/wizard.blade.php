@@ -32,6 +32,16 @@
     <form id="form-install-wncms" class="tabs-wrap">
         @csrf
 
+        <fieldset>
+            <legend>Administrator account</legend>
+            <label for="admin_email">Administrator email</label>
+            <input type="email" id="admin_email" name="admin_email" required autocomplete="username" />
+            <label for="admin_password">Administrator password (12–72 characters; at most 72 UTF-8 bytes)</label>
+            <input type="password" id="admin_password" name="admin_password" required minlength="12" maxlength="72" autocomplete="new-password" />
+            <label for="admin_password_confirmation">Confirm administrator password</label>
+            <input type="password" id="admin_password_confirmation" name="admin_password_confirmation" required autocomplete="new-password" />
+        </fieldset>
+
         {{-- Basics --}}
         <div class="tab" id="tab1content">
             {{-- App Name --}}
